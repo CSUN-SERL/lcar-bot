@@ -1,4 +1,4 @@
-#!/bin/bash
+#/bin/bash
 
 trap "ctrl_c" INT SIGINT SIGTSTP
 
@@ -28,7 +28,8 @@ if [ -f  $file_name ]; then
     echo "$file_name contains $ID"
 
     if [ "$ID" != "-1" ]; then
-       roslaunch gcs lcarbot_single_sim_vision.launch uav_id:="$ID"
-#      lcar-bot $ID
+#       roslaunch gcs lcarbot_single_sim_vision.launch uav_id:="$ID"
+	roslaunch vehicle mavros_usb_cam.launch fcu_url:=/dev/ttyUSB0:921600 tgt_system:=2 v_id:="$ID"
+#	roslaunch vehicle mavros.launch fcu_url:=/dev/ttyUSB0:921600 tgt_system:=2 v_id:="$ID"
     fi
 fi
