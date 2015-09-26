@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <package>
-  <name>mav_control</name>
+  <name>rqt_gcs</name>
   <version>0.0.0</version>
-  <description>This package uses mavros to command and control a Quadrotor UAV.
-    This package communicates with two other packages including rqt_gcs and
-    machine_vision to ensure that the UAV reaches the desired location safely.
+  <description>This package implements a Web based GUI to allow one Ground
+    Ground Control Station Operator to manage and control multiple air and
+    ground vehicles to conduct a search and rescue mission.
   </description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
