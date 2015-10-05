@@ -14,6 +14,13 @@ class SimpleControl
 public:
   SimpleControl();
   ~SimpleControl();
+
+  /**
+      Arm or disarm the connected vehicle
+
+      @param value Pass true for arm, false for disarm
+  */
+  static void Arm(bool value);
 };
 
 #endif
