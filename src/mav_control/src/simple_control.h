@@ -16,11 +16,24 @@ public:
   ~SimpleControl();
 
   /**
-      Arm or disarm the connected vehicle
+      Arm or disarm the UAV
 
       @param value Pass true for arm, false for disarm
   */
   static void Arm(bool value);
+
+  /**
+      Land the UAV
+  */
+  static void Land();
+
+  /**
+      Set the UAV Flight Mode
+
+      @param mode Mode to Set: Choose from Stabilize, Alt Hold, Auto, Guided,
+      Loiter, RTL, or Circle
+  */
+  static void SetMode(char* mode);
 };
 
 #endif
