@@ -4,6 +4,8 @@
 #include <ros/ros.h>
 #include <termios.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <mavros/mavros.h>
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/CommandTOL.h>
@@ -33,7 +35,7 @@ public:
       @param mode Mode to Set: Choose from Stabilize, Alt Hold, Auto, Guided,
       Loiter, RTL, or Circle
   */
-  static void SetMode(char* mode);
+  static void SetMode(std::string mode);
 };
 
 #endif
