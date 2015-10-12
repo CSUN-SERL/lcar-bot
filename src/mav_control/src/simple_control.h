@@ -45,9 +45,10 @@ public:
       Override the RC value of the transmitter
 
       @param channel Channel to override (1-8)
-      @param value value of the channel
+      @param value New value of the channel
+      @param nh Pointer to the NodeHandle object of the publishing class
   */
-  static void OverrideRC(int channel, int value);
+  static void OverrideRC(int channel, int value, ros::NodeHandle* nh);
 
   /**
       Send a new position command to the UAV
@@ -56,7 +57,7 @@ public:
       @param y New y position
       @param z New z position
   */
-  static void SetLocalPosition(int x, int y, int z);
+  static void SetLocalPosition(int x, int y, int z, ros::NodeHandle* nh);
 };
 
 #endif

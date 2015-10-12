@@ -1,23 +1,14 @@
 #include "simple_control.h"
 
-ros::Publisher override_rc_pub;
-ros::Publisher setpoint_position_pub;
-
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "simple_control");
   ros::NodeHandle nh;
 
-  override_rc_pub        = nh.advertise<mavros_msgs::OverrideRCIn>("/mavros/rc/override",QUEUE_SIZE);
-  setpoint_position_pub  = nh.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local",QUEUE_SIZE);
-
-  int channel = 3;
-  int value = 2000;
-
   ros::Rate loop_rate(1); //1Hz
   while(ros::ok())
   {
-    SimpleControl::SetLocalPosition(500,500,0);
+    SimpleControl::OverrideRC(3, 2000, &nh);
     ros::spinOnce();
     loop_rate.sleep();
   }
@@ -85,8 +76,10 @@ void SimpleControl::SetMode(std::string mode)
   mavros_mode_client.call(new_mode);
 }
 
-void SimpleControl::OverrideRC(int channel, int value)
+void SimpleControl::OverrideRC(int channel, int value, ros::NodeHandle* nh)
 {
+  //Create the publisher and message objects
+  ros::Publisher override_rc_pub = nh->advertise<mavros_msgs::OverrideRCIn>("/mavros/rc/override",QUEUE_SIZE);
   mavros_msgs::OverrideRCIn override_msg;
 
   // Update the message with the new RC value
@@ -96,8 +89,10 @@ void SimpleControl::OverrideRC(int channel, int value)
   override_rc_pub.publish(override_msg);
 }
 
-void SimpleControl::SetLocalPosition(int x, int y, int z)
+void SimpleControl::SetLocalPosition(int x, int y, int z, ros::NodeHandle* nh)
 {
+  //Create the publisher and message objects
+  ros::Publisher setpoint_position_pub  = nh->advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local",QUEUE_SIZE);
   geometry_msgs::PoseStamped position_stamped;
 
   //Update the message for the new position
