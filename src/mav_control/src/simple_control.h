@@ -10,6 +10,10 @@
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/CommandTOL.h>
 #include <mavros_msgs/SetMode.h>
+#include <mavros_msgs/OverrideRCIn.h>
+#include <geometry_msgs/PoseStamped.h>
+
+#define QUEUE_SIZE 1000 //Message Queue size for publishers
 
 class SimpleControl
 {
@@ -36,6 +40,23 @@ public:
       Loiter, RTL, or Circle
   */
   static void SetMode(std::string mode);
+
+  /**
+      Override the RC value of the transmitter
+
+      @param channel Channel to override (1-8)
+      @param value value of the channel
+  */
+  static void OverrideRC(int channel, int value);
+
+  /**
+      Send a new position command to the UAV
+
+      @param x New x position
+      @param y New y position
+      @param z New z position
+  */
+  static void SetLocalPosition(int x, int y, int z);
 };
 
 #endif
