@@ -26,12 +26,12 @@ public:
 
       @param value Pass true for arm, false for disarm
   */
-  static void Arm(bool value);
+  void Arm(bool value);
 
   /**
       Land the UAV
   */
-  static void Land();
+  void Land();
 
   /**
       Set the UAV Flight Mode
@@ -39,7 +39,7 @@ public:
       @param mode Mode to Set: Choose from Stabilize, Alt Hold, Auto, Guided,
       Loiter, RTL, or Circle
   */
-  static void SetMode(std::string mode);
+  void SetMode(std::string mode);
 
   /**
       Override the RC value of the transmitter
@@ -48,7 +48,7 @@ public:
       @param value New value of the channel
       @param nh Pointer to the NodeHandle object of the publishing class
   */
-  static void OverrideRC(int channel, int value, ros::NodeHandle* nh);
+  void OverrideRC(int channel, int value);
 
   /**
       Send a new position command to the UAV
@@ -57,7 +57,12 @@ public:
       @param y New y position
       @param z New z position
   */
-  static void SetLocalPosition(int x, int y, int z, ros::NodeHandle* nh);
+  void SetLocalPosition(int x, int y, int z);
+
+private:
+  ros::NodeHandle nh_simple_control;
+  ros::ServiceClient sc_arm, sc_land, sc_mode;
+  ros::Publisher pub_override_rc, pub_setpoint_position;
 };
 
 #endif

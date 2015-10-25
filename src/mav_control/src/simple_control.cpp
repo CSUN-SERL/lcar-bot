@@ -3,21 +3,33 @@
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "simple_control");
-  ros::NodeHandle nh;
+  SimpleControl quad_1;
 
   ros::Rate loop_rate(1); //1Hz
   while(ros::ok())
   {
-    SimpleControl::OverrideRC(3, 2000, &nh);
+    //Usage Example
+    /*quad_1.Arm(true);
+
+    quad_1.OverrideRC(3,1500);
+    quad_1.SetLocalPosition(10, 50, 30);*/
+
     ros::spinOnce();
     loop_rate.sleep();
   }
 
 }
 
-SimpleControl::SimpleControl(void)
+SimpleControl::SimpleControl(void)  //Class constructor
 {
-  //Class constructor
+  //Initialize Service Clients
+  sc_arm  = nh_simple_control.serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
+  sc_land = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/land");
+  sc_mode = nh_simple_control.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
+
+  //Initialize Publisher Objects
+  pub_override_rc       = nh_simple_control.advertise<mavros_msgs::OverrideRCIn>("/mavros/rc/override",QUEUE_SIZE);
+  pub_setpoint_position = nh_simple_control.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local",QUEUE_SIZE);
 }
 
 SimpleControl::~SimpleControl(void)
@@ -27,27 +39,23 @@ SimpleControl::~SimpleControl(void)
 
 void SimpleControl::Arm(bool value)
 {
-  ros::NodeHandle nh;
-
-  //Create a service client for arming/disarming
-  ros::ServiceClient mavros_arm_client = nh.serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
+  //Create a message for arming/disarming
   mavros_msgs::CommandBool arm;
   arm.request.value = value;
 
   //Call the service
-  mavros_arm_client.call(arm);
+  sc_arm.call(arm);
 }
 
 void SimpleControl::Land()
 {
   ros::NodeHandle nh;
 
-  //Create a service client for landing
-  ros::ServiceClient mavros_land_client = nh.serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/land");
+  //Create a message for landing
   mavros_msgs::CommandTOL land;
 
   //Call the service
-  mavros_land_client.call(land);
+  sc_land.call(land);
 }
 
 void SimpleControl::SetMode(std::string mode)
@@ -66,36 +74,33 @@ void SimpleControl::SetMode(std::string mode)
 
   ros::NodeHandle nh;
 
-  //Create a service client for changing flight mode
-  ros::ServiceClient mavros_mode_client = nh.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
+  //Create a message for changing flight mode
   mavros_msgs::SetMode new_mode;
   new_mode.request.base_mode = 0;
   new_mode.request.custom_mode = new_custom_mode; //custom_mode expects a char*
 
   //Call the service
-  mavros_mode_client.call(new_mode);
+  sc_mode.call(new_mode);
 }
 
-void SimpleControl::OverrideRC(int channel, int value, ros::NodeHandle* nh)
+void SimpleControl::OverrideRC(int channel, int value)
 {
-  //Create the publisher and message objects
-  ros::Publisher override_rc_pub = nh->advertise<mavros_msgs::OverrideRCIn>("/mavros/rc/override",QUEUE_SIZE);
+  //Create the message object
   mavros_msgs::OverrideRCIn override_msg;
 
   // Update the message with the new RC value
   override_msg.channels[channel-1] = value;
 
   //Publish the message
-  override_rc_pub.publish(override_msg);
+  pub_override_rc.publish(override_msg);
 }
 
-void SimpleControl::SetLocalPosition(int x, int y, int z, ros::NodeHandle* nh)
+void SimpleControl::SetLocalPosition(int x, int y, int z)
 {
-  //Create the publisher and message objects
-  ros::Publisher setpoint_position_pub  = nh->advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local",QUEUE_SIZE);
+  //Create the message object
   geometry_msgs::PoseStamped position_stamped;
 
-  //Update the message for the new position
+  //Update the message with the new position
   geometry_msgs::Pose point;
   point.position.x = x;
   point.position.y = y;
@@ -103,5 +108,5 @@ void SimpleControl::SetLocalPosition(int x, int y, int z, ros::NodeHandle* nh)
   position_stamped.pose = point;
 
   //Publish the message
-  setpoint_position_pub.publish(position_stamped);
+  pub_setpoint_position.publish(position_stamped);
 }
