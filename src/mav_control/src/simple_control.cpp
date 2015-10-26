@@ -3,17 +3,11 @@
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "simple_control");
-  SimpleControl quad_1;
+  SimpleControl quad1;
 
-  ros::Rate loop_rate(1); //1Hz
+  ros::Rate loop_rate(5); //1Hz
   while(ros::ok())
   {
-    //Usage Example
-    /*quad_1.Arm(true);
-
-    quad_1.OverrideRC(3,1500);
-    quad_1.SetLocalPosition(10, 50, 30);*/
-
     ros::spinOnce();
     loop_rate.sleep();
   }
@@ -23,9 +17,10 @@ int main(int argc, char **argv)
 SimpleControl::SimpleControl(void)  //Class constructor
 {
   //Initialize Service Clients
-  sc_arm  = nh_simple_control.serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
-  sc_land = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/land");
-  sc_mode = nh_simple_control.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
+  sc_arm      = nh_simple_control.serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
+  sc_takeoff  = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/takeoff");
+  sc_land     = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/land");
+  sc_mode     = nh_simple_control.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
 
   //Initialize Publisher Objects
   pub_override_rc       = nh_simple_control.advertise<mavros_msgs::OverrideRCIn>("/mavros/rc/override",QUEUE_SIZE);
@@ -47,10 +42,18 @@ void SimpleControl::Arm(bool value)
   sc_arm.call(arm);
 }
 
+void SimpleControl::Takeoff(int altitude)
+{
+  //Create a message for landing
+  mavros_msgs::CommandTOL takeoff;
+  takeoff.request.altitude = altitude;
+
+  //Call the service
+  sc_takeoff.call(takeoff);
+}
+
 void SimpleControl::Land()
 {
-  ros::NodeHandle nh;
-
   //Create a message for landing
   mavros_msgs::CommandTOL land;
 
