@@ -22,11 +22,19 @@ public:
   ~SimpleControl();
 
   /**
-      Arm or disarm the UAV
+      Arm or disarm the UAV.
 
       @param value Pass true for arm, false for disarm
   */
   void Arm(bool value);
+
+  /**
+      Takeoff to a set altitude. Requires the UAV to be first armed and then
+      put into Guided mode.
+
+      @param altitude Altitude, in feet, for takeoff
+  */
+  void Takeoff(int altitude);
 
   /**
       Land the UAV
@@ -34,7 +42,7 @@ public:
   void Land();
 
   /**
-      Set the UAV Flight Mode
+      Set the UAV Flight Mode.
 
       @param mode Mode to Set: Choose from Stabilize, Alt Hold, Auto, Guided,
       Loiter, RTL, or Circle
@@ -42,7 +50,7 @@ public:
   void SetMode(std::string mode);
 
   /**
-      Override the RC value of the transmitter
+      Override the RC value of the transmitter.
 
       @param channel Channel to override (1-8)
       @param value New value of the channel
@@ -61,7 +69,7 @@ public:
 
 private:
   ros::NodeHandle nh_simple_control;
-  ros::ServiceClient sc_arm, sc_land, sc_mode;
+  ros::ServiceClient sc_arm, sc_takeoff, sc_land, sc_mode;
   ros::Publisher pub_override_rc, pub_setpoint_position;
 };
 
