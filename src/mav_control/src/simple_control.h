@@ -52,6 +52,18 @@ public:
   void SetMode(std::string mode);
 
   /**
+      Sends the UAV to the desired waypoint. If the UAV is already in air, it
+      ascends or descends to the correct altitude and travels to the waypoint.
+      Otherwise, the flight mode is changed to Guided and the UAV is armed for
+      takeoff. The UAV then goes to the correct altitude and waypoint.
+
+      @param lat Latitude
+      @param lon Longitude
+      @param alt Altitude
+  */
+  void GoToWP(double lat, double lon, int alt);
+
+  /**
       Override the RC value of the transmitter.
 
       @param channel Channel to override (1-8)
@@ -68,18 +80,6 @@ public:
       @param z New z position
   */
   void SetLocalPosition(int x, int y, int z);
-
-  /**
-      Sends the UAV to the desired waypoint. If the UAV is already in air, it
-      ascends or descends to the correct altitude and travels to the waypoint.
-      Otherwise, the flight mode is changed to Guided and the UAV is armed for
-      takeoff. The UAV then goes to the correct altitude and waypoint.
-
-      @param lat Latitude
-      @param lon Longitude
-      @param alt Altitude
-  */
-  void GoToWP(double lat, double lon, int alt);
 
 private:
   ros::NodeHandle nh_simple_control;

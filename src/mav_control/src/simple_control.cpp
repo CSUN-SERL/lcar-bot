@@ -42,6 +42,8 @@ SimpleControl::~SimpleControl(void)
   //Class destructor
 }
 
+//TODO: Pre arm/disarm checks to ensure UAV isn't already armed or airborne
+//TODO: Provide feedback and updates using the ROS logger
 void SimpleControl::Arm(bool value)
 {
   //Create a message for arming/disarming
@@ -52,6 +54,8 @@ void SimpleControl::Arm(bool value)
   sc_arm.call(arm);
 }
 
+//TODO: Ensure the UAV is first armed and in guided mode. Check for success.
+//TODO: Provide feedback and updates using the ROS logger
 void SimpleControl::Takeoff(int altitude)
 {
   //Create a message for landing
@@ -71,6 +75,8 @@ void SimpleControl::Land()
   sc_land.call(land);
 }
 
+//TODO: Check for service success
+//TODO: Provide feedback and updates using the ROS logger
 void SimpleControl::SetMode(std::string mode)
 {
   char new_custom_mode;
@@ -94,6 +100,31 @@ void SimpleControl::SetMode(std::string mode)
 
   //Call the service
   sc_mode.call(new_mode);
+}
+
+//TODO: Ensure the UAV is airborne and check for service success
+//TODO: Provide feedback and updates using the ROS logger
+void SimpleControl::GoToWP(double lat, double lon, int alt)
+{
+  //Create a message for storing the the waypoint
+  mavros_msgs::WaypointGOTO msg_waypoint;
+
+  //Create the waypoint object
+  //TODO: Use the enum macros instead of magic numbers
+  mavros_msgs::Waypoint wp;
+  wp.frame        = 0;    //GLOBAL_FRAME
+  wp.command      = 16;   //WP_NAV
+  wp.is_current   = false;
+  wp.autocontinue = false;
+  wp.x_lat        = lat;
+  wp.y_long       = lon;
+  wp.z_alt        = alt;
+
+  //Update the message with the new waypoint
+  msg_waypoint.request.waypoint = wp;
+
+  //Call the service
+  sc_wp_goto.call(msg_waypoint);
 }
 
 void SimpleControl::OverrideRC(int channel, int value)
@@ -122,25 +153,4 @@ void SimpleControl::SetLocalPosition(int x, int y, int z)
 
   //Publish the message
   pub_setpoint_position.publish(position_stamped);
-}
-
-void SimpleControl::GoToWP(double lat, double lon, int alt)
-{
-  //Create a message for storing the the waypoint
-  mavros_msgs::WaypointGOTO msg_waypoint;
-
-  //Create the waypoint object
-  mavros_msgs::Waypoint wp;
-  wp.frame        = 0;    //GLOBAL_FRAME
-  wp.command      = 16;   //WP_NAV
-  wp.is_current   = false;
-  wp.autocontinue = false;
-  wp.x_lat        = lat;
-  wp.y_long       = lon;
-  wp.z_alt        = alt;
-
-  msg_waypoint.request.waypoint = wp;
-
-  //Call the service
-  sc_wp_goto.call(msg_waypoint);
 }
