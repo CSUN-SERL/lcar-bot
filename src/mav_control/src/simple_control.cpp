@@ -17,7 +17,7 @@ int main(int argc, char **argv)
 
   while(ros::ok())
   {
-    quad1.SetAttitude(30,50,20);
+    quad1.SetAngularVelocity(30,50,20);
     ros::spinOnce();
     loop_rate.sleep();
   }
@@ -37,6 +37,7 @@ SimpleControl::SimpleControl(void)  //Class constructor
   pub_override_rc       = nh_simple_control.advertise<mavros_msgs::OverrideRCIn>("/mavros/rc/override",QUEUE_SIZE);
   pub_setpoint_position = nh_simple_control.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local",QUEUE_SIZE);
   pub_setpoint_attitude = nh_simple_control.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_attitude/attitude",QUEUE_SIZE);
+  pub_angular_vel       = nh_simple_control.advertise<geometry_msgs::TwistStamped>("/mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
 }
 
 SimpleControl::~SimpleControl(void)
@@ -178,4 +179,20 @@ void SimpleControl::SetAttitude(int roll, int pitch, int yaw)
 
   //Publish the message
   pub_setpoint_attitude.publish(msg_attitude);
+}
+
+void SimpleControl::SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel)
+{
+  //Create the message object
+  geometry_msgs::TwistStamped msg_angular_vel;
+
+  //Update the message with the new angular velocity
+  geometry_msgs::Twist velocity;
+  velocity.angular.x = roll_vel;
+  velocity.angular.y = pitch_vel;
+  velocity.angular.z = yaw_vel;
+  msg_angular_vel.twist = velocity;
+
+  //Publish the message
+  pub_angular_vel.publish(msg_angular_vel);
 }

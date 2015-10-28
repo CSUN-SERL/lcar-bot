@@ -14,6 +14,7 @@
 #include <mavros_msgs/Waypoint.h>
 #include <mavros_msgs/WaypointGOTO.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/TwistStamped.h>
 
 #define QUEUE_SIZE 100 //Message Queue size for publishers
 
@@ -73,7 +74,7 @@ public:
   void OverrideRC(int channel, int value);
 
   /**
-      Send a new position command to the UAV
+      Send a new position command to the UAV.
 
       @param x New x position
       @param y New y position
@@ -84,7 +85,7 @@ public:
   /**
       Change the UAV's roll, pitch, and yaw values. Requires the UAV to be
       hovering (~50% throttle).
-      //NOTE: setpoint_attitude/attitude is currently on supported on the APM
+      //NOTE: setpoint_attitude/attitude is currently not supported on the APM
       flight stack. Only the px4 flight stack is supported at the moment.
       //TODO: Untested Function! Test with the px4 flight stack.
 
@@ -94,10 +95,23 @@ public:
   */
   void SetAttitude(int roll, int pitch, int yaw);
 
+  /**
+      Change the UAV's angular velocity for roll, pitch, and yaw.
+      //NOTE: setpoint_attitude/attitude is currently not supported on the APM
+      flight stack. Only the px4 flight stack is supported at the moment.
+      //TODO: Untested Function! Test with the px4 flight stack.
+
+      @param roll_vel   New roll velocity
+      @param pitch_vel  New pitch velocity
+      @param yaw_vel    New yaw velocity
+  */
+  void SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel);
+
 private:
   ros::NodeHandle nh_simple_control;
   ros::ServiceClient sc_arm, sc_takeoff, sc_land, sc_mode, sc_wp_goto;
-  ros::Publisher pub_override_rc, pub_setpoint_position, pub_setpoint_attitude;
+  ros::Publisher  pub_override_rc, pub_setpoint_position, pub_setpoint_attitude,
+                  pub_angular_vel;
 };
 
 #endif
