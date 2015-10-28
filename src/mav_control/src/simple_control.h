@@ -15,7 +15,7 @@
 #include <mavros_msgs/WaypointGOTO.h>
 #include <geometry_msgs/PoseStamped.h>
 
-#define QUEUE_SIZE 1000 //Message Queue size for publishers
+#define QUEUE_SIZE 100 //Message Queue size for publishers
 
 class SimpleControl
 {
@@ -81,10 +81,23 @@ public:
   */
   void SetLocalPosition(int x, int y, int z);
 
+  /**
+      Change the UAV's roll, pitch, and yaw values. Requires the UAV to be
+      hovering (~50% throttle).
+      //NOTE: setpoint_attitude/attitude is currently on supported on the APM
+      flight stack. Only the px4 flight stack is supported at the moment.
+      //TODO: Untested Function! Test with the px4 flight stack.
+
+      @param roll   New roll value in degrees, relative to the horizontal plane
+      @param pitch  New pitch value in degrees, relative to the horizontal plane
+      @param yaw    New yaw value in degrees, relative to the horizontal plane
+  */
+  void SetAttitude(int roll, int pitch, int yaw);
+
 private:
   ros::NodeHandle nh_simple_control;
   ros::ServiceClient sc_arm, sc_takeoff, sc_land, sc_mode, sc_wp_goto;
-  ros::Publisher pub_override_rc, pub_setpoint_position;
+  ros::Publisher pub_override_rc, pub_setpoint_position, pub_setpoint_attitude;
 };
 
 #endif

@@ -5,18 +5,19 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "simple_control");
   SimpleControl quad1;
 
-  quad1.SetMode("Guided");
+  /*quad1.SetMode("Guided");
   quad1.Arm(true);
   quad1.Takeoff(5);
 
   ros::Rate delay(0.25);
   delay.sleep();
-  quad1.GoToWP(-35.362881, 149.165222, 10);
+  quad1.GoToWP(-35.362881, 149.165222, 10);*/
 
   ros::Rate loop_rate(5); //1Hz
 
   while(ros::ok())
   {
+    quad1.SetAttitude(30,50,20);
     ros::spinOnce();
     loop_rate.sleep();
   }
@@ -35,6 +36,7 @@ SimpleControl::SimpleControl(void)  //Class constructor
   //Initialize Publisher Objects
   pub_override_rc       = nh_simple_control.advertise<mavros_msgs::OverrideRCIn>("/mavros/rc/override",QUEUE_SIZE);
   pub_setpoint_position = nh_simple_control.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local",QUEUE_SIZE);
+  pub_setpoint_attitude = nh_simple_control.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_attitude/attitude",QUEUE_SIZE);
 }
 
 SimpleControl::~SimpleControl(void)
@@ -153,4 +155,27 @@ void SimpleControl::SetLocalPosition(int x, int y, int z)
 
   //Publish the message
   pub_setpoint_position.publish(position_stamped);
+}
+
+void SimpleControl::SetAttitude(int roll, int pitch, int yaw)
+{
+  //Create the message object
+  geometry_msgs::PoseStamped msg_attitude;
+
+  //Create an object with the new attitude
+  //NOTE: Arbitrary values until the function is tested
+  geometry_msgs::Pose uav_attitude;
+  uav_attitude.position.x     = roll;
+  uav_attitude.position.y     = pitch;
+  uav_attitude.position.z     = yaw;
+  uav_attitude.orientation.x  = roll;
+  uav_attitude.orientation.y  = pitch;
+  uav_attitude.orientation.z  = yaw;
+  uav_attitude.orientation.w  = 0;
+
+  //Update the message with the new attitude
+  msg_attitude.pose = uav_attitude;
+
+  //Publish the message
+  pub_setpoint_attitude.publish(msg_attitude);
 }
