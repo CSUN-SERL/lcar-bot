@@ -5,7 +5,16 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "simple_control");
   SimpleControl quad1;
 
+  quad1.SetMode("Guided");
+  quad1.Arm(true);
+  quad1.Takeoff(5);
+
+  ros::Rate delay(0.25);
+  delay.sleep();
+  quad1.GoToWP(-35.362881, 149.165222, 10);
+
   ros::Rate loop_rate(5); //1Hz
+
   while(ros::ok())
   {
     ros::spinOnce();
@@ -21,6 +30,7 @@ SimpleControl::SimpleControl(void)  //Class constructor
   sc_takeoff  = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/takeoff");
   sc_land     = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/land");
   sc_mode     = nh_simple_control.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
+  sc_wp_goto  = nh_simple_control.serviceClient<mavros_msgs::WaypointGOTO>("/mavros/mission/goto");
 
   //Initialize Publisher Objects
   pub_override_rc       = nh_simple_control.advertise<mavros_msgs::OverrideRCIn>("/mavros/rc/override",QUEUE_SIZE);
@@ -112,4 +122,25 @@ void SimpleControl::SetLocalPosition(int x, int y, int z)
 
   //Publish the message
   pub_setpoint_position.publish(position_stamped);
+}
+
+void SimpleControl::GoToWP(double lat, double lon, int alt)
+{
+  //Create a message for storing the the waypoint
+  mavros_msgs::WaypointGOTO msg_waypoint;
+
+  //Create the waypoint object
+  mavros_msgs::Waypoint wp;
+  wp.frame        = 0;    //GLOBAL_FRAME
+  wp.command      = 16;   //WP_NAV
+  wp.is_current   = false;
+  wp.autocontinue = false;
+  wp.x_lat        = lat;
+  wp.y_long       = lon;
+  wp.z_alt        = alt;
+
+  msg_waypoint.request.waypoint = wp;
+
+  //Call the service
+  sc_wp_goto.call(msg_waypoint);
 }

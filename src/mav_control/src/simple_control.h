@@ -11,6 +11,8 @@
 #include <mavros_msgs/CommandTOL.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/OverrideRCIn.h>
+#include <mavros_msgs/Waypoint.h>
+#include <mavros_msgs/WaypointGOTO.h>
 #include <geometry_msgs/PoseStamped.h>
 
 #define QUEUE_SIZE 1000 //Message Queue size for publishers
@@ -67,9 +69,21 @@ public:
   */
   void SetLocalPosition(int x, int y, int z);
 
+  /**
+      Sends the UAV to the desired waypoint. If the UAV is already in air, it
+      ascends or descends to the correct altitude and travels to the waypoint.
+      Otherwise, the flight mode is changed to Guided and the UAV is armed for
+      takeoff. The UAV then goes to the correct altitude and waypoint.
+
+      @param lat Latitude
+      @param lon Longitude
+      @param alt Altitude
+  */
+  void GoToWP(double lat, double lon, int alt);
+
 private:
   ros::NodeHandle nh_simple_control;
-  ros::ServiceClient sc_arm, sc_takeoff, sc_land, sc_mode;
+  ros::ServiceClient sc_arm, sc_takeoff, sc_land, sc_mode, sc_wp_goto;
   ros::Publisher pub_override_rc, pub_setpoint_position;
 };
 
