@@ -6,13 +6,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
 #include <mavros/mavros.h>
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/CommandTOL.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/OverrideRCIn.h>
 #include <mavros_msgs/Waypoint.h>
+#include <mavros_msgs/CommandCode.h>
 #include <mavros_msgs/WaypointGOTO.h>
+#include <mavros_msgs/WaypointPush.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
 
@@ -53,7 +56,7 @@ public:
   void SetMode(std::string mode);
 
   /**
-      Sends the UAV to the desired waypoint. If the UAV is already in air, it
+      Send the UAV to the desired waypoint. If the UAV is already in air, it
       ascends or descends to the correct altitude and travels to the waypoint.
       Otherwise, the flight mode is changed to Guided and the UAV is armed for
       takeoff. The UAV then goes to the correct altitude and waypoint.
@@ -63,6 +66,13 @@ public:
       @param alt Altitude
   */
   void GoToWP(double lat, double lon, int alt);
+
+  /**
+      Send a list of waypoints (mission) to the UAV.
+
+      @param mission_file Name of the text file that contains the mision
+  */
+  void SendMission(std::string mission_file);
 
   /**
       Override the RC value of the transmitter.
@@ -109,7 +119,8 @@ public:
 
 private:
   ros::NodeHandle nh_simple_control;
-  ros::ServiceClient sc_arm, sc_takeoff, sc_land, sc_mode, sc_wp_goto;
+  ros::ServiceClient  sc_arm, sc_takeoff, sc_land, sc_mode, sc_wp_goto,
+                      sc_mission;
   ros::Publisher  pub_override_rc, pub_setpoint_position, pub_setpoint_attitude,
                   pub_angular_vel;
 };

@@ -5,19 +5,12 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "simple_control");
   SimpleControl quad1;
 
-  /*quad1.SetMode("Guided");
-  quad1.Arm(true);
-  quad1.Takeoff(5);
-
-  ros::Rate delay(0.25);
-  delay.sleep();
-  quad1.GoToWP(-35.362881, 149.165222, 10);*/
+  quad1.SendMission("NULL");
 
   ros::Rate loop_rate(5); //1Hz
-
   while(ros::ok())
   {
-    quad1.SetAngularVelocity(30,50,20);
+    //quad1.SetAngularVelocity(30,50,20);
     ros::spinOnce();
     loop_rate.sleep();
   }
@@ -32,6 +25,7 @@ SimpleControl::SimpleControl(void)  //Class constructor
   sc_land     = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/land");
   sc_mode     = nh_simple_control.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
   sc_wp_goto  = nh_simple_control.serviceClient<mavros_msgs::WaypointGOTO>("/mavros/mission/goto");
+  sc_mission  = nh_simple_control.serviceClient<mavros_msgs::WaypointPush>("/mavros/mission/push");
 
   //Initialize Publisher Objects
   pub_override_rc       = nh_simple_control.advertise<mavros_msgs::OverrideRCIn>("/mavros/rc/override",QUEUE_SIZE);
@@ -113,10 +107,9 @@ void SimpleControl::GoToWP(double lat, double lon, int alt)
   mavros_msgs::WaypointGOTO msg_waypoint;
 
   //Create the waypoint object
-  //TODO: Use the enum macros instead of magic numbers
   mavros_msgs::Waypoint wp;
-  wp.frame        = 0;    //GLOBAL_FRAME
-  wp.command      = 16;   //WP_NAV
+  wp.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL;
+  wp.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
   wp.is_current   = false;
   wp.autocontinue = false;
   wp.x_lat        = lat;
@@ -128,6 +121,54 @@ void SimpleControl::GoToWP(double lat, double lon, int alt)
 
   //Call the service
   sc_wp_goto.call(msg_waypoint);
+}
+
+void SimpleControl::SendMission(std::string mission_file)
+{
+  //Create a message for storing the the waypoint
+  mavros_msgs::WaypointPush msg_mission;
+
+  //TODO: Add ability to create waypoints from a text file.
+  mavros_msgs::Waypoint wp1;
+  wp1.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL;
+  wp1.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
+  wp1.is_current   = false;
+  wp1.autocontinue = true;
+  wp1.x_lat        = -35.3632621765;
+  wp1.y_long       = 149.165237427;
+  wp1.z_alt        = 583.989990234;
+
+  mavros_msgs::Waypoint wp2;
+  wp2.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT;
+  wp2.command      = mavros_msgs::CommandCode::NAV_TAKEOFF;
+  wp2.is_current   = false;
+  wp2.autocontinue = true;
+  wp2.x_lat        = -35.3628807068;
+  wp2.y_long       = 149.165222168;
+  wp2.z_alt        = 20;
+
+  mavros_msgs::Waypoint wp3;
+  wp3.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT;
+  wp3.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
+  wp3.is_current   = false;
+  wp3.autocontinue = true;
+  wp3.x_lat        = -35.3646507263;
+  wp3.y_long       = 149.163497925;
+  wp3.z_alt        = 0;
+
+  //Update the message with the new waypoint
+  //NOTE: waypoints is a Vector object
+  msg_mission.request.waypoints.push_back(wp1);
+  msg_mission.request.waypoints.push_back(wp2);
+  msg_mission.request.waypoints.push_back(wp3);
+
+  //Call the service
+  if(sc_mission.call(msg_mission)){
+    ROS_INFO_STREAM("Response from service: " << msg_mission.response);
+  }
+  else{
+    ROS_ERROR_STREAM("Failed to call msg_mission service!");
+  }
 }
 
 void SimpleControl::OverrideRC(int channel, int value)
