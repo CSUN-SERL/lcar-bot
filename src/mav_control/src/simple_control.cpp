@@ -4,13 +4,11 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "simple_control");
   SimpleControl quad1;
-
-  quad1.SendMission("NULL");
+  quad1.Arm(false);
 
   ros::Rate loop_rate(5); //1Hz
   while(ros::ok())
   {
-    //quad1.SetAngularVelocity(30,50,20);
     ros::spinOnce();
     loop_rate.sleep();
   }
@@ -40,7 +38,6 @@ SimpleControl::~SimpleControl(void)
 }
 
 //TODO: Pre arm/disarm checks to ensure UAV isn't already armed or airborne
-//TODO: Provide feedback and updates using the ROS logger
 void SimpleControl::Arm(bool value)
 {
   //Create a message for arming/disarming
@@ -49,6 +46,20 @@ void SimpleControl::Arm(bool value)
 
   //Call the service
   sc_arm.call(arm);
+  if(sc_arm.call(arm)){
+    if(arm.response.success == 1 && value){
+      ROS_INFO_STREAM("**ARMED**\n");
+    }
+    else if(arm.response.success == 1 && !value){
+      ROS_INFO_STREAM("**DISARMED**\n");
+    }
+    else{
+      ROS_INFO_STREAM("Failed to arm/disarm!");
+    }
+  }
+  else{
+    ROS_ERROR_STREAM("Failed to call arm service!");
+  }
 }
 
 //TODO: Ensure the UAV is first armed and in guided mode. Check for success.
@@ -60,7 +71,12 @@ void SimpleControl::Takeoff(int altitude)
   takeoff.request.altitude = altitude;
 
   //Call the service
-  sc_takeoff.call(takeoff);
+  if(sc_takeoff.call(takeoff)){
+    ROS_INFO_STREAM("Response from service: " << takeoff.response << "\n");
+  }
+  else{
+    ROS_ERROR_STREAM("Failed to call takeoff service!");
+  }
 }
 
 void SimpleControl::Land()
@@ -69,7 +85,12 @@ void SimpleControl::Land()
   mavros_msgs::CommandTOL land;
 
   //Call the service
-  sc_land.call(land);
+  if(sc_land.call(land)){
+    ROS_INFO_STREAM("Response from service: " << land.response << "\n");
+  }
+  else{
+    ROS_ERROR_STREAM("Failed to call land service!");
+  }
 }
 
 //TODO: Check for service success
@@ -96,11 +117,17 @@ void SimpleControl::SetMode(std::string mode)
   new_mode.request.custom_mode = new_custom_mode; //custom_mode expects a char*
 
   //Call the service
-  sc_mode.call(new_mode);
+  if(sc_mode.call(new_mode)){
+    ROS_INFO_STREAM("Response from service: " << new_mode.response << "\n");
+  }
+  else{
+    ROS_ERROR_STREAM("Failed to call new_mode service!");
+  }
 }
 
 //TODO: Ensure the UAV is airborne and check for service success
 //TODO: Provide feedback and updates using the ROS logger
+//NOTE: Deprecated in latest version of ROS
 void SimpleControl::GoToWP(double lat, double lon, int alt)
 {
   //Create a message for storing the the waypoint
@@ -120,7 +147,12 @@ void SimpleControl::GoToWP(double lat, double lon, int alt)
   msg_waypoint.request.waypoint = wp;
 
   //Call the service
-  sc_wp_goto.call(msg_waypoint);
+  if(sc_wp_goto.call(msg_waypoint)){
+    ROS_INFO_STREAM("Response from service: " << msg_waypoint.response << "\n");
+  }
+  else{
+    ROS_ERROR_STREAM("Failed to call msg_waypoint service!");
+  }
 }
 
 void SimpleControl::SendMission(std::string mission_file)
@@ -164,7 +196,7 @@ void SimpleControl::SendMission(std::string mission_file)
 
   //Call the service
   if(sc_mission.call(msg_mission)){
-    ROS_INFO_STREAM("Response from service: " << msg_mission.response);
+    ROS_INFO_STREAM("Response from service: " << msg_mission.response << "\n");
   }
   else{
     ROS_ERROR_STREAM("Failed to call msg_mission service!");
