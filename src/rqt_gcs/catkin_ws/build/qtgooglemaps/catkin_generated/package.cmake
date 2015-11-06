@@ -1,0 +1,7 @@
+set(_CATKIN_CURRENT_PACKAGE "qtgooglemaps")
+set(qtgooglemaps_MAINTAINER "edwin <edwin@todo.todo>")
+set(qtgooglemaps_DEPRECATED "")
+set(qtgooglemaps_VERSION "0.0.0")
+set(qtgooglemaps_BUILD_DEPENDS "roscpp" "rqt_gui" "rqt_gui_cpp")
+set(qtgooglemaps_RUN_DEPENDS "roscpp" "rqt_gui" "rqt_gui_cpp")
+set(qtgooglemaps_BUILDTOOL_DEPENDS "catkin")

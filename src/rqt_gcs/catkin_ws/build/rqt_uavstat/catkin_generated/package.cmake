@@ -1,0 +1,7 @@
+set(_CATKIN_CURRENT_PACKAGE "rqt_uavstat")
+set(rqt_uavstat_MAINTAINER "edwin <edwin@todo.todo>")
+set(rqt_uavstat_DEPRECATED "")
+set(rqt_uavstat_VERSION "0.0.0")
+set(rqt_uavstat_BUILD_DEPENDS "roscpp" "rqt_gui" "rqt_gui_cpp" "rospy" "rqt_gui" "rqt_gui_py" "message_generation")
+set(rqt_uavstat_RUN_DEPENDS "roscpp" "rqt_gui" "rqt_gui_cpp" "rospy" "rqt_gui_py" "message_runtime")
+set(rqt_uavstat_BUILDTOOL_DEPENDS "catkin")

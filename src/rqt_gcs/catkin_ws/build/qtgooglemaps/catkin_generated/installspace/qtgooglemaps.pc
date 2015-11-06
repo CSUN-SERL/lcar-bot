@@ -1,0 +1,8 @@
+prefix=/home/edwin/catkin_ws/install
+
+Name: qtgooglemaps
+Description: Description of qtgooglemaps
+Version: 0.0.0
+Cflags: -I/home/edwin/catkin_ws/install/include
+Libs: -L/home/edwin/catkin_ws/install/lib -lqtgooglemaps
+Requires: roscpp rqt_gui rqt_gui_cpp

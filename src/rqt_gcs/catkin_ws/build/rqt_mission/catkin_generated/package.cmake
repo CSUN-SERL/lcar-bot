@@ -1,0 +1,7 @@
+set(_CATKIN_CURRENT_PACKAGE "rqt_mission")
+set(rqt_mission_MAINTAINER "edwin <edwin@todo.todo>")
+set(rqt_mission_DEPRECATED "")
+set(rqt_mission_VERSION "0.0.0")
+set(rqt_mission_BUILD_DEPENDS "roscpp" "rqt_gui" "rqt_gui_cpp")
+set(rqt_mission_RUN_DEPENDS "roscpp" "rqt_gui" "rqt_gui_cpp")
+set(rqt_mission_BUILDTOOL_DEPENDS "catkin")

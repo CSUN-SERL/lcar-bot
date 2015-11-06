@@ -1,0 +1,17 @@
+<library path="lib/librqt_uavstat">
+  <class name="rqt_uavstat/MyPlugin" type="rqt_uavstat::MyPlugin" base_class_type="rqt_gui_cpp::Plugin">
+    <description>
+      UAV
+    </description>
+    <qtgui>
+      <group>
+        <label>UAV</label>
+        <icon type="theme">folder</icon>
+        <statustip>UAV TOOLS</statustip>
+      </group>
+      <label>Stats</label>
+      <icon type="theme">image-x-generic</icon>
+      <statustip>UAV'S STATS</statustip>
+    </qtgui>
+  </class>
+</library>
