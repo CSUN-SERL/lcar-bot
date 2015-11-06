@@ -5,9 +5,12 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "simple_control");
   SimpleControl quad1;
 
+  quad1.SendMission("NULL");
+
   ros::Rate loop_rate(5); //1Hz
   while(ros::ok())
   {
+    //quad1.SetAngularVelocity(30,50,20);
     ros::spinOnce();
     loop_rate.sleep();
   }
@@ -21,10 +24,14 @@ SimpleControl::SimpleControl(void)  //Class constructor
   sc_takeoff  = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/takeoff");
   sc_land     = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/land");
   sc_mode     = nh_simple_control.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
+  sc_wp_goto  = nh_simple_control.serviceClient<mavros_msgs::WaypointGOTO>("/mavros/mission/goto");
+  sc_mission  = nh_simple_control.serviceClient<mavros_msgs::WaypointPush>("/mavros/mission/push");
 
   //Initialize Publisher Objects
   pub_override_rc       = nh_simple_control.advertise<mavros_msgs::OverrideRCIn>("/mavros/rc/override",QUEUE_SIZE);
   pub_setpoint_position = nh_simple_control.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local",QUEUE_SIZE);
+  pub_setpoint_attitude = nh_simple_control.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_attitude/attitude",QUEUE_SIZE);
+  pub_angular_vel       = nh_simple_control.advertise<geometry_msgs::TwistStamped>("/mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
 }
 
 SimpleControl::~SimpleControl(void)
@@ -32,6 +39,8 @@ SimpleControl::~SimpleControl(void)
   //Class destructor
 }
 
+//TODO: Pre arm/disarm checks to ensure UAV isn't already armed or airborne
+//TODO: Provide feedback and updates using the ROS logger
 void SimpleControl::Arm(bool value)
 {
   //Create a message for arming/disarming
@@ -42,6 +51,8 @@ void SimpleControl::Arm(bool value)
   sc_arm.call(arm);
 }
 
+//TODO: Ensure the UAV is first armed and in guided mode. Check for success.
+//TODO: Provide feedback and updates using the ROS logger
 void SimpleControl::Takeoff(int altitude)
 {
   //Create a message for landing
@@ -61,6 +72,8 @@ void SimpleControl::Land()
   sc_land.call(land);
 }
 
+//TODO: Check for service success
+//TODO: Provide feedback and updates using the ROS logger
 void SimpleControl::SetMode(std::string mode)
 {
   char new_custom_mode;
@@ -84,6 +97,78 @@ void SimpleControl::SetMode(std::string mode)
 
   //Call the service
   sc_mode.call(new_mode);
+}
+
+//TODO: Ensure the UAV is airborne and check for service success
+//TODO: Provide feedback and updates using the ROS logger
+void SimpleControl::GoToWP(double lat, double lon, int alt)
+{
+  //Create a message for storing the the waypoint
+  mavros_msgs::WaypointGOTO msg_waypoint;
+
+  //Create the waypoint object
+  mavros_msgs::Waypoint wp;
+  wp.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL;
+  wp.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
+  wp.is_current   = false;
+  wp.autocontinue = false;
+  wp.x_lat        = lat;
+  wp.y_long       = lon;
+  wp.z_alt        = alt;
+
+  //Update the message with the new waypoint
+  msg_waypoint.request.waypoint = wp;
+
+  //Call the service
+  sc_wp_goto.call(msg_waypoint);
+}
+
+void SimpleControl::SendMission(std::string mission_file)
+{
+  //Create a message for storing the the waypoint
+  mavros_msgs::WaypointPush msg_mission;
+
+  //TODO: Add ability to create waypoints from a text file.
+  mavros_msgs::Waypoint wp1;
+  wp1.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL;
+  wp1.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
+  wp1.is_current   = false;
+  wp1.autocontinue = true;
+  wp1.x_lat        = -35.3632621765;
+  wp1.y_long       = 149.165237427;
+  wp1.z_alt        = 583.989990234;
+
+  mavros_msgs::Waypoint wp2;
+  wp2.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT;
+  wp2.command      = mavros_msgs::CommandCode::NAV_TAKEOFF;
+  wp2.is_current   = false;
+  wp2.autocontinue = true;
+  wp2.x_lat        = -35.3628807068;
+  wp2.y_long       = 149.165222168;
+  wp2.z_alt        = 20;
+
+  mavros_msgs::Waypoint wp3;
+  wp3.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT;
+  wp3.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
+  wp3.is_current   = false;
+  wp3.autocontinue = true;
+  wp3.x_lat        = -35.3646507263;
+  wp3.y_long       = 149.163497925;
+  wp3.z_alt        = 0;
+
+  //Update the message with the new waypoint
+  //NOTE: waypoints is a Vector object
+  msg_mission.request.waypoints.push_back(wp1);
+  msg_mission.request.waypoints.push_back(wp2);
+  msg_mission.request.waypoints.push_back(wp3);
+
+  //Call the service
+  if(sc_mission.call(msg_mission)){
+    ROS_INFO_STREAM("Response from service: " << msg_mission.response);
+  }
+  else{
+    ROS_ERROR_STREAM("Failed to call msg_mission service!");
+  }
 }
 
 void SimpleControl::OverrideRC(int channel, int value)
@@ -112,4 +197,43 @@ void SimpleControl::SetLocalPosition(int x, int y, int z)
 
   //Publish the message
   pub_setpoint_position.publish(position_stamped);
+}
+
+void SimpleControl::SetAttitude(int roll, int pitch, int yaw)
+{
+  //Create the message object
+  geometry_msgs::PoseStamped msg_attitude;
+
+  //Create an object with the new attitude
+  //NOTE: Arbitrary values until the function is tested
+  geometry_msgs::Pose uav_attitude;
+  uav_attitude.position.x     = roll;
+  uav_attitude.position.y     = pitch;
+  uav_attitude.position.z     = yaw;
+  uav_attitude.orientation.x  = roll;
+  uav_attitude.orientation.y  = pitch;
+  uav_attitude.orientation.z  = yaw;
+  uav_attitude.orientation.w  = 0;
+
+  //Update the message with the new attitude
+  msg_attitude.pose = uav_attitude;
+
+  //Publish the message
+  pub_setpoint_attitude.publish(msg_attitude);
+}
+
+void SimpleControl::SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel)
+{
+  //Create the message object
+  geometry_msgs::TwistStamped msg_angular_vel;
+
+  //Update the message with the new angular velocity
+  geometry_msgs::Twist velocity;
+  velocity.angular.x = roll_vel;
+  velocity.angular.y = pitch_vel;
+  velocity.angular.z = yaw_vel;
+  msg_angular_vel.twist = velocity;
+
+  //Publish the message
+  pub_angular_vel.publish(msg_angular_vel);
 }
