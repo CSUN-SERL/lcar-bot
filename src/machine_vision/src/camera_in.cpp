@@ -2,16 +2,17 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
 
-static const std::string OPENCV_WINDOW = "Image window";
+#include "opencv2/imgproc.hpp"
+#include "opencv2/highgui.hpp"
+
+static const std::string LEFT_WINDOW = "left cam";
 
 class ImageConverter
 {
   ros::NodeHandle nh_;
   image_transport::ImageTransport it_;
-  image_transport::Subscriber image_sub_;
+  image_transport::Subscriber image_sub_left;
   image_transport::Publisher image_pub_;
 
 public:
@@ -19,16 +20,16 @@ public:
     : it_(nh_)
   {
     // Subscrive to input video feed and publish output video feed
-    image_sub_ = it_.subscribe("/camera/image_raw", 1,
+    image_sub_left = it_.subscribe("/usb_cam/image_raw", 1,
       &ImageConverter::imageCb, this);
-    image_pub_ = it_.advertise("/image_converter/output_video", 1);
+    //image_pub_ = it_.advertise("/image_converter/output_video", 1);
 
-    cv::namedWindow(OPENCV_WINDOW);
+    cv::namedWindow(LEFT_WINDOW);
   }
 
   ~ImageConverter()
   {
-    cv::destroyWindow(OPENCV_WINDOW);
+    cv::destroyWindow(LEFT_WINDOW);
   }
 
   void imageCb(const sensor_msgs::ImageConstPtr& msg)
@@ -44,13 +45,10 @@ public:
       return;
     }
 
-    // Draw an example circle on the video stream
-    if (cv_ptr->image.rows > 60 && cv_ptr->image.cols > 60)
-      cv::circle(cv_ptr->image, cv::Point(50, 50), 10, CV_RGB(255,0,0));
-
     // Update GUI Window
-    cv::imshow(OPENCV_WINDOW, cv_ptr->image);
-    cv::waitKey(3);
+    cv::imshow(LEFT_WINDOW, cv_ptr->image);
+    char quit = cv::waitKey(3);
+    if ((int)quit == 27) return;
 
     // Output modified video stream
     image_pub_.publish(cv_ptr->toImageMsg());

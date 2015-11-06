@@ -1,0 +1,12 @@
+-I/usr/include/qt4
+-I/usr/include/qt4/QtGui
+-I/usr/include/qt4/QtCore
+-DROS_BUILD_SHARED_LIBS=1
+-DROS_PACKAGE_NAME="rqt_question"
+-DROSCONSOLE_BACKEND_LOG4CXX
+-DQT_NO_DEBUG
+-DQT_GUI_LIB
+-DQT_CORE_LIB
+-o
+/home/edwin/catkin_ws/build/rqt_question/include/rqt_question/moc_question.cxx
+/home/edwin/catkin_ws/src/rqt_question/include/rqt_question/question.h

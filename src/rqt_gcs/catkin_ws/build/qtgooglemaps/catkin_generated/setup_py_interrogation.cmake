@@ -1,0 +1,6 @@
+set(qtgooglemaps_SETUP_PY_VERSION "0.0.0")
+set(qtgooglemaps_SETUP_PY_SCRIPTS "")
+set(qtgooglemaps_SETUP_PY_PACKAGES "qtgooglemaps")
+set(qtgooglemaps_SETUP_PY_PACKAGE_DIRS "src/qtgooglemaps")
+set(qtgooglemaps_SETUP_PY_MODULES "")
+set(qtgooglemaps_SETUP_PY_MODULE_DIRS "")

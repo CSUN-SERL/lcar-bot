@@ -7,14 +7,15 @@ project(machine_vision)
 # Find catkin build system and specify needed packages
 find_package(catkin REQUIRED COMPONENTS
   cv_bridge
-  sensor_msgs
   image_transport
+  sensor_msgs
   roscpp
   std_msgs
   usb_cam
 )
 
 find_package(OpenCV REQUIRED)
+
 
 # Declare the package
 catkin_package()
@@ -26,12 +27,16 @@ include_directories(include
 )
 
 # Declare executables with source files
-# Example:
-add_executable(main_node src/main_node.cpp)
+#add_executable(cam_parallel src/camera_parallel.cpp)
+add_executable(cam_serial src/camera_serial.cpp)
 
 #Specify libraries against which to link
-# Example:
-target_link_libraries(main_node
+#target_link_libraries(cam_parallel
+#  ${catkin_LIBRARIES}
+#  ${OpenCV_LIBRARIES}
+#)
+
+target_link_libraries(cam_serial
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
 )

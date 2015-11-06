@@ -1,0 +1,8 @@
+prefix=/home/edwin/catkin_ws/devel
+
+Name: rqt_uavstat
+Description: Description of rqt_uavstat
+Version: 0.0.0
+Cflags: -I/home/edwin/catkin_ws/src/rqt_uavstat/include -I/home/edwin/catkin_ws/build/rqt_uavstat
+Libs: -L/home/edwin/catkin_ws/devel/lib -lrqt_uavstat
+Requires: roscpp rqt_gui rqt_gui_cpp

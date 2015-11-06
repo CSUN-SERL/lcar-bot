@@ -1,0 +1,8 @@
+prefix=/home/edwin/catkin_ws/install
+
+Name: rqt_mission
+Description: Description of rqt_mission
+Version: 0.0.0
+Cflags: -I/home/edwin/catkin_ws/install/include
+Libs: -L/home/edwin/catkin_ws/install/lib -lrqt_mission
+Requires: roscpp rqt_gui rqt_gui_cpp

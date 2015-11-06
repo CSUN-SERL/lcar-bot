@@ -1,0 +1,8 @@
+prefix=/home/edwin/catkin_ws/devel
+
+Name: qt-google-maps
+Description: Description of qt-google-maps
+Version: 0.0.0
+Cflags: -I/home/edwin/catkin_ws/src/qt-google-maps/include -I/home/edwin/catkin_ws/build/qt-google-maps
+Libs: -L/home/edwin/catkin_ws/devel/lib -lqt-google-maps
+Requires: roscpp rqt_gui rqt_gui_cpp
