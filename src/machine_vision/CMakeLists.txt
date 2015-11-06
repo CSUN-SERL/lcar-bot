@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(OpenCV REQUIRED)
 
+
 # Declare the package
 catkin_package()
 
@@ -26,10 +27,16 @@ include_directories(include
 )
 
 # Declare executables with source files
-add_executable(camera_in src/camera_in.cpp)
+#add_executable(cam_parallel src/camera_parallel.cpp)
+add_executable(cam_serial src/camera_serial.cpp)
 
 #Specify libraries against which to link
-target_link_libraries(camera_in
+#target_link_libraries(cam_parallel
+#  ${catkin_LIBRARIES}
+#  ${OpenCV_LIBRARIES}
+#)
+
+target_link_libraries(cam_serial
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
 )
