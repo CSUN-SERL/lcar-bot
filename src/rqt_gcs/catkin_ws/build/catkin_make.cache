@@ -1,2 +1,0 @@
-qtgooglemaps:rqt_mission:rqt_question:rqt_uavstat
--DCATKIN_DEVEL_PREFIX=/home/edwin/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/edwin/catkin_ws/install -G Unix Makefiles

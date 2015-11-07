@@ -1,8 +1,0 @@
-prefix=/home/edwin/catkin_ws/devel
-
-Name: rqt_question
-Description: Description of rqt_question
-Version: 0.0.0
-Cflags: -I/home/edwin/catkin_ws/src/rqt_question/include -I/home/edwin/catkin_ws/build/rqt_question
-Libs: -L/home/edwin/catkin_ws/devel/lib -lrqt_question
-Requires: roscpp rqt_gui rqt_gui_cpp

@@ -1,8 +1,0 @@
-prefix=/home/edwin/catkin_ws/devel
-
-Name: rqt_mypkg
-Description: Description of rqt_mypkg
-Version: 0.0.0
-Cflags: -I/home/edwin/catkin_ws/src/rqt_mypkg/include -I/home/edwin/catkin_ws/build/rqt_mypkg
-Libs: -L/home/edwin/catkin_ws/devel/lib -lrqt_mypkg
-Requires: roscpp rqt_gui rqt_gui_cpp

@@ -1,7 +1,0 @@
-set(_CATKIN_CURRENT_PACKAGE "rqt_question")
-set(rqt_question_MAINTAINER "edwin <edwin@todo.todo>")
-set(rqt_question_DEPRECATED "")
-set(rqt_question_VERSION "0.0.0")
-set(rqt_question_BUILD_DEPENDS "roscpp" "rqt_gui" "rqt_gui_cpp" "rospy" "rqt_gui" "rqt_gui_py" "message_generation")
-set(rqt_question_RUN_DEPENDS "roscpp" "rqt_gui" "rqt_gui_cpp" "rospy" "rqt_gui_py" "message_runtime")
-set(rqt_question_BUILDTOOL_DEPENDS "catkin")
