@@ -11,13 +11,18 @@
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/CommandTOL.h>
 #include <mavros_msgs/SetMode.h>
+#include <mavros_msgs/State.h>
+#include <mavros_msgs/BatteryStatus.h>
 #include <mavros_msgs/OverrideRCIn.h>
 #include <mavros_msgs/Waypoint.h>
 #include <mavros_msgs/CommandCode.h>
 #include <mavros_msgs/WaypointGOTO.h>
 #include <mavros_msgs/WaypointPush.h>
+#include <sensor_msgs/Imu.h>
+#include <sensor_msgs/NavSatFix.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 
 #define QUEUE_SIZE 100 //Message Queue size for publishers
 
@@ -117,12 +122,23 @@ public:
   */
   void SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel);
 
+  //Callback Prototypes
+  void StateCallback(const mavros_msgs::State& msg_state);
+  void BatteryCallback(const mavros_msgs::BatteryStatus& msg_battery);
+
 private:
+  //ROS NodeHangle,Service Client, Publisher, and Subscriber Variables
   ros::NodeHandle nh_simple_control;
-  ros::ServiceClient  sc_arm, sc_takeoff, sc_land, sc_mode, sc_wp_goto,
-                      sc_mission;
-  ros::Publisher  pub_override_rc, pub_setpoint_position, pub_setpoint_attitude,
-                  pub_angular_vel;
+  ros::ServiceClient  sc_arm, sc_takeoff, sc_land, sc_mode, sc_wp_goto, sc_mission;
+  ros::Publisher      pub_override_rc, pub_setpoint_position, pub_setpoint_attitude, pub_angular_vel;
+  ros::Subscriber     sub_state, sub_battery, sub_imu, sub_pos_global, sub_pos_local;
+
+  //UAV State Variables
+  mavros_msgs::State state;
+  mavros_msgs::BatteryStatus battery;
+  sensor_msgs::Imu imu;
+  sensor_msgs::NavSatFix pos_global;
+  geometry_msgs::PoseWithCovarianceStamped pos_local;
 };
 
 #endif

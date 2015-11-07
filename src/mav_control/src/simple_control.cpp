@@ -4,7 +4,7 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "simple_control");
   SimpleControl quad1;
-  quad1.Arm(false);
+  quad1.Takeoff(10);
 
   ros::Rate loop_rate(5); //1Hz
   while(ros::ok())
@@ -30,6 +30,10 @@ SimpleControl::SimpleControl(void)  //Class constructor
   pub_setpoint_position = nh_simple_control.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local",QUEUE_SIZE);
   pub_setpoint_attitude = nh_simple_control.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_attitude/attitude",QUEUE_SIZE);
   pub_angular_vel       = nh_simple_control.advertise<geometry_msgs::TwistStamped>("/mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
+
+  //Initialze Subscribers
+  sub_state = nh_simple_control.subscribe("mavros/state", 10, &SimpleControl::StateCallback, this);
+  sub_battery = nh_simple_control.subscribe("mavros/battery", 10, &SimpleControl::BatteryCallback, this);
 }
 
 SimpleControl::~SimpleControl(void)
@@ -47,14 +51,13 @@ void SimpleControl::Arm(bool value)
   //Call the service
   sc_arm.call(arm);
   if(sc_arm.call(arm)){
-    if(arm.response.success == 1 && value){
-      ROS_INFO_STREAM("**ARMED**\n");
-    }
-    else if(arm.response.success == 1 && !value){
-      ROS_INFO_STREAM("**DISARMED**\n");
+    if(arm.response.success == 1){
+      if(value) ROS_INFO_STREAM("**ARMED**");
+      else ROS_INFO_STREAM("**DISARMED**");
     }
     else{
-      ROS_INFO_STREAM("Failed to arm/disarm!");
+      if(value) ROS_INFO_STREAM("Failed to Arm!");
+      else ROS_INFO_STREAM("Failed to Disarm!");
     }
   }
   else{
@@ -62,10 +65,15 @@ void SimpleControl::Arm(bool value)
   }
 }
 
-//TODO: Ensure the UAV is first armed and in guided mode. Check for success.
-//TODO: Provide feedback and updates using the ROS logger
 void SimpleControl::Takeoff(int altitude)
 {
+  //Ensure the UAV is in Guided mode and armed
+  bool armed = state.armed;
+  std::string mode = state.mode;
+
+  if(mode.compare("GUIDED") != 0) this->SetMode("Guided");
+  if(!armed) this->Arm(true);
+
   //Create a message for landing
   mavros_msgs::CommandTOL takeoff;
   takeoff.request.altitude = altitude;
@@ -268,4 +276,15 @@ void SimpleControl::SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel)
 
   //Publish the message
   pub_angular_vel.publish(msg_angular_vel);
+}
+
+//Callback Functions
+void SimpleControl::StateCallback(const mavros_msgs::State& msg_state)
+{
+  state = msg_state;
+}
+
+void SimpleControl::BatteryCallback(const mavros_msgs::BatteryStatus& msg_battery)
+{
+  battery = msg_battery;
 }
