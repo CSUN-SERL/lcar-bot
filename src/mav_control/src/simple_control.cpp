@@ -4,7 +4,6 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "simple_control");
   SimpleControl quad1;
-  quad1.Takeoff(10);
 
   ros::Rate loop_rate(5); //1Hz
   while(ros::ok())
@@ -56,8 +55,8 @@ void SimpleControl::Arm(bool value)
       else ROS_INFO_STREAM("**DISARMED**");
     }
     else{
-      if(value) ROS_INFO_STREAM("Failed to Arm!");
-      else ROS_INFO_STREAM("Failed to Disarm!");
+      if(value) ROS_ERROR_STREAM("Failed to Arm!");
+      else ROS_ERROR_STREAM("Failed to Disarm!");
     }
   }
   else{
@@ -68,7 +67,7 @@ void SimpleControl::Arm(bool value)
 void SimpleControl::Takeoff(int altitude)
 {
   //Ensure the UAV is in Guided mode and armed
-  bool armed = state.armed;
+  bool armed = (bool)state.armed;
   std::string mode = state.mode;
 
   if(mode.compare("GUIDED") != 0) this->SetMode("Guided");
@@ -80,7 +79,8 @@ void SimpleControl::Takeoff(int altitude)
 
   //Call the service
   if(sc_takeoff.call(takeoff)){
-    ROS_INFO_STREAM("Response from service: " << takeoff.response << "\n");
+    if(takeoff.response.success == 1) ROS_INFO_STREAM("Takeoff Initiated.");
+    else ROS_ERROR_STREAM("Failed to initiate takeoff.");
   }
   else{
     ROS_ERROR_STREAM("Failed to call takeoff service!");
@@ -94,15 +94,14 @@ void SimpleControl::Land()
 
   //Call the service
   if(sc_land.call(land)){
-    ROS_INFO_STREAM("Response from service: " << land.response << "\n");
+    if(land.response.success == 1) ROS_INFO_STREAM("Land Initiated.");
+    else ROS_ERROR_STREAM("Failed to initiate land.");
   }
   else{
     ROS_ERROR_STREAM("Failed to call land service!");
   }
 }
 
-//TODO: Check for service success
-//TODO: Provide feedback and updates using the ROS logger
 void SimpleControl::SetMode(std::string mode)
 {
   char new_custom_mode;
@@ -126,7 +125,8 @@ void SimpleControl::SetMode(std::string mode)
 
   //Call the service
   if(sc_mode.call(new_mode)){
-    ROS_INFO_STREAM("Response from service: " << new_mode.response << "\n");
+    if(new_mode.response.success == 1) ROS_INFO_STREAM("Mode changed to " << mode << ".");
+    else ROS_ERROR_STREAM("Failed to change flight mode to " << mode << ".");
   }
   else{
     ROS_ERROR_STREAM("Failed to call new_mode service!");
@@ -156,7 +156,8 @@ void SimpleControl::GoToWP(double lat, double lon, int alt)
 
   //Call the service
   if(sc_wp_goto.call(msg_waypoint)){
-    ROS_INFO_STREAM("Response from service: " << msg_waypoint.response << "\n");
+    if(msg_waypoint.response.success == 1) ROS_INFO_STREAM("Traveling to waypoint [" << lat << ", " << lon << "]");
+    else ROS_ERROR_STREAM("Navigation to waypoint [" << lat << ", " << lon << "]" << " failed.");
   }
   else{
     ROS_ERROR_STREAM("Failed to call msg_waypoint service!");
@@ -204,7 +205,8 @@ void SimpleControl::SendMission(std::string mission_file)
 
   //Call the service
   if(sc_mission.call(msg_mission)){
-    ROS_INFO_STREAM("Response from service: " << msg_mission.response << "\n");
+    if(msg_mission.response.success == 1) ROS_INFO_STREAM("Executing mission " << mission_file);
+    else ROS_ERROR_STREAM("Failed to execute mission " << mission_file);
   }
   else{
     ROS_ERROR_STREAM("Failed to call msg_mission service!");
