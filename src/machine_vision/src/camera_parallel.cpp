@@ -1,61 +1,79 @@
+#include <iostream>
+#include <stdio.h>
+#include <unistd.h>
+
 #include "opencv2/opencv.hpp"
 
-#include <iostream>
-#include <tbb/parallel_invoke.h>
 
 using namespace cv;
 using namespace cv::ml;
 using namespace std;
 
-int main(int argc, char** args) {
+///*
+int main (int argc, char ** argv){
 
-//    cv::Mat frameLeft;
-//    cv::Mat frameRight;
+	int pid = fork();
 
-    tbb::parallel_invoke(
-        [& ]() {
-            cv::Mat frameLeft;
-            VideoCapture lCap(0);
+	if(pid > 0){
+	//for	(int i = 0; i < 1000; i++);
+		///*
+        VideoCapture lCap(0);
 
-            if (!lCap.isOpened()) return -1;
+        if (!lCap.isOpened()) return -1;
+		
+		lCap.set(CV_CAP_PROP_FPS, 5);
+        lCap.set(CV_CAP_PROP_FRAME_WIDTH , 640);
+        lCap.set(CV_CAP_PROP_FRAME_HEIGHT , 480);
 
-            lCap.set(CV_CAP_PROP_FPS, 15);
-            lCap.set(CV_CAP_PROP_FRAME_WIDTH , 352);
-            lCap.set(CV_CAP_PROP_FRAME_HEIGHT , 255);
-
-            //namedWindow("cam_left", WINDOW_KEEPRATIO);
-            for (;;) {
-                lCap >> frameLeft;
-                if (!frameLeft.empty())
-                    imshow("cam_left", frameLeft);
-
-                if (waitKey(30) >= 0) break;
-            }
-        },
-        [& ]() {
-            cv::Mat frameRight;
-            VideoCapture rCap(1);
-
-            if (!rCap.isOpened()){
-                cout << "broken";
-                return -1;
-            }
-
-            rCap.set(CV_CAP_PROP_FPS, 15);
-            rCap.set(CV_CAP_PROP_FRAME_WIDTH , 352);
-            rCap.set(CV_CAP_PROP_FRAME_HEIGHT , 255);
-
-            for (;;) {
-                rCap >> frameRight;
-                if (!frameRight.empty())
-                    imshow("cam_right", frameRight);
-
-                cout << "right\n";
-
-                if (waitKey(30) >= 0) break;
-            }
+        namedWindow("cam_left", CV_WINDOW_AUTOSIZE);
+        cv::Mat frameLeft;
+        for (;;) {
+            ///*
+            lCap >> frameLeft;
+            if (!frameLeft.empty())
+                imshow("cam_left", frameLeft);
+		
+            if (waitKey(5) >= 0) break;
+            //
+            //cout << "left\n";
         }
-    );
+        lCap.release();	
+        //*/
+	}
+	else if(pid == 0){
+		//while(true){
+		try{
+        VideoCapture rCap(1);
 
-    return 0;
+        if (!rCap.isOpened()) return -1;
+        
+		rCap.set(CV_CAP_PROP_FPS, 5);
+        rCap.set(CV_CAP_PROP_FRAME_WIDTH , 640);
+        rCap.set(CV_CAP_PROP_FRAME_HEIGHT , 480);
+
+	    namedWindow("cam_right", CV_WINDOW_AUTOSIZE);
+	    cv::Mat frameRight;
+        for (;;) {
+            ///*
+            rCap >> frameRight;
+            if (!frameRight.empty())
+                imshow("cam_right", frameRight); 
+
+            if (waitKey(5) >= 0) break;
+            //*/
+            cout << "right\n";
+        }
+        rCap.release();
+        }
+        catch(cv::Exception& ex){ }
+        //}
+	}
+	else{
+		cout << "error forking";
+		exit(1);
+	}
+
+return 0;
 }
+
+//*/
