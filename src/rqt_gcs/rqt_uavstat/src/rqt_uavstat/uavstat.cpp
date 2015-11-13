@@ -26,12 +26,12 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   // add widget to the user interface
   context.addWidget(widget_);
 
-
+  	ui_.yawDisplay->setText("123");
 }
 
-void MyPlugin::Calculate(){
-	
-	
+void MyPlugin::Display(){
+	ui_.yawDisplay->setText("123");
+
 }
 
 
