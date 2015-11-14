@@ -1,0 +1,7 @@
+set(_CATKIN_CURRENT_PACKAGE "mav_control")
+set(mav_control_MAINTAINER "Karanvir Panesar <singh.karanvir21@gmail.com>")
+set(mav_control_DEPRECATED "")
+set(mav_control_VERSION "0.0.0")
+set(mav_control_BUILD_DEPENDS "geometry_msgs" "mavros" "mavros_msgs" "roscpp" "roslib" "sensor_msgs" "std_msgs")
+set(mav_control_RUN_DEPENDS "geometry_msgs" "mavros" "mavros_msgs" "roscpp" "roslib" "sensor_msgs" "std_msgs")
+set(mav_control_BUILDTOOL_DEPENDS "catkin")

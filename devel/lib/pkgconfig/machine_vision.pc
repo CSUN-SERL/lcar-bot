@@ -1,0 +1,8 @@
+prefix=/home/thomas/lcar-bot/devel
+
+Name: machine_vision
+Description: Description of machine_vision
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/thomas/lcar-bot/devel/lib 
+Requires: 

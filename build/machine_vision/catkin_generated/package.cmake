@@ -1,0 +1,7 @@
+set(_CATKIN_CURRENT_PACKAGE "machine_vision")
+set(machine_vision_MAINTAINER "Karanvir Panesar <singh.karanvir21@gmail.com>")
+set(machine_vision_DEPRECATED "")
+set(machine_vision_VERSION "0.0.0")
+set(machine_vision_BUILD_DEPENDS "cv_bridge" "sensor_msgs" "image_transport" "roscpp" "std_msgs" "usb_cam")
+set(machine_vision_RUN_DEPENDS "cv_bridge" "sensor_msgs" "image_transport" "roscpp" "std_msgs" "usb_cam")
+set(machine_vision_BUILDTOOL_DEPENDS "catkin")

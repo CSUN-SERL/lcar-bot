@@ -1,0 +1,8 @@
+prefix=/home/thomas/lcar-bot/devel
+
+Name: cv_bridge
+Description: Description of cv_bridge
+Version: 1.11.3
+Cflags: -I/home/thomas/lcar-bot/src/vision_opencv/src/include -I/opt/ros/indigo/include/opencv -I/opt/ros/indigo/include
+Libs: -L/home/thomas/lcar-bot/devel/lib -lcv_bridge -l:/opt/ros/indigo/lib/libopencv_viz.so.3.0.0 -l:/opt/ros/indigo/lib/libopencv_videostab.so.3.0.0 -l:/opt/ros/indigo/lib/libopencv_videoio.so.3.0.0 -l:/opt/ros/indigo/lib/libopencv_video.so.3.0.0 -l:/opt/ros/indigo/lib/libopencv_superres.so.3.0.0 -l:/opt/ros/indigo/lib/libopencv_stitching.so.3.0.0 -l:/opt/ros/indigo/lib/libopencv_shape.so.3.0.0 -l:/opt/ros/indigo/lib/libopencv_photo.so.3.0.0 -l:/opt/ros/indigo/lib/libopencv_objdetect.so.3.0.0 -l:/opt/ros/indigo/lib/libopencv_ml.so.3.0.0 -l:/opt/ros/indigo/lib/libopencv_imgproc.so.3.0.0 -l:/opt/ros/indigo/lib/libopencv_imgcodecs.so.3.0.0 -l:/opt/ros/indigo/lib/libopencv_highgui.so.3.0.0 /opt/ros/indigo/lib/libopencv_hal.a -l:/opt/ros/indigo/lib/libopencv_flann.so.3.0.0 -l:/opt/ros/indigo/lib/libopencv_features2d.so.3.0.0 -l:/opt/ros/indigo/lib/libopencv_core.so.3.0.0 -l:/opt/ros/indigo/lib/libopencv_calib3d.so.3.0.0
+Requires: rosconsole sensor_msgs
