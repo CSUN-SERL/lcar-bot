@@ -1,2 +1,0 @@
-machine_vision:mav_control:rqt_gcs:vision_opencv/src
--DCATKIN_DEVEL_PREFIX=/home/thomas/lcar-bot/devel -DCMAKE_INSTALL_PREFIX=/home/thomas/lcar-bot/install -G Unix Makefiles

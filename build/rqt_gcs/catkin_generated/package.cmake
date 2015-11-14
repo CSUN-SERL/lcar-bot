@@ -1,7 +1,0 @@
-set(_CATKIN_CURRENT_PACKAGE "rqt_gcs")
-set(rqt_gcs_MAINTAINER "Karanvir Panesar <singh.karanvir21@gmail.com>")
-set(rqt_gcs_DEPRECATED "")
-set(rqt_gcs_VERSION "0.0.0")
-set(rqt_gcs_BUILD_DEPENDS )
-set(rqt_gcs_RUN_DEPENDS )
-set(rqt_gcs_BUILDTOOL_DEPENDS "catkin")
