@@ -4,10 +4,12 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "simple_control");
   SimpleControl quad1;
+  quad1.Arm(true);
 
-  ros::Rate loop_rate(5); //1Hz
+  ros::Rate loop_rate(10); //10Hz
   while(ros::ok())
   {
+    //OS_WARN_STREAM("Sate: " << quad1.GetState());
     ros::spinOnce();
     loop_rate.sleep();
   }
@@ -51,8 +53,27 @@ void SimpleControl::Arm(bool value)
   sc_arm.call(arm);
   if(sc_arm.call(arm)){
     if(arm.response.success == 1){
-      if(value) ROS_INFO_STREAM("**ARMED**");
-      else ROS_INFO_STREAM("**DISARMED**");
+      ros::Rate check_frequency(1);
+      bool timeout = false;
+      int count = 1;
+
+      //Wait for the FCU to arm
+      while(!state.armed && !timeout){
+        ROS_INFO_STREAM("State: " << state);
+        check_frequency.sleep();
+        ros::spinOnce();
+        count++;
+        if(count >= 4) timeout = true;
+      }
+
+      if(timeout){
+        if(value) ROS_WARN_STREAM("Arm operation timed out.");
+        else ROS_WARN_STREAM("Disarm operation timed out.");
+      }
+      else{
+        if(state.armed) ROS_INFO_STREAM("**ARMED**");
+        else ROS_INFO_STREAM("**DISARMED**");
+      }
     }
     else{
       if(value) ROS_ERROR_STREAM("Failed to Arm!");
