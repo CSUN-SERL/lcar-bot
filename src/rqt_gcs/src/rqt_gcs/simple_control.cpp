@@ -53,9 +53,9 @@ void SimpleControl::Arm(bool value)
   sc_arm.call(arm);
   if(sc_arm.call(arm)){
     if(arm.response.success == 1){
-      ros::Rate check_frequency(1);
+
       bool timeout = false;
-      int count = 1;
+      int count = 0;
 
       //Wait for the FCU to arm
       while(!state.armed && !timeout){
@@ -63,9 +63,10 @@ void SimpleControl::Arm(bool value)
         check_frequency.sleep();
         ros::spinOnce();
         count++;
-        if(count >= 4) timeout = true;
+        if(count >= TIMEOUT) timeout = true;
       }
 
+      //Print proper message to console
       if(timeout){
         if(value) ROS_WARN_STREAM("Arm operation timed out.");
         else ROS_WARN_STREAM("Disarm operation timed out.");
