@@ -25,8 +25,6 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 
 #define QUEUE_SIZE 100 //Message Queue size for publishers
-#define CHECK_FREQUENCY 1 //Frequency for checking change of state
-#define TIMEOUT 3*CHECK_FREQUENCY //3 Second timeout
 
 class SimpleControl
 {
@@ -129,9 +127,6 @@ public:
   void BatteryCallback(const mavros_msgs::BatteryStatus& msg_battery);
 
 private:
-  //General Variables
-  ros::Rate check_frequency(CHECK_FREQUENCY);
-
   //ROS NodeHangle,Service Client, Publisher, and Subscriber Variables
   ros::NodeHandle nh_simple_control;
   ros::ServiceClient  sc_arm, sc_takeoff, sc_land, sc_mode, sc_wp_goto, sc_mission;
