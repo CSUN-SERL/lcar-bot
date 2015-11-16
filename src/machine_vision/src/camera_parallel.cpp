@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include <ros/ros.h>
+
 #include "opencv2/opencv.hpp"
 
 
@@ -20,7 +22,7 @@ int main (int argc, char ** argv){
         VideoCapture lCap(0);
 
         if (!lCap.isOpened()) return -1;
-		
+
 		lCap.set(CV_CAP_PROP_FPS, 5);
         lCap.set(CV_CAP_PROP_FRAME_WIDTH , 640);
         lCap.set(CV_CAP_PROP_FRAME_HEIGHT , 480);
@@ -32,12 +34,12 @@ int main (int argc, char ** argv){
             lCap >> frameLeft;
             if (!frameLeft.empty())
                 imshow("cam_left", frameLeft);
-		
+
             if (waitKey(5) >= 0) break;
             //
             //cout << "left\n";
         }
-        lCap.release();	
+        lCap.release();
         //*/
 	}
 	else if(pid == 0){
@@ -46,7 +48,7 @@ int main (int argc, char ** argv){
         VideoCapture rCap(1);
 
         if (!rCap.isOpened()) return -1;
-        
+
 		rCap.set(CV_CAP_PROP_FPS, 5);
         rCap.set(CV_CAP_PROP_FRAME_WIDTH , 640);
         rCap.set(CV_CAP_PROP_FRAME_HEIGHT , 480);
@@ -57,7 +59,7 @@ int main (int argc, char ** argv){
             ///*
             rCap >> frameRight;
             if (!frameRight.empty())
-                imshow("cam_right", frameRight); 
+                imshow("cam_right", frameRight);
 
             if (waitKey(5) >= 0) break;
             //*/
