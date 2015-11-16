@@ -1,20 +1,36 @@
 #include <rqt_gcs/simple_control.h>
 
+int main(int argc, char **argv)
+{
+  ros::init(argc, argv, "simple_control");
+  SimpleControl quad1;
+  quad1.Arm(true);
+
+  ros::Rate loop_rate(10); //10Hz
+  while(ros::ok())
+  {
+    //OS_WARN_STREAM("Sate: " << quad1.GetState());
+    ros::spinOnce();
+    loop_rate.sleep();
+  }
+
+}
+
 SimpleControl::SimpleControl(void)  //Class constructor
 {
   //Initialize Service Clients
-  sc_arm      = nh_simple_control.serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
-  sc_takeoff  = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/takeoff");
-  sc_land     = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/land");
-  sc_mode     = nh_simple_control.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
-  sc_wp_goto  = nh_simple_control.serviceClient<mavros_msgs::WaypointGOTO>("/mavros/mission/goto");
-  sc_mission  = nh_simple_control.serviceClient<mavros_msgs::WaypointPush>("/mavros/mission/push");
+  sc_arm      = nh_simple_control.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
+  sc_takeoff  = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>("mavros/cmd/takeoff");
+  sc_land     = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>("mavros/cmd/land");
+  sc_mode     = nh_simple_control.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
+  sc_wp_goto  = nh_simple_control.serviceClient<mavros_msgs::WaypointGOTO>("mavros/mission/goto");
+  sc_mission  = nh_simple_control.serviceClient<mavros_msgs::WaypointPush>("mavros/mission/push");
 
   //Initialize Publisher Objects
-  pub_override_rc       = nh_simple_control.advertise<mavros_msgs::OverrideRCIn>("/mavros/rc/override",QUEUE_SIZE);
-  pub_setpoint_position = nh_simple_control.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local",QUEUE_SIZE);
-  pub_setpoint_attitude = nh_simple_control.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_attitude/attitude",QUEUE_SIZE);
-  pub_angular_vel       = nh_simple_control.advertise<geometry_msgs::TwistStamped>("/mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
+  pub_override_rc       = nh_simple_control.advertise<mavros_msgs::OverrideRCIn>("mavros/rc/override",QUEUE_SIZE);
+  pub_setpoint_position = nh_simple_control.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local",QUEUE_SIZE);
+  pub_setpoint_attitude = nh_simple_control.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_attitude/attitude",QUEUE_SIZE);
+  pub_angular_vel       = nh_simple_control.advertise<geometry_msgs::TwistStamped>("mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
 
   //Initialze Subscribers
   sub_state = nh_simple_control.subscribe("mavros/state", 10, &SimpleControl::StateCallback, this);
@@ -37,8 +53,28 @@ void SimpleControl::Arm(bool value)
   sc_arm.call(arm);
   if(sc_arm.call(arm)){
     if(arm.response.success == 1){
-      if(value) ROS_INFO_STREAM("**ARMED**");
-      else ROS_INFO_STREAM("**DISARMED**");
+
+      bool timeout = false;
+      int count = 0;
+
+      //Wait for the FCU to arm
+      while(!state.armed && !timeout){
+        ROS_INFO_STREAM("State: " << state);
+        check_frequency.sleep();
+        ros::spinOnce();
+        count++;
+        if(count >= TIMEOUT) timeout = true;
+      }
+
+      //Print proper message to console
+      if(timeout){
+        if(value) ROS_WARN_STREAM("Arm operation timed out.");
+        else ROS_WARN_STREAM("Disarm operation timed out.");
+      }
+      else{
+        if(state.armed) ROS_INFO_STREAM("**ARMED**");
+        else ROS_INFO_STREAM("**DISARMED**");
+      }
     }
     else{
       if(value) ROS_ERROR_STREAM("Failed to Arm!");
