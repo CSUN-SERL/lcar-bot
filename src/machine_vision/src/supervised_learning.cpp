@@ -13,19 +13,17 @@ int main(int argc, char * argv[]) {
     ml.TraverseDirectory(ml.IMAGES_DIR);
     labels.convertTo(labels, CV_32SC1);
     trainingdata.convertTo(trainingdata, CV_32FC1);
-
+    Mat trainingclass = Mat(size, 1, CV_32FC1);
 
     // Set up SVM's parameters
     Ptr<SVM> svm = SVM::create();
-    svm->setType(SVM::C_SVC);
-    svm->setGamma(3);
-    svm->setKernel(SVM::LINEAR);
+    svm->setKernel(SVM::RBF);
     //    svm->setTermCriteria(TermCriteria(CV_TERMCRIT_ITER, 100, 1e-6));
-
+    Ptr<TrainData> td = TrainData::create(trainingdata, ROW_SAMPLE, labels);
     cout << "inside main training\n";
-    svm->train(trainingdata, ROW_SAMPLE, labels);
+    svm->trainAuto(td, 10);
+//    svm->train(trainingdata, ROW_SAMPLE, labels);
     svm->save("SVM.yaml");
-
     cout << labels;
     trainingdata.release();
 
@@ -92,8 +90,8 @@ Mat MachineLearning::ProcessImage(string path, string file) {
 
     resize(src, src, Size(640, 480));
 
-    imshow(file, src);
-    waitKey(0);
+    //imshow(file, src);
+    //waitKey(0);
 
     //blur image to reduce number of features
     GaussianBlur(src, src, Size(9, 9), 2, 2);
@@ -160,8 +158,8 @@ void MachineLearning::ExtractFeatures(Mat ImgMat, string imgName) {
     drawKeypoints(src, keypoints_1, img_keypoints_1, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
     //imshow("c", img_keypoints_1);
 
-    imshow(imgName, img_keypoints_1);
-    waitKey();
+    //imshow(imgName, img_keypoints_1);
+    //waitKey();
 
     if (!img_keypoints_1.empty()) {
         trainingdata.push_back(img_keypoints_1.reshape(1, 1));
@@ -173,9 +171,9 @@ void MachineLearning::ExtractFeatures(Mat ImgMat, string imgName) {
 void MachineLearning::Testing(Ptr<SVM> svm, MachineLearning ml){
     testing = 1;
     const string modelLibPath = "SVM.yaml";
-    //Ptr<SVM> Svm = SVM::create();
+    Ptr<SVM> Svm = SVM::create();
     Ptr<SVM> Svm = StatModel::load<SVM>(modelLibPath);
-
+    ml.IMAGES_DIR = "/home/thomas/NetBeansProjects/doors";
     TraverseDirectory(ml.IMAGES_DIR);
 
     trainingdata.convertTo(trainingdata, CV_32FC1);
@@ -183,11 +181,11 @@ void MachineLearning::Testing(Ptr<SVM> svm, MachineLearning ml){
     bool t = Svm->isTrained();
     cout << c << " " << t << "\n";
     Mat res;
-    float p = svm->predict(trainingdata, res, 4);
+    float p = Svm->predict(trainingdata, res, 4);
 
 
     for (int i = 0; i < res.rows; i++) {
-        cout << res.row(i) << " " << proc_img.front() << "\n";
+        cout << res.row(i) << " " << proc_img.front() << "Prediction: " << p << "\n";
         proc_img.pop();
     }
 
