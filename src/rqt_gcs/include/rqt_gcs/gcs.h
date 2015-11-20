@@ -66,9 +66,15 @@ private:
   QWidget* widget_;
   QWidget* missionCancelWidget_;
   QWidget* missionSelectWidget_;
-  QWidget* missionProgressWidget_;
+  QWidget* missionProgressWidget1_;
+  QWidget* missionProgressWidget2_;
+  QWidget* missionProgressWidget3_;
+  QWidget* missionProgressWidget4_;
   QWidget* UavQuestionWidget_;
-  QWidget* UavStatWidget_;
+  QWidget* UavStatWidget1_;
+  QWidget* UavStatWidget2_;
+ // QWidget* UavStatWidget3_;
+ // QWidget* UavStatWidget4_;
 
   QLabel* label;
 
