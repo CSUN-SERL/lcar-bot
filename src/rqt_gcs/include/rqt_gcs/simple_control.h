@@ -63,6 +63,31 @@ public:
   void SetMode(std::string mode);
 
   /**
+      Returns the current location of the UAV in JSON format.
+
+  */
+  std::string GetLocation();
+
+  /**
+      Add the passed GPS location to the current set of waypoints to visit.
+
+      @param lat Latitude
+      @param lon Longitude
+      @param alt Altitude
+  */
+  void SetWayPoint(double lat, double lon, int alt);
+
+  /**
+      Overloaded function for SetWayPoint(double lat, double lon, int alt) that
+      accepts a string parameter as the coordinate.
+
+      @param waypoint A String containing the GPS coordinates of the WayPoint
+  */
+  void SetWayPoint(std::string waypoint);
+
+
+
+  /**
       Send the UAV to the desired waypoint. If the UAV is already in air, it
       ascends or descends to the correct altitude and travels to the waypoint.
       Otherwise, the flight mode is changed to Guided and the UAV is armed for
@@ -80,6 +105,12 @@ public:
       @param mission_file Name of the text file that contains the mision
   */
   void SendMission(std::string mission_file);
+
+  /**
+      Start the stored mission on the UAV.
+
+  */
+  void BeginMission();
 
   /**
       Override the RC value of the transmitter.
