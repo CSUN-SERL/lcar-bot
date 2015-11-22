@@ -141,12 +141,14 @@ public:
   void SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel);
 
   //Callback Prototypes
-  void StateCallback(const mavros_msgs::State& msg_state);
-  void BatteryCallback(const mavros_msgs::BatteryStatus& msg_battery);
+  void StateCallback(const mavros_msgs::State& msg_state) { state = msg_state; }
+  void BatteryCallback(const mavros_msgs::BatteryStatus& msg_battery) { battery = msg_battery; }
+  void ImuCallback(const sensor_msgs::Imu& msg_imu) { imu = msg_imu; }
 
   //Getter Functions
-  mavros_msgs::State getState() { return state; }
-  mavros_msgs::BatteryStatus getBatteryStatus() { return battery; }
+  mavros_msgs::State GetState() { return state; }
+  mavros_msgs::BatteryStatus GetBatteryStatus() { return battery; }
+  sensor_msgs::Imu  GetImu() { return imu; }
 
 private:
   //ROS NodeHandle, Service Client, Publisher, and Subscriber Variables

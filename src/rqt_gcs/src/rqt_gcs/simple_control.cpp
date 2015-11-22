@@ -4,12 +4,11 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "simple_control");
   SimpleControl quad1;
-  quad1.Arm(true);
+  //quad1.Arm(true);
 
-  ros::Rate loop_rate(10); //10Hz
+  ros::Rate loop_rate(1); //10Hz
   while(ros::ok())
   {
-    //ROS_WARN_STREAM("Sate: " << quad1.GetState());
     ros::spinOnce();
     loop_rate.sleep();
   }
@@ -269,15 +268,4 @@ void SimpleControl::SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel)
 
   //Publish the message
   pub_angular_vel.publish(msg_angular_vel);
-}
-
-//Callback Functions
-void SimpleControl::StateCallback(const mavros_msgs::State& msg_state)
-{
-  state = msg_state;
-}
-
-void SimpleControl::BatteryCallback(const mavros_msgs::BatteryStatus& msg_battery)
-{
-  battery = msg_battery;
 }
