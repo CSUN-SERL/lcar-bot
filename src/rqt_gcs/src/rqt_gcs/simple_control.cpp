@@ -9,7 +9,7 @@ int main(int argc, char **argv)
   ros::Rate loop_rate(10); //10Hz
   while(ros::ok())
   {
-    //OS_WARN_STREAM("Sate: " << quad1.GetState());
+    //ROS_WARN_STREAM("Sate: " << quad1.GetState());
     ros::spinOnce();
     loop_rate.sleep();
   }
@@ -23,7 +23,6 @@ SimpleControl::SimpleControl(void)  //Class constructor
   sc_takeoff  = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>("mavros/cmd/takeoff");
   sc_land     = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>("mavros/cmd/land");
   sc_mode     = nh_simple_control.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
-  sc_wp_goto  = nh_simple_control.serviceClient<mavros_msgs::WaypointGOTO>("mavros/mission/goto");
   sc_mission  = nh_simple_control.serviceClient<mavros_msgs::WaypointPush>("mavros/mission/push");
 
   //Initialize Publisher Objects
@@ -56,6 +55,7 @@ void SimpleControl::Arm(bool value)
 
       bool timeout = false;
       int count = 0;
+      ros::Rate check_frequency(CHECK_FREQUENCY);
 
       //Wait for the FCU to arm
       while(!state.armed && !timeout){
@@ -152,37 +152,6 @@ void SimpleControl::SetMode(std::string mode)
   }
   else{
     ROS_ERROR_STREAM("Failed to call new_mode service!");
-  }
-}
-
-//TODO: Ensure the UAV is airborne and check for service success
-//TODO: Provide feedback and updates using the ROS logger
-//NOTE: Deprecated in latest version of ROS
-void SimpleControl::GoToWP(double lat, double lon, int alt)
-{
-  //Create a message for storing the the waypoint
-  mavros_msgs::WaypointGOTO msg_waypoint;
-
-  //Create the waypoint object
-  mavros_msgs::Waypoint wp;
-  wp.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL;
-  wp.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
-  wp.is_current   = false;
-  wp.autocontinue = false;
-  wp.x_lat        = lat;
-  wp.y_long       = lon;
-  wp.z_alt        = alt;
-
-  //Update the message with the new waypoint
-  msg_waypoint.request.waypoint = wp;
-
-  //Call the service
-  if(sc_wp_goto.call(msg_waypoint)){
-    if(msg_waypoint.response.success == 1) ROS_INFO_STREAM("Traveling to waypoint [" << lat << ", " << lon << "]");
-    else ROS_ERROR_STREAM("Navigation to waypoint [" << lat << ", " << lon << "]" << " failed.");
-  }
-  else{
-    ROS_ERROR_STREAM("Failed to call msg_waypoint service!");
   }
 }
 

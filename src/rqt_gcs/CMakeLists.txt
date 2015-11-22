@@ -1,16 +1,16 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(rqt_gcs)
 
-find_package(catkin REQUIRED COMPONENTS 
+find_package(catkin REQUIRED COMPONENTS
 	geometry_msgs
 	mavros
-        mavros_msgs
-	roscpp 
-	rqt_gui 
-	rqt_gui_cpp 
+  mavros_msgs
+	roscpp
+	rqt_gui
+	rqt_gui_cpp
 	roslib
-  	sensor_msgs
-  	std_msgs
+  sensor_msgs
+  std_msgs
 )
 
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
@@ -55,7 +55,14 @@ qt4_wrap_cpp(rqt_gcs_MOCS ${rqt_gcs_HDRS})
 qt4_wrap_ui(rqt_gcs_UIS_H ${rqt_gcs_UIS})
 
 include_directories(${rqt_gcs_INCLUDE_DIRECTORIES} ${catkin_INCLUDE_DIRS})
+
+# Declare executables with source files
+add_executable(simple_control src/rqt_gcs/simple_control.cpp)
+
 add_library(${PROJECT_NAME} ${rqt_gcs_SRCS} ${rqt_gcs_MOCS} ${rqt_gcs_UIS_H})
+
+#Specify libraries against which to link
+target_link_libraries(simple_control ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
 
 find_package(class_loader)

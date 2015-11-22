@@ -16,7 +16,6 @@
 #include <mavros_msgs/OverrideRCIn.h>
 #include <mavros_msgs/Waypoint.h>
 #include <mavros_msgs/CommandCode.h>
-#include <mavros_msgs/WaypointGOTO.h>
 #include <mavros_msgs/WaypointPush.h>
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/NavSatFix.h>
@@ -24,8 +23,8 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 
-#define QUEUE_SIZE 100 //Message Queue size for publishers
-#define CHECK_FREQUENCY 1 //Frequency for checking change of state
+#define QUEUE_SIZE 100            //Message Queue size for publishers
+#define CHECK_FREQUENCY 1         //Frequency for checking change of state
 #define TIMEOUT 3*CHECK_FREQUENCY //3 Second timeout
 
 class SimpleControl
@@ -84,20 +83,6 @@ public:
       @param waypoint A String containing the GPS coordinates of the WayPoint
   */
   void SetWayPoint(std::string waypoint);
-
-
-
-  /**
-      Send the UAV to the desired waypoint. If the UAV is already in air, it
-      ascends or descends to the correct altitude and travels to the waypoint.
-      Otherwise, the flight mode is changed to Guided and the UAV is armed for
-      takeoff. The UAV then goes to the correct altitude and waypoint.
-
-      @param lat Latitude
-      @param lon Longitude
-      @param alt Altitude
-  */
-  void GoToWP(double lat, double lon, int alt);
 
   /**
       Send a list of waypoints (mission) to the UAV.
@@ -160,12 +145,9 @@ public:
   void BatteryCallback(const mavros_msgs::BatteryStatus& msg_battery);
 
 private:
-  //General Variables
-  ros::Rate check_frequency(CHECK_FREQUENCY);
-
-  //ROS NodeHangle,Service Client, Publisher, and Subscriber Variables
-  ros::NodeHandle nh_simple_control;
-  ros::ServiceClient  sc_arm, sc_takeoff, sc_land, sc_mode, sc_wp_goto, sc_mission;
+  //ROS NodeHandle, Service Client, Publisher, and Subscriber Variables
+  ros::NodeHandle     nh_simple_control;
+  ros::ServiceClient  sc_arm, sc_takeoff, sc_land, sc_mode, sc_mission;
   ros::Publisher      pub_override_rc, pub_setpoint_position, pub_setpoint_attitude, pub_angular_vel;
   ros::Subscriber     sub_state, sub_battery, sub_imu, sub_pos_global, sub_pos_local;
 
