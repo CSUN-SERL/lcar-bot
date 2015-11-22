@@ -144,6 +144,10 @@ public:
   void StateCallback(const mavros_msgs::State& msg_state);
   void BatteryCallback(const mavros_msgs::BatteryStatus& msg_battery);
 
+  //Getter Functions
+  mavros_msgs::State getState() { return state; }
+  mavros_msgs::BatteryStatus getBatteryStatus() { return battery; }
+
 private:
   //ROS NodeHandle, Service Client, Publisher, and Subscriber Variables
   ros::NodeHandle     nh_simple_control;
