@@ -31,8 +31,12 @@ SimpleControl::SimpleControl(void)  //Class constructor
   pub_angular_vel       = nh_simple_control.advertise<geometry_msgs::TwistStamped>("mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
 
   //Initialze Subscribers
-  sub_state = nh_simple_control.subscribe("mavros/state", 10, &SimpleControl::StateCallback, this);
-  sub_battery = nh_simple_control.subscribe("mavros/battery", 10, &SimpleControl::BatteryCallback, this);
+  sub_state = nh_simple_control.subscribe("mavros/state", 1, &SimpleControl::StateCallback, this);
+  sub_battery = nh_simple_control.subscribe("mavros/battery", 1, &SimpleControl::BatteryCallback, this);
+  sub_imu = nh_simple_control.subscribe("mavros/sensor_msgs/Imu", 1, &SimpleControl::ImuCallback, this);
+  sub_altitude = nh_simple_control.subscribe("mavros/global_position/rel_alt", 1, &SimpleControl::RelAltitudeCallback, this);
+  sub_heading = nh_simple_control.subscribe("mavros/global_position/compass_hdg", 1, &SimpleControl::HeadingCallback, this);
+  sub_vel = nh_simple_control.subscribe("mavros/local_position/velocity", 1, &SimpleControl::VelocityCallback, this);
 }
 
 SimpleControl::~SimpleControl(void)
@@ -268,4 +272,20 @@ void SimpleControl::SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel)
 
   //Publish the message
   pub_angular_vel.publish(msg_angular_vel);
+}
+
+//TODO: Fix Roll, Pitch, Yaw, and Ground Speed values
+FlightState SimpleControl::UpdateFlightState()
+{
+    struct FlightState flight_state;
+
+    flight_state.roll = imu.orientation.x; //Update Roll value
+    flight_state.pitch = imu.orientation.y; //Update Pitch Value
+    flight_state.yaw = imu.orientation.z; //Update Yaw Value
+    flight_state.heading = heading_deg; //Update heading [degrees]
+    flight_state.altitude = altitude_rel; //Update Altitude [m]
+    flight_state.ground_speed = velocity.twist.linear.x; //Global Velocity X [m/s]
+    flight_state.vertical_speed = velocity.twist.linear.z; //Global Velocity vertical [m/s]
+
+    return flight_state;
 }
