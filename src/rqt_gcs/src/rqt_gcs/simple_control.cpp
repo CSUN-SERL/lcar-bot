@@ -37,6 +37,7 @@ SimpleControl::SimpleControl(void)  //Class constructor
   sub_altitude = nh_simple_control.subscribe("mavros/global_position/rel_alt", 1, &SimpleControl::RelAltitudeCallback, this);
   sub_heading = nh_simple_control.subscribe("mavros/global_position/compass_hdg", 1, &SimpleControl::HeadingCallback, this);
   sub_vel = nh_simple_control.subscribe("mavros/local_position/velocity", 1, &SimpleControl::VelocityCallback, this);
+  sub_pos_global = nh_simple_control.subscribe("mavros/global_position/global", 1, &SimpleControl::NavSatFixCallback, this);
 }
 
 SimpleControl::~SimpleControl(void)
@@ -156,6 +157,14 @@ void SimpleControl::SetMode(std::string mode)
   else{
     ROS_ERROR_STREAM("Failed to call new_mode service!");
   }
+}
+
+std::string SimpleControl::GetLocation()
+{
+  float lat = pos_global.latitude;
+  float lon = pos_global.longitude;
+
+  return std::to_string(lat) + "," + std::to_string(lon);
 }
 
 void SimpleControl::SendMission(std::string mission_file)

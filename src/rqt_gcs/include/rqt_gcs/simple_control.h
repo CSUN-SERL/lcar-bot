@@ -164,6 +164,7 @@ private:
   void RelAltitudeCallback(const std_msgs::Float64& msg_altitude) { altitude_rel = msg_altitude.data; }
   void HeadingCallback(const std_msgs::Float64& msg_heading) { heading_deg = msg_heading.data; }
   void VelocityCallback(const geometry_msgs::TwistStamped& msg_vel) { velocity = msg_vel; }
+  void NavSatFixCallback(const sensor_msgs::NavSatFix& msg_gps) { pos_global = msg_gps; }
 
   FlightState UpdateFlightState();
 
