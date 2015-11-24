@@ -20,6 +20,7 @@
 #include <QWidget>
 #include <QLabel>
 #include <QString>
+#include <QTimer>
 
 namespace rqt_gcs{
 
@@ -29,15 +30,9 @@ class MyPlugin
   Q_OBJECT
 public:
   MyPlugin();
-  QString op;
-  QString op2;
-  QString s;
-  QString x;
-  QString y;
-  QString theta;
   SimpleControl quadControl;
-
-
+  QString tempData;
+  
   ros::Subscriber sub;
   ros::NodeHandle nh;
   void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
@@ -49,7 +44,7 @@ public:
 
 protected slots:
   virtual void Calculate();
-  virtual void Execute();
+  virtual void TimedUpdate();
 
 
   // Comment in to signal that the plugin has a way to configure it
@@ -58,10 +53,14 @@ protected slots:
 private:
   Ui::MyPluginWidget ui_;
   Ui::MissionCancelWidget mcUi_;
-  Ui::MissionProgressWidget mpUi_;
+  Ui::MissionProgressWidget mpUi1_;
+  Ui::MissionProgressWidget mpUi2_;
+  Ui::MissionProgressWidget mpUi3_;
+  Ui::MissionProgressWidget mpUi4_;
   Ui::MissionSelectWidget msUi_;
   Ui::UavQuestionWidget uqUi_;
-  Ui::UavStatWidget usUi_;
+  Ui::UavStatWidget usUi1_;
+  Ui::UavStatWidget usUi2_;
 
   QWidget* widget_;
   QWidget* missionCancelWidget_;
@@ -77,8 +76,7 @@ private:
  // QWidget* UavStatWidget4_;
 
   QLabel* label;
-
-  
+  QTimer* updateTimer;
 
 };
 } // namespace
