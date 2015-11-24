@@ -23,8 +23,9 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <geometry_msgs/Vector3Stamped.h>
 
-#define QUEUE_SIZE 100            //Message Queue size for publishers
+#define QUEUE_SIZE 10            //Message Queue size for publishers
 #define CHECK_FREQUENCY 1         //Frequency for checking change of state
 #define TIMEOUT 3*CHECK_FREQUENCY //3 Second timeout
 
@@ -98,7 +99,7 @@ public:
 
       @param mission_file Name of the text file that contains the mision
   */
-  void SendMission(std::string mission_file);
+  void BeginMission(std::string mission_file);
 
   /**
       Start the stored mission on the UAV.
@@ -149,6 +150,17 @@ public:
   */
   void SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel);
 
+
+  /**
+      Change the UAV's acceleration for roll, pitch, and yaw.
+      //TODO: Untested Function! Test with the px4 flight stack.
+
+      @param x  Acceleration X
+      @param y  Acceleration Y
+      @param z  Acceleration Z
+  */
+  void SetAcceleration(float x, float y, float z);
+
   //Getter Functions
   mavros_msgs::State GetState() { return state; }
   mavros_msgs::BatteryStatus GetBatteryStatus() { return battery; }
@@ -164,13 +176,15 @@ private:
   void RelAltitudeCallback(const std_msgs::Float64& msg_altitude) { altitude_rel = msg_altitude.data; }
   void HeadingCallback(const std_msgs::Float64& msg_heading) { heading_deg = msg_heading.data; }
   void VelocityCallback(const geometry_msgs::TwistStamped& msg_vel) { velocity = msg_vel; }
+  void NavSatFixCallback(const sensor_msgs::NavSatFix& msg_gps) { pos_global = msg_gps; }
+
 
   FlightState UpdateFlightState();
 
   //ROS NodeHandle, Service Client, Publisher, and Subscriber Variables
   ros::NodeHandle     nh_simple_control;
   ros::ServiceClient  sc_arm, sc_takeoff, sc_land, sc_mode, sc_mission;
-  ros::Publisher      pub_override_rc, pub_setpoint_position, pub_setpoint_attitude, pub_angular_vel;
+  ros::Publisher      pub_override_rc, pub_setpoint_position, pub_setpoint_attitude, pub_angular_vel, pub_setpoint_accel;
   ros::Subscriber     sub_state, sub_battery, sub_imu, sub_pos_global, sub_pos_local, sub_altitude, sub_heading, sub_vel;
 
   //UAV State Variables

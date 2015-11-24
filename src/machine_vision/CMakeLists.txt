@@ -27,16 +27,16 @@ include_directories(include
 )
 
 # Declare executables with source files
-#add_executable(cam_parallel src/camera_parallel.cpp)
-add_executable(cam_serial src/camera_serial.cpp)
+add_executable(camera_publisher src/ros_camera_publisher.cpp)
+add_executable(camera_subscriber src/ros_camera_subscriber.cpp)
 
 #Specify libraries against which to link
-#target_link_libraries(cam_parallel
-#  ${catkin_LIBRARIES}
-#  ${OpenCV_LIBRARIES}
-#)
+target_link_libraries(camera_publisher
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+)
 
-target_link_libraries(cam_serial
+target_link_libraries(camera_subscriber
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
 )
