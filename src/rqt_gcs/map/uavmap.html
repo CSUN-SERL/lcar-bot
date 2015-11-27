@@ -3,32 +3,66 @@
 <head>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script type="text/javascript" src="http://cdn.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+<script type="text/javascript" src="http://cdn.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
 
   <script>
-  $(document).ready(function(){
+var longitude =0;
+var latitude =0;
+ 
+ // Connecting to ROS
+  // -----------------
+
+ var ros = new ROSLIB.Ros({ //creating ros object
+    url : 'ws://localhost:9090'
+  });
+
+ros.on('connection', function() {
+    console.log('Connected to websocket server.');
+  });
+
+  ros.on('error', function(error) {
+    console.log('Error connecting to websocket server: ', error);
+  });
+
+  ros.on('close', function() {
+    console.log('Connection to websocket server closed.');
+  });
+
+
+// Subscribing to a Topic
+  // ----------------------
+
+  var listener = new ROSLIB.Topic({
+    ros : ros, 	//ros object connection
+    name : 'mavros/global_position/global',
+    messageType : 'sensor_msgs/NavSatFix'
+  });
+
+  listener.subscribe(function(message) {
+    console.log('latitude ' + listener.name + ': ' + message.latitude);
+   console.log('longitude ' + listener.name + ': ' + message.longitude);
+
+	longitude = message.longitude;
+	latitude = message.latitude;
+	console.log('latitude1 ' + longitude);
+ 	  console.log('longitude1 ' + latitude);
+$(document).ready(function(){
 	   //getLocation();
      showPosition();
 			});
 
-    </script>
-</head>
-<body>
-
-<p id="outmessage"></p>
+    	listener.unsubscribe();
+  });
 
 
-
-<div id="mapholder"></div>
-
-<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
-
-<script>
 var x =-118;
 var y =34;
 var map;
 var marker;
-var newPoint =0;
-var la =0;
+var newPoint ;
+var la ;
 function getLocation() {
    //if (navigator.geolocation) {
   //     navigator.geolocation.getCurrentPosition(showPosition, showError);
@@ -39,9 +73,12 @@ function getLocation() {
 }
 
 function showPosition() {
+ console.log('latitude ' + longitude);
+   console.log('longitude ' + latitude);
+
     //lat = position.coords.latitude;
     //lon = position.coords.longitude;
-    latlon = new google.maps.LatLng(y, x)
+    latlon = new google.maps.LatLng(longitude, latitude)
     mapholder = document.getElementById('mapholder')
     mapholder.style.height = '250px';
     mapholder.style.width = '500px';
@@ -64,8 +101,8 @@ function update() {
      //newPoint = new google.maps.LatLng( position.coords.latitude,
                                           // position.coords.longitude);
 
-la = new google.maps.LatLng(y,
-    x);
+la = new google.maps.LatLng(latitude,
+    longitude);
 
     if (marker) {
       // Marker already created - Move it
@@ -85,7 +122,7 @@ la = new google.maps.LatLng(y,
 
   // Call the autoUpdate() function every 5 seconds
   outmessage.innerHTML = newPoint ;
-  x += .00055;
+  longitude += .00055;
   setTimeout(update, 50);
 }
 
@@ -105,7 +142,21 @@ function showError(error) {
             break;
     }
 }
-</script>
+
+
+ 
+    </script>
+</head>
+<body>
+
+<p id="outmessage"></p>
+
+
+
+<div id="mapholder"></div>
+
+
+
 
 </body>
 </html>
