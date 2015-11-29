@@ -30,6 +30,10 @@
 #define QUEUE_SIZE 10            //Message Queue size for publishers
 #define CHECK_FREQUENCY 1         //Frequency for checking change of state
 #define TIMEOUT 3*CHECK_FREQUENCY //3 Second timeout
+#define TRAVEL 0
+#define SCOUT 1
+#define RTL 2
+#define LAND 3
 
 //Structs
 struct FlightState {
@@ -181,7 +185,7 @@ private:
   void VelocityCallback(const geometry_msgs::TwistStamped& msg_vel) { velocity = msg_vel; }
   void NavSatFixCallback(const sensor_msgs::NavSatFix& msg_gps) { pos_global = msg_gps; }
 
-
+  //For returning Flight State Data to GCS
   FlightState UpdateFlightState();
 
   //ROS NodeHandle, Service Client, Publisher, and Subscriber Variables
@@ -195,9 +199,10 @@ private:
   mavros_msgs::BatteryStatus battery;
   sensor_msgs::Imu imu;
   sensor_msgs::NavSatFix pos_global;
-  float altitude_rel, heading_deg;
   geometry_msgs::TwistStamped velocity;
   geometry_msgs::PoseWithCovarianceStamped pos_local;
+  float altitude_rel, heading_deg;
+  int goal;
 };
 
 #endif

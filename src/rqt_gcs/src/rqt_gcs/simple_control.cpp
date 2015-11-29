@@ -174,51 +174,17 @@ std::string SimpleControl::GetLocation()
 
 void SimpleControl::ScoutBuilding(float lat, float lon)
 {
-  /*//Create a message for storing the the waypoint
-  mavros_msgs::WaypointPush msg_mission;
+  //Create a waypoint object for the building location
+  mavros_msgs::Waypoint building_location;
+  building_location.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL;
+  building_location.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
+  building_location.is_current   = true;
+  building_location.autocontinue = false;
+  building_location.x_lat        = lat;
+  building_location.y_long       = lon;
+  building_location.z_alt        = pos_global.altitude;
 
-  //TODO: Add ability to create waypoints from a text file.
-  mavros_msgs::Waypoint wp1;
-  wp1.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL;
-  wp1.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
-  wp1.is_current   = false;
-  wp1.autocontinue = true;
-  wp1.x_lat        = -35.3632621765;
-  wp1.y_long       = 149.165237427;
-  wp1.z_alt        = 583.989990234;
-
-  mavros_msgs::Waypoint wp2;
-  wp2.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT;
-  wp2.command      = mavros_msgs::CommandCode::NAV_TAKEOFF;
-  wp2.is_current   = false;
-  wp2.autocontinue = true;
-  wp2.x_lat        = -35.3628807068;
-  wp2.y_long       = 149.165222168;
-  wp2.z_alt        = 20;
-
-  mavros_msgs::Waypoint wp3;
-  wp3.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT;
-  wp3.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
-  wp3.is_current   = false;
-  wp3.autocontinue = true;
-  wp3.x_lat        = -35.3646507263;
-  wp3.y_long       = 149.163497925;
-  wp3.z_alt        = 0;
-
-  //Update the message with the new waypoint
-  //NOTE: waypoints is a Vector object
-  msg_mission.request.waypoints.push_back(wp1);
-  msg_mission.request.waypoints.push_back(wp2);
-  msg_mission.request.waypoints.push_back(wp3);
-
-  //Call the service
-  if(sc_mission.call(msg_mission)){
-    if(msg_mission.response.success == 1) ROS_INFO_STREAM("Executing mission " << mission_file);
-    else ROS_ERROR_STREAM("Failed to execute mission " << mission_file);
-  }
-  else{
-    ROS_ERROR_STREAM("Failed to call msg_mission service!");
-  }*/
+  goal = TRAVEL;
 }
 
 void SimpleControl::OverrideRC(int channel, int value)
