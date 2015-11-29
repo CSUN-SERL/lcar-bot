@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
+#include <tf/tf.h>
+#include <tf/transform_datatypes.h>
 #include <mavros/mavros.h>
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/CommandTOL.h>
@@ -97,9 +99,9 @@ public:
   /**
       Send a list of waypoints (mission) to the UAV.
 
-      @param mission_file Name of the text file that contains the mision
+      @param coordinates The GPS coordinates of the building to scout
   */
-  void BeginMission(std::string mission_file);
+  void ScoutBuilding(std::string coordinates);
 
   /**
       Start the stored mission on the UAV.
@@ -136,7 +138,7 @@ public:
       @param pitch  New pitch value in degrees, relative to the horizontal plane
       @param yaw    New yaw value in degrees, relative to the horizontal plane
   */
-  void SetAttitude(int roll, int pitch, int yaw);
+  void SetAttitude(float roll, float pitch, float yaw);
 
   /**
       Change the UAV's angular velocity for roll, pitch, and yaw.

@@ -11,6 +11,7 @@ int main(int argc, char **argv)
 
   while(ros::ok())
   {
+    quad1.SetAttitude(0.0,0.01,0.0);
     ros::spinOnce();
     loop_rate.sleep();
   }
@@ -171,9 +172,9 @@ std::string SimpleControl::GetLocation()
   return std::to_string(lat) + "," + std::to_string(lon);
 }
 
-void SimpleControl::BeginMission(std::string mission_file)
+void SimpleControl::ScoutBuilding(std::string coordinates)
 {
-  //Create a message for storing the the waypoint
+  /*//Create a message for storing the the waypoint
   mavros_msgs::WaypointPush msg_mission;
 
   //TODO: Add ability to create waypoints from a text file.
@@ -217,7 +218,7 @@ void SimpleControl::BeginMission(std::string mission_file)
   }
   else{
     ROS_ERROR_STREAM("Failed to call msg_mission service!");
-  }
+  }*/
 }
 
 void SimpleControl::OverrideRC(int channel, int value)
@@ -248,27 +249,17 @@ void SimpleControl::SetLocalPosition(int x, int y, int z)
   pub_setpoint_position.publish(position_stamped);
 }
 
-void SimpleControl::SetAttitude(int roll, int pitch, int yaw)
+void SimpleControl::SetAttitude(float roll, float pitch, float yaw)
 {
-  //Create the message object
-  geometry_msgs::PoseStamped msg_attitude;
+  //Create the message to be published
+  geometry_msgs::PoseStamped msg_pose;
 
-  //Create an object with the new attitude
-  //NOTE: Arbitrary values until the function is tested
-  geometry_msgs::Pose uav_attitude;
-  uav_attitude.position.x     = roll;
-  uav_attitude.position.y     = pitch;
-  uav_attitude.position.z     = yaw;
-  uav_attitude.orientation.x  = roll;
-  uav_attitude.orientation.y  = pitch;
-  uav_attitude.orientation.z  = yaw;
-  uav_attitude.orientation.w  = 0;
-
-  //Update the message with the new attitude
-  msg_attitude.pose = uav_attitude;
+  //Construct a Quaternion from Fixed angles and update pose
+  tf::Quaternion q = tf::createQuaternionFromRPY(roll, pitch, yaw);
+  quaternionTFToMsg(q, msg_pose.pose.orientation);
 
   //Publish the message
-  pub_setpoint_attitude.publish(msg_attitude);
+  pub_setpoint_attitude.publish(msg_pose);
 }
 
 void SimpleControl::SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel)

@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
 	roslib
   sensor_msgs
   std_msgs
+	tf
 )
 
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
