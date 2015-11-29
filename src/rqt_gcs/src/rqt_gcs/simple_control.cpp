@@ -4,14 +4,16 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "simple_control");
   SimpleControl quad1;
-  //quad1.Arm(true);
 
+  quad1.ScoutBuilding(7,4,5);
 
   ros::Rate loop_rate(10); //10Hz
 
   while(ros::ok())
   {
-    quad1.SetAttitude(0.0,0.01,0.0);
+    //Let the quad do it's current mission
+    quad1.Run();
+
     ros::spinOnce();
     loop_rate.sleep();
   }
@@ -42,6 +44,7 @@ SimpleControl::SimpleControl(void)  //Class constructor
   sub_heading     = nh_simple_control.subscribe("mavros/global_position/compass_hdg", 1, &SimpleControl::HeadingCallback, this);
   sub_vel         = nh_simple_control.subscribe("mavros/local_position/velocity", 1, &SimpleControl::VelocityCallback, this);
   sub_pos_global  = nh_simple_control.subscribe("mavros/global_position/global", 1, &SimpleControl::NavSatFixCallback, this);
+  sub_pos_local   = nh_simple_control.subscribe("mavros/local_position/pose", 1, &SimpleControl::LocalPosCallback, this);
 }
 
 SimpleControl::~SimpleControl(void)
@@ -57,7 +60,6 @@ void SimpleControl::Arm(bool value)
   arm.request.value = value;
 
   //Call the service
-  sc_arm.call(arm);
   if(sc_arm.call(arm)){
     if(arm.response.success == 1){
 
@@ -67,7 +69,6 @@ void SimpleControl::Arm(bool value)
 
       //Wait for the FCU to arm
       while(!state.armed && !timeout){
-        ROS_INFO_STREAM("State: " << state);
         check_frequency.sleep();
         ros::spinOnce();
         count++;
@@ -163,7 +164,6 @@ void SimpleControl::SetMode(std::string mode)
   }
 }
 
-
 std::string SimpleControl::GetLocation()
 {
   float lat = pos_global.latitude;
@@ -172,17 +172,16 @@ std::string SimpleControl::GetLocation()
   return std::to_string(lat) + "," + std::to_string(lon);
 }
 
-void SimpleControl::ScoutBuilding(float lat, float lon)
+void SimpleControl::ScoutBuilding(int x, int y, int z)
 {
-  //Create a waypoint object for the building location
-  mavros_msgs::Waypoint building_location;
-  building_location.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL;
-  building_location.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
-  building_location.is_current   = true;
-  building_location.autocontinue = false;
-  building_location.x_lat        = lat;
-  building_location.y_long       = lon;
-  building_location.z_alt        = pos_global.altitude;
+  //Update the target location
+  pos_target.x = x;
+  pos_target.y = y;
+  pos_target.z = z;
+
+  //Prepare the vehicle for traveling to the waypoint
+  this->Arm(true);
+  this->SetMode("Guided");
 
   goal = TRAVEL;
 }
@@ -210,6 +209,18 @@ void SimpleControl::SetLocalPosition(int x, int y, int z)
   point.position.y = y;
   point.position.z = z;
   position_stamped.pose = point;
+
+  //Publish the message
+  pub_setpoint_position.publish(position_stamped);
+}
+
+void SimpleControl::SetLocalPosition(geometry_msgs::Point new_point)
+{
+  //Create the message object
+  geometry_msgs::PoseStamped position_stamped;
+
+  //Update the message with the new position
+  position_stamped.pose.position = new_point;
 
   //Publish the message
   pub_setpoint_position.publish(position_stamped);
@@ -272,4 +283,59 @@ FlightState SimpleControl::UpdateFlightState()
     flight_state.vertical_speed = velocity.twist.linear.z; //Global Velocity vertical [m/s]
 
     return flight_state;
+}
+
+int SimpleControl::ComparePosition(geometry_msgs::Point point1, geometry_msgs::Point point2)
+{
+    //TODO:Define the function
+    return 1;
+}
+
+void SimpleControl::Run()
+{
+  if(goal == TRAVEL){
+    if(ComparePosition(pos_local, pos_target) == 0){
+      //Vehicle is at target location => Scout Building
+      goal = SCOUT;
+    }
+    else if(abs(pos_local.z - pos_target.z) <= THRESHOLD_Z){
+      //Achieved the proper altitude => Go to target location
+      this->SetLocalPosition(pos_target);
+    }
+    else{ //Ascend to the proper altitude first at the current location
+      this->SetLocalPosition(pos_local.x, pos_local.y, pos_target.z);
+    }
+  }
+  else if(goal == SCOUT){
+
+  }
+  else if(goal == RTL){
+    if(ComparePosition(pos_local, pos_target) == 0){
+      //Vehicle is at target location => Disarm
+      goal = DISARM;
+    }
+    else if(abs(pos_local.z - ALT_RTL) <= THRESHOLD_Z){
+      //Achieved the proper altitude => Go to target location
+      this->SetLocalPosition(pos_target);
+    }
+    else{
+      this->SetLocalPosition(pos_local.x, pos_local.y, pos_target.z);
+    }
+  }
+  else if(goal == LAND){
+    if(pos_local.z == 0){
+      //Landed => Disarm
+      goal = DISARM;
+    }
+    else{
+      this->SetLocalPosition(pos_target);
+    }
+  }
+  else if(goal == DISARM){
+    //Disarm the vehicle if it's currently armed
+    if(state.armed) this->Arm(false);
+  }
+  else{
+    //Wait for the goal to change
+  }
 }

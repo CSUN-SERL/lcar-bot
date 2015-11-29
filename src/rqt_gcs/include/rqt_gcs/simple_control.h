@@ -34,6 +34,10 @@
 #define SCOUT 1
 #define RTL 2
 #define LAND 3
+#define DISARM 4
+#define THRESHOLD_XY 1
+#define THRESHOLD_Z 2
+#define ALT_RTL 10
 
 //Structs
 struct FlightState {
@@ -103,16 +107,11 @@ public:
   /**
       Executes proper instructions for running the Scout Building play
 
-      @param lat The latitude of the GPS location of the building to scout
-      @param lon The longitude of the GPS location of the building to scout
+      @param x X coordinate of the local position of the building
+      @param y Y coordinate of the local position of the building
+      @param z The height at which the UAV should arrive at the building
   */
-  void ScoutBuilding(float lat, float lon);
-
-  /**
-      Start the stored mission on the UAV.
-
-  */
-  void BeginMission();
+  void ScoutBuilding(int x, int y, int z);
 
   /**
       Override the RC value of the transmitter.
@@ -133,11 +132,18 @@ public:
   void SetLocalPosition(int x, int y, int z);
 
   /**
+      Send a new position command to the UAV.
+
+      @param new_pose The new local position passed as a Pose object
+  */
+  void SetLocalPosition(geometry_msgs::Point new_point);
+
+
+  /**
       Change the UAV's roll, pitch, and yaw values. Requires the UAV to be
       hovering (~50% throttle).
       //NOTE: setpoint_attitude/attitude is currently not supported on the APM
       flight stack. Only the px4 flight stack is supported at the moment.
-      //TODO: Untested Function! Test with the px4 flight stack.
 
       @param roll   New roll value in degrees, relative to the horizontal plane
       @param pitch  New pitch value in degrees, relative to the horizontal plane
@@ -168,6 +174,19 @@ public:
   */
   void SetAcceleration(float x, float y, float z);
 
+  /**
+      Compare two geometry_msgs::Point objects within a threshold value.
+
+      @param point1  First point to compare
+      @param point2  Second point to compare
+  */
+  int ComparePosition(geometry_msgs::Point point1, geometry_msgs::Point point2);
+
+  /**
+      Manage the UAV and ensure that it completes the mission
+  */
+  void Run();
+
   //Getter Functions
   mavros_msgs::State GetState() { return state; }
   mavros_msgs::BatteryStatus GetBatteryStatus() { return battery; }
@@ -184,6 +203,7 @@ private:
   void HeadingCallback(const std_msgs::Float64& msg_heading) { heading_deg = msg_heading.data; }
   void VelocityCallback(const geometry_msgs::TwistStamped& msg_vel) { velocity = msg_vel; }
   void NavSatFixCallback(const sensor_msgs::NavSatFix& msg_gps) { pos_global = msg_gps; }
+  void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) { pos_local = msg_pos.pose.position; }
 
   //For returning Flight State Data to GCS
   FlightState UpdateFlightState();
@@ -200,7 +220,8 @@ private:
   sensor_msgs::Imu imu;
   sensor_msgs::NavSatFix pos_global;
   geometry_msgs::TwistStamped velocity;
-  geometry_msgs::PoseWithCovarianceStamped pos_local;
+  geometry_msgs::Point pos_local;
+  geometry_msgs::Point pos_target;
   float altitude_rel, heading_deg;
   int goal;
 };
