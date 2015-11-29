@@ -172,7 +172,7 @@ std::string SimpleControl::GetLocation()
   return std::to_string(lat) + "," + std::to_string(lon);
 }
 
-void SimpleControl::ScoutBuilding(std::string coordinates)
+void SimpleControl::ScoutBuilding(float lat, float lon)
 {
   /*//Create a message for storing the the waypoint
   mavros_msgs::WaypointPush msg_mission;

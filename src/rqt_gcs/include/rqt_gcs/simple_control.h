@@ -97,11 +97,12 @@ public:
   void SetWayPoint(std::string waypoint);
 
   /**
-      Send a list of waypoints (mission) to the UAV.
+      Executes proper instructions for running the Scout Building play
 
-      @param coordinates The GPS coordinates of the building to scout
+      @param lat The latitude of the GPS location of the building to scout
+      @param lon The longitude of the GPS location of the building to scout
   */
-  void ScoutBuilding(std::string coordinates);
+  void ScoutBuilding(float lat, float lon);
 
   /**
       Start the stored mission on the UAV.
