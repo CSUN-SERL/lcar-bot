@@ -1,17 +1,17 @@
 <library path="lib/librqt_gcs">
   <class name="rqt_gcs/MyPlugin" type="rqt_gcs::MyPlugin" base_class_type="rqt_gui_cpp::Plugin">
     <description>
-      My Custom Plugin
+      Ground Control Station Plugin for the LCAR Bot project.
     </description>
     <qtgui>
       <group>
-        <label>Custom</label>
+        <label>LCAR Bot</label>
         <icon type="theme">folder</icon>
-        <statustip>Custom Plugins.</statustip>
+        <statustip>Learning, Classifying, And Recognizing Bot Project Plugins.</statustip>
       </group>
-      <label>My Plugin</label>
-      <icon type="theme">image-x-generic</icon>
-      <statustip>My Custom Plugin</statustip>
+      <label>LCAR Bot GCS</label>
+      <icon type="theme">computer</icon>
+      <statustip>LCAR Ground Control Station Plugin</statustip>
     </qtgui>
   </class>
 </library>

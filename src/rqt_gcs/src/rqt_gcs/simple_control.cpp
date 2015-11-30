@@ -4,12 +4,12 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "simple_control");
   SimpleControl quad1;
-  quad1.Arm(true);
+  //quad1.Arm(true);
 
   ros::Rate loop_rate(10); //10Hz
   while(ros::ok())
   {
-    //OS_WARN_STREAM("Sate: " << quad1.GetState());
+    quad1.SetLinearVelocity(5, 7, 8);
     ros::spinOnce();
     loop_rate.sleep();
   }
@@ -23,7 +23,6 @@ SimpleControl::SimpleControl(void)  //Class constructor
   sc_takeoff  = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>("mavros/cmd/takeoff");
   sc_land     = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>("mavros/cmd/land");
   sc_mode     = nh_simple_control.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
-  sc_wp_goto  = nh_simple_control.serviceClient<mavros_msgs::WaypointGOTO>("mavros/mission/goto");
   sc_mission  = nh_simple_control.serviceClient<mavros_msgs::WaypointPush>("mavros/mission/push");
 
   //Initialize Publisher Objects
@@ -31,10 +30,17 @@ SimpleControl::SimpleControl(void)  //Class constructor
   pub_setpoint_position = nh_simple_control.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local",QUEUE_SIZE);
   pub_setpoint_attitude = nh_simple_control.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_attitude/attitude",QUEUE_SIZE);
   pub_angular_vel       = nh_simple_control.advertise<geometry_msgs::TwistStamped>("mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
+  pub_linear_vel        = nh_simple_control.advertise<geometry_msgs::TwistStamped>("mavros/setpoint_velocity/cmd_vel",QUEUE_SIZE);
+  pub_setpoint_accel    = nh_simple_control.advertise<geometry_msgs::Vector3Stamped>("mavros/setpoint_accel/accel",QUEUE_SIZE);
 
   //Initialze Subscribers
-  sub_state = nh_simple_control.subscribe("mavros/state", 10, &SimpleControl::StateCallback, this);
-  sub_battery = nh_simple_control.subscribe("mavros/battery", 10, &SimpleControl::BatteryCallback, this);
+  sub_state       = nh_simple_control.subscribe("mavros/state", 1, &SimpleControl::StateCallback, this);
+  sub_battery     = nh_simple_control.subscribe("mavros/battery", 1, &SimpleControl::BatteryCallback, this);
+  sub_imu         = nh_simple_control.subscribe("mavros/sensor_msgs/Imu", 1, &SimpleControl::ImuCallback, this);
+  sub_altitude    = nh_simple_control.subscribe("mavros/global_position/rel_alt", 1, &SimpleControl::RelAltitudeCallback, this);
+  sub_heading     = nh_simple_control.subscribe("mavros/global_position/compass_hdg", 1, &SimpleControl::HeadingCallback, this);
+  sub_vel         = nh_simple_control.subscribe("mavros/local_position/velocity", 1, &SimpleControl::VelocityCallback, this);
+  sub_pos_global  = nh_simple_control.subscribe("mavros/global_position/global", 1, &SimpleControl::NavSatFixCallback, this);
 }
 
 SimpleControl::~SimpleControl(void)
@@ -56,6 +62,7 @@ void SimpleControl::Arm(bool value)
 
       bool timeout = false;
       int count = 0;
+      ros::Rate check_frequency(CHECK_FREQUENCY);
 
       //Wait for the FCU to arm
       while(!state.armed && !timeout){
@@ -71,6 +78,16 @@ void SimpleControl::Arm(bool value)
         if(value) ROS_WARN_STREAM("Arm operation timed out.");
         else ROS_WARN_STREAM("Disarm operation timed out.");
       }
+      else{
+        if(state.armed) ROS_INFO_STREAM("**ARMED**");
+        else ROS_INFO_STREAM("**DISARMED**");
+      }
+    }
+    else{
+      if(value) ROS_ERROR_STREAM("Failed to Arm!");
+      else ROS_ERROR_STREAM("Failed to Disarm!");
+    }
+  }
       else{
         if(state.armed) ROS_INFO_STREAM("**ARMED**");
         else ROS_INFO_STREAM("**DISARMED**");
@@ -155,84 +172,27 @@ void SimpleControl::SetMode(std::string mode)
   }
 }
 
-//TODO: Ensure the UAV is airborne and check for service success
-//TODO: Provide feedback and updates using the ROS logger
-//NOTE: Deprecated in latest version of ROS
-void SimpleControl::GoToWP(double lat, double lon, int alt)
+std::string SimpleControl::GetLocation()
 {
-  //Create a message for storing the the waypoint
-  mavros_msgs::WaypointGOTO msg_waypoint;
+  float lat = pos_global.latitude;
+  float lon = pos_global.longitude;
 
-  //Create the waypoint object
-  mavros_msgs::Waypoint wp;
-  wp.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL;
-  wp.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
-  wp.is_current   = false;
-  wp.autocontinue = false;
-  wp.x_lat        = lat;
-  wp.y_long       = lon;
-  wp.z_alt        = alt;
-
-  //Update the message with the new waypoint
-  msg_waypoint.request.waypoint = wp;
-
-  //Call the service
-  if(sc_wp_goto.call(msg_waypoint)){
-    if(msg_waypoint.response.success == 1) ROS_INFO_STREAM("Traveling to waypoint [" << lat << ", " << lon << "]");
-    else ROS_ERROR_STREAM("Navigation to waypoint [" << lat << ", " << lon << "]" << " failed.");
-  }
-  else{
-    ROS_ERROR_STREAM("Failed to call msg_waypoint service!");
-  }
+  return std::to_string(lat) + "," + std::to_string(lon);
 }
 
-void SimpleControl::SendMission(std::string mission_file)
+void SimpleControl::ScoutBuilding(int x, int y, int z)
 {
-  //Create a message for storing the the waypoint
-  mavros_msgs::WaypointPush msg_mission;
+  //Update the target location
+  pos_target.x = x;
+  pos_target.y = y;
+  pos_target.z = z;
 
-  //TODO: Add ability to create waypoints from a text file.
-  mavros_msgs::Waypoint wp1;
-  wp1.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL;
-  wp1.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
-  wp1.is_current   = false;
-  wp1.autocontinue = true;
-  wp1.x_lat        = -35.3632621765;
-  wp1.y_long       = 149.165237427;
-  wp1.z_alt        = 583.989990234;
+  //Prepare the vehicle for traveling to the waypoint
+  //this->Arm(true);
+  //this->SetMode("Guided");
 
-  mavros_msgs::Waypoint wp2;
-  wp2.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT;
-  wp2.command      = mavros_msgs::CommandCode::NAV_TAKEOFF;
-  wp2.is_current   = false;
-  wp2.autocontinue = true;
-  wp2.x_lat        = -35.3628807068;
-  wp2.y_long       = 149.165222168;
-  wp2.z_alt        = 20;
-
-  mavros_msgs::Waypoint wp3;
-  wp3.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT;
-  wp3.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
-  wp3.is_current   = false;
-  wp3.autocontinue = true;
-  wp3.x_lat        = -35.3646507263;
-  wp3.y_long       = 149.163497925;
-  wp3.z_alt        = 0;
-
-  //Update the message with the new waypoint
-  //NOTE: waypoints is a Vector object
-  msg_mission.request.waypoints.push_back(wp1);
-  msg_mission.request.waypoints.push_back(wp2);
-  msg_mission.request.waypoints.push_back(wp3);
-
-  //Call the service
-  if(sc_mission.call(msg_mission)){
-    if(msg_mission.response.success == 1) ROS_INFO_STREAM("Executing mission " << mission_file);
-    else ROS_ERROR_STREAM("Failed to execute mission " << mission_file);
-  }
-  else{
-    ROS_ERROR_STREAM("Failed to call msg_mission service!");
-  }
+  pos_previous = pos_local;
+  goal = TRAVEL;
 }
 
 void SimpleControl::OverrideRC(int channel, int value)
@@ -263,27 +223,29 @@ void SimpleControl::SetLocalPosition(int x, int y, int z)
   pub_setpoint_position.publish(position_stamped);
 }
 
-void SimpleControl::SetAttitude(int roll, int pitch, int yaw)
+void SimpleControl::SetLocalPosition(geometry_msgs::Point new_point)
 {
   //Create the message object
-  geometry_msgs::PoseStamped msg_attitude;
+  geometry_msgs::PoseStamped position_stamped;
 
-  //Create an object with the new attitude
-  //NOTE: Arbitrary values until the function is tested
-  geometry_msgs::Pose uav_attitude;
-  uav_attitude.position.x     = roll;
-  uav_attitude.position.y     = pitch;
-  uav_attitude.position.z     = yaw;
-  uav_attitude.orientation.x  = roll;
-  uav_attitude.orientation.y  = pitch;
-  uav_attitude.orientation.z  = yaw;
-  uav_attitude.orientation.w  = 0;
-
-  //Update the message with the new attitude
-  msg_attitude.pose = uav_attitude;
+  //Update the message with the new position
+  position_stamped.pose.position = new_point;
 
   //Publish the message
-  pub_setpoint_attitude.publish(msg_attitude);
+  pub_setpoint_position.publish(position_stamped);
+}
+
+void SimpleControl::SetAttitude(float roll, float pitch, float yaw)
+{
+  //Create the message to be published
+  geometry_msgs::PoseStamped msg_pose;
+
+  //Construct a Quaternion from Fixed angles and update pose
+  tf::Quaternion q = tf::createQuaternionFromRPY(roll, pitch, yaw);
+  quaternionTFToMsg(q, msg_pose.pose.orientation);
+
+  //Publish the message
+  pub_setpoint_attitude.publish(msg_pose);
 }
 
 void SimpleControl::SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel)
@@ -302,13 +264,66 @@ void SimpleControl::SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel)
   pub_angular_vel.publish(msg_angular_vel);
 }
 
-//Callback Functions
-void SimpleControl::StateCallback(const mavros_msgs::State& msg_state)
+void SimpleControl::SetLinearVelocity(float x, float y, float z)
 {
-  state = msg_state;
+
+  geometry_msgs::TwistStamped msg_linear_vel;
+  
+  msg_linear_vel.twist.linear.x = x; 
+  msg_linear_vel.twist.linear.y = y;
+  msg_linear_vel.twist.linear.z = z;  
+  pub_linear_vel.publish(msg_linear_vel);
+
 }
 
-void SimpleControl::BatteryCallback(const mavros_msgs::BatteryStatus& msg_battery)
+void SimpleControl::SetAcceleration(float x, float y, float z)
 {
-  battery = msg_battery;
+  //Create the message object
+  geometry_msgs::Vector3Stamped msg_accel;
+
+  //Update the message with the new acceleration
+  msg_accel.vector.x = x;
+  msg_accel.vector.y = y;
+  msg_accel.vector.z = z;
+
+  //Publish the message
+  pub_setpoint_accel.publish(msg_accel);
 }
+
+//TODO: Fix Roll, Pitch, Yaw, and Ground Speed values
+FlightState SimpleControl::UpdateFlightState()
+{
+    struct FlightState flight_state;
+
+    flight_state.roll = imu.orientation.x; //Update Roll value
+    flight_state.pitch = imu.orientation.y; //Update Pitch Value
+    flight_state.yaw = imu.orientation.z; //Update Yaw Value
+    flight_state.heading = heading_deg; //Update heading [degrees]
+    flight_state.altitude = altitude_rel; //Update Altitude [m]
+    flight_state.ground_speed = velocity.twist.linear.x; //Global Velocity X [m/s]
+    flight_state.vertical_speed = velocity.twist.linear.z; //Global Velocity vertical [m/s]
+
+    return flight_state;
+}
+
+int SimpleControl::ComparePosition(geometry_msgs::Point point1, geometry_msgs::Point point2)
+{
+    int result;
+
+    if(abs(point2.x - point1.x) <= THRESHOLD_XY && abs(point2.y - point1.y) <= THRESHOLD_XY){
+      result = 0;
+    }
+    else result = 1;
+
+    return result;
+}
+
+int SimpleControl::CalculateDistance(geometry_msgs::Point point1, geometry_msgs::Point point2)
+{
+  float dist_x = point2.x - point1.x;
+  float dist_y = point2.y - point1.y;
+  float dist_z = point2.z - point1.z;
+  return sqrt((dist_x * dist_x) + (dist_y * dist_y) + (dist_z * dist_z));
+}
+
+float SimpleControl::GetMissionProgress()

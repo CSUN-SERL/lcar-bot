@@ -8,66 +8,106 @@ MyPlugin::MyPlugin()
   : rqt_gui_cpp::Plugin()
   , widget_(0)
 {
-	
+
   // Constructor is called first before initPlugin function, needless to say.
   // give QObjects reasonable names
-  setObjectName("MyPlugin");
+  setObjectName("LCAR Bot GCS");
 }
 
 void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 {
-  
   // access standalone command line arguments
   QStringList argv = context.argv();
   // create QWidget
   widget_ = new QWidget();
   missionCancelWidget_ = new QWidget();
   missionSelectWidget_ = new QWidget();
-  missionProgressWidget_ = new QWidget();
+  missionProgressWidget1_ = new QWidget();
+  missionProgressWidget2_ = new QWidget();
+  missionProgressWidget3_ = new QWidget();
+  missionProgressWidget4_ = new QWidget();
   UavQuestionWidget_ = new QWidget();
-  UavStatWidget_ = new QWidget();
+  UavStatWidget1_ = new QWidget();
+  UavStatWidget2_ = new QWidget();
 
 
   // extend the widget with all attributes and children from UI file
   ui_.setupUi(widget_);
   mcUi_.setupUi(missionCancelWidget_);
-  mpUi_.setupUi(missionProgressWidget_);
+
+  mpUi1_.setupUi(missionProgressWidget1_);
+  mpUi2_.setupUi(missionProgressWidget2_);
+
   msUi_.setupUi(missionSelectWidget_);
   uqUi_.setupUi(UavQuestionWidget_);
-  usUi_.setupUi(UavStatWidget_);
 
-  //label = new QLabel("Blah",widget_);
+  usUi1_.setupUi(UavStatWidget1_);
+  usUi2_.setupUi(UavStatWidget2_);
+
 
   // add widget to the user interface
   context.addWidget(widget_);
-  ui_.MissionProgressLayout->addWidget(missionProgressWidget_);
+  ui_.MissionProgressIndividualLayout->addWidget(missionProgressWidget1_);
+  ui_.MissionProgressIndividualLayout->addWidget(missionProgressWidget2_);
+  ui_.MissionProgressIndividualLayout->addWidget(missionProgressWidget3_);
+  ui_.MissionProgressIndividualLayout->addWidget(missionProgressWidget4_);
+  ui_.UavStatLayout->addWidget(UavStatWidget1_);
+  ui_.UavStatLayout->addWidget(UavStatWidget2_);
 
 
-
-
-  QObject::connect(ui_.CalculateButton,SIGNAL(clicked()),this,SLOT(Execute()));
-
+   updateTimer = new QTimer(this);
+   connect(updateTimer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
+   updateTimer->start(100);
 }
 
 void MyPlugin::Calculate(){
 
-	op = ui_.operand1->text();
-  	op2 = ui_.operand2->text();
-	ui_.sum->setText(op.append(op2));
-	ROS_INFO_STREAM("subscribed");
 }
 
 
-void MyPlugin::Execute(){
+void MyPlugin::TimedUpdate(){
 
-      quadControl.Takeoff(10);
+    tempData = quad1.GetState().mode.c_str();
+    usUi1_.flightModeDisplay->setText(tempData);
 
+    tempData.setNum(quad1.GetFlightState().yaw);
+    usUi1_.yawDisplay->setText(tempData);
+
+    tempData.setNum(quad1.GetFlightState().roll);
+    usUi1_.rollDisplay->setText(tempData);
+
+    tempData.setNum(quad1.GetFlightState().pitch);
+    usUi1_.pitchDisplay->setText(tempData);
+
+    tempData.setNum(quad1.GetFlightState().altitude);
+    usUi1_.altitudeDisplay->setText(tempData);
+
+    tempData.setNum(quad1.GetFlightState().vertical_speed);
+    usUi1_.verticalSpaceDisplay->setText(tempData);
+
+    tempData.setNum(quad1.GetFlightState().ground_speed);
+    usUi1_.horizontalSpaceDisplay->setText(tempData);
+
+    tempData.setNum(quad1.GetFlightState().heading);
+    usUi1_.headingDisplay->setText(tempData);
+
+    tempData.setNum(quad1.GetDistanceToWP());
+    usUi1_.waypointDisplay->setText(tempData);
+
+    tempData.setNum(quad1.GetBatteryStatus().remaining*100);
+    usUi1_.batteryProgressBar->setValue(tempData.toInt());
+
+    tempData = "Quadrotor 1";
+    mpUi1_.uavNameEdit->setText(tempData);
+
+    tempData.setNum(quad1.GetMissionProgress()*100);
+    mpUi1_.missionProgressBar->setValue(tempData.toInt());
 }
 
 void MyPlugin::shutdownPlugin()
 {
   // TODO unregister all publishers here =
- 
+
 }
 
 void MyPlugin::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const
