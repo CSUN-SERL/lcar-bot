@@ -8,10 +8,10 @@ MyPlugin::MyPlugin()
   : rqt_gui_cpp::Plugin()
   , widget_(0)
 {
-	
+
   // Constructor is called first before initPlugin function, needless to say.
   // give QObjects reasonable names
-  setObjectName("MyPlugin");
+  setObjectName("LCAR Bot GCS");
 }
 
 void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
@@ -46,7 +46,7 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   usUi1_.setupUi(UavStatWidget1_);
   usUi2_.setupUi(UavStatWidget2_);
 
-  
+
   // add widget to the user interface
   context.addWidget(widget_);
   ui_.MissionProgressIndividualLayout->addWidget(missionProgressWidget1_);
@@ -55,11 +55,11 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   ui_.MissionProgressIndividualLayout->addWidget(missionProgressWidget4_);
   ui_.UavStatLayout->addWidget(UavStatWidget1_);
   ui_.UavStatLayout->addWidget(UavStatWidget2_);
- 
+
 
    updateTimer = new QTimer(this);
    connect(updateTimer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
-   updateTimer->start(100); 
+   updateTimer->start(100);
 }
 
 void MyPlugin::Calculate(){
@@ -68,7 +68,7 @@ void MyPlugin::Calculate(){
 
 
 void MyPlugin::TimedUpdate(){
-     
+
     tempData = quadControl.GetState().mode.c_str();
     usUi1_.flightModeDisplay->setText(tempData);
 
@@ -93,7 +93,7 @@ void MyPlugin::TimedUpdate(){
     tempData.setNum(quadControl.GetFlightState().heading);
     usUi1_.headingDisplay->setText(tempData);
 
-   
+
     usUi1_.waypointDisplay->setText("89");
 
     tempData.setNum(quadControl.GetBatteryStatus().remaining*100);
@@ -108,7 +108,7 @@ void MyPlugin::TimedUpdate(){
 void MyPlugin::shutdownPlugin()
 {
   // TODO unregister all publishers here =
- 
+
 }
 
 void MyPlugin::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const

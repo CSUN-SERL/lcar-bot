@@ -32,7 +32,7 @@ public:
   MyPlugin();
   SimpleControl quadControl;
   QString tempData;
-  
+
   ros::Subscriber sub;
   ros::NodeHandle nh;
   void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
