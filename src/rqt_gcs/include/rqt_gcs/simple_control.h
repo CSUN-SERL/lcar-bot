@@ -9,6 +9,9 @@
 #include <vector>
 #include <tf/tf.h>
 #include <tf/transform_datatypes.h>
+#include <angles/angles.h>
+#include <eigen_conversions/eigen_msg.h>
+
 #include <mavros/mavros.h>
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/CommandTOL.h>
@@ -191,6 +194,15 @@ public:
       @param point2  Second point
   */
   int CalculateDistance(geometry_msgs::Point point1, geometry_msgs::Point point2);
+
+  /**
+      Calculate a Vector3d object that defines the displacement for reaching a
+      point on a circle.
+
+      @param angle  Angle, in degrees, for which the next Vector should be
+                    generated.
+  */
+  Eigen::Vector3d CircleShape(int angle);
 
   /**
       Manage the UAV and ensure that it completes the mission
