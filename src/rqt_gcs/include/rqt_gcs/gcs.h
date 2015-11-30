@@ -30,7 +30,7 @@ class MyPlugin
   Q_OBJECT
 public:
   MyPlugin();
-  SimpleControl quadControl;
+  SimpleControl quad1;
   QString tempData;
 
   ros::Subscriber sub;

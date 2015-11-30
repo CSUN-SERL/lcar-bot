@@ -37,8 +37,6 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 
   mpUi1_.setupUi(missionProgressWidget1_);
   mpUi2_.setupUi(missionProgressWidget2_);
-  mpUi3_.setupUi(missionProgressWidget3_);
-  mpUi4_.setupUi(missionProgressWidget4_);
 
   msUi_.setupUi(missionSelectWidget_);
   uqUi_.setupUi(UavQuestionWidget_);
@@ -69,41 +67,42 @@ void MyPlugin::Calculate(){
 
 void MyPlugin::TimedUpdate(){
 
-    tempData = quadControl.GetState().mode.c_str();
+    tempData = quad1.GetState().mode.c_str();
     usUi1_.flightModeDisplay->setText(tempData);
 
-    tempData.setNum(quadControl.GetFlightState().yaw);
+    tempData.setNum(quad1.GetFlightState().yaw);
     usUi1_.yawDisplay->setText(tempData);
 
-    tempData.setNum(quadControl.GetFlightState().roll);
+    tempData.setNum(quad1.GetFlightState().roll);
     usUi1_.rollDisplay->setText(tempData);
 
-    tempData.setNum(quadControl.GetFlightState().pitch);
+    tempData.setNum(quad1.GetFlightState().pitch);
     usUi1_.pitchDisplay->setText(tempData);
 
-    tempData.setNum(quadControl.GetFlightState().altitude);
+    tempData.setNum(quad1.GetFlightState().altitude);
     usUi1_.altitudeDisplay->setText(tempData);
 
-    tempData.setNum(quadControl.GetFlightState().vertical_speed);
+    tempData.setNum(quad1.GetFlightState().vertical_speed);
     usUi1_.verticalSpaceDisplay->setText(tempData);
 
-    tempData.setNum(quadControl.GetFlightState().ground_speed);
+    tempData.setNum(quad1.GetFlightState().ground_speed);
     usUi1_.horizontalSpaceDisplay->setText(tempData);
 
-    tempData.setNum(quadControl.GetFlightState().heading);
+    tempData.setNum(quad1.GetFlightState().heading);
     usUi1_.headingDisplay->setText(tempData);
 
+    tempData.setNum(quad1.GetDistanceToWP());
+    usUi1_.waypointDisplay->setText(tempData);
 
-    usUi1_.waypointDisplay->setText("89");
-
-    tempData.setNum(quadControl.GetBatteryStatus().remaining*100);
-    //tempData.setNum(.99*100);
+    tempData.setNum(quad1.GetBatteryStatus().remaining*100);
     usUi1_.batteryProgressBar->setValue(tempData.toInt());
 
+    tempData = "Quadrotor 1";
+    mpUi1_.uavNameEdit->setText(tempData);
+
+    tempData.setNum(quad1.GetMissionProgress()*100);
+    mpUi1_.missionProgressBar->setValue(tempData.toInt());
 }
-
-
-
 
 void MyPlugin::shutdownPlugin()
 {
