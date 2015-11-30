@@ -11,31 +11,32 @@ int N, size;
 int number = 0;
 
 void get_svm_detector(const Ptr<SVM>& svm, vector< float > & hog_detector );
-
+void OrbDetection(Ptr<SVM> svm);
 
 int main(int argc, char * argv[]) {
-    MachineLearning ml;
-    ml.IMAGES_DIR = "/home/thomas/NetBeansProjects/doors";
-    ml.TraverseDirectory(ml.IMAGES_DIR);
-    labels.convertTo(labels, CV_32SC1);
-    trainingdata.convertTo(trainingdata, CV_32FC1);
-    // Set up SVM's parameters
-    Ptr<SVM> svm = SVM::create();
-    svm->setKernel(SVM::LINEAR);
-    //svm->setTermCriteria(TermCriteria(CV_TERMCRIT_ITER, 100, 1e-6));
-    Ptr<TrainData> td = TrainData::create(trainingdata, ROW_SAMPLE, labels);
-    cout << "inside main training\n";
-    svm->trainAuto(td, 10);
-    svm->save("SVM.yaml");
-    cout << labels;
-    trainingdata.release();
+//    MachineLearning ml;
+//    ml.IMAGES_DIR = "/home/thomas/NetBeansProjects/doors";
+//    ml.TraverseDirectory(ml.IMAGES_DIR);
+//    labels.convertTo(labels, CV_32SC1);
+//    trainingdata.convertTo(trainingdata, CV_32FC1);
+//    // Set up SVM's parameters
+//    Ptr<SVM> svm = SVM::create();
+//    svm->setKernel(SVM::LINEAR);
+//    //svm->setTermCriteria(TermCriteria(CV_TERMCRIT_ITER, 100, 1e-6));
+//    Ptr<TrainData> td = TrainData::create(trainingdata, ROW_SAMPLE, labels);
+//    cout << "inside main training\n";
+//    svm->trainAuto(td, 10);
+//    svm->save("SVM.yaml");
+//    cout << labels;
+//    trainingdata.release();
 //    //
 //    //    /*****************************TESTING*************************************/
-    ml.Testing(ml);
-    //const string modelLibPath = "SVM.yaml";
+    //ml.Testing(ml);
+    const string modelLibPath = "SVM.yaml";
     //Ptr<SVM> Svm = SVM::create();
-    //Ptr<SVM> Svm = StatModel::load<SVM>(modelLibPath);
-    ml.Hog(svm);
+    Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
+    //ml.Hog(svm);
+    OrbDetection(svm);
 
     trainingdata.release();
     labels.release();
@@ -325,4 +326,37 @@ void get_svm_detector(const Ptr<SVM>& svm, vector< float > & hog_detector )
     hog_detector.resize(sv.cols + 1);
     memcpy(&hog_detector[0], sv.ptr(), sv.cols*sizeof(hog_detector[0]));
     hog_detector[sv.cols] = (float)-rho;
+}
+
+void OrbDetection(Ptr<SVM> svm) {
+    VideoCapture cap(-1);
+
+    cap.set(CV_CAP_PROP_FRAME_WIDTH, 1000);
+    cap.set(CV_CAP_PROP_FRAME_HEIGHT, 1000);
+    //    if (!cap.isOpened())
+    //        return -1;
+    Mat img;
+    vector<KeyPoint> keypoints_1;
+    Ptr<ORB> detector = ORB::create(500, 1.2, 3, 15, 0);
+    while (true) {
+
+        cap >> img;
+        if (!img.data)
+            continue;
+        cvtColor(img, img, CV_BGR2GRAY);
+
+        vector<Rect> found, found_filtered;
+        cv::Mat img_keypoints_1, res;
+        //detect keypoints
+        detector->detect(img, keypoints_1);
+        //describe keypoints
+        detector->compute(img, keypoints_1, img_keypoints_1);
+        drawKeypoints(img, keypoints_1, img_keypoints_1, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
+        imshow("video capture", img_keypoints_1);
+
+
+        if (waitKey(20) >= 0)
+            break;
+
+    }
 }
