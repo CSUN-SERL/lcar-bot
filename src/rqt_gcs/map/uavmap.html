@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script type="text/javascript" src="http://cdn.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
 <script type="text/javascript" src="http://cdn.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
 <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
@@ -33,44 +33,53 @@ ros.on('connection', function() {
 
 // Subscribing to a Topic
   // ----------------------
-
+	  
+	 
+function getCoordinates(){
   var listener = new ROSLIB.Topic({
     ros : ros, 	//ros object connection
     name : 'mavros/global_position/global',
     messageType : 'sensor_msgs/NavSatFix'
   });
 
-  listener.subscribe(function(message) {
-    console.log('latitude ' + listener.name + ': ' + message.latitude);
+   listener.subscribe(function(message) {
+   console.log('latitude ' + listener.name + ': ' + message.latitude);
    console.log('longitude ' + listener.name + ': ' + message.longitude);
 
 	longitude = message.longitude;
 	latitude = message.latitude;
 	console.log('latitude1 ' + longitude);
- 	  console.log('longitude1 ' + latitude);
-$(document).ready(function(){
-	   //getLocation();
-     showPosition();
-			});
-
-    	listener.unsubscribe();
+ 	console.log('longitude1 ' + latitude);
+	  
+	    	listener.unsubscribe();
   });
+}
+	  
+$(document).ready(function(){
+	   
+      	  showPosition();
+		  getCoordinates();
+		  
+		  
+		  $('#deleteButton').click(function(){
+  			deleteMarkers();
+	 	  });
+});
+
+  
 
 
-var x =-118;
-var y =34;
+var x =0; 
 var map;
 var marker;
 var newPoint ;
 var la ;
-function getLocation() {
-   //if (navigator.geolocation) {
-  //     navigator.geolocation.getCurrentPosition(showPosition, showError);
-   //} else {
-  //     x.innerHTML = "Geolocation is not supported by this browser.";
-  //  }
-
-}
+var missionDest = []; // way points of destination	  
+var image = {
+		      url: 'uav.png',
+			 	
+			 scaledSize: new google.maps.Size(100,100)
+			};
 
 function showPosition() {
  console.log('latitude ' + longitude);
@@ -86,21 +95,31 @@ function showPosition() {
     var myOptions = {
     center:latlon,zoom:14,
     mapTypeId:google.maps.MapTypeId.ROADMAP,
-    mapTypeControl:false,
+    mapTypeControl:true,
     navigationControlOptions:{style:google.maps.NavigationControlStyle.SMALL}
     }
 
      map = new google.maps.Map(document.getElementById("mapholder"), myOptions);
-     marker = new google.maps.Marker({position:latlon,map:map,title:"You are here!"});
-
+     marker = new google.maps.Marker({position:latlon,map:map,
+									  title:"You are here!",
+									  icon: image
+									  
+	});
+	
+	map.addListener('click', function(event){
+		newMarker(event.latLng);
+	});
+	
     update();
+	
 }
 
 function update() {
   //navigator.geolocation.getCurrentPosition(function(position) {
      //newPoint = new google.maps.LatLng( position.coords.latitude,
                                           // position.coords.longitude);
-
+getCoordinates(); //update coordinates
+	
 la = new google.maps.LatLng(latitude,
     longitude);
 
@@ -117,10 +136,14 @@ la = new google.maps.LatLng(latitude,
     }
 
     // Center the map on the new position
+
+	var checked = $('#roamBox').prop('checked');
+	if(checked) { 
     map.setCenter(la);
+	}
   //});
 
-  // Call the autoUpdate() function every 5 seconds
+  // Call the autoUpdate() function every k seconds
   outmessage.innerHTML = newPoint ;
   longitude += .00055;
   setTimeout(update, 50);
@@ -142,15 +165,54 @@ function showError(error) {
             break;
     }
 }
+	  
+function newMarker(location){	  
+ var destination = new google.maps.Marker({
+    position: location,
+    map: map,
+    title: 'Destination: ' + x,
+	
+  });
 
-
+	missionDest.push(destination); //add the destinations to the array.
+	x++;
+}
  
+// Sets the map on all markers in the array.
+function setMapOnAll(map) {
+  for (var i = 0; i < missionDest.length; i++) {
+    missionDest[i].setMap(map);
+  }
+}
+	  
+// Shows any markers currently in the array.
+function showMarkers() {
+  setMapOnAll(map);
+}
+
+// Deletes all markers in the array by removing references to them.
+function deleteMarkers() {
+	x =0;
+  clearMarkers();
+  missionDest = [];
+}
+	  
+// Removes the markers from the map, but keeps them in the array.
+function clearMarkers() {
+  setMapOnAll(null);
+}
+
+
+
     </script>
 </head>
 <body>
 
 <p id="outmessage"></p>
-
+<input type="button" value="Delete way points" id="deleteButton" >
+	
+ <input type="checkbox" name="roamBox" value="Auto Track Drone" /> Auto Track Drone 
+    
 
 
 <div id="mapholder"></div>
