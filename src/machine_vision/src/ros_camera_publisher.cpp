@@ -2,31 +2,45 @@
 #include <image_transport/image_transport.h>
 #include "opencv2/highgui.hpp"
 #include <cv_bridge/cv_bridge.h>
-#include <sstream> // for converting the command line parameter to integer
+#include <sstream> // for converting the command line parameter to integer#
+#include <stdlib.h>
+
+#include <iostream>
+
 
 int main(int argc, char** argv)
 {
-  // Check if video source has been passed as a parameter
-  if(argv[1] == NULL) return 1;
 
-  ros::init(argc, argv, "image_publisher");
+  ros::init(argc, argv, "stereo_camera", ros::init_options::AnonymousName);
   ros::NodeHandle nh;
   image_transport::ImageTransport it(nh);
-  image_transport::Publisher pub = it.advertise("camera/image", 1);
 
-  // Convert the passed as command line parameter index for the video device to an integer
-  std::istringstream video_sourceCmd(argv[1]);
+  // get node specfic parameters from parameter server
+
+  std::string topic;
+  bool paramSet = ros::param::get("~image_topic", topic);
+
+
+  if(!paramSet){
+      topic = "stereo_cam_default";
+  }
+  image_transport::Publisher pub = it.advertise(topic, 1);
+
   int video_source;
-  // Check if it is indeed a number
-  if(!(video_sourceCmd >> video_source)) return 1;
-
+  paramSet = ros::param::get("~video_id", video_source);
+  if(!paramSet){
+      video_source = -1;
+  }
   cv::VideoCapture cap(video_source);
   // Check if video device can be opened with the given index
-  if(!cap.isOpened()) return 1;
+  if(!cap.isOpened()){
+      ROS_ERROR_STREAM("Error opening camera");
+      return 1;
+  }
   cv::Mat frame;
   sensor_msgs::ImagePtr msg;
 
-  ros::Rate loop_rate(1);
+  //ros::Rate loop_rate(1);
   while (nh.ok()) {
     cap >> frame;
     // Check if grabbed frame is actually full with some content
