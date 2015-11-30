@@ -35,6 +35,8 @@
 #define RTL 2
 #define LAND 3
 #define DISARM 4
+#define TRAVEL_WT 0.5
+#define SCOUT_WT 0.5
 #define THRESHOLD_XY 1
 #define THRESHOLD_Z 2
 #define ALT_RTL 10
@@ -183,6 +185,14 @@ public:
   int ComparePosition(geometry_msgs::Point point1, geometry_msgs::Point point2);
 
   /**
+      Calculate the distance between two points.
+
+      @param point1  First point
+      @param point2  Second point
+  */
+  int CalculateDistance(geometry_msgs::Point point1, geometry_msgs::Point point2);
+
+  /**
       Manage the UAV and ensure that it completes the mission
   */
   void Run();
@@ -192,6 +202,8 @@ public:
   mavros_msgs::BatteryStatus GetBatteryStatus() { return battery; }
   sensor_msgs::Imu  GetImu() { return imu; }
   FlightState GetFlightState() { return UpdateFlightState(); }
+  int GetDistanceToWP() { return CalculateDistance(pos_target, pos_local); }
+  float GetMissionProgress();
 
 private:
 
@@ -220,10 +232,9 @@ private:
   sensor_msgs::Imu imu;
   sensor_msgs::NavSatFix pos_global;
   geometry_msgs::TwistStamped velocity;
-  geometry_msgs::Point pos_local;
-  geometry_msgs::Point pos_target;
+  geometry_msgs::Point pos_local, pos_target, pos_home, pos_previous;
   float altitude_rel, heading_deg;
-  int goal;
+  int goal = -1;
 };
 
 #endif

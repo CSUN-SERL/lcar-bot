@@ -45,6 +45,9 @@ SimpleControl::SimpleControl(void)  //Class constructor
   sub_vel         = nh_simple_control.subscribe("mavros/local_position/velocity", 1, &SimpleControl::VelocityCallback, this);
   sub_pos_global  = nh_simple_control.subscribe("mavros/global_position/global", 1, &SimpleControl::NavSatFixCallback, this);
   sub_pos_local   = nh_simple_control.subscribe("mavros/local_position/pose", 1, &SimpleControl::LocalPosCallback, this);
+
+  //Set Home position
+  pos_home.x = pos_home.y = pos_home.z = 0;
 }
 
 SimpleControl::~SimpleControl(void)
@@ -183,6 +186,7 @@ void SimpleControl::ScoutBuilding(int x, int y, int z)
   this->Arm(true);
   this->SetMode("Guided");
 
+  pos_previous = pos_local;
   goal = TRAVEL;
 }
 
@@ -287,8 +291,45 @@ FlightState SimpleControl::UpdateFlightState()
 
 int SimpleControl::ComparePosition(geometry_msgs::Point point1, geometry_msgs::Point point2)
 {
-    //TODO:Define the function
-    return 1;
+    int result;
+
+    if(abs(point2.x - point1.x) <= THRESHOLD_XY && abs(point2.y - point1.y) <= THRESHOLD_XY){
+      result = 0;
+    }
+    else result = 1;
+
+    return result;
+}
+
+int SimpleControl::CalculateDistance(geometry_msgs::Point point1, geometry_msgs::Point point2)
+{
+  float dist_x = point2.x - point1.x;
+  float dist_y = point2.y - point1.y;
+  float dist_z = point2.z - point1.z;
+  return sqrt((dist_x * dist_x) + (dist_y * dist_y) + (dist_z * dist_z));
+}
+
+float SimpleControl::GetMissionProgress()
+{
+  float progress = 0;
+
+  if(goal == TRAVEL){
+    float distance_remaining  = CalculateDistance(pos_target,pos_local);
+    float distance_total      = CalculateDistance(pos_target,pos_home);
+    float distance_completion = distance_remaining/distance_total;
+    progress =  TRAVEL_WT*(1 - distance_completion);
+  }
+  else if(goal == SCOUT){
+    progress = TRAVEL_WT/*+ building revolution completion*/;
+  }
+  else if(goal == RTL || goal == LAND){ //RTL or Land
+    float distance_remaining  = CalculateDistance(pos_target,pos_local);
+    float distance_total      = CalculateDistance(pos_target,pos_previous);
+    float distance_completion = distance_remaining/distance_total;
+    progress = 1 - distance_completion;
+  }
+
+  return progress;
 }
 
 void SimpleControl::Run()
@@ -296,6 +337,7 @@ void SimpleControl::Run()
   if(goal == TRAVEL){
     if(ComparePosition(pos_local, pos_target) == 0){
       //Vehicle is at target location => Scout Building
+      pos_previous = pos_local;
       goal = SCOUT;
     }
     else if(abs(pos_local.z - pos_target.z) <= THRESHOLD_Z){
@@ -307,7 +349,8 @@ void SimpleControl::Run()
     }
   }
   else if(goal == SCOUT){
-
+    //TODO: Implement SCOUT functionality
+    goal = RTL;
   }
   else if(goal == RTL){
     if(ComparePosition(pos_local, pos_target) == 0){
