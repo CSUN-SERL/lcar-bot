@@ -152,6 +152,9 @@ public:
       @param y  Acceleration Y
       @param z  Acceleration Z
   */
+  
+  void SetLinearVelocity(float x, float y, float z); 
+
   void SetAcceleration(float x, float y, float z);
 
   //Getter Functions
@@ -176,7 +179,7 @@ private:
   //ROS NodeHandle, Service Client, Publisher, and Subscriber Variables
   ros::NodeHandle     nh_simple_control;
   ros::ServiceClient  sc_arm, sc_takeoff, sc_land, sc_mode, sc_mission;
-  ros::Publisher      pub_override_rc, pub_setpoint_position, pub_setpoint_attitude, pub_angular_vel, pub_setpoint_accel;
+  ros::Publisher      pub_override_rc, pub_linear_vel, pub_setpoint_position, pub_setpoint_attitude, pub_angular_vel, pub_setpoint_accel;
   ros::Subscriber     sub_state, sub_battery, sub_imu, sub_pos_global, sub_pos_local, sub_altitude, sub_heading, sub_vel;
 
   //UAV State Variables
