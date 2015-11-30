@@ -88,6 +88,16 @@ void SimpleControl::Arm(bool value)
       else ROS_ERROR_STREAM("Failed to Disarm!");
     }
   }
+      else{
+        if(state.armed) ROS_INFO_STREAM("**ARMED**");
+        else ROS_INFO_STREAM("**DISARMED**");
+      }
+    }
+    else{
+      if(value) ROS_ERROR_STREAM("Failed to Arm!");
+      else ROS_ERROR_STREAM("Failed to Disarm!");
+    }
+  }
   else{
     ROS_ERROR_STREAM("Failed to call arm service!");
   }
@@ -170,53 +180,19 @@ std::string SimpleControl::GetLocation()
   return std::to_string(lat) + "," + std::to_string(lon);
 }
 
-void SimpleControl::BeginMission(std::string mission_file)
+void SimpleControl::ScoutBuilding(int x, int y, int z)
 {
-  //Create a message for storing the the waypoint
-  mavros_msgs::WaypointPush msg_mission;
+  //Update the target location
+  pos_target.x = x;
+  pos_target.y = y;
+  pos_target.z = z;
 
-  //TODO: Add ability to create waypoints from a text file.
-  mavros_msgs::Waypoint wp1;
-  wp1.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL;
-  wp1.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
-  wp1.is_current   = false;
-  wp1.autocontinue = true;
-  wp1.x_lat        = -35.3632621765;
-  wp1.y_long       = 149.165237427;
-  wp1.z_alt        = 583.989990234;
+  //Prepare the vehicle for traveling to the waypoint
+  //this->Arm(true);
+  //this->SetMode("Guided");
 
-  mavros_msgs::Waypoint wp2;
-  wp2.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT;
-  wp2.command      = mavros_msgs::CommandCode::NAV_TAKEOFF;
-  wp2.is_current   = false;
-  wp2.autocontinue = true;
-  wp2.x_lat        = -35.3628807068;
-  wp2.y_long       = 149.165222168;
-  wp2.z_alt        = 20;
-
-  mavros_msgs::Waypoint wp3;
-  wp3.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT;
-  wp3.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
-  wp3.is_current   = false;
-  wp3.autocontinue = true;
-  wp3.x_lat        = -35.3646507263;
-  wp3.y_long       = 149.163497925;
-  wp3.z_alt        = 0;
-
-  //Update the message with the new waypoint
-  //NOTE: waypoints is a Vector object
-  msg_mission.request.waypoints.push_back(wp1);
-  msg_mission.request.waypoints.push_back(wp2);
-  msg_mission.request.waypoints.push_back(wp3);
-
-  //Call the service
-  if(sc_mission.call(msg_mission)){
-    if(msg_mission.response.success == 1) ROS_INFO_STREAM("Executing mission " << mission_file);
-    else ROS_ERROR_STREAM("Failed to execute mission " << mission_file);
-  }
-  else{
-    ROS_ERROR_STREAM("Failed to call msg_mission service!");
-  }
+  pos_previous = pos_local;
+  goal = TRAVEL;
 }
 
 void SimpleControl::OverrideRC(int channel, int value)
@@ -247,27 +223,29 @@ void SimpleControl::SetLocalPosition(int x, int y, int z)
   pub_setpoint_position.publish(position_stamped);
 }
 
-void SimpleControl::SetAttitude(int roll, int pitch, int yaw)
+void SimpleControl::SetLocalPosition(geometry_msgs::Point new_point)
 {
   //Create the message object
-  geometry_msgs::PoseStamped msg_attitude;
+  geometry_msgs::PoseStamped position_stamped;
 
-  //Create an object with the new attitude
-  //NOTE: Arbitrary values until the function is tested
-  geometry_msgs::Pose uav_attitude;
-  uav_attitude.position.x     = roll;
-  uav_attitude.position.y     = pitch;
-  uav_attitude.position.z     = yaw;
-  uav_attitude.orientation.x  = roll;
-  uav_attitude.orientation.y  = pitch;
-  uav_attitude.orientation.z  = yaw;
-  uav_attitude.orientation.w  = 0;
-
-  //Update the message with the new attitude
-  msg_attitude.pose = uav_attitude;
+  //Update the message with the new position
+  position_stamped.pose.position = new_point;
 
   //Publish the message
-  pub_setpoint_attitude.publish(msg_attitude);
+  pub_setpoint_position.publish(position_stamped);
+}
+
+void SimpleControl::SetAttitude(float roll, float pitch, float yaw)
+{
+  //Create the message to be published
+  geometry_msgs::PoseStamped msg_pose;
+
+  //Construct a Quaternion from Fixed angles and update pose
+  tf::Quaternion q = tf::createQuaternionFromRPY(roll, pitch, yaw);
+  quaternionTFToMsg(q, msg_pose.pose.orientation);
+
+  //Publish the message
+  pub_setpoint_attitude.publish(msg_pose);
 }
 
 void SimpleControl::SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel)
@@ -327,3 +305,25 @@ FlightState SimpleControl::UpdateFlightState()
 
     return flight_state;
 }
+
+int SimpleControl::ComparePosition(geometry_msgs::Point point1, geometry_msgs::Point point2)
+{
+    int result;
+
+    if(abs(point2.x - point1.x) <= THRESHOLD_XY && abs(point2.y - point1.y) <= THRESHOLD_XY){
+      result = 0;
+    }
+    else result = 1;
+
+    return result;
+}
+
+int SimpleControl::CalculateDistance(geometry_msgs::Point point1, geometry_msgs::Point point2)
+{
+  float dist_x = point2.x - point1.x;
+  float dist_y = point2.y - point1.y;
+  float dist_z = point2.z - point1.z;
+  return sqrt((dist_x * dist_x) + (dist_y * dist_y) + (dist_z * dist_z));
+}
+
+float SimpleControl::GetMissionProgress()
