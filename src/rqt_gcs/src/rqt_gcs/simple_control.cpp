@@ -262,14 +262,12 @@ void SimpleControl::SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel)
 
 void SimpleControl::SetLinearVelocity(float roll_vel, float pitch_vel, float yaw_vel)
 {
-
   geometry_msgs::TwistStamped msg_linear_vel;
 
   msg_linear_vel.twist.linear.x = x;
   msg_linear_vel.twist.linear.y = y;
   msg_linear_vel.twist.linear.z = z;
   pub_linear_vel.publish(msg_linear_vel);
-
 }
 
 void SimpleControl::SetAcceleration(float x, float y, float z)
