@@ -169,11 +169,11 @@ public:
   /**
       Change the UAV's linear velocity for roll, pitch, and yaw.
 
-      @param roll_vel   New roll velocity
-      @param pitch_vel  New pitch velocity
-      @param yaw_vel    New yaw velocity
+      @param x   New roll velocity
+      @param y  New pitch velocity
+      @param z    New yaw velocity
   */
-  void SetLinearVelocity(float roll_vel, float pitch_vel, float yaw_vel);
+  void SetLinearVelocity(float x, float y, float z);
 
   /**
       Change the UAV's acceleration for roll, pitch, and yaw.
@@ -241,7 +241,7 @@ private:
   //ROS NodeHandle, Service Client, Publisher, and Subscriber Variables
   ros::NodeHandle     nh_simple_control;
   ros::ServiceClient  sc_arm, sc_takeoff, sc_land, sc_mode, sc_mission;
-  ros::Publisher      pub_override_rc, pub_setpoint_position, pub_setpoint_attitude, pub_angular_vel, pub_setpoint_accel;
+  ros::Publisher      pub_override_rc, pub_setpoint_position, pub_setpoint_attitude, pub_angular_vel, pub_linear_vel, pub_setpoint_accel;
   ros::Subscriber     sub_state, sub_battery, sub_imu, sub_pos_global, sub_pos_local, sub_altitude, sub_heading, sub_vel;
 
   //UAV State Variables

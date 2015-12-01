@@ -57,7 +57,7 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   ui_.UavStatLayout->addWidget(UavStatWidget1_);
   //ui_.UavStatLayout->addWidget(UavStatWidget2_);
 
-   
+
    //setup mission progress widgets
    tempData = "QuadRotor 1" ;
    missionSelectWidget_->setWindowTitle(tempData);
@@ -134,42 +134,35 @@ void MyPlugin::MissionSelect(const int i){
 }
 
 void MyPlugin::MissionSubmit(){
- ROS_INFO_STREAM("Mission Submitted");
- if(msUi_.missionComboBox->currentIndex() == 0){
-      ROS_INFO_STREAM("ARMED");
- }
- else if(msUi_.missionComboBox->currentIndex() == 1){
-      ROS_INFO_STREAM("DISARMED");
- }
- else if(msUi_.missionComboBox->currentIndex() == 2){
-      ROS_INFO_STREAM("LAND");
- }
- else if(msUi_.missionComboBox->currentIndex() == 3){
-      ROS_INFO_STREAM("FOLLOW PLAY");
+   ROS_INFO_STREAM("Mission Submitted");
+   if(msUi_.missionComboBox->currentIndex() == 0){
+        ROS_INFO_STREAM("ARMED");
+   }
+   else if(msUi_.missionComboBox->currentIndex() == 1){
+        ROS_INFO_STREAM("DISARMED");
+   }
+   else if(msUi_.missionComboBox->currentIndex() == 2){
+        ROS_INFO_STREAM("LAND");
+   }
+   else if(msUi_.missionComboBox->currentIndex() == 3){
+        ROS_INFO_STREAM("FOLLOW PLAY");
 
-       if(msUi_.playsComboBox->currentIndex() == 0){
-        ROS_INFO_STREAM("SCAN ACCESS POINTS");
-       }
-       else if(msUi_.playsComboBox->currentIndex() == 1){
-	 quad1.ScoutBuilding(10,20,60);
-         ROS_INFO_STREAM("SCOUT BUILDING");
-       }
- }
- else if(msUi_.missionComboBox->currentIndex() == 4){
-         ROS_INFO_STREAM("LOITER");
- }
- else if(msUi_.missionComboBox->currentIndex() == 5){
-         ROS_INFO_STREAM("RETURN HOME");
- }  
+         if(msUi_.playsComboBox->currentIndex() == 0){
+          ROS_INFO_STREAM("SCAN ACCESS POINTS");
+         }
+         else if(msUi_.playsComboBox->currentIndex() == 1){
+  	 quad1.ScoutBuilding(10,20,60);
+           ROS_INFO_STREAM("SCOUT BUILDING");
+         }
+   }
+   else if(msUi_.missionComboBox->currentIndex() == 4){
+           ROS_INFO_STREAM("LOITER");
+   }
+   else if(msUi_.missionComboBox->currentIndex() == 5){
+           ROS_INFO_STREAM("RETURN HOME");
+   }
 
-   
     missionSelectWidget_->close();
-
-}
-
-
-    tempData.setNum(quad1.GetMissionProgress()*100);
-    mpUi1_.missionProgressBar->setValue(tempData.toInt());
 }
 
 void MyPlugin::shutdownPlugin()

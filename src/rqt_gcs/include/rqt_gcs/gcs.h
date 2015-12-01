@@ -1,6 +1,3 @@
-
-
-
 #ifndef rqt_gcs__MyPlugin_H
 #define rqt_gcs__MyPlugin_H
 
@@ -15,7 +12,6 @@
 #include <ui_MissionSelect.h>
 #include <ui_UavQuestion.h>
 #include <ui_UavStat.h>
-
 
 #include <QWidget>
 #include <QLabel>
