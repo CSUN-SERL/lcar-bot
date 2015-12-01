@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>401</width>
     <height>256</height>
    </rect>
   </property>
@@ -21,6 +21,9 @@
      <width>251</width>
      <height>27</height>
     </rect>
+   </property>
+   <property name="editable">
+    <bool>false</bool>
    </property>
    <item>
     <property name="text">
@@ -53,11 +56,14 @@
     </property>
    </item>
   </widget>
-  <widget class="QComboBox" name="accessPointsComboBox">
+  <widget class="QComboBox" name="playsComboBox">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>120</y>
+     <y>90</y>
      <width>251</width>
      <height>27</height>
     </rect>
@@ -65,6 +71,11 @@
    <item>
     <property name="text">
      <string>Search for Access Points</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Scout Building</string>
     </property>
    </item>
   </widget>

@@ -30,9 +30,9 @@ class MyPlugin
   Q_OBJECT
 public:
   MyPlugin();
-  SimpleControl quadControl;
+  SimpleControl quad1;
   QString tempData;
-  
+
   ros::Subscriber sub;
   ros::NodeHandle nh;
   void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
@@ -45,6 +45,9 @@ public:
 protected slots:
   virtual void Calculate();
   virtual void TimedUpdate();
+  virtual void MissionChange();
+  virtual void MissionSelect(const int);
+  virtual void MissionSubmit();
 
 
   // Comment in to signal that the plugin has a way to configure it
