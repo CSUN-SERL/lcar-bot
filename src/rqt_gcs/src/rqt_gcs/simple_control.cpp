@@ -4,12 +4,16 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "simple_control");
   SimpleControl quad1;
-  //quad1.Arm(true);
+
+  quad1.ScoutBuilding(7,4,1);
 
   ros::Rate loop_rate(10); //10Hz
+
   while(ros::ok())
   {
-    quad1.SetLinearVelocity(5, 7, 8);
+    //Let the quad do it's current mission
+    quad1.Run();
+
     ros::spinOnce();
     loop_rate.sleep();
   }
@@ -41,6 +45,10 @@ SimpleControl::SimpleControl(void)  //Class constructor
   sub_heading     = nh_simple_control.subscribe("mavros/global_position/compass_hdg", 1, &SimpleControl::HeadingCallback, this);
   sub_vel         = nh_simple_control.subscribe("mavros/local_position/velocity", 1, &SimpleControl::VelocityCallback, this);
   sub_pos_global  = nh_simple_control.subscribe("mavros/global_position/global", 1, &SimpleControl::NavSatFixCallback, this);
+  sub_pos_local   = nh_simple_control.subscribe("mavros/local_position/pose", 1, &SimpleControl::LocalPosCallback, this);
+
+  //Set Home position
+  pos_home.x = pos_home.y = pos_home.z = 0;
 }
 
 SimpleControl::~SimpleControl(void)
@@ -56,7 +64,6 @@ void SimpleControl::Arm(bool value)
   arm.request.value = value;
 
   //Call the service
-  sc_arm.call(arm);
   if(sc_arm.call(arm)){
     if(arm.response.success == 1){
 
@@ -66,7 +73,6 @@ void SimpleControl::Arm(bool value)
 
       //Wait for the FCU to arm
       while(!state.armed && !timeout){
-        ROS_INFO_STREAM("State: " << state);
         check_frequency.sleep();
         ros::spinOnce();
         count++;
@@ -78,16 +84,6 @@ void SimpleControl::Arm(bool value)
         if(value) ROS_WARN_STREAM("Arm operation timed out.");
         else ROS_WARN_STREAM("Disarm operation timed out.");
       }
-      else{
-        if(state.armed) ROS_INFO_STREAM("**ARMED**");
-        else ROS_INFO_STREAM("**DISARMED**");
-      }
-    }
-    else{
-      if(value) ROS_ERROR_STREAM("Failed to Arm!");
-      else ROS_ERROR_STREAM("Failed to Disarm!");
-    }
-  }
       else{
         if(state.armed) ROS_INFO_STREAM("**ARMED**");
         else ROS_INFO_STREAM("**DISARMED**");
@@ -327,3 +323,93 @@ int SimpleControl::CalculateDistance(geometry_msgs::Point point1, geometry_msgs:
 }
 
 float SimpleControl::GetMissionProgress()
+{
+  float progress = 0;
+
+  if(goal == TRAVEL){
+    float distance_remaining  = CalculateDistance(pos_target,pos_local);
+    float distance_total      = CalculateDistance(pos_target,pos_home);
+    float distance_completion = distance_remaining/distance_total;
+    progress =  TRAVEL_WT*(1 - distance_completion);
+  }
+  else if(goal == SCOUT){
+    progress = TRAVEL_WT/*+ building revolution completion*/;
+  }
+  else if(goal == RTL || goal == LAND){ //RTL or Land
+    float distance_remaining  = CalculateDistance(pos_target,pos_local);
+    float distance_total      = CalculateDistance(pos_target,pos_previous);
+    float distance_completion = distance_remaining/distance_total;
+    progress = 1 - distance_completion;
+  }
+
+  return progress;
+}
+
+Eigen::Vector3d SimpleControl::CircleShape(int angle){
+		/** @todo Give possibility to user define amplitude of movement (circle radius)*/
+		double r = 5.0f;	// 5 meters radius
+
+		return Eigen::Vector3d(r * cos(angles::from_degrees(angle)),
+				r * sin(angles::from_degrees(angle)),
+				1.0f);
+	}
+
+void SimpleControl::Run()
+{
+  if(goal == TRAVEL){
+    if(ComparePosition(pos_local, pos_target) == 0){
+      //Vehicle is at target location => Scout Building
+      pos_previous = pos_local;
+      goal = SCOUT;
+    }
+    else if(abs(pos_local.z - pos_target.z) <= THRESHOLD_Z){
+      //Achieved the proper altitude => Go to target location
+      this->SetLocalPosition(pos_target);
+    }
+    else{ //Ascend to the proper altitude first at the current location
+      this->SetLocalPosition(pos_local.x, pos_local.y, pos_target.z);
+    }
+  }
+  else if(goal == SCOUT){
+    //TODO: Fix Scout Functionality. Temporary Circle Path Test
+    static int theta = 0;
+
+	  tf::pointEigenToMsg(this->CircleShape(theta), pos_target); //Update Target Pos
+	  this->SetLocalPosition(pos_target);
+    theta++;
+
+    if (theta == 360){
+      pos_target = pos_home;
+      goal = RTL;
+    }
+  }
+  else if(goal == RTL){
+    if(ComparePosition(pos_local, pos_target) == 0){
+      //Vehicle is at target location => Disarm
+      goal = DISARM;
+    }
+    else if(abs(pos_local.z - ALT_RTL) <= THRESHOLD_Z){
+      //Achieved the proper altitude => Go to target location
+      this->SetLocalPosition(pos_target);
+    }
+    else{
+      this->SetLocalPosition(pos_local.x, pos_local.y, pos_target.z);
+    }
+  }
+  else if(goal == LAND){
+    if(pos_local.z == 0){
+      //Landed => Disarm
+      goal = DISARM;
+    }
+    else{
+      this->SetLocalPosition(pos_target);
+    }
+  }
+  else if(goal == DISARM){
+    //Disarm the vehicle if it's currently armed
+    if(state.armed) this->Arm(false);
+  }
+  else{
+    //Wait for the goal to change
+  }
+}
