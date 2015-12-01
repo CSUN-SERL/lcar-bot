@@ -10,7 +10,7 @@
   <script>
 var longitude =0;
 var latitude =0;
- 
+
  // Connecting to ROS
   // -----------------
 
@@ -33,8 +33,8 @@ ros.on('connection', function() {
 
 // Subscribing to a Topic
   // ----------------------
-	  
-	 
+
+
 function getCoordinates(){
   var listener = new ROSLIB.Topic({
     ros : ros, 	//ros object connection
@@ -50,34 +50,34 @@ function getCoordinates(){
 	latitude = message.latitude;
 	console.log('latitude1 ' + longitude);
  	console.log('longitude1 ' + latitude);
-	  
+
 	    	listener.unsubscribe();
   });
 }
-	  
+
 $(document).ready(function(){
-	   
+
       	  showPosition();
 		  getCoordinates();
-		  
-		  
+
+
 		  $('#deleteButton').click(function(){
   			deleteMarkers();
 	 	  });
 });
 
-  
 
 
-var x =0; 
+
+var x =0;
 var map;
 var marker;
 var newPoint ;
 var la ;
-var missionDest = []; // way points of destination	  
+var missionDest = []; // way points of destination
 var image = {
 		      url: 'uav.png',
-			 	
+
 			 scaledSize: new google.maps.Size(100,100)
 			};
 
@@ -89,8 +89,8 @@ function showPosition() {
     //lon = position.coords.longitude;
     latlon = new google.maps.LatLng(longitude, latitude)
     mapholder = document.getElementById('mapholder')
-    mapholder.style.height = '250px';
-    mapholder.style.width = '500px';
+    mapholder.style.height = '500px';
+    mapholder.style.width = '100%';
 
     var myOptions = {
     center:latlon,zoom:14,
@@ -101,17 +101,17 @@ function showPosition() {
 
      map = new google.maps.Map(document.getElementById("mapholder"), myOptions);
      marker = new google.maps.Marker({position:latlon,map:map,
-									  title:"You are here!",
+									  title:"Drone inbound",
 									  icon: image
-									  
+
 	});
-	
+
 	map.addListener('click', function(event){
 		newMarker(event.latLng);
 	});
-	
+
     update();
-	
+
 }
 
 function update() {
@@ -119,7 +119,7 @@ function update() {
      //newPoint = new google.maps.LatLng( position.coords.latitude,
                                           // position.coords.longitude);
 getCoordinates(); //update coordinates
-	
+
 la = new google.maps.LatLng(latitude,
     longitude);
 
@@ -137,15 +137,16 @@ la = new google.maps.LatLng(latitude,
 
     // Center the map on the new position
 
-	var checked = $('#roamBox').prop('checked');
-	if(checked) { 
+	var checked = $('#roamBox').is(':checked');
+  test.innerHTML = checked;
+	if(checked) {
     map.setCenter(la);
 	}
   //});
 
   // Call the autoUpdate() function every k seconds
-  outmessage.innerHTML = newPoint ;
-  longitude += .00055;
+  outmessage.innerHTML = la ;
+  //longitude += .00055;
   setTimeout(update, 50);
 }
 
@@ -165,26 +166,26 @@ function showError(error) {
             break;
     }
 }
-	  
-function newMarker(location){	  
+
+function newMarker(location){
  var destination = new google.maps.Marker({
     position: location,
     map: map,
     title: 'Destination: ' + x,
-	
+
   });
 
 	missionDest.push(destination); //add the destinations to the array.
 	x++;
 }
- 
+
 // Sets the map on all markers in the array.
 function setMapOnAll(map) {
   for (var i = 0; i < missionDest.length; i++) {
     missionDest[i].setMap(map);
   }
 }
-	  
+
 // Shows any markers currently in the array.
 function showMarkers() {
   setMapOnAll(map);
@@ -192,11 +193,11 @@ function showMarkers() {
 
 // Deletes all markers in the array by removing references to them.
 function deleteMarkers() {
-	x =0;
+	x = 0;
   clearMarkers();
   missionDest = [];
 }
-	  
+
 // Removes the markers from the map, but keeps them in the array.
 function clearMarkers() {
   setMapOnAll(null);
@@ -207,12 +208,13 @@ function clearMarkers() {
     </script>
 </head>
 <body>
-
+<p> Location(coordinates):</p>
 <p id="outmessage"></p>
+<p id ="test"></p>
 <input type="button" value="Delete way points" id="deleteButton" >
-	
- <input type="checkbox" name="roamBox" value="Auto Track Drone" /> Auto Track Drone 
-    
+
+ <input type="checkbox" name="roamBox" id="roamBox" value="Auto Track Drone" /> Auto Track Drone
+
 
 
 <div id="mapholder"></div>

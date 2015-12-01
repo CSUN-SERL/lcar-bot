@@ -5,9 +5,6 @@
         name="left"
 
         respawn="true"
-        <!--
-          launch-prefix="xterm -e"
-        -->
         ns="stereo_cam"
     >
 
