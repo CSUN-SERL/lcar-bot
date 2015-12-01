@@ -226,7 +226,6 @@ void SimpleControl::SetLocalPosition(geometry_msgs::Point new_point)
 
   //Update the message with the new position
   position_stamped.pose.position = new_point;
-<<<<<<< HEAD
 
   //Publish the message
   pub_setpoint_position.publish(position_stamped);
@@ -261,14 +260,14 @@ void SimpleControl::SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel)
   pub_angular_vel.publish(msg_angular_vel);
 }
 
-void SimpleControl::SetLinearVelocity(float x, float y, float z)
+void SimpleControl::SetLinearVelocity(float roll_vel, float pitch_vel, float yaw_vel)
 {
 
   geometry_msgs::TwistStamped msg_linear_vel;
-  
-  msg_linear_vel.twist.linear.x = x; 
+
+  msg_linear_vel.twist.linear.x = x;
   msg_linear_vel.twist.linear.y = y;
-  msg_linear_vel.twist.linear.z = z;  
+  msg_linear_vel.twist.linear.z = z;
   pub_linear_vel.publish(msg_linear_vel);
 
 }
@@ -350,9 +349,9 @@ Eigen::Vector3d SimpleControl::CircleShape(int angle){
 		/** @todo Give possibility to user define amplitude of movement (circle radius)*/
 		double r = 5.0f;	// 5 meters radius
 
-		return Eigen::Vector3d(r * cos(angles::from_degrees(angle)),
-				r * sin(angles::from_degrees(angle)),
-				1.0f);
+		return Eigen::Vector3d( r * cos(angles::from_degrees(angle)),
+				                    r * sin(angles::from_degrees(angle)),
+				                    1.0f);
 	}
 
 void SimpleControl::Run()

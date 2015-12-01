@@ -137,10 +137,10 @@ public:
 
   /**
       Send a new position command to the UAV.
+
       @param new_pose The new local position passed as a Pose object
   */
   void SetLocalPosition(geometry_msgs::Point new_point);
-
 
   /**
       Change the UAV's roll, pitch, and yaw values. Requires the UAV to be
@@ -165,7 +165,15 @@ public:
       @param yaw_vel    New yaw velocity
   */
   void SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel);
-  void SetLinearVelocity(float x, float y, float z); 
+
+  /**
+      Change the UAV's linear velocity for roll, pitch, and yaw.
+
+      @param roll_vel   New roll velocity
+      @param pitch_vel  New pitch velocity
+      @param yaw_vel    New yaw velocity
+  */
+  void SetLinearVelocity(float roll_vel, float pitch_vel, float yaw_vel);
 
   /**
       Change the UAV's acceleration for roll, pitch, and yaw.
