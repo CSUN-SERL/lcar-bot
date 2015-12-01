@@ -88,7 +88,6 @@ public:
 
   /**
       Returns the current location of the UAV in JSON format.
-
   */
   std::string GetLocation();
 
@@ -138,7 +137,6 @@ public:
 
   /**
       Send a new position command to the UAV.
-
       @param new_pose The new local position passed as a Pose object
   */
   void SetLocalPosition(geometry_msgs::Point new_point);
@@ -167,7 +165,7 @@ public:
       @param yaw_vel    New yaw velocity
   */
   void SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel);
-
+  void SetLinearVelocity(float x, float y, float z); 
 
   /**
       Change the UAV's acceleration for roll, pitch, and yaw.

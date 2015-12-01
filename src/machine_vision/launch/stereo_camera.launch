@@ -1,0 +1,38 @@
+<launch>
+    <node
+        pkg="machine_vision"
+        type="camera_publisher"
+        name="left"
+
+        respawn="true"
+        launch-prefix="xterm -e"
+        ns="stereo_cam"
+    >
+
+        <param name="image_topic" value="left"/>
+        <param name="video_id" value="0"/>
+
+         <!-- <remap
+          from="stereo_cam/image"
+          to="stereo_cam/left"
+        /> -->
+    </node>
+    <node
+        pkg="machine_vision"
+        type="camera_publisher"
+        name="right"
+
+        respawn="true"
+        launch-prefix="xterm -e"
+        ns="stereo_cam"
+    >
+
+    <param name="image_topic" value="right"/>
+    <param name="video_id" value="1"/>
+
+    <!-- <remap
+          from="stereo_cam/image"
+          to="stereo_cam/left"
+        /> -->
+    </node>
+</launch>

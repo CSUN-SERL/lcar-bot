@@ -34,6 +34,7 @@ SimpleControl::SimpleControl(void)  //Class constructor
   pub_setpoint_position = nh_simple_control.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local",QUEUE_SIZE);
   pub_setpoint_attitude = nh_simple_control.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_attitude/attitude",QUEUE_SIZE);
   pub_angular_vel       = nh_simple_control.advertise<geometry_msgs::TwistStamped>("mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
+  pub_linear_vel        = nh_simple_control.advertise<geometry_msgs::TwistStamped>("mavros/setpoint_velocity/cmd_vel",QUEUE_SIZE);
   pub_setpoint_accel    = nh_simple_control.advertise<geometry_msgs::Vector3Stamped>("mavros/setpoint_accel/accel",QUEUE_SIZE);
 
   //Initialze Subscribers
@@ -225,6 +226,7 @@ void SimpleControl::SetLocalPosition(geometry_msgs::Point new_point)
 
   //Update the message with the new position
   position_stamped.pose.position = new_point;
+<<<<<<< HEAD
 
   //Publish the message
   pub_setpoint_position.publish(position_stamped);
@@ -257,6 +259,18 @@ void SimpleControl::SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel)
 
   //Publish the message
   pub_angular_vel.publish(msg_angular_vel);
+}
+
+void SimpleControl::SetLinearVelocity(float x, float y, float z)
+{
+
+  geometry_msgs::TwistStamped msg_linear_vel;
+  
+  msg_linear_vel.twist.linear.x = x; 
+  msg_linear_vel.twist.linear.y = y;
+  msg_linear_vel.twist.linear.z = z;  
+  pub_linear_vel.publish(msg_linear_vel);
+
 }
 
 void SimpleControl::SetAcceleration(float x, float y, float z)

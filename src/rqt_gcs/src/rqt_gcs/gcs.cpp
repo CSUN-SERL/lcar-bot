@@ -37,7 +37,8 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   mcUi_.setupUi(missionCancelWidget_);
 
   mpUi1_.setupUi(missionProgressWidget1_);
-  //mpUi2_.setupUi(missionProgressWidget2_);
+ //mpUi2_.setupUi(missionProgressWidget2_);
+
 
   msUi_.setupUi(missionSelectWidget_);
   uqUi_.setupUi(UavQuestionWidget_);
@@ -46,7 +47,6 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   //usUi2_.setupUi(UavStatWidget2_);
 
 
-  
 
   // add widget to the user interface
   context.addWidget(widget_);
@@ -167,6 +167,10 @@ void MyPlugin::MissionSubmit(){
 
 }
 
+
+    tempData.setNum(quad1.GetMissionProgress()*100);
+    mpUi1_.missionProgressBar->setValue(tempData.toInt());
+}
 
 void MyPlugin::shutdownPlugin()
 {
