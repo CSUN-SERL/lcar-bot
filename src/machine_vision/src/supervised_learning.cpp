@@ -8,7 +8,7 @@ Mat src;
 queue<string> proc_img;
 int testing;
 int N, size;
-float counter;
+float doorcounter, negcounter;
 int number = 0;
 
 void get_svm_detector(const Ptr<SVM>& svm, vector< float > & hog_detector);
@@ -16,28 +16,28 @@ void OrbDetection(Ptr<SVM> svm);
 
 int main(int argc, char * argv[]) {
     MachineLearning ml;
-//        ml.IMAGES_DIR = "/home/thomas/NetBeansProjects/Training";
-//        ml.TraverseDirectory(ml.IMAGES_DIR);
-//        labels.convertTo(labels, CV_32SC1);
-//        trainingdata.convertTo(trainingdata, CV_32FC1);
-//        // Set up SVM's parameters
-//        Ptr<SVM> svm = SVM::create();
-//        svm->setKernel(SVM::LINEAR);
-//        //svm->setTermCriteria(TermCriteria(CV_TERMCRIT_ITER, 100, 1e-6));
-//        Ptr<TrainData> td = TrainData::create(trainingdata, ROW_SAMPLE, labels);
-//        cout << "inside main training\n";
-//        svm->trainAuto(td, 10);
-//        svm->save("SVM.yaml");
-//        cout << labels;
-//        trainingdata.release();
-//        //
-//    //    //    /*****************************TESTING*************************************/
-    ml.Testing(ml);
-//    const string modelLibPath = "SVM.yaml";
-//    //Ptr<SVM> Svm = SVM::create();
-  //  Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
+    //        ml.IMAGES_DIR = "/home/thomas/NetBeansProjects/Training";
+    //        ml.TraverseDirectory(ml.IMAGES_DIR);
+    //        labels.convertTo(labels, CV_32SC1);
+    //        trainingdata.convertTo(trainingdata, CV_32FC1);
+    //        // Set up SVM's parameters
+    //        Ptr<SVM> svm = SVM::create();
+    //        svm->setKernel(SVM::LINEAR);
+    //        //svm->setTermCriteria(TermCriteria(CV_TERMCRIT_ITER, 100, 1e-6));
+    //        Ptr<TrainData> td = TrainData::create(trainingdata, ROW_SAMPLE, labels);
+    //        cout << "inside main training\n";
+    //        svm->trainAuto(td, 10);
+    //        svm->save("SVM.yaml");
+    //        cout << labels;
+    //        trainingdata.release();
+    //        //
+    //    //    //    /*****************************TESTING*************************************/
+   // ml.Testing(ml);
+        const string modelLibPath = "SVM.yaml";
+    //    //Ptr<SVM> Svm = SVM::create();
+      Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
     //ml.Hog(svm);
-    //OrbDetection(svm);
+    OrbDetection(svm);
 
     trainingdata.release();
     labels.release();
@@ -77,8 +77,8 @@ void MachineLearning::TraverseDirectory(string path) {
             N++;
         } else if (dirEntry->d_type == DT_REG && dirEntry->d_name[0] != '.') {
             Mat greyImgMat = MachineLearning::ProcessImage(path, dirEntry->d_name);
-            //MachineLearning::ExtractFeatures(greyImgMat, dirEntry->d_name);
-            MachineLearning::HogFeatureExtraction(greyImgMat);
+            MachineLearning::ExtractFeatures(greyImgMat, dirEntry->d_name);
+            //MachineLearning::HogFeatureExtraction(greyImgMat);
         }
     }
 
@@ -87,13 +87,14 @@ void MachineLearning::TraverseDirectory(string path) {
 
 Mat MachineLearning::ProcessImage(string path, string file) {
 
-    cout << "grey scaling: " << file << endl;
-    src = imread(path + "/" + file);
 
-    if (testing == 1) {
-        proc_img.push(file);
+    if (path != " " && file != " ") {
+        cout << "grey scaling: " << file << endl;
+        src = imread(path + "/" + file);
+        if (testing == 1) {
+            proc_img.push(file);
+        }
     }
-
     if (!src.data) {
         cout << "no image" << endl;
         exit(0);
@@ -200,14 +201,17 @@ void MachineLearning::Testing(MachineLearning ml) {
 
 
     for (int i = 0; i < res.rows; i++) {
-        if(res.at<float>(i,0) == 0)
-            counter++;
-        cout << res.row(i) << " " << proc_img.front() << "\n";// << "Prediction: " << p << "\n";
+        if (res.at<float>(i, 0) == 0)
+            doorcounter++;
+        else
+            negcounter++;
+        cout << res.row(i) << " " << proc_img.front() << "\n"; // << "Prediction: " << p << "\n";
         proc_img.pop();
     }
-    float correct = counter/res.rows;
-    cout << counter << "/" << res.rows << "\n";
-    cout << "Accuracy: " << correct * 100.0 << "%\n";
+    float doors = doorcounter / res.rows;
+    cout << "Number of doors: " << doorcounter << "/" << res.rows << "\n";
+    cout << "Number of other objects: " << negcounter << "/" << res.rows << "\n";
+    cout << "Percent doors: " << doors * 100.0 << "%\n";
 }
 
 void MachineLearning::Hog(Ptr<SVM> Svm) {
@@ -338,6 +342,8 @@ void OrbDetection(Ptr<SVM> svm) {
     cap.set(CV_CAP_PROP_FRAME_HEIGHT, 1000);
     //    if (!cap.isOpened())
     //        return -1;
+        MachineLearning ml;
+
     Mat img;
     vector<KeyPoint> keypoints_1;
     Ptr<ORB> detector = ORB::create(500, 1.2, 3, 15, 0);
@@ -346,28 +352,34 @@ void OrbDetection(Ptr<SVM> svm) {
         cap >> img;
         if (!img.data)
             continue;
-        cvtColor(img, img, CV_BGR2GRAY);
-
-        vector<Rect> found, found_filtered;
+        src = img;
+        Mat greyimg = ml.ProcessImage(" ", " ");
+        ml.HogFeatureExtraction(greyimg);
+        //        cvtColor(img, img, CV_BGR2GRAY);
+        //
+        //        vector<Rect> found, found_filtered;
         cv::Mat img_keypoints_1, res;
-        //MachineLearning::ExtractFeatures(img, "");
-
-        //detect keypoints
-        detector->detect(img, keypoints_1);
-        //describe keypoints
-        detector->compute(img, keypoints_1, img_keypoints_1);
-        drawKeypoints(img, keypoints_1, img_keypoints_1, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
+        //        //MachineLearning::ExtractFeatures(img, "");
+        //
+        //        //detect keypoints
+                detector->detect(img, keypoints_1);
+        //        //describe keypoints
+                detector->compute(img, keypoints_1, img_keypoints_1);
+                drawKeypoints(img, keypoints_1, img_keypoints_1, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
         imshow("video capture", img_keypoints_1);
-//        resize(img_keypoints_1, img_keypoints_1, Size(640, 480));
-//
-//        img_keypoints_1.convertTo(img_keypoints_1, CV_32FC1);
-//        img_keypoints_1.reshape(1, 1);
-//        float p = svm->predict(img_keypoints_1, res, 4);
-//
-//
-//        for (int i = 0; i < res.rows; i++) {
-//            cout << res.row(i) << " " << "Prediction: " << p << "\n";
-//        }
+        //        resize(img_keypoints_1, img_keypoints_1, Size(640, 480));
+        //
+        //        img_keypoints_1.convertTo(img_keypoints_1, CV_32FC1);
+        //        img_keypoints_1.reshape(1, 1);
+            trainingdata.convertTo(trainingdata, CV_32FC1);
+
+        float p = svm->predict(trainingdata, res, 4);
+        //
+        //
+        for (int i = 0; i < res.rows; i++) {
+            if (res.at<float>(i, 0) == 0)
+                cout << res.row(i)<< "\n";
+        }
         if (waitKey(20) >= 0)
             break;
 
