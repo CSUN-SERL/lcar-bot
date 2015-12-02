@@ -115,6 +115,8 @@ void MyPlugin::TimedUpdate(){
 
     tempData.setNum(quad1.GetMissionProgress()*100);
     mpUi1_.missionProgressBar->setValue(tempData.toInt());
+
+    quad1.Run();
 }
 
 void MyPlugin::MissionChange(){
@@ -151,7 +153,7 @@ void MyPlugin::MissionSubmit(){
           ROS_INFO_STREAM("SCAN ACCESS POINTS");
          }
          else if(msUi_.playsComboBox->currentIndex() == 1){
-  	 quad1.ScoutBuilding(10,20,60);
+  	 quad1.ScoutBuilding(16,16,5);
            ROS_INFO_STREAM("SCOUT BUILDING");
          }
    }
