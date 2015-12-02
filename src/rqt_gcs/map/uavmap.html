@@ -51,7 +51,7 @@ function getCoordinates(){
 	console.log('latitude1 ' + longitude);
  	console.log('longitude1 ' + latitude);
 
-	    	listener.unsubscribe();
+	    	//listener.unsubscribe();
   });
 }
 
@@ -115,9 +115,7 @@ function showPosition() {
 }
 
 function update() {
-  //navigator.geolocation.getCurrentPosition(function(position) {
-     //newPoint = new google.maps.LatLng( position.coords.latitude,
-                                          // position.coords.longitude);
+  
 getCoordinates(); //update coordinates
 
 la = new google.maps.LatLng(latitude,
@@ -136,17 +134,14 @@ la = new google.maps.LatLng(latitude,
     }
 
     // Center the map on the new position
-
 	var checked = $('#roamBox').is(':checked');
-  test.innerHTML = checked;
+    test.innerHTML = checked;
 	if(checked) {
     map.setCenter(la);
 	}
-  //});
-
-  // Call the autoUpdate() function every k seconds
+ 
   outmessage.innerHTML = la ;
-  //longitude += .00055;
+   // Call the autoUpdate() function every k seconds
   setTimeout(update, 50);
 }
 
