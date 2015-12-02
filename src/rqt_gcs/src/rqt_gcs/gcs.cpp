@@ -113,8 +113,7 @@ void MyPlugin::TimedUpdate(){
     tempData = "Quadrotor 1";
     mpUi1_.uavNameEdit->setText(tempData);
 
-    tempData.setNum(quad1.GetMissionProgress()*100);
-    mpUi1_.missionProgressBar->setValue(tempData.toInt());
+    mpUi1_.missionProgressBar->setValue(quad1.GetMissionProgress()*100);
 
     quad1.Run();
 }
@@ -153,7 +152,7 @@ void MyPlugin::MissionSubmit(){
           ROS_INFO_STREAM("SCAN ACCESS POINTS");
          }
          else if(msUi_.playsComboBox->currentIndex() == 1){
-  	 quad1.ScoutBuilding(16,16,5);
+  	 quad1.ScoutBuilding(-7,-9,3);
            ROS_INFO_STREAM("SCOUT BUILDING");
          }
    }

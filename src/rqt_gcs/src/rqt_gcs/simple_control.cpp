@@ -3,16 +3,16 @@
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "simple_control");
-  SimpleControl quad1;
+  //SimpleControl quad1;
 
-  quad1.ScoutBuilding(7,4,1);
+  //quad1.ScoutBuilding(7,4,1);
 
   ros::Rate loop_rate(10); //10Hz
 
   while(ros::ok())
   {
     //Let the quad do it's current mission
-    quad1.Run();
+    //quad1.Run();
 
     ros::spinOnce();
     loop_rate.sleep();
@@ -189,6 +189,7 @@ void SimpleControl::ScoutBuilding(int x, int y, int z)
 
   pos_previous = pos_local;
   goal = TRAVEL;
+  ROS_INFO_STREAM("Traveling to target location.");
 }
 
 void SimpleControl::OverrideRC(int channel, int value)
@@ -305,7 +306,9 @@ int SimpleControl::ComparePosition(geometry_msgs::Point point1, geometry_msgs::P
 {
     int result;
 
-    if(abs(point2.x - point1.x) <= THRESHOLD_XY && abs(point2.y - point1.y) <= THRESHOLD_XY){
+    if( abs(point2.x - point1.x) <= THRESHOLD_XY &&
+        abs(point2.y - point1.y) <= THRESHOLD_XY &&
+        abs(point2.z - point1.z) <= THRESHOLD_Z){
       result = 0;
     }
     else result = 1;
@@ -346,11 +349,11 @@ float SimpleControl::GetMissionProgress()
 
 Eigen::Vector3d SimpleControl::CircleShape(int angle){
 		/** @todo Give possibility to user define amplitude of movement (circle radius)*/
-		double r = 4.0f;	// 5 meters radius
+		double r = 6.0f;	// 5 meters radius
 
-		return Eigen::Vector3d( r * cos(angles::from_degrees(angle)),
-				                    r * sin(angles::from_degrees(angle)),
-				                    2.0f);
+		return Eigen::Vector3d( r * (cos(angles::from_degrees(angle) - 7)),
+				                    r * (sin(angles::from_degrees(angle) - 9)),
+				                    pos_previous.z);
 	}
 
 void SimpleControl::Run()
@@ -360,6 +363,7 @@ void SimpleControl::Run()
       //Vehicle is at target location => Scout Building
       pos_previous = pos_local;
       goal = SCOUT;
+      ROS_INFO_STREAM("Scouting Building.");
     }
     else if(abs(pos_local.z - pos_target.z) <= THRESHOLD_Z){
       //Achieved the proper altitude => Go to target location
@@ -373,26 +377,33 @@ void SimpleControl::Run()
     //TODO: Fix Scout Functionality. Temporary Circle Path Test
     static int theta = 0;
 
-	  tf::pointEigenToMsg(this->CircleShape(theta), pos_target); //Update Target Pos
+	  /*tf::pointEigenToMsg(this->CircleShape(theta), pos_target); //Update Target Pos
 	  this->SetLocalPosition(pos_target);
-    theta++;
+    goal = TRAVEL;
+    theta++;*/
 
-    if (theta == 360){
+    //if (theta == 360){
+      ROS_INFO_STREAM("Home Target: " << pos_home);
       pos_target = pos_home;
       goal = RTL;
-    }
+      theta = 0;
+    //}
   }
   else if(goal == RTL){
     if(ComparePosition(pos_local, pos_target) == 0){
       //Vehicle is at target location => Disarm
       goal = DISARM;
     }
+    else if(abs(pos_local.x - pos_target.x) <= THRESHOLD_XY && abs(pos_local.y - pos_target.y) <= THRESHOLD_XY){
+      this->SetLocalPosition(pos_local.x, pos_local.y, 0);
+      //goal = LAND;
+    }
     else if(abs(pos_local.z - ALT_RTL) <= THRESHOLD_Z){
       //Achieved the proper altitude => Go to target location
-      this->SetLocalPosition(pos_target);
+      this->SetLocalPosition(pos_target.x, pos_target.y, ALT_RTL);
     }
     else{
-      this->SetLocalPosition(pos_local.x, pos_local.y, pos_target.z);
+      this->SetLocalPosition(pos_local.x, pos_local.y, ALT_RTL);
     }
   }
   else if(goal == LAND){

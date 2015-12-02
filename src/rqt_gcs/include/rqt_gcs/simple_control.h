@@ -30,7 +30,7 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
 
-#define QUEUE_SIZE 10            //Message Queue size for publishers
+#define QUEUE_SIZE 100            //Message Queue size for publishers
 #define CHECK_FREQUENCY 1         //Frequency for checking change of state
 #define TIMEOUT 3*CHECK_FREQUENCY //3 Second timeout
 #define TRAVEL 0
@@ -41,8 +41,8 @@
 #define TRAVEL_WT 0.5
 #define SCOUT_WT 0.5
 #define THRESHOLD_XY 1
-#define THRESHOLD_Z 2
-#define ALT_RTL 10
+#define THRESHOLD_Z 1
+#define ALT_RTL 3
 
 //Structs
 struct FlightState {
@@ -214,6 +214,8 @@ public:
       Manage the UAV and ensure that it completes the mission
   */
   void Run();
+
+  void SetRTL() { goal = RTL; }
 
   //Getter Functions
   mavros_msgs::State GetState() { return state; }
