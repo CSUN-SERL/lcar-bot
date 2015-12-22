@@ -1,6 +1,9 @@
 #include <opencv2/objdetect.hpp>
 
 #include "machine_learning.h"
+#include "boost/algorithm/string.hpp"
+
+using namespace boost;
 //#include <sstream>
 
 Mat labels;
@@ -8,48 +11,29 @@ Mat trainingdata;
 Mat src;
 queue<string> proc_img;
 int testing;
-int N, size;
+int N, size_;
 float doorcounter, negcounter;
 int number = 0;
+int label_ = 0;
 int object = -1;
-string user;
+string user = getenv("USER");
 
 void get_svm_detector(const Ptr<SVM>& svm, vector< float > & hog_detector);
 void draw_locations(Mat & img, const vector< Rect > & locations, const Scalar & color);
-
+void train_svm(MachineLearning ml);
+void set_kernal(Ptr<SVM> svm, int flag);
 
 void OrbDetection(Ptr<SVM> svm);
 
 int main(int argc, char * argv[]) {
     MachineLearning ml;
-
-    /*
-        user = getenv("USER");
-        ml.IMAGES_DIR = "/home/"+ user + "/Pictures/Training";
-
-        ml.TraverseDirectory(ml.IMAGES_DIR);
-
-        labels.convertTo(labels, CV_32SC1);
-        trainingdata.convertTo(trainingdata, CV_32FC1);
-
-        //Set up SVM's parameters
-        Ptr<SVM> svm = SVM::create();
-        svm->setKernel(SVM::LINEAR);
-        Ptr<TrainData> td = TrainData::create(trainingdata, ROW_SAMPLE, labels);
-
-        cout << "inside main training\n";
-        svm->trainAuto(td, 10);
-        svm->save("SVM.xml");
-        trainingdata.release();
-    /*****************************TESTING*************************************/
-
-    /* ml.Testing(ml);
-     */
+    train_svm(ml);
     const string modelLibPath = "SVM.xml";
     //    //Ptr<SVM> Svm = SVM::create();
     Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
-    trainingdata.release();
-    ml.Hog(svm);
+    //trainingdata.release();
+    ml.Testing(ml);
+    //ml.Hog(svm);
     //OrbDetection(svm);
 
     trainingdata.release();
@@ -85,13 +69,22 @@ void MachineLearning::TraverseDirectory(string path) {
         if (dirEntry->d_type == DT_DIR && dirEntry->d_name[0] != '.') {
             newPath = path + "/" + dirEntry->d_name;
             cout << "\n\nEntering: " << newPath << endl;
+            if (contains(newPath, "pos")) {
+                label_ = +1;
+                cout << label_ << "\n";
+            }
+            if (contains(newPath, "neg")) {
+                label_ = -1;
+                cout << label_ << "\n";
+            }
             TraverseDirectory(newPath);
-            cout << N << "\n";
+            //cout << N << "\n";
             N++;
         } else if (dirEntry->d_type == DT_REG && dirEntry->d_name[0] != '.') {
             Mat greyImgMat = MachineLearning::ProcessImage(path, dirEntry->d_name);
             //MachineLearning::ExtractFeatures(greyImgMat, dirEntry->d_name);
-            MachineLearning::HogFeatureExtraction(greyImgMat);
+            MachineLearning::HogFeatureExtraction(greyImgMat, label_);
+
         }
     }
 
@@ -99,6 +92,7 @@ void MachineLearning::TraverseDirectory(string path) {
 }
 
 Mat MachineLearning::ProcessImage(string path, string file) {
+
 
 
     if (path != "" && file != "") {
@@ -194,7 +188,7 @@ void MachineLearning::ExtractFeatures(Mat ImgMat, string imgName) {
         trainingdata.push_back(img_keypoints_1.reshape(1, 1));
         if (imgName != " ")
             labels.push_back(N);
-        size++;
+        size_++;
     }
 }
 
@@ -215,7 +209,7 @@ void MachineLearning::Testing(MachineLearning ml) {
 
 
     for (int i = 0; i < res.rows; i++) {
-        if (res.at<float>(i, 0) == 0)
+        if (res.at<float>(i, 0) == 1)
             doorcounter++;
         else
             negcounter++;
@@ -247,7 +241,7 @@ void MachineLearning::Hog(Ptr<SVM> svm) {
     //people.setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());
     hog.setSVMDetector(hog_detector);
 
-    int value = 0;
+    //int value = 0;
     namedWindow("video capture", CV_WINDOW_AUTOSIZE);
     while (true) {
         cap >> img;
@@ -262,20 +256,22 @@ void MachineLearning::Hog(Ptr<SVM> svm) {
         imshow("video capture", draw);
         trainingdata.release();
 
-        if (waitKey(1) >= 0)
+        if (waitKey(10) >= 0)
             break;
     }
 }
 
-void MachineLearning::HogFeatureExtraction(Mat ImgMat) {
+void MachineLearning::HogFeatureExtraction(Mat ImgMat, int label) {
+
     HOGDescriptor d;
     d.winSize = Size(96, 160);
     vector< Point > location;
     vector< float > descriptors;
     d.compute(ImgMat, descriptors, Size(8, 8), Size(0, 0), location);
     trainingdata.push_back(Mat(descriptors).clone().reshape(1, 1));
-    labels.push_back(N);
-    size++;
+    labels.push_back(label); //labels.push_back(N);
+    cout << label << "\n";
+    size_++;
 
 }
 
@@ -372,4 +368,46 @@ void OrbDetection(Ptr<SVM> svm) {
             break;
 
     }
+}
+
+void set_kernel(Ptr<SVM> svm, int flag) {
+    switch (flag) {
+        case 1: svm->setKernel(SVM::LINEAR);
+            cout << "Linear\n";
+            break;
+        case 2: svm->setKernel(SVM::RBF);
+            cout << "RBF\n";
+            break;
+        case 3: svm->setKernel(SVM::CHI2);
+            cout << "CHI\n";
+            break;
+        case 4: svm->setKernel(SVM::POLY);
+            svm->setDegree(2);
+            cout << "Poly\n";
+            break;
+        case 5: svm->setKernel(SVM::SIGMOID);
+            cout << "SIGMOID\n";
+            break;
+
+    }
+}
+
+void train_svm(MachineLearning ml) {
+    ml.IMAGES_DIR = "/home/" + user + "/Pictures/Training";
+
+    ml.TraverseDirectory(ml.IMAGES_DIR);
+
+    labels.convertTo(labels, CV_32SC1);
+    trainingdata.convertTo(trainingdata, CV_32FC1);
+
+    //Set up SVM's parameters
+    Ptr<SVM> svm = SVM::create();
+    set_kernel(svm, 2);
+    Ptr<TrainData> td = TrainData::create(trainingdata, ROW_SAMPLE, labels);
+
+    cout << "inside main training\n";
+    svm->trainAuto(td, 10);
+    svm->save("SVM.xml");
+    trainingdata.release();
+
 }

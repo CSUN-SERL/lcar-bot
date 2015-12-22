@@ -50,11 +50,23 @@ public:
        Used to test accuracy of the model library.
 
 
-       @param svm
        @param ml
      */
-    void Testing(Ptr<SVM> svm, MachineLearning ml);
+    void Testing(MachineLearning ml);
+    /*
+     Used to detect objects in images.
 
+
+      @param svm
+     */
+    void Hog(Ptr<SVM> Svm);
+     /*
+     Implement Hog feature extraction.
+
+
+     @param ImgMat
+     */
+    void HogFeatureExtraction(Mat ImgMat, int label );
     string IMAGES_DIR;
 
 };
