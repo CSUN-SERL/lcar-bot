@@ -50,9 +50,8 @@ public:
        Used to test accuracy of the model library.
 
 
-       @param ml
      */
-    void Testing(MachineLearning ml);
+    void Testing();
     /*
      Used to detect objects in images.
 
@@ -66,7 +65,7 @@ public:
 
      @param ImgMat
      */
-    void HogFeatureExtraction(Mat ImgMat, int label );
+    void HogFeatureExtraction(Mat ImgMat, int label);
 
     /*
      breakdown and store a Support Vector Machine object to a a float vector
@@ -83,13 +82,13 @@ public:
      @param locations
      @param color
      */
-    void draw_locations(Mat & img, const vector< Rect > & locations, const Scalar & color);
+    void draw_locations(Mat & img, const vector< Rect > & locations, const Scalar & color, string label);
     /*
      After feature extraction and labeling use autotrain to create a SVM
 
      @param ml
      */
-    void train_svm(MachineLearning ml);
+    void train_svm();
     /*
      Store the vector Mat into a single mat that will be used to train the SVM.
 
@@ -104,10 +103,5 @@ public:
      @param flag
      */
     void set_kernal(Ptr<SVM> svm, int flag);
-
-    string IMAGES_DIR;
-
-
 };
-
 #endif
