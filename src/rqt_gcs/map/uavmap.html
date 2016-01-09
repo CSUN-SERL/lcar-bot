@@ -115,7 +115,7 @@ function showPosition() {
 }
 
 function update() {
-  
+
 getCoordinates(); //update coordinates
 
 la = new google.maps.LatLng(latitude,
@@ -139,7 +139,7 @@ la = new google.maps.LatLng(latitude,
 	if(checked) {
     map.setCenter(la);
 	}
- 
+
   outmessage.innerHTML = la ;
    // Call the autoUpdate() function every k seconds
   setTimeout(update, 50);
@@ -207,6 +207,13 @@ function clearMarkers() {
 <p id="outmessage"></p>
 <p id ="test"></p>
 <input type="button" value="Delete way points" id="deleteButton" >
+
+<select>
+ <option value="quad1" selected="true">quad1</option>
+ <option value="quad2">quad2</option>
+ <option value="quad3">quad3</option>
+ <option value="quad4">quad4</option>
+</select>
 
  <input type="checkbox" name="roamBox" id="roamBox" value="Auto Track Drone" /> Auto Track Drone
 
