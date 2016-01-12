@@ -32,7 +32,10 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
  //UavStatWidget2_ = new QWidget();
 
   quadWidget1_ = new QWidget();
+
+
   quadWidget2_ = new QWidget();
+  quadWidget2_ ->setStyleSheet("background-color: black;");
   quadWidget3_ = new QWidget();
   quadWidget4_ = new QWidget();
 
@@ -92,7 +95,7 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
    connect(updateTimer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
    updateTimer->start(100);
 
-  
+
 
    quadWidget2_->setWindowTitle("QuadRotor2");
    quadWidget2_->show();

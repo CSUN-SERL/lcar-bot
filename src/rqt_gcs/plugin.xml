@@ -12,6 +12,14 @@
       <label>LCAR Bot GCS</label>
       <icon type="theme">computer</icon>
       <statustip>LCAR Ground Control Station Plugin</statustip>
+
+
     </qtgui>
+    <property name="setStyleSheet">
+      <string>QFrame {
+        background-color: #45629a;
+      }
+    </string>
+    </property>
   </class>
 </library>

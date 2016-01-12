@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(27, 32, 45);
+color: rgb(159, 171, 198);</string>
+  </property>
   <widget class="QComboBox" name="missionComboBox">
    <property name="geometry">
     <rect>

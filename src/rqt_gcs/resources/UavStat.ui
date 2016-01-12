@@ -6,12 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>310</width>
-    <height>281</height>
+    <width>316</width>
+    <height>279</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
+  </property>
+  <property name="autoFillBackground">
+   <bool>false</bool>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(27, 32, 45);
+color: rgb(159, 171, 198);</string>
   </property>
   <widget class="QLabel" name="yawLabel">
    <property name="geometry">
@@ -152,6 +159,10 @@
      <height>20</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">
+background-color: none;</string>
+   </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
    </property>
@@ -164,6 +175,10 @@
      <width>291</width>
      <height>20</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">
+background-color: none;</string>
    </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
@@ -303,40 +318,18 @@
   <widget class="Line" name="line_3">
    <property name="geometry">
     <rect>
-     <x>30</x>
+     <x>10</x>
      <y>210</y>
-     <width>271</width>
+     <width>291</width>
      <height>20</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">
+background-color: none;</string>
+   </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
-   </property>
-  </widget>
-  <widget class="Line" name="line_4">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>10</y>
-     <width>41</width>
-     <height>261</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Vertical</enum>
-   </property>
-  </widget>
-  <widget class="Line" name="line_5">
-   <property name="geometry">
-    <rect>
-     <x>-10</x>
-     <y>10</y>
-     <width>41</width>
-     <height>261</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Vertical</enum>
    </property>
   </widget>
   <widget class="Line" name="line_6">
@@ -347,6 +340,10 @@
      <width>291</width>
      <height>20</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">
+background-color: none;</string>
    </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
@@ -360,6 +357,10 @@
      <width>291</width>
      <height>20</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">
+background-color: none;</string>
    </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
@@ -392,19 +393,6 @@
    </property>
    <property name="text">
     <string>Flight Mode</string>
-   </property>
-  </widget>
-  <widget class="Line" name="line_8">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>0</y>
-     <width>291</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
    </property>
   </widget>
  </widget>

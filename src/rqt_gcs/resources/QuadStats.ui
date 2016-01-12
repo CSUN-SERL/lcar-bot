@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>LCAR Bot GCS</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(27, 32, 45);</string>
+  </property>
   <widget class="QScrollArea" name="MissionProgressScrollArea">
    <property name="geometry">
     <rect>
