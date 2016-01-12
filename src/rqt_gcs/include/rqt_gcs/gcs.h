@@ -12,6 +12,8 @@
 #include <ui_MissionSelect.h>
 #include <ui_UavQuestion.h>
 #include <ui_UavStat.h>
+#include <ui_QuadStats.h>
+
 
 #include <QWidget>
 #include <QLabel>
@@ -51,6 +53,11 @@ protected slots:
   //void triggerConfiguration();
 private:
   Ui::MyPluginWidget ui_;
+  Ui::QuadStatsWidget quadUi1_;
+  Ui::QuadStatsWidget quadUi2_;
+  Ui::QuadStatsWidget quadUi3_;
+  Ui::QuadStatsWidget quadUi4_;
+
   Ui::MissionCancelWidget mcUi_;
   Ui::MissionProgressWidget mpUi1_;
   Ui::MissionProgressWidget mpUi2_;
@@ -60,6 +67,7 @@ private:
   Ui::UavQuestionWidget uqUi_;
   Ui::UavStatWidget usUi1_;
   Ui::UavStatWidget usUi2_;
+
 
   QWidget* widget_;
   QWidget* missionCancelWidget_;
@@ -73,6 +81,11 @@ private:
   QWidget* UavStatWidget2_;
  // QWidget* UavStatWidget3_;
  // QWidget* UavStatWidget4_;
+
+  QWidget* quadWidget1_;
+  QWidget* quadWidget2_;
+  QWidget* quadWidget3_;
+  QWidget* quadWidget4_;
 
   QLabel* label;
   QTimer* updateTimer;

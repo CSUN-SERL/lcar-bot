@@ -37,6 +37,7 @@ set(rqt_gcs_UIS
   resources/MissionProgress.ui
   resources/UavStat.ui
   resources/UavQuestion.ui
+  resources/QuadStats.ui
 )
 
 set(rqt_gcs_INCLUDE_DIRECTORIES

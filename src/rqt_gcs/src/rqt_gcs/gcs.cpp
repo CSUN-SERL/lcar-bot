@@ -31,9 +31,18 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   UavStatWidget1_ = new QWidget();
  //UavStatWidget2_ = new QWidget();
 
+  quadWidget1_ = new QWidget();
+  quadWidget2_ = new QWidget();
+  quadWidget3_ = new QWidget();
+  quadWidget4_ = new QWidget();
 
   // extend the widget with all attributes and children from UI file
   ui_.setupUi(widget_);
+  quadUi1_.setupUi(quadWidget1_);
+  quadUi2_.setupUi(quadWidget2_);
+  quadUi3_.setupUi(quadWidget3_);
+  quadUi4_.setupUi(quadWidget4_);
+
   mcUi_.setupUi(missionCancelWidget_);
 
   mpUi1_.setupUi(missionProgressWidget1_);
@@ -46,16 +55,27 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   usUi1_.setupUi(UavStatWidget1_);
   //usUi2_.setupUi(UavStatWidget2_);
 
-
-
   // add widget to the user interface
   context.addWidget(widget_);
-  ui_.MissionProgressIndividualLayout->addWidget(missionProgressWidget1_);
+
+  context.addWidget(quadWidget1_);
+  context.addWidget(quadWidget2_);
+  context.addWidget(quadWidget3_);
+  context.addWidget(quadWidget4_);
+
+  //ui_.MissionProgressIndividualLayout->addWidget(missionProgressWidget1_);
   //ui_.MissionProgressIndividualLayout->addWidget(missionProgressWidget2_);
   //ui_.MissionProgressIndividualLayout->addWidget(missionProgressWidget3_);
   //ui_.MissionProgressIndividualLayout->addWidget(missionProgressWidget4_);
-  ui_.UavStatLayout->addWidget(UavStatWidget1_);
+  //ui_.UavStatLayout->addWidget(UavStatWidget1_);
   //ui_.UavStatLayout->addWidget(UavStatWidget2_);
+
+   quadWidget1_->setWindowTitle("QuadRotor1");
+   quadUi1_.MissionProgressIndividualLayout->addWidget(missionProgressWidget1_);
+   quadUi1_.UavStatLayout->addWidget(UavStatWidget1_);
+   quadWidget1_->show();
+
+
 
 
    //setup mission progress widgets
@@ -71,6 +91,19 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
    updateTimer = new QTimer(this);
    connect(updateTimer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
    updateTimer->start(100);
+
+  
+
+   quadWidget2_->setWindowTitle("QuadRotor2");
+   quadWidget2_->show();
+
+   quadWidget3_->setWindowTitle("QuadRotor3");
+   quadWidget3_->show();
+
+   quadWidget4_->setWindowTitle("QuadRotor4");
+   quadWidget4_->show();
+
+
 }
 
 void MyPlugin::Calculate(){
