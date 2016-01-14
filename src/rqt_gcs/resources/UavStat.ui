@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>316</width>
+    <width>351</width>
     <height>279</height>
    </rect>
+  </property>
+  <property name="font">
+   <font>
+    <weight>75</weight>
+    <bold>true</bold>
+   </font>
   </property>
   <property name="windowTitle">
    <string>Form</string>
@@ -17,13 +23,14 @@
    <bool>false</bool>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: rgb(27, 32, 45);
-color: rgb(159, 171, 198);</string>
+   <string notr="true">background-color: rgb(39, 47, 66);
+color: rgb(236, 236, 236);
+border-radius: 5px;</string>
   </property>
   <widget class="QLabel" name="yawLabel">
    <property name="geometry">
     <rect>
-     <x>30</x>
+     <x>40</x>
      <y>50</y>
      <width>41</width>
      <height>16</height>
@@ -36,7 +43,7 @@ color: rgb(159, 171, 198);</string>
   <widget class="QLabel" name="rollLabel">
    <property name="geometry">
     <rect>
-     <x>110</x>
+     <x>160</x>
      <y>50</y>
      <width>41</width>
      <height>17</height>
@@ -49,7 +56,7 @@ color: rgb(159, 171, 198);</string>
   <widget class="QLabel" name="pitchLabel">
    <property name="geometry">
     <rect>
-     <x>200</x>
+     <x>270</x>
      <y>50</y>
      <width>51</width>
      <height>17</height>
@@ -75,7 +82,7 @@ color: rgb(159, 171, 198);</string>
   <widget class="QLabel" name="horizontalSpaceLabel">
    <property name="geometry">
     <rect>
-     <x>190</x>
+     <x>250</x>
      <y>110</y>
      <width>81</width>
      <height>20</height>
@@ -88,7 +95,7 @@ color: rgb(159, 171, 198);</string>
   <widget class="QLabel" name="verticalSpaceLabel">
    <property name="geometry">
     <rect>
-     <x>100</x>
+     <x>140</x>
      <y>110</y>
      <width>81</width>
      <height>20</height>
@@ -101,7 +108,7 @@ color: rgb(159, 171, 198);</string>
   <widget class="QLabel" name="headingLabel">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>30</x>
      <y>170</y>
      <width>81</width>
      <height>20</height>
@@ -114,7 +121,7 @@ color: rgb(159, 171, 198);</string>
   <widget class="QLabel" name="distanceToWayPointLabel">
    <property name="geometry">
     <rect>
-     <x>120</x>
+     <x>150</x>
      <y>170</y>
      <width>191</width>
      <height>20</height>
@@ -127,7 +134,7 @@ color: rgb(159, 171, 198);</string>
   <widget class="QLabel" name="batteryLabel">
    <property name="geometry">
     <rect>
-     <x>110</x>
+     <x>120</x>
      <y>220</y>
      <width>121</width>
      <height>20</height>
@@ -142,94 +149,102 @@ color: rgb(159, 171, 198);</string>
     <rect>
      <x>20</x>
      <y>240</y>
-     <width>271</width>
+     <width>311</width>
      <height>17</height>
     </rect>
    </property>
    <property name="value">
     <number>24</number>
    </property>
-  </widget>
-  <widget class="Line" name="line">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>90</y>
-     <width>291</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">
-background-color: none;</string>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-  </widget>
-  <widget class="Line" name="line_2">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>150</y>
-     <width>291</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">
-background-color: none;</string>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
+   <property name="invertedAppearance">
+    <bool>false</bool>
    </property>
   </widget>
   <widget class="QLabel" name="yawDisplay">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>30</x>
      <y>70</y>
      <width>67</width>
      <height>17</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
+   </property>
    <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
+    <enum>QFrame::NoFrame</enum>
    </property>
    <property name="text">
     <string>0</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="rollDisplay">
    <property name="geometry">
     <rect>
-     <x>100</x>
+     <x>140</x>
      <y>70</y>
      <width>67</width>
      <height>17</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
+   </property>
    <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
+    <enum>QFrame::NoFrame</enum>
    </property>
    <property name="text">
     <string>0</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="pitchDisplay">
    <property name="geometry">
     <rect>
-     <x>190</x>
+     <x>250</x>
      <y>70</y>
      <width>67</width>
      <height>17</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
+   </property>
    <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
+    <enum>QFrame::NoFrame</enum>
    </property>
    <property name="text">
     <string>0</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="altitudeDisplay">
@@ -241,43 +256,82 @@ background-color: none;</string>
      <height>17</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
+   </property>
    <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
+    <enum>QFrame::NoFrame</enum>
    </property>
    <property name="text">
     <string>0</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="verticalSpaceDisplay">
    <property name="geometry">
     <rect>
-     <x>100</x>
+     <x>140</x>
      <y>130</y>
      <width>67</width>
      <height>17</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
+   </property>
    <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
+    <enum>QFrame::NoFrame</enum>
    </property>
    <property name="text">
     <string>0</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="horizontalSpaceDisplay">
    <property name="geometry">
     <rect>
-     <x>190</x>
+     <x>250</x>
      <y>130</y>
      <width>67</width>
      <height>17</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
+   </property>
    <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
+    <enum>QFrame::NoFrame</enum>
    </property>
    <property name="text">
     <string>0</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="headingDisplay">
@@ -285,12 +339,22 @@ background-color: none;</string>
     <rect>
      <x>20</x>
      <y>190</y>
-     <width>67</width>
+     <width>81</width>
      <height>17</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
+   </property>
    <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
+    <enum>QFrame::NoFrame</enum>
    </property>
    <property name="text">
     <string>0</string>
@@ -298,101 +362,80 @@ background-color: none;</string>
    <property name="textFormat">
     <enum>Qt::AutoText</enum>
    </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
   </widget>
   <widget class="QLabel" name="waypointDisplay">
    <property name="geometry">
     <rect>
-     <x>150</x>
+     <x>200</x>
      <y>190</y>
      <width>67</width>
      <height>17</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
+   </property>
    <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
+    <enum>QFrame::NoFrame</enum>
    </property>
    <property name="text">
     <string>0</string>
    </property>
-  </widget>
-  <widget class="Line" name="line_3">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>210</y>
-     <width>291</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">
-background-color: none;</string>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-  </widget>
-  <widget class="Line" name="line_6">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>260</y>
-     <width>291</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">
-background-color: none;</string>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-  </widget>
-  <widget class="Line" name="line_7">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>40</y>
-     <width>291</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">
-background-color: none;</string>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="flightModeDisplay">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>20</y>
-     <width>101</width>
-     <height>17</height>
+     <x>0</x>
+     <y>0</y>
+     <width>351</width>
+     <height>31</height>
     </rect>
    </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>800</width>
+     <height>16777215</height>
+    </size>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(68, 80, 113);</string>
+   </property>
    <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Plain</enum>
+   </property>
+   <property name="lineWidth">
+    <number>1</number>
+   </property>
+   <property name="midLineWidth">
+    <number>0</number>
    </property>
    <property name="text">
     <string/>
    </property>
-  </widget>
-  <widget class="QLabel" name="flightModeLabel">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>20</y>
-     <width>81</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Flight Mode</string>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
  </widget>

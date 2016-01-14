@@ -1,0 +1,9 @@
+
+body {
+background-color: rgb(27, 32, 45);
+color: rgb(236, 236, 236);
+}
+
+#mapholder {
+  border-radius: 5px;
+}
