@@ -101,7 +101,8 @@ public:
   void SetWayPoint(double lat, double lon, int alt);
 
   /**
-      Overloaded function for SetWayPoint(double lat, double lon, int alt) that
+      Overloaded function for
+       SetWayPoint(double lat, double lon, int alt) that
       accepts a string parameter as the coordinate.
 
       @param waypoint A String containing the GPS coordinates of the WayPoint
@@ -247,6 +248,7 @@ private:
   ros::Subscriber     sub_state, sub_battery, sub_imu, sub_pos_global, sub_pos_local, sub_altitude, sub_heading, sub_vel;
 
   //UAV State Variables
+  std::string uav_ns; //Default namespace
   mavros_msgs::State state;
   mavros_msgs::BatteryStatus battery;
   sensor_msgs::Imu imu;

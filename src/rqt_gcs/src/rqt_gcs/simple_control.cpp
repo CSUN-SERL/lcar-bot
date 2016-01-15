@@ -23,29 +23,29 @@ int main(int argc, char **argv)
 SimpleControl::SimpleControl(void)  //Class constructor
 {
   //Initialize Service Clients
-  sc_arm      = nh_simple_control.serviceClient<mavros_msgs::CommandBool>("ardrone/mavros/cmd/arming");
-  sc_takeoff  = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>("ardrone/mavros/cmd/takeoff");
-  sc_land     = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>("ardrone/mavros/cmd/land");
-  sc_mode     = nh_simple_control.serviceClient<mavros_msgs::SetMode>("ardrone/mavros/set_mode");
-  sc_mission  = nh_simple_control.serviceClient<mavros_msgs::WaypointPush>("ardrone/mavros/mission/push");
+  sc_arm      = nh_simple_control.serviceClient<mavros_msgs::CommandBool>(uav_ns + "/mavros/cmd/arming");
+  sc_takeoff  = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>(uav_ns + "/mavros/cmd/takeoff");
+  sc_land     = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>(uav_ns + "/mavros/cmd/land");
+  sc_mode     = nh_simple_control.serviceClient<mavros_msgs::SetMode>(uav_ns + "/mavros/set_mode");
+  sc_mission  = nh_simple_control.serviceClient<mavros_msgs::WaypointPush>(uav_ns + "/mavros/mission/push");
 
   //Initialize Publisher Objects
-  pub_override_rc       = nh_simple_control.advertise<mavros_msgs::OverrideRCIn>("ardrone/mavros/rc/override",QUEUE_SIZE);
-  pub_setpoint_position = nh_simple_control.advertise<geometry_msgs::PoseStamped>("ardrone/mavros/setpoint_position/local",QUEUE_SIZE);
-  pub_setpoint_attitude = nh_simple_control.advertise<geometry_msgs::PoseStamped>("ardrone/mavros/setpoint_attitude/attitude",QUEUE_SIZE);
-  pub_angular_vel       = nh_simple_control.advertise<geometry_msgs::TwistStamped>("ardrone/mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
-  pub_linear_vel        = nh_simple_control.advertise<geometry_msgs::TwistStamped>("ardrone/mavros/setpoint_velocity/cmd_vel",QUEUE_SIZE);
-  pub_setpoint_accel    = nh_simple_control.advertise<geometry_msgs::Vector3Stamped>("ardrone/mavros/setpoint_accel/accel",QUEUE_SIZE);
+  pub_override_rc       = nh_simple_control.advertise<mavros_msgs::OverrideRCIn>(uav_ns + "/mavros/rc/override",QUEUE_SIZE);
+  pub_setpoint_position = nh_simple_control.advertise<geometry_msgs::PoseStamped>(uav_ns + "/mavros/setpoint_position/local",QUEUE_SIZE);
+  pub_setpoint_attitude = nh_simple_control.advertise<geometry_msgs::PoseStamped>(uav_ns + "/mavros/setpoint_attitude/attitude",QUEUE_SIZE);
+  pub_angular_vel       = nh_simple_control.advertise<geometry_msgs::TwistStamped>(uav_ns + "/mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
+  pub_linear_vel        = nh_simple_control.advertise<geometry_msgs::TwistStamped>(uav_ns + "/mavros/setpoint_velocity/cmd_vel",QUEUE_SIZE);
+  pub_setpoint_accel    = nh_simple_control.advertise<geometry_msgs::Vector3Stamped>(uav_ns + "/mavros/setpoint_accel/accel",QUEUE_SIZE);
 
   //Initialze Subscribers
-  sub_state       = nh_simple_control.subscribe("ardrone/mavros/state", 1, &SimpleControl::StateCallback, this);
-  sub_battery     = nh_simple_control.subscribe("ardrone/mavros/battery", 1, &SimpleControl::BatteryCallback, this);
-  sub_imu         = nh_simple_control.subscribe("ardrone/mavros/sensor_msgs/Imu", 1, &SimpleControl::ImuCallback, this);
-  sub_altitude    = nh_simple_control.subscribe("ardrone/mavros/global_position/rel_alt", 1, &SimpleControl::RelAltitudeCallback, this);
-  sub_heading     = nh_simple_control.subscribe("ardrone/mavros/global_position/compass_hdg", 1, &SimpleControl::HeadingCallback, this);
-  sub_vel         = nh_simple_control.subscribe("ardrone/mavros/local_position/velocity", 1, &SimpleControl::VelocityCallback, this);
-  sub_pos_global  = nh_simple_control.subscribe("ardrone/mavros/global_position/global", 1, &SimpleControl::NavSatFixCallback, this);
-  sub_pos_local   = nh_simple_control.subscribe("ardrone/mavros/local_position/pose", 1, &SimpleControl::LocalPosCallback, this);
+  sub_state       = nh_simple_control.subscribe(uav_ns + "/mavros/state", 1, &SimpleControl::StateCallback, this);
+  sub_battery     = nh_simple_control.subscribe(uav_ns + "/mavros/battery", 1, &SimpleControl::BatteryCallback, this);
+  sub_imu         = nh_simple_control.subscribe(uav_ns + "/mavros/sensor_msgs/Imu", 1, &SimpleControl::ImuCallback, this);
+  sub_altitude    = nh_simple_control.subscribe(uav_ns + "/mavros/global_position/rel_alt", 1, &SimpleControl::RelAltitudeCallback, this);
+  sub_heading     = nh_simple_control.subscribe(uav_ns + "/mavros/global_position/compass_hdg", 1, &SimpleControl::HeadingCallback, this);
+  sub_vel         = nh_simple_control.subscribe(uav_ns + "/mavros/local_position/velocity", 1, &SimpleControl::VelocityCallback, this);
+  sub_pos_global  = nh_simple_control.subscribe(uav_ns + "/mavros/global_position/global", 1, &SimpleControl::NavSatFixCallback, this);
+  sub_pos_local   = nh_simple_control.subscribe(uav_ns + "/mavros/local_position/pose", 1, &SimpleControl::LocalPosCallback, this);
 
   //Set Home position
   pos_home.x = pos_home.y = pos_home.z = 0;
