@@ -101,8 +101,7 @@ public:
   void SetWayPoint(double lat, double lon, int alt);
 
   /**
-      Overloaded function for
-       SetWayPoint(double lat, double lon, int alt) that
+      Overloaded function for SetWayPoint(double lat, double lon, int alt) that
       accepts a string parameter as the coordinate.
 
       @param waypoint A String containing the GPS coordinates of the WayPoint
