@@ -56,46 +56,47 @@ SimpleControl::~SimpleControl(void)
   //Class destructor
 }
 
-//TODO: Pre arm/disarm checks to ensure UAV isn't already armed or airborne
 void SimpleControl::Arm(bool value)
 {
-  //Create a message for arming/disarming
-  mavros_msgs::CommandBool arm;
-  arm.request.value = value;
+  if(state.armed != value){ //Only change to new state if it's different
+    //Create a message for arming/disarming
+    mavros_msgs::CommandBool arm;
+    arm.request.value = value;
 
-  //Call the service
-  if(sc_arm.call(arm)){
-    if(arm.response.success == 1){
+    //Call the service
+    if(sc_arm.call(arm)){
+      if(arm.response.success == 1){
 
-      bool timeout = false;
-      int count = 0;
-      ros::Rate check_frequency(CHECK_FREQUENCY);
+        bool timeout = false;
+        int count = 0;
+        ros::Rate check_frequency(CHECK_FREQUENCY);
 
-      //Wait for the FCU to arm
-      while(!state.armed && !timeout){
-        check_frequency.sleep();
-        ros::spinOnce();
-        count++;
-        if(count >= TIMEOUT) timeout = true;
-      }
+        //Wait for the FCU to arm
+        while(!state.armed && !timeout){
+          check_frequency.sleep();
+          ros::spinOnce();
+          count++;
+          if(count >= TIMEOUT) timeout = true;
+        }
 
-      //Print proper message to console
-      if(timeout){
-        if(value) ROS_WARN_STREAM("Arm operation timed out.");
-        else ROS_WARN_STREAM("Disarm operation timed out.");
+        //Print proper message to console
+        if(timeout){
+          if(value) ROS_WARN_STREAM("Arm operation timed out.");
+          else ROS_WARN_STREAM("Disarm operation timed out.");
+        }
+        else{
+          if(state.armed) ROS_INFO_STREAM("**ARMED**");
+          else ROS_INFO_STREAM("**DISARMED**");
+        }
       }
       else{
-        if(state.armed) ROS_INFO_STREAM("**ARMED**");
-        else ROS_INFO_STREAM("**DISARMED**");
+        if(value) ROS_ERROR_STREAM("Failed to Arm!");
+        else ROS_ERROR_STREAM("Failed to Disarm!");
       }
     }
     else{
-      if(value) ROS_ERROR_STREAM("Failed to Arm!");
-      else ROS_ERROR_STREAM("Failed to Disarm!");
+      ROS_ERROR_STREAM("Failed to call arm service!");
     }
-  }
-  else{
-    ROS_ERROR_STREAM("Failed to call arm service!");
   }
 }
 
