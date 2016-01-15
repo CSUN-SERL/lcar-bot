@@ -45,20 +45,14 @@ public:
        @param ImgMat
        @param imgName
      */
-    void ExtractFeatures(Mat ImgMat, string imgName);
-    /**
-       Used to test accuracy of the model library.
-
-
-     */
-    void Testing();
+    void Testing(string svm_file);
     /*
      Used to detect objects in images.
 
 
       @param svm
      */
-    void Hog(Ptr<SVM> svm);
+    void HogObjectDetection(Ptr<SVM> svm);
      /*
      Implement Hog feature extraction.
 
@@ -66,7 +60,12 @@ public:
      @param ImgMat
      */
     void HogFeatureExtraction(Mat ImgMat, int label);
+    /*
+     Implement Orb Feature Extraction
 
+     @param ImgMat
+     */
+    void OrbFeatureExtraction(Mat ImgMat);
     /*
      breakdown and store a Support Vector Machine object to a a float vector
      that the setSVMDetector is able toe read.
@@ -105,3 +104,12 @@ public:
     void set_kernal(Ptr<SVM> svm, int flag);
 };
 #endif
+/*
+ Features to implemented later
+ *
+ *  void ExtractFeatures(Mat ImgMat, string imgName);
+    /**
+       Used to test accuracy of the model library.
+
+
+     */
