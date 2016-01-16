@@ -119,25 +119,25 @@ void MyPlugin::TimedUpdate(){
     tempData = quad1.GetState().mode.c_str();
     usUi1_.flightModeDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().yaw);
+    tempData.setNum(12.021f,'f',2);
     usUi1_.yawDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().roll);
+    tempData.setNum(quad1.GetFlightState().roll,'f',2);
     usUi1_.rollDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().pitch);
+    tempData.setNum(quad1.GetFlightState().pitch,'f',2);
     usUi1_.pitchDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().altitude);
+    tempData.setNum(quad1.GetFlightState().altitude,'f',2);
     usUi1_.altitudeDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().vertical_speed);
+    tempData.setNum(quad1.GetFlightState().vertical_speed,'f',2);
     usUi1_.verticalSpaceDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().ground_speed);
+    tempData.setNum(quad1.GetFlightState().ground_speed,'f',2);
     usUi1_.horizontalSpaceDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().heading);
+    tempData.setNum(quad1.GetFlightState().heading,'f',2);
     usUi1_.headingDisplay->setText(tempData);
 
     tempData.setNum(quad1.GetDistanceToWP());
