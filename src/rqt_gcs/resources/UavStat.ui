@@ -153,8 +153,14 @@ border-radius: 5px;</string>
      <height>17</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">color: rgb(12, 12, 12);</string>
+   </property>
    <property name="value">
     <number>24</number>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
    <property name="invertedAppearance">
     <bool>false</bool>

@@ -79,7 +79,7 @@ var newPoint ;
 var la ;
 var missionDest = []; // way points of destination
 var image = {
-		      url: 'uav.png',
+		      url: 'uavIcon.png',
 
 			 scaledSize: new google.maps.Size(100,100)
 			};
@@ -136,14 +136,15 @@ la = new google.maps.LatLng(latitude,
       });
     }
 
-    // Center the map on the new position
-	var checked = $('#roamBox').is(':checked');
-    test.innerHTML = checked;
-	if(checked) {
+    // Center the map on the new position depending on the UAV
+	var checked = $('input[name=uav]:checked').val();
+    console.log(checked);
+	if(checked != 'free') { //if its not free roam, then center map to an UAV
     map.setCenter(la);
 	}
 
   outmessage.innerHTML = la ;
+  uavName.innerHTML = $("input[name=uav]:checked").val();
    // Call the autoUpdate() function every k seconds
   setTimeout(update, 50);
 }
@@ -202,27 +203,27 @@ function clearMarkers() {
 }
 
 
-
+console
     </script>
 </head>
 <body>
-<p> Location(coordinates):</p>
-<p id="outmessage"></p>
-<p id ="test"></p>
-<input type="button" value="Delete way points" id="deleteButton" >
-
-<select>
- <option value="quad1" selected="true">quad1</option>
- <option value="quad2">quad2</option>
- <option value="quad3">quad3</option>
- <option value="quad4">quad4</option>
-</select>
-
- <input type="checkbox" name="roamBox" id="roamBox" value="Auto Track Drone" /> Auto Track Drone
+ Location(coordinates):
+<span id="outmessage"></span>
 
 
+<center>
+<form action="" style="display: inline; ">
+  <input type="radio" name="uav" value="free"> free-roam
+  <input type="radio" name="uav" value="uav1"> uav1
+  <input type="radio" name="uav" value="uav2"> uav2
+</form>
 
-<div id="mapholder"></div>
+</center>
+ 
+
+<h2 id ="uavName" style="text-align: center;"> </h2>
+
+<div id="mapholder" style = "margin-top: 10px;"></div>
 
 
 
