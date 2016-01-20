@@ -60,11 +60,13 @@ include_directories(${rqt_gcs_INCLUDE_DIRECTORIES} ${catkin_INCLUDE_DIRS})
 
 # Declare executables with source files
 add_executable(simple_control src/rqt_gcs/simple_control.cpp)
+add_executable(gps_publisher src/rqt_gcs/gps_publisher.cpp)
 
 add_library(${PROJECT_NAME} ${rqt_gcs_SRCS} ${rqt_gcs_MOCS} ${rqt_gcs_UIS_H})
 
 #Specify libraries against which to link
 target_link_libraries(simple_control ${catkin_LIBRARIES})
+target_link_libraries(gps_publisher ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
 
 find_package(class_loader)
