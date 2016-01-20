@@ -43,6 +43,7 @@
 #define THRESHOLD_XY 1
 #define THRESHOLD_Z 1
 #define ALT_RTL 3
+#define BATTERY_MIN 0.30  //Minimum battery level for RTL
 
 //Structs
 struct FlightState {

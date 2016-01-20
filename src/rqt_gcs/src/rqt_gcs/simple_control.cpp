@@ -359,7 +359,11 @@ Eigen::Vector3d SimpleControl::CircleShape(int angle){
 
 void SimpleControl::Run()
 {
-  if(goal == TRAVEL){
+  if(battery.remaining < BATTERY_MIN){
+    //Return to launch site if battery is starting to get low
+    goal = RTL;
+  }
+  else if(goal == TRAVEL){
     if(ComparePosition(pos_local, pos_target) == 0){
       //Vehicle is at target location => Scout Building
       pos_previous = pos_local;
