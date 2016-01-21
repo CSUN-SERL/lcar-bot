@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
+find_package(Boost REQUIRED COMPONENTS thread)
 
 include(${QT_USE_FILE})
 include(EnableCXX11)
@@ -56,18 +57,26 @@ catkin_python_setup()
 qt4_wrap_cpp(rqt_gcs_MOCS ${rqt_gcs_HDRS})
 qt4_wrap_ui(rqt_gcs_UIS_H ${rqt_gcs_UIS})
 
-include_directories(${rqt_gcs_INCLUDE_DIRECTORIES} ${catkin_INCLUDE_DIRS})
+include_directories(${rqt_gcs_INCLUDE_DIRECTORIES}
+										${Boost_INCLUDE_DIRS}
+										${catkin_INCLUDE_DIRS})
 
 # Declare executables with source files
 add_executable(simple_control src/rqt_gcs/simple_control.cpp)
 add_executable(gps_publisher src/rqt_gcs/gps_publisher.cpp)
 
-add_library(${PROJECT_NAME} ${rqt_gcs_SRCS} ${rqt_gcs_MOCS} ${rqt_gcs_UIS_H})
+add_library(${PROJECT_NAME}
+						${rqt_gcs_SRCS} 
+						${rqt_gcs_MOCS}
+						${rqt_gcs_UIS_H})
 
 #Specify libraries against which to link
 target_link_libraries(simple_control ${catkin_LIBRARIES})
 target_link_libraries(gps_publisher ${catkin_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
+target_link_libraries(${PROJECT_NAME}
+											${catkin_LIBRARIES}
+											${QT_QTCORE_LIBRARY}
+											${QT_QTGUI_LIBRARY})
 
 find_package(class_loader)
 class_loader_hide_library_symbols(${PROJECT_NAME})
