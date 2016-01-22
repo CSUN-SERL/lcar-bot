@@ -6,7 +6,7 @@ int main(int argc, char **argv)
   //SimpleControl quad1;
 
   //quad1.ScoutBuilding(7,4,1);
-
+  boost::thread_group tg;
   ros::Rate loop_rate(10); //10Hz
 
   while(ros::ok())
@@ -58,7 +58,7 @@ SimpleControl::~SimpleControl(void)
 
 void SimpleControl::Arm(bool value)
 {
-  if(state.armed != value){ //Only change to new state if it's different
+  if(state[0].armed != value){ //Only change to new state if it's different
     //Create a message for arming/disarming
     mavros_msgs::CommandBool arm;
     arm.request.value = value;
@@ -72,7 +72,7 @@ void SimpleControl::Arm(bool value)
         ros::Rate check_frequency(CHECK_FREQUENCY);
 
         //Wait for the FCU to arm
-        while(!state.armed && !timeout){
+        while(!state[0].armed && !timeout){
           check_frequency.sleep();
           ros::spinOnce();
           count++;
@@ -85,7 +85,7 @@ void SimpleControl::Arm(bool value)
           else ROS_WARN_STREAM("Disarm operation timed out.");
         }
         else{
-          if(state.armed) ROS_INFO_STREAM("**ARMED**");
+          if(state[0].armed) ROS_INFO_STREAM("**ARMED**");
           else ROS_INFO_STREAM("**DISARMED**");
         }
       }
@@ -103,8 +103,8 @@ void SimpleControl::Arm(bool value)
 void SimpleControl::Takeoff(int altitude)
 {
   //Ensure the UAV is in Guided mode and armed
-  bool armed = (bool)state.armed;
-  std::string mode = state.mode;
+  bool armed = (bool)state[0].armed;
+  std::string mode = state[0].mode;
 
   if(mode.compare("GUIDED") != 0) this->SetMode("Guided");
   if(!armed) this->Arm(true);
@@ -422,7 +422,7 @@ void SimpleControl::Run()
   }
   else if(goal == DISARM){
     //Disarm the vehicle if it's currently armed
-    if(state.armed) this->Arm(false);
+    if(state[0].armed) this->Arm(false);
   }
   else{
     //Wait for the goal to change
