@@ -81,9 +81,9 @@ border-radius: 5px;</string>
       <colorrole role="WindowText">
        <brush brushstyle="SolidPattern">
         <color alpha="255">
-         <red>236</red>
-         <green>236</green>
-         <blue>236</blue>
+         <red>12</red>
+         <green>12</green>
+         <blue>12</blue>
         </color>
        </brush>
       </colorrole>
@@ -99,18 +99,18 @@ border-radius: 5px;</string>
       <colorrole role="Text">
        <brush brushstyle="SolidPattern">
         <color alpha="255">
-         <red>236</red>
-         <green>236</green>
-         <blue>236</blue>
+         <red>12</red>
+         <green>12</green>
+         <blue>12</blue>
         </color>
        </brush>
       </colorrole>
       <colorrole role="ButtonText">
        <brush brushstyle="SolidPattern">
         <color alpha="255">
-         <red>236</red>
-         <green>236</green>
-         <blue>236</blue>
+         <red>12</red>
+         <green>12</green>
+         <blue>12</blue>
         </color>
        </brush>
       </colorrole>
@@ -137,9 +137,9 @@ border-radius: 5px;</string>
       <colorrole role="WindowText">
        <brush brushstyle="SolidPattern">
         <color alpha="255">
-         <red>236</red>
-         <green>236</green>
-         <blue>236</blue>
+         <red>12</red>
+         <green>12</green>
+         <blue>12</blue>
         </color>
        </brush>
       </colorrole>
@@ -155,18 +155,18 @@ border-radius: 5px;</string>
       <colorrole role="Text">
        <brush brushstyle="SolidPattern">
         <color alpha="255">
-         <red>236</red>
-         <green>236</green>
-         <blue>236</blue>
+         <red>12</red>
+         <green>12</green>
+         <blue>12</blue>
         </color>
        </brush>
       </colorrole>
       <colorrole role="ButtonText">
        <brush brushstyle="SolidPattern">
         <color alpha="255">
-         <red>236</red>
-         <green>236</green>
-         <blue>236</blue>
+         <red>12</red>
+         <green>12</green>
+         <blue>12</blue>
         </color>
        </brush>
       </colorrole>
@@ -193,9 +193,9 @@ border-radius: 5px;</string>
       <colorrole role="WindowText">
        <brush brushstyle="SolidPattern">
         <color alpha="255">
-         <red>236</red>
-         <green>236</green>
-         <blue>236</blue>
+         <red>12</red>
+         <green>12</green>
+         <blue>12</blue>
         </color>
        </brush>
       </colorrole>
@@ -211,18 +211,18 @@ border-radius: 5px;</string>
       <colorrole role="Text">
        <brush brushstyle="SolidPattern">
         <color alpha="255">
-         <red>236</red>
-         <green>236</green>
-         <blue>236</blue>
+         <red>12</red>
+         <green>12</green>
+         <blue>12</blue>
         </color>
        </brush>
       </colorrole>
       <colorrole role="ButtonText">
        <brush brushstyle="SolidPattern">
         <color alpha="255">
-         <red>236</red>
-         <green>236</green>
-         <blue>236</blue>
+         <red>12</red>
+         <green>12</green>
+         <blue>12</blue>
         </color>
        </brush>
       </colorrole>
@@ -247,8 +247,14 @@ border-radius: 5px;</string>
      </disabled>
     </palette>
    </property>
+   <property name="styleSheet">
+    <string notr="true">color: rgb(12, 12, 12);</string>
+   </property>
    <property name="value">
     <number>24</number>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="label_3">

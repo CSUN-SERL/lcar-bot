@@ -54,38 +54,40 @@ protected slots:
 private:
   Ui::MyPluginWidget ui_;
   Ui::QuadStatsWidget quadUi1_;
-  Ui::QuadStatsWidget quadUi2_;
-  Ui::QuadStatsWidget quadUi3_;
-  Ui::QuadStatsWidget quadUi4_;
+ // Ui::QuadStatsWidget quadUi2_;
+  //Ui::QuadStatsWidget quadUi3_;
+ // Ui::QuadStatsWidget quadUi4_;
 
   Ui::MissionCancelWidget mcUi_;
   Ui::MissionProgressWidget mpUi1_;
-  Ui::MissionProgressWidget mpUi2_;
-  Ui::MissionProgressWidget mpUi3_;
-  Ui::MissionProgressWidget mpUi4_;
+ // Ui::MissionProgressWidget mpUi2_;
+ // Ui::MissionProgressWidget mpUi3_;
+ // Ui::MissionProgressWidget mpUi4_;
   Ui::MissionSelectWidget msUi_;
   Ui::UavQuestionWidget uqUi_;
   Ui::UavStatWidget usUi1_;
-  Ui::UavStatWidget usUi2_;
+ // Ui::UavStatWidget usUi2_;
 
 
   QWidget* widget_;
-  QWidget* missionCancelWidget_;
-  QWidget* missionSelectWidget_;
+  QWidget* missionCancelWidget1_;
+  QWidget* missionSelectWidget1_;
   QWidget* missionProgressWidget1_;
-  QWidget* missionProgressWidget2_;
-  QWidget* missionProgressWidget3_;
-  QWidget* missionProgressWidget4_;
-  QWidget* UavQuestionWidget_;
+ // QWidget* missionProgressWidget2_;
+ // QWidget* missionProgressWidget3_;
+ // QWidget* missionProgressWidget4_;
+  QWidget* UavQuestionWidget1_;
   QWidget* UavStatWidget1_;
-  QWidget* UavStatWidget2_;
+  //QWidget* UavStatWidget2_;
  // QWidget* UavStatWidget3_;
  // QWidget* UavStatWidget4_;
 
-  QWidget* quadWidget1_;
-  QWidget* quadWidget2_;
-  QWidget* quadWidget3_;
-  QWidget* quadWidget4_;
+ // QWidget* quadWidget1Mission_;
+  //QWidget* quadWidget1Stats_;
+  
+ // QWidget* quadWidget2_;
+  //QWidget* quadWidget3_;
+ // QWidget* quadWidget4_;
 
   QLabel* label;
   QTimer* updateTimer;

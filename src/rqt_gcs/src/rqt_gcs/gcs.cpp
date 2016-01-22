@@ -21,50 +21,51 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 
   // create QWidget
   widget_ = new QWidget();
-  missionCancelWidget_ = new QWidget();
-  missionSelectWidget_ = new QWidget();
+  missionCancelWidget1_ = new QWidget();
+  missionSelectWidget1_ = new QWidget();
   missionProgressWidget1_ = new QWidget();
  // missionProgressWidget2_ = new QWidget();
  // missionProgressWidget3_ = new QWidget();
  // missionProgressWidget4_ = new QWidget();
-  UavQuestionWidget_ = new QWidget();
+  UavQuestionWidget1_ = new QWidget();
   UavStatWidget1_ = new QWidget();
  //UavStatWidget2_ = new QWidget();
 
-  quadWidget1_ = new QWidget();
-
-
-  quadWidget2_ = new QWidget();
-  quadWidget2_ ->setStyleSheet("background-color: black;");
-  quadWidget3_ = new QWidget();
-  quadWidget4_ = new QWidget();
+  //quadWidget1Mission_ = new QWidget();
+  //quadWidget1Stats_ = new QWidget();
+  //quadWidget2_ = new QWidget();
+ // quadWidget2_ ->setStyleSheet("background-color: black;");
+ // quadWidget3_ = new QWidget();
+ // quadWidget4_ = new QWidget();
 
   // extend the widget with all attributes and children from UI file
   ui_.setupUi(widget_);
-  quadUi1_.setupUi(quadWidget1_);
-  quadUi2_.setupUi(quadWidget2_);
-  quadUi3_.setupUi(quadWidget3_);
-  quadUi4_.setupUi(quadWidget4_);
+  //quadUi1_.setupUi(quadWidget1Mission_);
+  //quadUi2_.setupUi(quadWidget2_);
+  //quadUi3_.setupUi(quadWidget3_);
+  //quadUi4_.setupUi(quadWidget4_);
 
-  mcUi_.setupUi(missionCancelWidget_);
-
+  mcUi_.setupUi(missionCancelWidget1_);
   mpUi1_.setupUi(missionProgressWidget1_);
  //mpUi2_.setupUi(missionProgressWidget2_);
 
-
-  msUi_.setupUi(missionSelectWidget_);
-  uqUi_.setupUi(UavQuestionWidget_);
+  msUi_.setupUi(missionSelectWidget1_);
+  uqUi_.setupUi(UavQuestionWidget1_);
 
   usUi1_.setupUi(UavStatWidget1_);
   //usUi2_.setupUi(UavStatWidget2_);
 
   // add widget to the user interface
   context.addWidget(widget_);
+  context.addWidget(missionProgressWidget1_);
+  context.addWidget(UavStatWidget1_);
 
-  context.addWidget(quadWidget1_);
-  context.addWidget(quadWidget2_);
-  context.addWidget(quadWidget3_);
-  context.addWidget(quadWidget4_);
+
+
+  //context.addWidget(quadWidget1Mission_);
+ // context.addWidget(quadWidget2_);
+ // context.addWidget(quadWidget3_);
+ // context.addWidget(quadWidget4_);
 
   //ui_.MissionProgressIndividualLayout->addWidget(missionProgressWidget1_);
   //ui_.MissionProgressIndividualLayout->addWidget(missionProgressWidget2_);
@@ -73,17 +74,17 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   //ui_.UavStatLayout->addWidget(UavStatWidget1_);
   //ui_.UavStatLayout->addWidget(UavStatWidget2_);
 
-   quadWidget1_->setWindowTitle("QuadRotor1");
-   quadUi1_.MissionProgressIndividualLayout->addWidget(missionProgressWidget1_);
-   quadUi1_.UavStatLayout->addWidget(UavStatWidget1_);
-   quadWidget1_->show();
-
-
+  // quadWidget1_->setWindowTitle("QuadRotor1");
+ //  quadUi1_.MissionProgressIndividualLayout->addWidget(missionProgressWidget1_);
+  // quadUi1_.UavStatLayout->addWidget(UavStatWidget1_);
+  // quadWidget1_->show();
 
 
    //setup mission progress widgets
-   tempData = "QuadRotor 1" ;
-   missionSelectWidget_->setWindowTitle(tempData);
+  // tempData = "QuadRotor 1" ;
+   missionSelectWidget1_->setWindowTitle("QuadRotor 1 Mission Select");
+   UavStatWidget1_->setWindowTitle("QuadRotor 1 Stats");
+   missionProgressWidget1_->setWindowTitle("QuadRotor 1 Mission Progress");
    connect(mpUi1_.changeMissionButton,SIGNAL(clicked()),this, SLOT(MissionChange()));
 
    //setup Mission select widgets
@@ -97,14 +98,14 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 
 
 
-   quadWidget2_->setWindowTitle("QuadRotor2");
-   quadWidget2_->show();
+   //quadWidget2_->setWindowTitle("QuadRotor2");
+  // quadWidget2_->show();
 
-   quadWidget3_->setWindowTitle("QuadRotor3");
-   quadWidget3_->show();
+   //quadWidget3_->setWindowTitle("QuadRotor3");
+  // quadWidget3_->show();
 
-   quadWidget4_->setWindowTitle("QuadRotor4");
-   quadWidget4_->show();
+   //quadWidget4_->setWindowTitle("QuadRotor4");
+  // quadWidget4_->show();
 
 
 }
@@ -119,25 +120,25 @@ void MyPlugin::TimedUpdate(){
     tempData = quad1.GetState().mode.c_str();
     usUi1_.flightModeDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().yaw);
+    tempData.setNum(12.021f,'f',2);
     usUi1_.yawDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().roll);
+    tempData.setNum(quad1.GetFlightState().roll,'f',2);
     usUi1_.rollDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().pitch);
+    tempData.setNum(quad1.GetFlightState().pitch,'f',2);
     usUi1_.pitchDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().altitude);
+    tempData.setNum(quad1.GetFlightState().altitude,'f',2);
     usUi1_.altitudeDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().vertical_speed);
+    tempData.setNum(quad1.GetFlightState().vertical_speed,'f',2);
     usUi1_.verticalSpaceDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().ground_speed);
+    tempData.setNum(quad1.GetFlightState().ground_speed,'f',2);
     usUi1_.horizontalSpaceDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().heading);
+    tempData.setNum(quad1.GetFlightState().heading,'f',2);
     usUi1_.headingDisplay->setText(tempData);
 
     tempData.setNum(quad1.GetDistanceToWP());
@@ -156,7 +157,7 @@ void MyPlugin::TimedUpdate(){
 
 void MyPlugin::MissionChange(){
 
-    missionSelectWidget_->show();
+    missionSelectWidget1_->show();
 }
 
 void MyPlugin::MissionSelect(const int i){
@@ -199,12 +200,13 @@ void MyPlugin::MissionSubmit(){
            ROS_INFO_STREAM("RETURN HOME");
    }
 
-    missionSelectWidget_->close();
+    missionSelectWidget1_->close();
 }
 
 void MyPlugin::shutdownPlugin()
 {
   // TODO unregister all publishers here =
+  
 
 }
 

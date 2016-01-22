@@ -13,11 +13,16 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(48, 57, 80);
+color: rgb(240, 240, 240);
+border-radius: 5px;</string>
+  </property>
   <widget class="QGraphicsView" name="uavPhoto">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>60</y>
+     <y>70</y>
      <width>401</width>
      <height>301</height>
     </rect>
@@ -71,6 +76,10 @@
      <height>22</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(64, 89, 145);
+color: rgb(240, 240, 240);</string>
+   </property>
    <property name="text">
     <string>Yes</string>
    </property>
@@ -83,6 +92,10 @@
      <width>117</width>
      <height>22</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(161, 20, 40);
+color: rgb(240, 240, 240);</string>
    </property>
    <property name="text">
     <string>No</string>
@@ -97,6 +110,9 @@
      <height>27</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(12, 12, 12);</string>
+   </property>
   </widget>
   <widget class="QPushButton" name="questionSubmit">
    <property name="geometry">
@@ -106,6 +122,10 @@
      <width>99</width>
      <height>27</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(64, 89, 145);
+color: rgb(240, 240, 240);</string>
    </property>
    <property name="text">
     <string>Submit</string>

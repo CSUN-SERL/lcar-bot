@@ -43,6 +43,8 @@
 #define THRESHOLD_XY 1
 #define THRESHOLD_Z 1
 #define ALT_RTL 3
+#define BATTERY_MIN 0.30  //Minimum battery level for RTL
+#define NUM_UAV 2 //total number of UAV's in the system
 
 //Structs
 struct FlightState {
@@ -218,7 +220,7 @@ public:
   void SetRTL() { goal = RTL; }
 
   //Getter Functions
-  mavros_msgs::State GetState() { return state; }
+  mavros_msgs::State GetState() { return state[0]; }
   mavros_msgs::BatteryStatus GetBatteryStatus() { return battery; }
   sensor_msgs::Imu  GetImu() { return imu; }
   FlightState GetFlightState() { return UpdateFlightState(); }
@@ -228,7 +230,12 @@ public:
 private:
 
   //Callback Prototypes
-  void StateCallback(const mavros_msgs::State& msg_state) { state = msg_state; }
+  void StateCallback(const ros::MessageEvent<mavros_msgs::State>& event_state)
+  {
+    std::string str_index = (event_state.getPublisherName()).substr(3,1);
+    int index = atoi(str_index.c_str());
+    state[index] = *(event_state.getMessage()); //Dereference before equating
+  }
   void BatteryCallback(const mavros_msgs::BatteryStatus& msg_battery) { battery = msg_battery; }
   void ImuCallback(const sensor_msgs::Imu& msg_imu) { imu = msg_imu; }
   void RelAltitudeCallback(const std_msgs::Float64& msg_altitude) { altitude_rel = msg_altitude.data; }
@@ -247,7 +254,8 @@ private:
   ros::Subscriber     sub_state, sub_battery, sub_imu, sub_pos_global, sub_pos_local, sub_altitude, sub_heading, sub_vel;
 
   //UAV State Variables
-  mavros_msgs::State state;
+  std::string uav_ns; //Default namespace
+  mavros_msgs::State state[NUM_UAV];
   mavros_msgs::BatteryStatus battery;
   sensor_msgs::Imu imu;
   sensor_msgs::NavSatFix pos_global;
