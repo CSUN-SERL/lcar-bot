@@ -13,6 +13,8 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/features2d.hpp"
 #include "opencv2/ml.hpp"
+#include "opencv2/objdetect.hpp"
+
 using namespace std;
 using namespace cv;
 using namespace cv::ml;
@@ -52,7 +54,7 @@ public:
 
       @param svm
      */
-    void HogObjectDetection(Ptr<SVM> svm);
+    //void HogObjectDetection(Ptr<SVM> svm);
      /*
      Implement Hog feature extraction.
 
@@ -104,12 +106,3 @@ public:
     void set_kernal(Ptr<SVM> svm, int flag);
 };
 #endif
-/*
- Features to implemented later
- *
- *  void ExtractFeatures(Mat ImgMat, string imgName);
-    /**
-       Used to test accuracy of the model library.
-
-
-     */

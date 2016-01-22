@@ -1,5 +1,5 @@
-#include <opencv2/objdetect.hpp>
 #include <fstream>
+#include <thread>
 
 #include "machine_learning.h"
 #include "boost/algorithm/string.hpp"
@@ -9,43 +9,173 @@
 void set_label(cv::Mat& im, cv::Rect r, const std::string label);
 void test_Hog();
 void sample_neg(Mat greyimg);
+void catergorize();
+void HogObjectDetection(Ptr<SVM> svm);
+void run();
+void create_svm();
+void test_svm();
+void detect_objects();
 
+//Globals for object catergorization
+bool running = false;
+queue<Mat> detected_objects;
+queue<Mat> categorized_objects;
+queue<int> categorized_labels;
+
+//Globals for user control
+vector<int> svm_kernels;
+queue<int> feature_extraction;
+
+//Globals mats used for training
 Mat labels;
 vector<Mat> trainingdata;
-Mat src;
-Mat display;
+Mat orb_trainingdata;
+
+//Copys of current image
+Mat src; //original
+Mat display; //used for negative mining display purposes
+
+//Global queues used to track img names and labels for testing
 queue<string> proc_img;
 queue<int> img_label;
+
+//Parameter used to turn testing on or off
 int testing;
+
+//N is label tracker, size_ is for total number of images read
 int N, size_;
+
+//variables to be used in the testing process
 float doorcounter, negcounter, windowcounter;
+
+//what the fuck are these
 int number = 0;
 int label_ = 0;
 int neg_count = 0;
 int object = -1;
+
+//Strings that are resued
 string user = getenv("USER");
-string svm_type;
+string svm_type; //stores kernel type
 string extraction_type;
+
+//May later be used for testing purposes
 float best_correct;
 string best_svm;
+
+
 int iteration; //number corresponds to svm
 int iteration_2; //number correspons to extraction type
 
 int main(int argc, char * argv[]) {
-    MachineLearning ml;
+    run();
     //ml.train_svm();
-    //const string modelLibPath = "SVM.xml";
-    //svm = StatModel::load<SVM>(modelLibPath);
-
-    //    //Ptr<SVM> Svm = SVM::create();
-    //trainingdata.release();
-    ml.Testing("LinearHOG.xml");
-    //ml.Hog(svm);
+    //    const string modelLibPath = "LinearHOG.xml";
+    //    Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
+    //
+    //    //    //Ptr<SVM> Svm = SVM::create();
+    //    //trainingdata.release();
+    //    //ml.Testing("LinearORB.xml");
+    //    //test_Hog();
+    //    std::thread thread_1(HogObjectDetection, svm);
+    //    std::thread thread_2(catergorize);
+    //
+    //    thread_1.join();
+    //    thread_2.join();
+    //  thread_1.detach();
+    //  thread_2.detach();
     //OrbDetection(svm);
     //test_Hog();
+    //   run();
     labels.release();
     src.release();
     return 0;
+}
+
+void run() {
+    int user_input = 0;
+    do {
+        cout << "What are you planning on doing?\n";
+        cout << "(1)Train a SVM\n(2)Test a current SVM\n(3)Apply negative mining to an existing SVM\n(4)Run object detection\n(5)Exit\nInput: ";
+        cin >> user_input;
+        switch (user_input) {
+            case 1: create_svm();
+                break;
+            case 2: test_svm();
+                break;
+            case 3: test_Hog();
+                break;
+            case 4: detect_objects();
+                break;
+            case 5: cout << "Goodbye\n";
+                break;
+        }
+    } while (user_input != 5);
+}
+
+void create_svm() {
+    MachineLearning ml;
+    int user_input;
+    cout << "What type of kernel do you want to use when training your SVM\n";
+    cout << "(1)Linear?\n(2)RBF?\n(3)CHI?\n(4)Poly?\n(5)Sigmoid?\n(6)Continue\n";
+    while (user_input != 6) {
+        cout << "Kernel type ";
+        cin >> user_input;
+        if (user_input < 1 || user_input > 6)
+            cout << "Invalid input\n";
+        else if (user_input != 6)
+            svm_kernels.push_back(user_input);
+    }
+    cout << "What type of feature extraction do you want to use?\n";
+    cout << "(1)HOG?\n(2)ORB?\n(3)Continue\n";
+    user_input = 0;
+    while (user_input != 3) {
+        cout << "Feature extraction: ";
+        cin >> user_input;
+        if (user_input < 1 || user_input > 3)
+            cout << "Invalid input\n";
+        else if (user_input != 3)
+            feature_extraction.push(user_input);
+    }
+    cout << "Will begin training your SVM\n";
+    ml.train_svm();
+}
+
+void test_svm() {
+    MachineLearning ml;
+    string svm_file;
+    cout << "What svm file do you wish to test?\n Input: ";
+    cin >> svm_file;
+    cout << "What type of feature extraction do you want to use?\n";
+    cout << "(1)HOG?\n(2)ORB?\n(3)Continue\n";
+    int user_input;
+    while (user_input != 3 && feature_extraction.size() < 1) {
+        cout << "Feature extraction: ";
+        cin >> user_input;
+        if (user_input < 1 || user_input > 3)
+            cout << "Invalid input\n";
+        else if (user_input != 3)
+            feature_extraction.push(user_input);
+    }
+    while (!feature_extraction.empty()) {
+        ml.Testing(svm_file);
+        trainingdata.clear();
+        labels.release();
+        N = 0;
+        feature_extraction.pop();
+    }
+}
+
+void detect_objects(){
+        string modelLibPath;
+        cout << "What SVM do you want to use?\nInput: ";
+        cin >> modelLibPath;
+        Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
+        thread thread_1(HogObjectDetection, svm);
+        thread thread_2(catergorize);
+
+        thread_1.join();
+        thread_2.join();
 }
 
 MachineLearning::MachineLearning(void) {//Class constructor
@@ -117,7 +247,7 @@ void MachineLearning::TraverseDirectory(string path) {
 
         if (dirEntry->d_type == DT_DIR && dirEntry->d_name[0] != '.') {
             newPath = path + "/" + dirEntry->d_name;
-            cout << "\n\nEntering: " << newPath << endl;
+            cout << "\nEntering: " << newPath << endl;
             TraverseDirectory(newPath);
             //cout << N << "\n";
             label_ = N++;
@@ -127,11 +257,11 @@ void MachineLearning::TraverseDirectory(string path) {
             if (testing == 2) {
                 sample_neg(greyImgMat);
             }
-            int flag = iteration_2;
+            int flag = feature_extraction.front();
             switch (flag) {
-                case 0:MachineLearning::HogFeatureExtraction(greyImgMat, label_);
-                break;
-                case 1:MachineLearning::OrbFeatureExtraction(greyImgMat);
+                case 1:MachineLearning::HogFeatureExtraction(greyImgMat, label_);
+                    break;
+                case 2:MachineLearning::OrbFeatureExtraction(greyImgMat);
             }
         }
     }
@@ -140,9 +270,6 @@ void MachineLearning::TraverseDirectory(string path) {
 }
 
 Mat MachineLearning::ProcessImage(string path, string file) {
-
-
-
     if (path != "" && file != "") {
         //cout << "grey scaling: " << file << endl;
         src = imread(path + "/" + file);
@@ -157,37 +284,15 @@ Mat MachineLearning::ProcessImage(string path, string file) {
     }
 
     resize(src, src, Size(64, 128));
-
-    //imshow(file, src);
-    //waitKey(0);
-
-    //blur image to reduce number of features
-
-    //GaussianBlur(src, src, Size(9, 9), 2, 2);
-    //erode image
-    /*
-        Mat kernel = Mat::ones(3, 3, CV_8U);
-        Mat eroded;
-        erode(src, eroded, kernel);
-        src = src - eroded;
-     */
     //convert image to grayscale
     Mat gray;
     cvtColor(src, gray, CV_BGR2GRAY);
     src.release();
-    //Apply Otsu thresholding
-    //threshold(gray, gray, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
-
-
-    //dilate(gray, gray, Mat(), Point(-1, -1), 2, 1, 1);
-
-
     return gray;
 
 }
 
 void MachineLearning::HogFeatureExtraction(Mat ImgMat, int label) {
-
     HOGDescriptor d;
     d.winSize = Size(64, 128);
     vector< Point > location;
@@ -208,18 +313,20 @@ void MachineLearning::HogFeatureExtraction(Mat ImgMat, int label) {
 void MachineLearning::OrbFeatureExtraction(Mat ImgMat) {
     Ptr<ORB> detector = ORB::create(500, 1.2, 3, 15, 0);
     vector<KeyPoint> keypoints_1;
-
     //-- Draw keypoints
     cv::Mat img_keypoints_1;
     //detect keypoints
     detector->detect(ImgMat, keypoints_1);
     //describe keypoints
     detector->compute(ImgMat, keypoints_1, img_keypoints_1);
-    //drawKeypoints(ImgMat, keypoints_1, img_keypoints_1, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
+    drawKeypoints(ImgMat, keypoints_1, img_keypoints_1, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
+    //imshow("test", img_keypoints_1);
+    // waitKey();
     if (!img_keypoints_1.empty()) {
-        trainingdata.push_back(img_keypoints_1.reshape(1,1));
+        trainingdata.push_back(img_keypoints_1.reshape(1, 1));
         labels.push_back(N);
         size_++;
+
     }
     if (testing == 1) {
         img_label.push(N);
@@ -229,73 +336,61 @@ void MachineLearning::OrbFeatureExtraction(Mat ImgMat) {
 
 void MachineLearning::train_svm() {
     MachineLearning ml;
-
-    for (int i = 1; i < 5; i++) {
-        for (int j = 0; j < 1; j++) {
+    while (!feature_extraction.empty()) {
+        for (int i = 0; i < svm_kernels.size(); i++) {
+            trainingdata.clear();
+            labels.release();
             string IMAGES_DIR = "/home/" + user + "/Pictures/Training";
-            iteration = i;
-            iteration_2 = j;
             N = 0;
             ml.TraverseDirectory(IMAGES_DIR);
-
             labels.convertTo(labels, CV_32SC1);
             //trainingdata.convertTo(trainingdata, CV_32FC1);
             Mat train_data;
+            Ptr<TrainData> td;
+            Ptr<SVM> svm;
             convert_to_ml(trainingdata, train_data);
+            trainingdata.clear();
             //Set up SVM's parameters
-            Ptr<SVM> svm = SVM::create();
-            //svm->setKernel(SVM::RBF);
-            //svm->setCoef0(.1);
-            ml.set_kernal(svm, i);
-            Ptr<TrainData> td = TrainData::create(train_data, ROW_SAMPLE, labels);
-
+            svm = SVM::create();
+            ml.set_kernal(svm, svm_kernels.at(i));
+            td = TrainData::create(train_data, ROW_SAMPLE, labels);
             cout << "Beginning Training Process\n";
+            cout << "Training a SVM with a " << svm_type << " kernel using " << extraction_type << "\n";
             svm->trainAuto(td, 10);
-            //string svm_file = "/home/thomas/NetBeansProjects/SVM/";
             string svm_file = svm_type + extraction_type + ".xml";
             svm->save(svm_file);
-            //trainingdata.release();
             label_ = 0;
             N = 0;
             doorcounter = 0;
-            cout << "Iteration" << " " << i << "\n";
             train_data.release();
-            trainingdata.clear();
             labels.release();
             src.release();
             ml.Testing(svm_file);
             testing = 0;
-
         }
+        feature_extraction.pop();
     }
-
 
 }
 
 void MachineLearning::set_kernal(Ptr<SVM> svm, int flag) {
     switch (flag) {
         case 1: svm->setKernel(SVM::LINEAR);
-            cout << "Linear\n";
             svm_type = "Linear";
             break;
         case 2: svm->setKernel(SVM::RBF);
-            cout << "RBF\n";
             svm_type = "RBF";
             break;
         case 3: svm->setKernel(SVM::CHI2);
-            cout << "CHI\n";
             svm_type = "CHI";
             break;
         case 4: svm->setKernel(SVM::POLY);
             svm->setDegree(2);
-            cout << "Poly\n";
             svm_type = "Poly";
             break;
         case 5: svm->setKernel(SVM::SIGMOID);
-            cout << "SIGMOID\n";
             svm_type = "SIGMOID";
             break;
-
     }
 }
 
@@ -358,7 +453,6 @@ void MachineLearning::Testing(string svm) {
         results.open("Results.txt", std::ofstream::out);
     else
         results.open("Results.txt", std::ofstream::app);
-    results << "Type: " << svm << "\n";
     results << "This svm accurately predicted " << answer << "/" << res.rows + 1 << " which equates to " << correct * 100.0 << "%\n";
     results << "\n";
     results.close();
@@ -367,14 +461,15 @@ void MachineLearning::Testing(string svm) {
     train_data.release();
 }
 
-void MachineLearning::HogObjectDetection(Ptr<SVM> svm) {
+void HogObjectDetection(Ptr<SVM> svm) {
+    running = true;
     MachineLearning ml;
     VideoCapture cap;
     vector< float > hog_detector;
     Scalar reference(0, 255, 0);
     Scalar window(255, 0, 0);
     vector< Rect > doors;
-    get_svm_detector(svm, hog_detector);
+    ml.get_svm_detector(svm, hog_detector);
 
     cap.set(CV_CAP_PROP_FRAME_WIDTH, 640);
     cap.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
@@ -411,7 +506,7 @@ void MachineLearning::HogObjectDetection(Ptr<SVM> svm) {
         doors.clear();
         hog.detectMultiScale(img, doors, true);
         //people.detectMultiScale(img, locations);
-        MachineLearning::draw_locations(img, doors, reference, "door");
+        ml.draw_locations(img, doors, reference, "door");
         //cout << "door\n";
         imshow("video capture", img);
         //trainingdata.release();
@@ -424,6 +519,45 @@ void MachineLearning::HogObjectDetection(Ptr<SVM> svm) {
 
         if (waitKey(10) >= 0)
             break;
+    }
+    destroyAllWindows();
+    cap.release();
+    running = false;
+    while (!categorized_objects.empty()) {
+        //namedWindow("Display window", CV_WINDOW_AUTOSIZE);
+        cout << "done\n";
+        imshow("door", categorized_objects.front());
+        waitKey(0);
+        categorized_labels.pop();
+        categorized_objects.pop();
+    }
+}
+
+void catergorize() {
+    const string modelLibPath = "LinearHOG.xml";
+    Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
+    MachineLearning ml;
+    while (running) {
+        if (!detected_objects.empty()) {
+            Mat object, train_data, res;
+            resize(detected_objects.front(), object, Size(64, 128));
+            detected_objects.pop();
+            ml.HogFeatureExtraction(object, -1);
+            ml.convert_to_ml(trainingdata, train_data);
+            trainingdata.clear();
+
+            //Roi.convertTo(Roi, CV_32FC1);
+            svm->predict(train_data, res, 4);
+            //cout << res.at<float>(i,0) << " " << "locations" << locations.size() << "\n";
+            for (int j = 0; j < res.rows; j++) {
+                cout << res.at<float>(j, 0) << " " << "res " << res.rows << "\n";
+                //Show ROI
+                if (res.at<float>(j, 0) == 1) {
+                    categorized_labels.push(1);
+                    categorized_objects.push(object);
+                }
+            }
+        }
     }
 }
 
@@ -446,8 +580,9 @@ void MachineLearning::draw_locations(Mat & img, const vector< Rect > & found, co
             r.y += cvRound(r.height * 0.06);
             r.height = cvRound(r.height * 0.9);
             rectangle(img, r.tl(), r.br(), cv::Scalar(0, 255, 0), 2);
-            set_label(img, r, label);
         }
+        detected_objects.push(img.clone());
+
         /*
                 vector< Rect >::const_iterator loc = found.begin();
                 vector< Rect >::const_iterator end = found.end();
@@ -465,7 +600,8 @@ void sample_neg(Mat greyimg) {
     vector< float > hog_detector;
     Scalar reference(0, 255, 0);
     vector< Rect > locations;
-    Ptr<SVM> svm;
+    const string modelLibPath = "LinearHOG.xml";
+    Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
     ml.get_svm_detector(svm, hog_detector);
     //        if (!cap.isOpened())
     //            return -1;
@@ -477,247 +613,60 @@ void sample_neg(Mat greyimg) {
     src = greyimg;
     resize(src, src, Size(256, 512));
     resize(display, display, Size(256, 512));
-    // Parameters of your slideing window
-    int windows_n_rows = 60;
-    int windows_n_cols = 60;
-    // Step of each window
-    int StepSlide = 30;
-
-    // Just copy of Loaded image
-    // Note that Mat img = LoadedImage; This syntax only put reference on LoadedImage
-    // Whot does it mean ? if you change img, LoadeImage is changed 2.
-    // IF you want to make a copy, and do not change the source image- Use clone();
-    //Mat DrawResultGrid = display.clone();
     namedWindow("Step 2 draw Rectangle", WINDOW_AUTOSIZE);
     imshow("Step 2 draw Rectangle", display);
     waitKey(100);
     imwrite("Step2.JPG", display);
-    // Cycle row step
-    //for (int row = 0; row <= src.rows - windows_n_rows; row += StepSlide) {
-    // Cycle col step
-    // for (int col = 0; col <= src.cols - windows_n_cols; col += StepSlide) {
-    // There could be feature evaluator  over Windows
-
-    // resulting window
-    //Rect windows(col, row, windows_n_rows, windows_n_cols);
-    //resize(img, img, Size(64, 128));
-
     locations.clear();
-    hog.detectMultiScale(src, locations, true);
+    hog.detectMultiScale(src, locations, false);
     for (int i = 0; i < locations.size(); i++) {
         Rect windows(locations.at(i).x, locations.at(i).y, locations.at(i).width, locations.at(i).height);
         img = src(windows).clone();
         Mat Roi = src(windows);
-
-        //Show ROI
-        namedWindow("Step 4 Draw selected Roi", WINDOW_AUTOSIZE);
-        imshow("Step 4 Draw selected Roi", Roi);
-        waitKey(100);
-        imwrite("Step4.JPG", Roi);
-        int neg = neg_count;
-        stringstream ss;
-        ss << neg;
-        string str = ss.str();
-        string destination = "/home/thomas/Pictures/Training/pos/" + str + ".JPG";
-        imwrite(destination, Roi);
-        neg_count++;
+        Mat extract;
+        resize(Roi, extract, Size(64, 128));
+        Mat res;
+        Mat train_data;
+        ml.HogFeatureExtraction(extract, -1);
+        ml.convert_to_ml(trainingdata, train_data);
+        trainingdata.clear();
+        //Roi.convertTo(Roi, CV_32FC1);
+        svm->predict(train_data, res, 4);
+        //cout << res.at<float>(i,0) << " " << "locations" << locations.size() << "\n";
+        for (int j = 0; j < res.rows; j++) {
+            cout << res.at<float>(j, 0) << " " << "res " << res.rows << " count " << neg_count << "\n";
+            //Show ROI
+            if (res.at<float>(j, 0) == 1) {
+                namedWindow("Step 4 Draw selected Roi", WINDOW_AUTOSIZE);
+                imshow("Step 4 Draw selected Roi", Roi);
+                waitKey(100);
+                imwrite("Step4.JPG", Roi);
+                int neg = neg_count;
+                stringstream ss;
+                ss << neg;
+                string str = ss.str();
+                string destination = "/home/thomas/Pictures/Training/other/" + str + ".JPG";
+                imwrite(destination, Roi);
+                neg_count++;
+            }
+        }
+        res.release();
+        train_data.release();
+        extract.release();
     }
     Mat DrawResultHere = display.clone();
-
-    // Draw only rectangle
-    /*
-                if (!locations.empty()) {
-                    vector< Rect >::const_iterator loc = locations.begin();
-                    vector< Rect >::const_iterator end = locations.end();
-                    for (; loc != end; ++loc) {
-                        rectangle(DrawResultHere, *loc, Scalar(255), 1,8,0);
-                        // Show  rectangle
-                namedWindow("Step 2 draw Rectangle", WINDOW_AUTOSIZE);
-                imshow("Step 2 draw Rectangle", DrawResultHere);
-                waitKey(100);
-                imwrite("Step2.JPG", DrawResultHere);
-
-
-                    }*/
-    //}
-    //rectangle(DrawResultHere, windows, Scalar(255), 1, 8, 0);
-    //ml.draw_locations(DrawResultHere, locations, reference, "door");
-    // Draw grid
-    //rectangle(DrawResultGrid, windows, Scalar(255), 1, 8, 0);
-
-
     // Show  rectangle
     namedWindow("Step 2 draw Rectangle", WINDOW_AUTOSIZE);
     imshow("Step 2 draw Rectangle", DrawResultHere);
     waitKey(100);
     imwrite("Step2.JPG", DrawResultHere);
-
-    // Show grid
-    /*
-                 if (!locations.empty()) {
-                    vector< Rect >::const_iterator loc = locations.begin();
-                    vector< Rect >::const_iterator end = locations.end();
-                    for (; loc != end; ++loc) {
-                        rectangle(DrawResultGrid, *loc, Scalar(255), 1,8,0);
-                        // Show  rectangle
-
-
-                namedWindow("Step 3 Show Grid", WINDOW_AUTOSIZE);
-                imshow("Step 3 Show Grid", DrawResultGrid);
-                waitKey(100);
-                imwrite("Step3.JPG", DrawResultGrid);
-                    }}
-     */
-    // Select windows roi
-    /*
-                Mat Roi = src(windows);
-
-                //Show ROI
-                namedWindow("Step 4 Draw selected Roi", WINDOW_AUTOSIZE);
-                imshow("Step 4 Draw selected Roi", Roi);
-                waitKey(100);
-                imwrite("Step4.JPG", Roi);
-     */
-    // }
-    // }
-
-
-
 }
 
 void test_Hog() {
     MachineLearning ml;
-    const string modelLibPath = "SVM.xml";
-    Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
-
-    string IMAGES_DIR = "/home/" + user + "/Pictures/Training/pos";
+    string IMAGES_DIR = "/home/" + user + "/Pictures/Training/other";
     testing = 2;
     ml.TraverseDirectory(IMAGES_DIR);
+    ml.train_svm();
     cout << neg_count;
-
 }
-
-/**
- Features to add in later
- void OrbDetection(Ptr<SVM> svm);
-
- *
- * void OrbDetection(Ptr<SVM> svm) {
-    VideoCapture cap(-1);
-
-    cap.set(CV_CAP_PROP_FRAME_WIDTH, 1000);
-    cap.set(CV_CAP_PROP_FRAME_HEIGHT, 1000);
-    //    if (!cap.isOpened())
-    //        return -1;
-    MachineLearning ml;
-
-    Mat img;
-    vector<KeyPoint> keypoints_1;
-    Ptr<ORB> detector = ORB::create(500, 1.2, 3, 15, 0);
-    while (true) {
-
-        cap >> img;
-        if (!img.data)
-            continue;
-        src = img;
-        Mat greyimg = ml.ProcessImage(" ", " ");
-        ml.ExtractFeatures(greyimg, " ");
-        //ml.HogFeatureExtraction(greyimg);
-        //        cvtColor(img, img, CV_BGR2GRAY);
-        //
-        //        vector<Rect> found, found_filtered;
-        cv::Mat img_keypoints_1, res;
-        //        //MachineLearning::ExtractFeatures(img, "");
-        //
-        //        //detect keypoints
-        detector->detect(img, keypoints_1);
-        //        //describe keypoints
-        detector->compute(img, keypoints_1, img_keypoints_1);
-        std::vector<Point2f> obj_corners(4);
-        drawKeypoints(img, keypoints_1, img_keypoints_1, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
-        imshow("video capture", greyimg);
-        //        resize(img_keypoints_1, img_keypoints_1, Size(640, 480));
-        //
-        //        img_keypoints_1.convertTo(img_keypoints_1, CV_32FC1);
-        //        img_keypoints_1.reshape(1, 1);
-        //trainingdata.convertTo(trainingdata, CV_32FC1);
-        float p = svm->predict(trainingdata, res, 4);
-        //
-        //
-        for (int i = 0; i < res.rows; i++) {
-            if (res.at<float>(i, 0) == 0 && object != 0) {
-                object = 0;
-                cout << "Door detected\n";
-            }
-            if (res.at<float>(i, 0) == 1 && object != 1) {
-                object = 1;
-                cout << "No doors detected\n";
-            }
-            //trainingdata.release();
-        }
-        if (waitKey(20) >= 0)
-            break;
-
-    }
-}
- *
- * void MachineLearning::ExtractFeatures(Mat ImgMat, string imgName) {
-    ////////////////////////////////////////////// migrated from processFeatures
-
-    //apply canny edge detector
-    Mat bw;
-    cv::Canny(ImgMat, bw, 0, 50, 5);
-
-    //Find Houghlines
-    std::vector<cv::Vec4i> lines_vec;
-    HoughLinesP(bw, lines_vec, 1, CV_PI / 180, 100, 30, 10);
-
-    //cv::imshow("8", bw);
-
-    for (size_t i = 0; i < lines_vec.size(); i++) {
-        line(src, Point(lines_vec[i][0], lines_vec[i][1]), Point(lines_vec[i][2], lines_vec[i][3]), Scalar(0, 0, 255), 3, 8);
-        //cv::imshow("9", src);
-    }
-
-    // Find contours
-    std::vector<std::vector<cv::Point> > contours;
-    vector<Vec4i> hierarchy;
-    findContours(bw, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-    //cv::imshow("9", contours);
-    Mat drawing = Mat::zeros(bw.size(), CV_8UC3);
-    Scalar colors[3];
-    colors[0] = Scalar(255, 0, 0);
-    colors[1] = Scalar(0, 255, 0);
-    colors[2] = Scalar(0, 0, 255);
-    for (int i = 0; i < contours.size(); i++) {
-        drawContours(src, contours, i, colors[i % 3]);
-        // cv::imshow("10", src);
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-
-    Ptr<ORB> detector = ORB::create(500, 1.2, 3, 15, 0);
-    vector<KeyPoint> keypoints_1;
-
-    //-- Draw keypoints
-    cv::Mat img_keypoints_1;
-    //detect keypoints
-    detector->detect(src, keypoints_1);
-
-    //describe keypoints
-    detector->compute(src, keypoints_1, img_keypoints_1);
-    //copy.copyTo(img_keypoints_1);
-    drawKeypoints(src, keypoints_1, img_keypoints_1, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
-    //imshow("c", img_keypoints_1);
-
-    //imshow(imgName, img_keypoints_1);
-    //waitKey();
-
-    if (!img_keypoints_1.empty()) {
-        trainingdata.push_back(img_keypoints_1.reshape(1, 1));
-        if (imgName != " ")
-            labels.push_back(N);
-        size_++;
-    }
-}
- */
