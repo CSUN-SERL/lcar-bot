@@ -13,6 +13,7 @@
   <script>
 var longitude =0;
 var latitude =0;
+var num ;
 
  // Connecting to ROS
   // -----------------
@@ -38,29 +39,34 @@ ros.on('connection', function() {
   // ----------------------
 
 
-function getCoordinates(){
+function getCoordinates(num){
   var listener = new ROSLIB.Topic({
     ros : ros, 	//ros object connection
-    name : 'mavros/global_position/global',
+    name : '/UAV' + num + '/mavros/global_position/global',
     messageType : 'sensor_msgs/NavSatFix'
   });
 
    listener.subscribe(function(message) {
+
    console.log('latitude ' + listener.name + ': ' + message.latitude);
    console.log('longitude ' + listener.name + ': ' + message.longitude);
 
+   if(message.latitude != 0 && message.longitude != 0){ //if not 0
 	longitude = message.longitude;
 	latitude = message.latitude;
-	console.log('latitude1 ' + longitude);
- 	console.log('longitude1 ' + latitude);
+//	console.log('latitude1 ' + longitude);
+ //	console.log('longitude1 ' + latitude);
+}else{
+  	listener.unsubscribe();
+}
 
-	    	//listener.unsubscribe();
   });
 }
 
 $(document).ready(function(){
 
       	  showPosition();
+
 		  getCoordinates();
 
 
@@ -74,7 +80,7 @@ $(document).ready(function(){
 
 var x =0;
 var map;
-var marker;
+var marker = [];
 var newPoint ;
 var la ;
 var missionDest = []; // way points of destination
@@ -85,8 +91,8 @@ var image = {
 			};
 
 function showPosition() {
- console.log('latitude ' + longitude);
-   console.log('longitude ' + latitude);
+ //console.log('latitude ' + longitude);
+  // console.log('longitude ' + latitude);
 
     //lat = position.coords.latitude;
     //lon = position.coords.longitude;
@@ -103,7 +109,7 @@ function showPosition() {
     }
 
      map = new google.maps.Map(document.getElementById("mapholder"), myOptions);
-     marker = new google.maps.Marker({position:latlon,map:map,
+     marker[num] = new google.maps.Marker({position:latlon,map:map,
 									  title:"Drone inbound",
 									  icon: image
 
@@ -118,19 +124,19 @@ function showPosition() {
 }
 
 function update() {
-
-getCoordinates(); //update coordinates
-
+for(var i = 1; i < 3; i++){
+getCoordinates(i); //update coordinates
+}
 la = new google.maps.LatLng(latitude,
     longitude);
 
-    if (marker) {
+    if (marker[num]) {
       // Marker already created - Move it
-      marker.setPosition(la);
+      marker[num].setPosition(la);
     }
     else {
       // Marker does not exist - Create it
-      marker = new google.maps.Marker({
+      marker[num] = new google.maps.Marker({
         position: la,
         map: map
       });
@@ -146,7 +152,7 @@ la = new google.maps.LatLng(latitude,
   outmessage.innerHTML = la ;
   uavName.innerHTML = $("input[name=uav]:checked").val();
    // Call the autoUpdate() function every k seconds
-  setTimeout(update, 50);
+  setTimeout(update, 500);
 }
 
 function showError(error) {
@@ -203,7 +209,7 @@ function clearMarkers() {
 }
 
 
-console
+
     </script>
 </head>
 <body>
@@ -212,14 +218,14 @@ console
 
 
 <center>
-<form action="" style="display: inline; ">
+<form name="rform" action="" style="display: inline; ">
   <input type="radio" name="uav" value="free"> free-roam
   <input type="radio" name="uav" value="uav1"> uav1
   <input type="radio" name="uav" value="uav2"> uav2
 </form>
 
 </center>
- 
+
 
 <h2 id ="uavName" style="text-align: center;"> </h2>
 
