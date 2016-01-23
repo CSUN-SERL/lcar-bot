@@ -152,7 +152,7 @@ void MyPlugin::TimedUpdate(){
 
     mpUi1_.missionProgressBar->setValue(quad1.GetMissionProgress()*100);
 
-    quad1.Run();
+    quad1.Run(1);
 }
 
 void MyPlugin::MissionChange(){
@@ -206,7 +206,7 @@ void MyPlugin::MissionSubmit(){
 void MyPlugin::shutdownPlugin()
 {
   // TODO unregister all publishers here =
-  
+
 
 }
 

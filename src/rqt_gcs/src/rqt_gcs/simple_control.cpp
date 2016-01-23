@@ -3,7 +3,7 @@
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "simple_control");
-  //SimpleControl quad1;
+  SimpleControl quad1;
 
   //quad1.ScoutBuilding(7,4,1);
   boost::thread_group tg;
@@ -56,9 +56,9 @@ SimpleControl::~SimpleControl(void)
   //Class destructor
 }
 
-void SimpleControl::Arm(bool value)
+void SimpleControl::Arm(bool value, int uav_num)
 {
-  if(state[0].armed != value){ //Only change to new state if it's different
+  if(state[uav_num].armed != value){ //Only change to new state if it's different
     //Create a message for arming/disarming
     mavros_msgs::CommandBool arm;
     arm.request.value = value;
@@ -72,7 +72,7 @@ void SimpleControl::Arm(bool value)
         ros::Rate check_frequency(CHECK_FREQUENCY);
 
         //Wait for the FCU to arm
-        while(!state[0].armed && !timeout){
+        while(!state[uav_num].armed && !timeout){
           check_frequency.sleep();
           ros::spinOnce();
           count++;
@@ -85,7 +85,7 @@ void SimpleControl::Arm(bool value)
           else ROS_WARN_STREAM("Disarm operation timed out.");
         }
         else{
-          if(state[0].armed) ROS_INFO_STREAM("**ARMED**");
+          if(state[uav_num].armed) ROS_INFO_STREAM("**ARMED**");
           else ROS_INFO_STREAM("**DISARMED**");
         }
       }
@@ -100,19 +100,19 @@ void SimpleControl::Arm(bool value)
   }
 }
 
-void SimpleControl::Takeoff(int altitude)
+void SimpleControl::Takeoff(int altitude, int uav_num)
 {
   //Ensure the UAV is in Guided mode and armed
-  bool armed = (bool)state[0].armed;
-  std::string mode = state[0].mode;
+  bool armed = (bool)state[uav_num].armed;
+  std::string mode = state[uav_num].mode;
 
   if(mode.compare("GUIDED") != 0) this->SetMode("Guided");
-  if(!armed) this->Arm(true);
+  if(!armed) this->Arm(true, uav_num);
 
   //Create a message for landing
   mavros_msgs::CommandTOL takeoff;
   takeoff.request.altitude = altitude;
-
+;
   //Call the service
   if(sc_takeoff.call(takeoff)){
     if(takeoff.response.success == 1) ROS_INFO_STREAM("Takeoff Initiated.");
@@ -357,7 +357,7 @@ Eigen::Vector3d SimpleControl::CircleShape(int angle){
 				                    pos_previous.z);
 	}
 
-void SimpleControl::Run()
+void SimpleControl::Run(int uav_num)
 {
   if(battery.remaining < BATTERY_MIN){
     //Return to launch site if battery is starting to get low
@@ -422,7 +422,7 @@ void SimpleControl::Run()
   }
   else if(goal == DISARM){
     //Disarm the vehicle if it's currently armed
-    if(state[0].armed) this->Arm(false);
+    if(state[uav_num].armed) this->Arm(false, uav_num);
   }
   else{
     //Wait for the goal to change

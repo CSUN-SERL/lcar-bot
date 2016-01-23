@@ -65,7 +65,7 @@ public:
 
       @param value Pass true for arm, false for disarm
   */
-  void Arm(bool value);
+  void Arm(bool value, int uav_num);
 
   /**
       Takeoff to a set altitude. Requires the UAV to be first armed and then
@@ -73,7 +73,7 @@ public:
 
       @param altitude Altitude, in feet, for takeoff
   */
-  void Takeoff(int altitude);
+  void Takeoff(int altitude, int uav_num);
 
   /**
       Land the UAV
@@ -215,7 +215,7 @@ public:
   /**
       Manage the UAV and ensure that it completes the mission
   */
-  void Run();
+  void Run(int uav_num);
 
   void SetRTL() { goal = RTL; }
 
@@ -232,8 +232,8 @@ private:
   //Callback Prototypes
   void StateCallback(const ros::MessageEvent<mavros_msgs::State>& event_state)
   {
-    std::string str_index = (event_state.getPublisherName()).substr(3,1);
-    int index = atoi(str_index.c_str());
+    std::string str_index = (event_state.getPublisherName()).substr(4,1);
+    int index = atoi(str_index.c_str())-1;
     state[index] = *(event_state.getMessage()); //Dereference before equating
   }
   void BatteryCallback(const mavros_msgs::BatteryStatus& msg_battery) { battery = msg_battery; }
@@ -254,7 +254,7 @@ private:
   ros::Subscriber     sub_state, sub_battery, sub_imu, sub_pos_global, sub_pos_local, sub_altitude, sub_heading, sub_vel;
 
   //UAV State Variables
-  std::string uav_ns; //Default namespace
+  std::string uav_ns = "UAV1"; //Default namespace
   mavros_msgs::State state[NUM_UAV];
   mavros_msgs::BatteryStatus battery;
   sensor_msgs::Imu imu;
