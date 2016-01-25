@@ -55,7 +55,7 @@ SimpleControl::SimpleControl(void)  //Class constructor
     sub_pos_local[index]  = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/local_position/pose", 1, &SimpleControl::LocalPosCallback, this);
 
     //Set Home position
-    pos_home.x = pos_home.y = pos_home.z = 0;
+    pos_home[index].x = pos_home[index].y = pos_home[index].z = 0;
   }
 }
 
@@ -184,24 +184,28 @@ void SimpleControl::SetMode(std::string mode, int uav_num)
 
 std::string SimpleControl::GetLocation(int uav_num)
 {
-  float lat = pos_global.latitude;
-  float lon = pos_global.longitude;
+  uav_num--; //For indexing arrays properly
+
+  float lat = pos_global[uav_num].latitude;
+  float lon = pos_global[uav_num].longitude;
 
   return std::to_string(lat) + "," + std::to_string(lon);
 }
 
 void SimpleControl::ScoutBuilding(int x, int y, int z, int uav_num)
 {
+  uav_num--; //For indexing arrays properly
+
   //Update the target location
-  pos_target.x = x;
-  pos_target.y = y;
-  pos_target.z = z;
+  pos_target[uav_num].x = x;
+  pos_target[uav_num].y = y;
+  pos_target[uav_num].z = z;
 
   //Prepare the vehicle for traveling to the waypoint
   //this->Arm(true);
   //this->SetMode("Guided");
 
-  pos_previous = pos_local;
+  pos_previous[uav_num] = pos_local[uav_num];
   goal = TRAVEL;
   ROS_INFO_STREAM("Traveling to target location.");
 }
@@ -320,13 +324,13 @@ FlightState SimpleControl::UpdateFlightState(int uav_num)
 
   struct FlightState flight_state;
 
-  flight_state.roll = imu.orientation.x; //Update Roll value
-  flight_state.pitch = imu.orientation.y; //Update Pitch Value
-  flight_state.yaw = imu.orientation.z; //Update Yaw Value
-  flight_state.heading = heading_deg; //Update heading [degrees]
-  flight_state.altitude = altitude_rel; //Update Altitude [m]
-  flight_state.ground_speed = velocity.twist.linear.x; //Global Velocity X [m/s]
-  flight_state.vertical_speed = velocity.twist.linear.z; //Global Velocity vertical [m/s]
+  flight_state.roll = imu[uav_num].orientation.x; //Update Roll value
+  flight_state.pitch = imu[uav_num].orientation.y; //Update Pitch Value
+  flight_state.yaw = imu[uav_num].orientation.z; //Update Yaw Value
+  flight_state.heading = heading_deg[uav_num]; //Update heading [degrees]
+  flight_state.altitude = altitude_rel[uav_num]; //Update Altitude [m]
+  flight_state.ground_speed = velocity[uav_num].twist.linear.x; //Global Velocity X [m/s]
+  flight_state.vertical_speed = velocity[uav_num].twist.linear.z; //Global Velocity vertical [m/s]
 
   return flight_state;
 }
@@ -353,13 +357,20 @@ int SimpleControl::CalculateDistance(geometry_msgs::Point point1, geometry_msgs:
   return sqrt((dist_x * dist_x) + (dist_y * dist_y) + (dist_z * dist_z));
 }
 
-float SimpleControl::GetMissionProgress()
+float SimpleControl::GetMissionProgress(int uav_num)
 {
+  uav_num--; //For indexing arrays properly
+
+  geometry_msgs::Point uav_pos_local = pos_local[uav_num];
+  geometry_msgs::Point uav_pos_target = pos_target[uav_num];
+  geometry_msgs::Point uav_pos_previous = pos_previous[uav_num];
+  geometry_msgs::Point uav_pos_home = pos_home[uav_num];
+
   float progress = 0;
 
   if(goal == TRAVEL){
-    float distance_remaining  = CalculateDistance(pos_target,pos_local);
-    float distance_total      = CalculateDistance(pos_target,pos_home);
+    float distance_remaining  = CalculateDistance(uav_pos_target,uav_pos_local);
+    float distance_total      = CalculateDistance(uav_pos_target,uav_pos_home);
     float distance_completion = distance_remaining/distance_total;
     progress =  TRAVEL_WT*(1 - distance_completion);
   }
@@ -367,8 +378,8 @@ float SimpleControl::GetMissionProgress()
     progress = TRAVEL_WT/*+ building revolution completion*/;
   }
   else if(goal == RTL || goal == LAND){ //RTL or Land
-    float distance_remaining  = CalculateDistance(pos_target,pos_local);
-    float distance_total      = CalculateDistance(pos_target,pos_previous);
+    float distance_remaining  = CalculateDistance(uav_pos_target,uav_pos_local);
+    float distance_total      = CalculateDistance(uav_pos_target,uav_pos_previous);
     float distance_completion = distance_remaining/distance_total;
     progress = 1 - distance_completion;
   }
@@ -376,34 +387,41 @@ float SimpleControl::GetMissionProgress()
   return progress;
 }
 
-Eigen::Vector3d SimpleControl::CircleShape(int angle){
+Eigen::Vector3d SimpleControl::CircleShape(int angle, int uav_num){
 		/** @todo Give possibility to user define amplitude of movement (circle radius)*/
 		double r = 6.0f;	// 5 meters radius
 
 		return Eigen::Vector3d( r * (cos(angles::from_degrees(angle) - 7)),
 				                    r * (sin(angles::from_degrees(angle) - 9)),
-				                    pos_previous.z);
+				                    pos_previous[uav_num].z);
 	}
 
 void SimpleControl::Run(int uav_num)
 {
+  uav_num--; //For indexing arrays properly
+
+  geometry_msgs::Point uav_pos_local = pos_local[uav_num];
+  geometry_msgs::Point uav_pos_target = pos_target[uav_num];
+  geometry_msgs::Point uav_pos_previous = pos_previous[uav_num];
+  geometry_msgs::Point uav_pos_home = pos_home[uav_num];
+
   if(battery[uav_num].remaining < BATTERY_MIN){
     //Return to launch site if battery is starting to get low
     goal = RTL;
   }
   else if(goal == TRAVEL){
-    if(ComparePosition(pos_local, pos_target) == 0){
+    if(ComparePosition(uav_pos_local, uav_pos_target) == 0){
       //Vehicle is at target location => Scout Building
-      pos_previous = pos_local;
+      uav_pos_previous = uav_pos_local;
       goal = SCOUT;
       ROS_INFO_STREAM("Scouting Building.");
     }
-    else if(abs(pos_local.z - pos_target.z) <= THRESHOLD_Z){
+    else if(abs(uav_pos_local.z - uav_pos_target.z) <= THRESHOLD_Z){
       //Achieved the proper altitude => Go to target location
-      this->SetLocalPosition(pos_target, uav_num);
+      this->SetLocalPosition(uav_pos_target, uav_num);
     }
     else{ //Ascend to the proper altitude first at the current location
-      this->SetLocalPosition(pos_local.x, pos_local.y, pos_target.z, uav_num);
+      this->SetLocalPosition(uav_pos_local.x, uav_pos_local.y, uav_pos_target.z, uav_num);
     }
   }
   else if(goal == SCOUT){
@@ -416,36 +434,36 @@ void SimpleControl::Run(int uav_num)
     theta++;*/
 
     //if (theta == 360){
-      ROS_INFO_STREAM("Home Target: " << pos_home);
-      pos_target = pos_home;
+      ROS_INFO_STREAM("Home Target: " << uav_pos_home);
+      uav_pos_target = uav_pos_home;
       goal = RTL;
       theta = 0;
     //}
   }
   else if(goal == RTL){
-    if(ComparePosition(pos_local, pos_target) == 0){
+    if(ComparePosition(uav_pos_local, uav_pos_target) == 0){
       //Vehicle is at target location => Disarm
       goal = DISARM;
     }
-    else if(abs(pos_local.x - pos_target.x) <= THRESHOLD_XY && abs(pos_local.y - pos_target.y) <= THRESHOLD_XY){
-      this->SetLocalPosition(pos_local.x, pos_local.y, 0, uav_num);
+    else if(abs(uav_pos_local.x - uav_pos_target.x) <= THRESHOLD_XY && abs(uav_pos_local.y - uav_pos_target.y) <= THRESHOLD_XY){
+      this->SetLocalPosition(uav_pos_local.x, uav_pos_local.y, 0, uav_num);
       //goal = LAND;
     }
-    else if(abs(pos_local.z - ALT_RTL) <= THRESHOLD_Z){
+    else if(abs(uav_pos_local.z - ALT_RTL) <= THRESHOLD_Z){
       //Achieved the proper altitude => Go to target location
-      this->SetLocalPosition(pos_target.x, pos_target.y, ALT_RTL, uav_num);
+      this->SetLocalPosition(uav_pos_target.x, uav_pos_target.y, ALT_RTL, uav_num);
     }
     else{
-      this->SetLocalPosition(pos_local.x, pos_local.y, ALT_RTL, uav_num);
+      this->SetLocalPosition(uav_pos_local.x, uav_pos_local.y, ALT_RTL, uav_num);
     }
   }
   else if(goal == LAND){
-    if(pos_local.z == 0){
+    if(uav_pos_local.z == 0){
       //Landed => Disarm
       goal = DISARM;
     }
     else{
-      this->SetLocalPosition(pos_target, uav_num);
+      this->SetLocalPosition(uav_pos_target, uav_num);
     }
   }
   else if(goal == DISARM){

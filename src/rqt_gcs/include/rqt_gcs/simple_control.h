@@ -220,10 +220,11 @@ public:
       Calculate a Vector3d object that defines the displacement for reaching a
       point on a circle.
 
-      @param angle  Angle, in degrees, for which the next Vector should be
-                    generated.
+      @param angle    Angle, in degrees, for which the next Vector should be
+                      generated.
+      @param uav_num  The target UAV number
   */
-  Eigen::Vector3d CircleShape(int angle);
+  Eigen::Vector3d CircleShape(int angle, int uav_num);
 
   /**
       Manage the UAV and ensure that it completes the mission
@@ -237,33 +238,61 @@ public:
   //Getter Functions
   mavros_msgs::State GetState(int uav_num) { return state[uav_num-1]; }
   mavros_msgs::BatteryStatus GetBatteryStatus(int uav_num) { return battery[uav_num-1]; }
-  sensor_msgs::Imu  GetImu() { return imu; }
+  sensor_msgs::Imu  GetImu(int uav_num) { return imu[uav_num-1]; }
   FlightState GetFlightState(int uav_num) { return UpdateFlightState(uav_num); }
   //TODO:Fix this function
-  int GetDistanceToWP(int uav_num) { return CalculateDistance(pos_target, pos_local); }
-  float GetMissionProgress();
+  int GetDistanceToWP(int uav_num) { return CalculateDistance(pos_target[uav_num-1], pos_local[uav_num-1]); }
+  float GetMissionProgress(int uav_num);
 
 private:
 
-  //Callback Prototypes
+  //Callback Functions
   void StateCallback(const ros::MessageEvent<mavros_msgs::State>& event_state)
   {
-    std::string str_index = (event_state.getPublisherName()).substr(4,1);
-    int index = atoi(str_index.c_str())-1;
+    int index = TopicToIndex(event_state.getPublisherName());
     state[index] = *(event_state.getMessage()); //Dereference before equating
   }
   void BatteryCallback(const ros::MessageEvent<mavros_msgs::BatteryStatus>& event_battery)
   {
-    std::string str_index = (event_battery.getPublisherName()).substr(4,1);
-    int index = atoi(str_index.c_str())-1;
+    int index = TopicToIndex(event_battery.getPublisherName());
     battery[index] = *(event_battery.getMessage());
   }
-  void ImuCallback(const sensor_msgs::Imu& msg_imu) { imu = msg_imu; }
-  void RelAltitudeCallback(const std_msgs::Float64& msg_altitude) { altitude_rel = msg_altitude.data; }
-  void HeadingCallback(const std_msgs::Float64& msg_heading) { heading_deg = msg_heading.data; }
-  void VelocityCallback(const geometry_msgs::TwistStamped& msg_vel) { velocity = msg_vel; }
-  void NavSatFixCallback(const sensor_msgs::NavSatFix& msg_gps) { pos_global = msg_gps; }
-  void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) { pos_local = msg_pos.pose.position; }
+  void ImuCallback(const ros::MessageEvent<sensor_msgs::Imu>& event_imu)
+  {
+    int index = TopicToIndex(event_imu.getPublisherName());
+    imu[index] = *(event_imu.getMessage());
+  }
+  void RelAltitudeCallback(const ros::MessageEvent<std_msgs::Float64>& event_altitude)
+  {
+    int index = TopicToIndex(event_altitude.getPublisherName());
+    altitude_rel[index] = (*(event_altitude.getMessage())).data;
+  }
+  void HeadingCallback(const ros::MessageEvent<std_msgs::Float64>& event_heading)
+  {
+    int index = TopicToIndex(event_heading.getPublisherName());
+    heading_deg[index] = (*(event_heading.getMessage())).data;
+  }
+  void VelocityCallback(const ros::MessageEvent<geometry_msgs::TwistStamped>& event_vel)
+  {
+    int index = TopicToIndex(event_vel.getPublisherName());
+    velocity[index] = *(event_vel.getMessage());
+  }
+  void NavSatFixCallback(const ros::MessageEvent<sensor_msgs::NavSatFix>& event_gps)
+  {
+    int index = TopicToIndex(event_gps.getPublisherName());
+    pos_global[index] = *(event_gps.getMessage());
+  }
+  void LocalPosCallback(const ros::MessageEvent<geometry_msgs::PoseStamped>& event_pos)
+  {
+    int index = TopicToIndex(event_pos.getPublisherName());
+    pos_local[index] = (*(event_pos.getMessage())).pose.position;
+  }
+
+  int TopicToIndex(std::string topic_name)
+  {
+    std::string str_index = topic_name.substr(4,1);
+    return atoi(str_index.c_str())-1;
+  }
 
   //For returning Flight State Data to GCS
   FlightState UpdateFlightState(int uav_num);
@@ -294,11 +323,14 @@ private:
   std::string uav_ns = "UAV"; //Default namespace
   mavros_msgs::State state[NUM_UAV];
   mavros_msgs::BatteryStatus battery[NUM_UAV];
-  sensor_msgs::Imu imu;
-  sensor_msgs::NavSatFix pos_global;
-  geometry_msgs::TwistStamped velocity;
-  geometry_msgs::Point pos_local, pos_target, pos_home, pos_previous;
-  float altitude_rel, heading_deg;
+  sensor_msgs::Imu imu[NUM_UAV];
+  sensor_msgs::NavSatFix pos_global[NUM_UAV];
+  geometry_msgs::TwistStamped velocity[NUM_UAV];
+  geometry_msgs::Point  pos_local[NUM_UAV],
+                        pos_target[NUM_UAV],
+                        pos_home[NUM_UAV],
+                        pos_previous[NUM_UAV];
+  float altitude_rel[NUM_UAV], heading_deg[NUM_UAV];
   int goal = -1;
 };
 

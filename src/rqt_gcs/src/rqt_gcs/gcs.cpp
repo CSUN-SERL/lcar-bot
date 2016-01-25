@@ -150,7 +150,7 @@ void MyPlugin::TimedUpdate(){
     tempData = "Quadrotor 1";
     mpUi1_.uavNameEdit->setText(tempData);
 
-    mpUi1_.missionProgressBar->setValue(quad1.GetMissionProgress()*100);
+    mpUi1_.missionProgressBar->setValue(quad1.GetMissionProgress(cur_uav)*100);
 
     quad1.Run(1);
 }
