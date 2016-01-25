@@ -84,13 +84,15 @@ private:
 
  // QWidget* quadWidget1Mission_;
   //QWidget* quadWidget1Stats_;
-  
+
  // QWidget* quadWidget2_;
   //QWidget* quadWidget3_;
  // QWidget* quadWidget4_;
 
   QLabel* label;
   QTimer* updateTimer;
+
+  int cur_uav = 1;
 
 };
 } // namespace

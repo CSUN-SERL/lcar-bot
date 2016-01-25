@@ -106,7 +106,7 @@ void SimpleControl::Takeoff(int altitude, int uav_num)
   bool armed = (bool)state[uav_num].armed;
   std::string mode = state[uav_num].mode;
 
-  if(mode.compare("GUIDED") != 0) this->SetMode("Guided");
+  if(mode.compare("GUIDED") != 0) this->SetMode("Guided", uav_num);
   if(!armed) this->Arm(true, uav_num);
 
   //Create a message for landing
@@ -123,7 +123,7 @@ void SimpleControl::Takeoff(int altitude, int uav_num)
   }
 }
 
-void SimpleControl::Land()
+void SimpleControl::Land(int uav_num)
 {
   //Create a message for landing
   mavros_msgs::CommandTOL land;
@@ -138,7 +138,7 @@ void SimpleControl::Land()
   }
 }
 
-void SimpleControl::SetMode(std::string mode)
+void SimpleControl::SetMode(std::string mode, int uav_num)
 {
   char new_custom_mode;
 
@@ -169,7 +169,7 @@ void SimpleControl::SetMode(std::string mode)
   }
 }
 
-std::string SimpleControl::GetLocation()
+std::string SimpleControl::GetLocation(int uav_num)
 {
   float lat = pos_global.latitude;
   float lon = pos_global.longitude;
@@ -177,7 +177,7 @@ std::string SimpleControl::GetLocation()
   return std::to_string(lat) + "," + std::to_string(lon);
 }
 
-void SimpleControl::ScoutBuilding(int x, int y, int z)
+void SimpleControl::ScoutBuilding(int x, int y, int z, int uav_num)
 {
   //Update the target location
   pos_target.x = x;
@@ -193,7 +193,7 @@ void SimpleControl::ScoutBuilding(int x, int y, int z)
   ROS_INFO_STREAM("Traveling to target location.");
 }
 
-void SimpleControl::OverrideRC(int channel, int value)
+void SimpleControl::OverrideRC(int channel, int value, int uav_num)
 {
   //Create the message object
   mavros_msgs::OverrideRCIn override_msg;
@@ -205,7 +205,7 @@ void SimpleControl::OverrideRC(int channel, int value)
   pub_override_rc.publish(override_msg);
 }
 
-void SimpleControl::SetLocalPosition(int x, int y, int z)
+void SimpleControl::SetLocalPosition(int x, int y, int z, int uav_num)
 {
   //Create the message object
   geometry_msgs::PoseStamped position_stamped;
@@ -221,7 +221,7 @@ void SimpleControl::SetLocalPosition(int x, int y, int z)
   pub_setpoint_position.publish(position_stamped);
 }
 
-void SimpleControl::SetLocalPosition(geometry_msgs::Point new_point)
+void SimpleControl::SetLocalPosition(geometry_msgs::Point new_point, int uav_num)
 {
   //Create the message object
   geometry_msgs::PoseStamped position_stamped;
@@ -233,7 +233,7 @@ void SimpleControl::SetLocalPosition(geometry_msgs::Point new_point)
   pub_setpoint_position.publish(position_stamped);
 }
 
-void SimpleControl::SetAttitude(float roll, float pitch, float yaw)
+void SimpleControl::SetAttitude(float roll, float pitch, float yaw, int uav_num)
 {
   //Create the message to be published
   geometry_msgs::PoseStamped msg_pose;
@@ -246,7 +246,7 @@ void SimpleControl::SetAttitude(float roll, float pitch, float yaw)
   pub_setpoint_attitude.publish(msg_pose);
 }
 
-void SimpleControl::SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel)
+void SimpleControl::SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel, int uav_num)
 {
   //Create the message object
   geometry_msgs::TwistStamped msg_angular_vel;
@@ -262,7 +262,7 @@ void SimpleControl::SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel)
   pub_angular_vel.publish(msg_angular_vel);
 }
 
-void SimpleControl::SetLinearVelocity(float x, float y, float z)
+void SimpleControl::SetLinearVelocity(float x, float y, float z, int uav_num)
 {
   geometry_msgs::TwistStamped msg_linear_vel;
 
@@ -273,7 +273,7 @@ void SimpleControl::SetLinearVelocity(float x, float y, float z)
   pub_linear_vel.publish(msg_linear_vel);
 }
 
-void SimpleControl::SetAcceleration(float x, float y, float z)
+void SimpleControl::SetAcceleration(float x, float y, float z, int uav_num)
 {
   //Create the message object
   geometry_msgs::Vector3Stamped msg_accel;
@@ -288,7 +288,7 @@ void SimpleControl::SetAcceleration(float x, float y, float z)
 }
 
 //TODO: Fix Roll, Pitch, Yaw, and Ground Speed values
-FlightState SimpleControl::UpdateFlightState()
+FlightState SimpleControl::UpdateFlightState(int uav_num)
 {
     struct FlightState flight_state;
 
@@ -372,10 +372,10 @@ void SimpleControl::Run(int uav_num)
     }
     else if(abs(pos_local.z - pos_target.z) <= THRESHOLD_Z){
       //Achieved the proper altitude => Go to target location
-      this->SetLocalPosition(pos_target);
+      this->SetLocalPosition(pos_target, uav_num);
     }
     else{ //Ascend to the proper altitude first at the current location
-      this->SetLocalPosition(pos_local.x, pos_local.y, pos_target.z);
+      this->SetLocalPosition(pos_local.x, pos_local.y, pos_target.z, uav_num);
     }
   }
   else if(goal == SCOUT){
@@ -400,15 +400,15 @@ void SimpleControl::Run(int uav_num)
       goal = DISARM;
     }
     else if(abs(pos_local.x - pos_target.x) <= THRESHOLD_XY && abs(pos_local.y - pos_target.y) <= THRESHOLD_XY){
-      this->SetLocalPosition(pos_local.x, pos_local.y, 0);
+      this->SetLocalPosition(pos_local.x, pos_local.y, 0, uav_num);
       //goal = LAND;
     }
     else if(abs(pos_local.z - ALT_RTL) <= THRESHOLD_Z){
       //Achieved the proper altitude => Go to target location
-      this->SetLocalPosition(pos_target.x, pos_target.y, ALT_RTL);
+      this->SetLocalPosition(pos_target.x, pos_target.y, ALT_RTL, uav_num);
     }
     else{
-      this->SetLocalPosition(pos_local.x, pos_local.y, ALT_RTL);
+      this->SetLocalPosition(pos_local.x, pos_local.y, ALT_RTL, uav_num);
     }
   }
   else if(goal == LAND){
@@ -417,7 +417,7 @@ void SimpleControl::Run(int uav_num)
       goal = DISARM;
     }
     else{
-      this->SetLocalPosition(pos_target);
+      this->SetLocalPosition(pos_target, uav_num);
     }
   }
   else if(goal == DISARM){

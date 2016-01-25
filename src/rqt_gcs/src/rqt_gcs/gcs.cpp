@@ -117,34 +117,34 @@ void MyPlugin::Calculate(){
 
 void MyPlugin::TimedUpdate(){
 
-    tempData = quad1.GetState().mode.c_str();
+    tempData = quad1.GetState(cur_uav).mode.c_str();
     usUi1_.flightModeDisplay->setText(tempData);
 
     tempData.setNum(12.021f,'f',2);
     usUi1_.yawDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().roll,'f',2);
+    tempData.setNum(quad1.GetFlightState(cur_uav).roll,'f',2);
     usUi1_.rollDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().pitch,'f',2);
+    tempData.setNum(quad1.GetFlightState(cur_uav).pitch,'f',2);
     usUi1_.pitchDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().altitude,'f',2);
+    tempData.setNum(quad1.GetFlightState(cur_uav).altitude,'f',2);
     usUi1_.altitudeDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().vertical_speed,'f',2);
+    tempData.setNum(quad1.GetFlightState(cur_uav).vertical_speed,'f',2);
     usUi1_.verticalSpaceDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().ground_speed,'f',2);
+    tempData.setNum(quad1.GetFlightState(cur_uav).ground_speed,'f',2);
     usUi1_.horizontalSpaceDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetFlightState().heading,'f',2);
+    tempData.setNum(quad1.GetFlightState(cur_uav).heading,'f',2);
     usUi1_.headingDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetDistanceToWP());
+    tempData.setNum(quad1.GetDistanceToWP(cur_uav));
     usUi1_.waypointDisplay->setText(tempData);
 
-    tempData.setNum(quad1.GetBatteryStatus().remaining*100);
+    tempData.setNum(quad1.GetBatteryStatus(cur_uav).remaining*100);
     usUi1_.batteryProgressBar->setValue(tempData.toInt());
 
     tempData = "Quadrotor 1";
@@ -189,7 +189,7 @@ void MyPlugin::MissionSubmit(){
           ROS_INFO_STREAM("SCAN ACCESS POINTS");
          }
          else if(msUi_.playsComboBox->currentIndex() == 1){
-  	 quad1.ScoutBuilding(-7,-9,3);
+  	 quad1.ScoutBuilding(-7,-9,3,cur_uav);
            ROS_INFO_STREAM("SCOUT BUILDING");
          }
    }

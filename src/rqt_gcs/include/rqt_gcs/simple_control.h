@@ -44,7 +44,7 @@
 #define THRESHOLD_Z 1
 #define ALT_RTL 3
 #define BATTERY_MIN 0.30  //Minimum battery level for RTL
-#define NUM_UAV 2 //total number of UAV's in the system
+#define NUM_UAV 2         //Total number of UAV's in the system
 
 //Structs
 struct FlightState {
@@ -64,6 +64,7 @@ public:
       Arm or disarm the UAV.
 
       @param value Pass true for arm, false for disarm
+      @param uav_num The target UAV number
   */
   void Arm(bool value, int uav_num);
 
@@ -72,26 +73,31 @@ public:
       put into Guided mode.
 
       @param altitude Altitude, in feet, for takeoff
+      @param uav_num The target UAV number
   */
   void Takeoff(int altitude, int uav_num);
 
   /**
       Land the UAV
+
+      @param uav_num The target UAV number
   */
-  void Land();
+  void Land(int uav_num);
 
   /**
       Set the UAV Flight Mode.
 
       @param mode Mode to Set: Choose from Stabilize, Alt Hold, Auto, Guided,
       Loiter, RTL, or Circle
+      @param uav_num The target UAV number
   */
-  void SetMode(std::string mode);
+  void SetMode(std::string mode, int uav_num);
 
   /**
       Returns the current location of the UAV in JSON format.
+      @param uav_num The target UAV number
   */
-  std::string GetLocation();
+  std::string GetLocation(int uav_num);
 
   /**
       Add the passed GPS location to the current set of waypoints to visit.
@@ -99,8 +105,9 @@ public:
       @param lat Latitude
       @param lon Longitude
       @param alt Altitude
+      @param uav_num The target UAV number
   */
-  void SetWayPoint(double lat, double lon, int alt);
+  void SetWayPoint(double lat, double lon, int alt, int uav_num);
 
   /**
       Overloaded function for SetWayPoint(double lat, double lon, int alt) that
@@ -108,7 +115,7 @@ public:
 
       @param waypoint A String containing the GPS coordinates of the WayPoint
   */
-  void SetWayPoint(std::string waypoint);
+  void SetWayPoint(std::string waypoint, int uav_num);
 
   /**
       Executes proper instructions for running the Scout Building play
@@ -116,17 +123,18 @@ public:
       @param x X coordinate of the local position of the building
       @param y Y coordinate of the local position of the building
       @param z The height at which the UAV should arrive at the building
+      @param uav_num The target UAV number
   */
-  void ScoutBuilding(int x, int y, int z);
+  void ScoutBuilding(int x, int y, int z, int uav_num);
 
   /**
       Override the RC value of the transmitter.
 
       @param channel Channel to override (1-8)
       @param value New value of the channel
-      @param nh Pointer to the NodeHandle object of the publishing class
+      @param uav_num The target UAV number
   */
-  void OverrideRC(int channel, int value);
+  void OverrideRC(int channel, int value, int uav_num);
 
   /**
       Send a new position command to the UAV.
@@ -135,14 +143,15 @@ public:
       @param y New y position
       @param z New z position
   */
-  void SetLocalPosition(int x, int y, int z);
+  void SetLocalPosition(int x, int y, int z, int  uav_num);
 
   /**
       Send a new position command to the UAV.
 
       @param new_pose The new local position passed as a Pose object
+      @param uav_num The target UAV number
   */
-  void SetLocalPosition(geometry_msgs::Point new_point);
+  void SetLocalPosition(geometry_msgs::Point new_point, int uav_num);
 
   /**
       Change the UAV's roll, pitch, and yaw values. Requires the UAV to be
@@ -153,8 +162,9 @@ public:
       @param roll   New roll value in degrees, relative to the horizontal plane
       @param pitch  New pitch value in degrees, relative to the horizontal plane
       @param yaw    New yaw value in degrees, relative to the horizontal plane
+      @param uav_num The target UAV number
   */
-  void SetAttitude(float roll, float pitch, float yaw);
+  void SetAttitude(float roll, float pitch, float yaw, int uav_num);
 
   /**
       Change the UAV's angular velocity for roll, pitch, and yaw.
@@ -165,17 +175,19 @@ public:
       @param roll_vel   New roll velocity
       @param pitch_vel  New pitch velocity
       @param yaw_vel    New yaw velocity
+      @param uav_num The target UAV number
   */
-  void SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel);
+  void SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel, int uav_num);
 
   /**
       Change the UAV's linear velocity for roll, pitch, and yaw.
 
-      @param x   New roll velocity
+      @param x  New roll velocity
       @param y  New pitch velocity
-      @param z    New yaw velocity
+      @param z  New yaw velocity
+      @param uav_num The target UAV number
   */
-  void SetLinearVelocity(float x, float y, float z);
+  void SetLinearVelocity(float x, float y, float z, int uav_num);
 
   /**
       Change the UAV's acceleration for roll, pitch, and yaw.
@@ -184,8 +196,9 @@ public:
       @param x  Acceleration X
       @param y  Acceleration Y
       @param z  Acceleration Z
+      @param uav_num The target UAV number
   */
-  void SetAcceleration(float x, float y, float z);
+  void SetAcceleration(float x, float y, float z, int uav_num);
 
   /**
       Compare two geometry_msgs::Point objects within a threshold value.
@@ -214,17 +227,21 @@ public:
 
   /**
       Manage the UAV and ensure that it completes the mission
+
+      @param uav_num The target UAV number
   */
   void Run(int uav_num);
 
   void SetRTL() { goal = RTL; }
 
   //Getter Functions
-  mavros_msgs::State GetState() { return state[0]; }
-  mavros_msgs::BatteryStatus GetBatteryStatus() { return battery; }
+  mavros_msgs::State GetState(int uav_num) { return state[uav_num]; }
+  //TODO:Fix this function
+  mavros_msgs::BatteryStatus GetBatteryStatus(int uav_num) { return battery; }
   sensor_msgs::Imu  GetImu() { return imu; }
-  FlightState GetFlightState() { return UpdateFlightState(); }
-  int GetDistanceToWP() { return CalculateDistance(pos_target, pos_local); }
+  FlightState GetFlightState(int uav_num) { return UpdateFlightState(uav_num); }
+  //TODO:Fix this function
+  int GetDistanceToWP(int uav_num) { return CalculateDistance(pos_target, pos_local); }
   float GetMissionProgress();
 
 private:
@@ -245,7 +262,7 @@ private:
   void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) { pos_local = msg_pos.pose.position; }
 
   //For returning Flight State Data to GCS
-  FlightState UpdateFlightState();
+  FlightState UpdateFlightState(int uav_num);
 
   //ROS NodeHandle, Service Client, Publisher, and Subscriber Variables
   ros::NodeHandle     nh_simple_control;
