@@ -233,7 +233,7 @@ public:
   */
   void Run(int uav_num);
 
-  void SetRTL() { goal = RTL; }
+  void SetRTL(int uav_num) { goal[uav_num-1] = RTL; }
 
   //Getter Functions
   mavros_msgs::State GetState(int uav_num) { return state[uav_num-1]; }
@@ -330,7 +330,7 @@ private:
                         pos_home[NUM_UAV],
                         pos_previous[NUM_UAV];
   float altitude_rel[NUM_UAV], heading_deg[NUM_UAV];
-  int goal = -1;
+  int goal[NUM_UAV];
 };
 
 #endif

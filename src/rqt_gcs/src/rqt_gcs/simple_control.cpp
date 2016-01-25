@@ -212,7 +212,7 @@ void SimpleControl::ScoutBuilding(int x, int y, int z, int uav_num)
   //this->SetMode("Guided");
 
   pos_previous[uav_num] = pos_local[uav_num];
-  goal = TRAVEL;
+  goal[uav_num] = TRAVEL;
   ROS_INFO_STREAM("Traveling to target location.");
 }
 
@@ -372,18 +372,19 @@ float SimpleControl::GetMissionProgress(int uav_num)
   geometry_msgs::Point uav_pos_previous = pos_previous[uav_num];
   geometry_msgs::Point uav_pos_home = pos_home[uav_num];
 
-  float progress = 0;
+  float progress  = 0;
+  int uav_goal    = goal[uav_num];
 
-  if(goal == TRAVEL){
+  if(uav_goal == TRAVEL){
     float distance_remaining  = CalculateDistance(uav_pos_target,uav_pos_local);
     float distance_total      = CalculateDistance(uav_pos_target,uav_pos_home);
     float distance_completion = distance_remaining/distance_total;
     progress =  TRAVEL_WT*(1 - distance_completion);
   }
-  else if(goal == SCOUT){
+  else if(uav_goal == SCOUT){
     progress = TRAVEL_WT/*+ building revolution completion*/;
   }
-  else if(goal == RTL || goal == LAND){ //RTL or Land
+  else if(uav_goal == RTL || uav_goal == LAND){ //RTL or Land
     float distance_remaining  = CalculateDistance(uav_pos_target,uav_pos_local);
     float distance_total      = CalculateDistance(uav_pos_target,uav_pos_previous);
     float distance_completion = distance_remaining/distance_total;
@@ -404,20 +405,21 @@ Eigen::Vector3d SimpleControl::CircleShape(int angle, int uav_num){
 
 void SimpleControl::Run(int uav_num)
 {
-  geometry_msgs::Point uav_pos_local = pos_local[uav_num-1];
-  geometry_msgs::Point uav_pos_target = pos_target[uav_num-1];
+  geometry_msgs::Point uav_pos_local    = pos_local[uav_num-1];
+  geometry_msgs::Point uav_pos_target   = pos_target[uav_num-1];
   geometry_msgs::Point uav_pos_previous = pos_previous[uav_num-1];
-  geometry_msgs::Point uav_pos_home = pos_home[uav_num-1];
+  geometry_msgs::Point uav_pos_home     = pos_home[uav_num-1];
+  int uav_goal                          = goal[uav_num -1];
 
   if(battery[uav_num-1].remaining < BATTERY_MIN){
     //Return to launch site if battery is starting to get low
-    goal = RTL;
+    uav_goal = RTL;
   }
-  else if(goal == TRAVEL){
+  else if(uav_goal == TRAVEL){
     if(ComparePosition(uav_pos_local, uav_pos_target) == 0){
       //Vehicle is at target location => Scout Building
       uav_pos_previous = uav_pos_local;
-      goal = SCOUT;
+      uav_goal = SCOUT;
       ROS_INFO_STREAM("Scouting Building.");
     }
     else if(abs(uav_pos_local.z - uav_pos_target.z) <= THRESHOLD_Z){
@@ -428,30 +430,30 @@ void SimpleControl::Run(int uav_num)
       this->SetLocalPosition(uav_pos_local.x, uav_pos_local.y, uav_pos_target.z, uav_num);
     }
   }
-  else if(goal == SCOUT){
+  else if(uav_goal == SCOUT){
     //TODO: Fix Scout Functionality. Temporary Circle Path Test
     static int theta = 0;
 
 	  /*tf::pointEigenToMsg(this->CircleShape(theta), pos_target); //Update Target Pos
 	  this->SetLocalPosition(pos_target);
-    goal = TRAVEL;
+    uav_goal = TRAVEL;
     theta++;*/
 
     //if (theta == 360){
       ROS_INFO_STREAM("Home Target: " << uav_pos_home);
       uav_pos_target = uav_pos_home;
-      goal = RTL;
+      uav_goal = RTL;
       theta = 0;
     //}
   }
-  else if(goal == RTL){
+  else if(uav_goal == RTL){
     if(ComparePosition(uav_pos_local, uav_pos_target) == 0){
       //Vehicle is at target location => Disarm
-      goal = DISARM;
+      uav_goal = DISARM;
     }
     else if(abs(uav_pos_local.x - uav_pos_target.x) <= THRESHOLD_XY && abs(uav_pos_local.y - uav_pos_target.y) <= THRESHOLD_XY){
       this->SetLocalPosition(uav_pos_local.x, uav_pos_local.y, 0, uav_num);
-      //goal = LAND;
+      //uav_goal = LAND;
     }
     else if(abs(uav_pos_local.z - ALT_RTL) <= THRESHOLD_Z){
       //Achieved the proper altitude => Go to target location
@@ -461,16 +463,16 @@ void SimpleControl::Run(int uav_num)
       this->SetLocalPosition(uav_pos_local.x, uav_pos_local.y, ALT_RTL, uav_num);
     }
   }
-  else if(goal == LAND){
+  else if(uav_goal == LAND){
     if(uav_pos_local.z == 0){
       //Landed => Disarm
-      goal = DISARM;
+      uav_goal = DISARM;
     }
     else{
       this->SetLocalPosition(uav_pos_target, uav_num);
     }
   }
-  else if(goal == DISARM){
+  else if(uav_goal == DISARM){
     //Disarm the vehicle if it's currently armed
     if(state[uav_num-1].armed) this->Arm(false, uav_num);
   }
