@@ -240,7 +240,6 @@ public:
   mavros_msgs::BatteryStatus GetBatteryStatus(int uav_num) { return battery[uav_num-1]; }
   sensor_msgs::Imu  GetImu(int uav_num) { return imu[uav_num-1]; }
   FlightState GetFlightState(int uav_num) { return UpdateFlightState(uav_num); }
-  //TODO:Fix this function
   int GetDistanceToWP(int uav_num) { return CalculateDistance(pos_target[uav_num-1], pos_local[uav_num-1]); }
   float GetMissionProgress(int uav_num);
 

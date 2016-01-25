@@ -14,7 +14,11 @@ int main(int argc, char **argv)
     //Let the quad do it's current mission
     //quad1.Run();
     for(int i = 0; i < NUM_UAV; i++){
-      ROS_INFO_STREAM("UAV " << i+1 << " Battery: " << quadrotors.GetBatteryStatus(i+1));
+      ROS_INFO_STREAM("UAV " << i+1);
+      ROS_INFO_STREAM("Battery:\t" << quadrotors.GetBatteryStatus(i+1).remaining);
+      ROS_INFO_STREAM("Armed:\t" << (bool)(quadrotors.GetState(i+1).armed));
+      ROS_INFO_STREAM("Mode:\t" << quadrotors.GetState(i+1).mode);
+      ROS_INFO_STREAM("Vertical Speed:\t" << quadrotors.GetFlightState(i+1).vertical_speed);
     }
 
     ros::spinOnce();
@@ -45,14 +49,14 @@ SimpleControl::SimpleControl(void)  //Class constructor
     pub_setpoint_accel[index]    = nh_simple_control.advertise<geometry_msgs::Vector3Stamped>(uav_ns + str_uav_num + "/mavros/setpoint_accel/accel",QUEUE_SIZE);
 
     //Initialze Subscribers
-    sub_state[index]      = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/state", 1, &SimpleControl::StateCallback, this);
-    sub_battery[index]    = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/battery", 1, &SimpleControl::BatteryCallback, this);
-    sub_imu[index]        = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/sensor_msgs/Imu", 1, &SimpleControl::ImuCallback, this);
-    sub_altitude[index]   = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/global_position/rel_alt", 1, &SimpleControl::RelAltitudeCallback, this);
-    sub_heading[index]    = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/global_position/compass_hdg", 1, &SimpleControl::HeadingCallback, this);
-    sub_vel[index]        = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/local_position/velocity", 1, &SimpleControl::VelocityCallback, this);
-    sub_pos_global[index] = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/global_position/global", 1, &SimpleControl::NavSatFixCallback, this);
-    sub_pos_local[index]  = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/local_position/pose", 1, &SimpleControl::LocalPosCallback, this);
+    sub_state[index]      = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/state", QUEUE_SIZE, &SimpleControl::StateCallback, this);
+    sub_battery[index]    = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/battery", QUEUE_SIZE, &SimpleControl::BatteryCallback, this);
+    sub_imu[index]        = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/sensor_msgs/Imu", QUEUE_SIZE, &SimpleControl::ImuCallback, this);
+    sub_altitude[index]   = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/global_position/rel_alt", QUEUE_SIZE, &SimpleControl::RelAltitudeCallback, this);
+    sub_heading[index]    = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/global_position/compass_hdg", QUEUE_SIZE, &SimpleControl::HeadingCallback, this);
+    sub_vel[index]        = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/local_position/velocity", QUEUE_SIZE, &SimpleControl::VelocityCallback, this);
+    sub_pos_global[index] = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/global_position/global", QUEUE_SIZE, &SimpleControl::NavSatFixCallback, this);
+    sub_pos_local[index]  = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/local_position/pose", QUEUE_SIZE, &SimpleControl::LocalPosCallback, this);
 
     //Set Home position
     pos_home[index].x = pos_home[index].y = pos_home[index].z = 0;
