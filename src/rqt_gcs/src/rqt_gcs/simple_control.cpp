@@ -14,7 +14,7 @@ int main(int argc, char **argv)
     //Let the quad do it's current mission
     //quad1.Run();
     for(int i = 0; i < NUM_UAV; i++){
-      ROS_INFO_STREAM("UAV " << i+1 << " Battery: " << quadrotors.GetBatteryStatus(i));
+      ROS_INFO_STREAM("UAV " << i+1 << " Battery: " << quadrotors.GetBatteryStatus(i+1));
     }
 
     ros::spinOnce();
@@ -25,34 +25,38 @@ int main(int argc, char **argv)
 
 SimpleControl::SimpleControl(void)  //Class constructor
 {
-  //Initialize Service Clients
-  sc_arm      = nh_simple_control.serviceClient<mavros_msgs::CommandBool>(uav_ns + "/mavros/cmd/arming");
-  sc_takeoff  = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>(uav_ns + "/mavros/cmd/takeoff");
-  sc_land     = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>(uav_ns + "/mavros/cmd/land");
-  sc_mode     = nh_simple_control.serviceClient<mavros_msgs::SetMode>(uav_ns + "/mavros/set_mode");
-  sc_mission  = nh_simple_control.serviceClient<mavros_msgs::WaypointPush>(uav_ns + "/mavros/mission/push");
+  for(int index = 0; index < NUM_UAV; index++){
 
-  //Initialize Publisher Objects
-  pub_override_rc       = nh_simple_control.advertise<mavros_msgs::OverrideRCIn>(uav_ns + "/mavros/rc/override",QUEUE_SIZE);
-  pub_setpoint_position = nh_simple_control.advertise<geometry_msgs::PoseStamped>(uav_ns + "/mavros/setpoint_position/local",QUEUE_SIZE);
-  pub_setpoint_attitude = nh_simple_control.advertise<geometry_msgs::PoseStamped>(uav_ns + "/mavros/setpoint_attitude/attitude",QUEUE_SIZE);
-  pub_angular_vel       = nh_simple_control.advertise<geometry_msgs::TwistStamped>(uav_ns + "/mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
-  pub_linear_vel        = nh_simple_control.advertise<geometry_msgs::TwistStamped>(uav_ns + "/mavros/setpoint_velocity/cmd_vel",QUEUE_SIZE);
-  pub_setpoint_accel    = nh_simple_control.advertise<geometry_msgs::Vector3Stamped>(uav_ns + "/mavros/setpoint_accel/accel",QUEUE_SIZE);
+    std::string str_uav_num = std::to_string(index+1);
 
-  //Initialze Subscribers
-  sub_state       = nh_simple_control.subscribe(uav_ns + "/mavros/state", 1, &SimpleControl::StateCallback, this);
-  sub_battery[0]     = nh_simple_control.subscribe("UAV1/mavros/battery", 1, &SimpleControl::BatteryCallback, this);
-  sub_battery[1]     = nh_simple_control.subscribe("UAV2/mavros/battery", 1, &SimpleControl::BatteryCallback, this);
-  sub_imu         = nh_simple_control.subscribe(uav_ns + "/mavros/sensor_msgs/Imu", 1, &SimpleControl::ImuCallback, this);
-  sub_altitude    = nh_simple_control.subscribe(uav_ns + "/mavros/global_position/rel_alt", 1, &SimpleControl::RelAltitudeCallback, this);
-  sub_heading     = nh_simple_control.subscribe(uav_ns + "/mavros/global_position/compass_hdg", 1, &SimpleControl::HeadingCallback, this);
-  sub_vel         = nh_simple_control.subscribe(uav_ns + "/mavros/local_position/velocity", 1, &SimpleControl::VelocityCallback, this);
-  sub_pos_global  = nh_simple_control.subscribe(uav_ns + "/mavros/global_position/global", 1, &SimpleControl::NavSatFixCallback, this);
-  sub_pos_local   = nh_simple_control.subscribe(uav_ns + "/mavros/local_position/pose", 1, &SimpleControl::LocalPosCallback, this);
+    //Initialize Service Clients
+    sc_arm[index]      = nh_simple_control.serviceClient<mavros_msgs::CommandBool>(uav_ns + str_uav_num + "/mavros/cmd/arming");
+    sc_takeoff[index]  = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>(uav_ns + str_uav_num + "/mavros/cmd/takeoff");
+    sc_land[index]     = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>(uav_ns + str_uav_num + "/mavros/cmd/land");
+    sc_mode[index]     = nh_simple_control.serviceClient<mavros_msgs::SetMode>(uav_ns + str_uav_num + "/mavros/set_mode");
+    sc_mission[index]  = nh_simple_control.serviceClient<mavros_msgs::WaypointPush>(uav_ns + str_uav_num + "/mavros/mission/push");
 
-  //Set Home position
-  pos_home.x = pos_home.y = pos_home.z = 0;
+    //Initialize Publisher Objects
+    pub_override_rc[index]       = nh_simple_control.advertise<mavros_msgs::OverrideRCIn>(uav_ns + str_uav_num + "/mavros/rc/override",QUEUE_SIZE);
+    pub_setpoint_position[index] = nh_simple_control.advertise<geometry_msgs::PoseStamped>(uav_ns + str_uav_num + "/mavros/setpoint_position/local",QUEUE_SIZE);
+    pub_setpoint_attitude[index] = nh_simple_control.advertise<geometry_msgs::PoseStamped>(uav_ns + str_uav_num + "/mavros/setpoint_attitude/attitude",QUEUE_SIZE);
+    pub_angular_vel[index]       = nh_simple_control.advertise<geometry_msgs::TwistStamped>(uav_ns + str_uav_num + "/mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
+    pub_linear_vel[index]        = nh_simple_control.advertise<geometry_msgs::TwistStamped>(uav_ns + str_uav_num + "/mavros/setpoint_velocity/cmd_vel",QUEUE_SIZE);
+    pub_setpoint_accel[index]    = nh_simple_control.advertise<geometry_msgs::Vector3Stamped>(uav_ns + str_uav_num + "/mavros/setpoint_accel/accel",QUEUE_SIZE);
+
+    //Initialze Subscribers
+    sub_state[index]      = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/state", 1, &SimpleControl::StateCallback, this);
+    sub_battery[index]    = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/battery", 1, &SimpleControl::BatteryCallback, this);
+    sub_imu[index]        = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/sensor_msgs/Imu", 1, &SimpleControl::ImuCallback, this);
+    sub_altitude[index]   = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/global_position/rel_alt", 1, &SimpleControl::RelAltitudeCallback, this);
+    sub_heading[index]    = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/global_position/compass_hdg", 1, &SimpleControl::HeadingCallback, this);
+    sub_vel[index]        = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/local_position/velocity", 1, &SimpleControl::VelocityCallback, this);
+    sub_pos_global[index] = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/global_position/global", 1, &SimpleControl::NavSatFixCallback, this);
+    sub_pos_local[index]  = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/local_position/pose", 1, &SimpleControl::LocalPosCallback, this);
+
+    //Set Home position
+    pos_home.x = pos_home.y = pos_home.z = 0;
+  }
 }
 
 SimpleControl::~SimpleControl(void)
@@ -62,13 +66,15 @@ SimpleControl::~SimpleControl(void)
 
 void SimpleControl::Arm(bool value, int uav_num)
 {
+  uav_num--; //For indexing arrays properly
+
   if(state[uav_num].armed != value){ //Only change to new state if it's different
     //Create a message for arming/disarming
     mavros_msgs::CommandBool arm;
     arm.request.value = value;
 
     //Call the service
-    if(sc_arm.call(arm)){
+    if(sc_arm[uav_num].call(arm)){
       if(arm.response.success == 1){
 
         bool timeout = false;
@@ -106,6 +112,8 @@ void SimpleControl::Arm(bool value, int uav_num)
 
 void SimpleControl::Takeoff(int altitude, int uav_num)
 {
+  uav_num--; //For indexing arrays properly
+
   //Ensure the UAV is in Guided mode and armed
   bool armed = (bool)state[uav_num].armed;
   std::string mode = state[uav_num].mode;
@@ -118,7 +126,7 @@ void SimpleControl::Takeoff(int altitude, int uav_num)
   takeoff.request.altitude = altitude;
 ;
   //Call the service
-  if(sc_takeoff.call(takeoff)){
+  if(sc_takeoff[uav_num].call(takeoff)){
     if(takeoff.response.success == 1) ROS_INFO_STREAM("Takeoff Initiated.");
     else ROS_ERROR_STREAM("Failed to initiate takeoff.");
   }
@@ -133,7 +141,7 @@ void SimpleControl::Land(int uav_num)
   mavros_msgs::CommandTOL land;
 
   //Call the service
-  if(sc_land.call(land)){
+  if(sc_land[uav_num].call(land)){
     if(land.response.success == 1) ROS_INFO_STREAM("Land Initiated.");
     else ROS_ERROR_STREAM("Failed to initiate land.");
   }
@@ -144,6 +152,7 @@ void SimpleControl::Land(int uav_num)
 
 void SimpleControl::SetMode(std::string mode, int uav_num)
 {
+  uav_num--; //For indexing arrays properly
   char new_custom_mode;
 
   // Set new_custom_mode for the desired flight mode
@@ -164,7 +173,7 @@ void SimpleControl::SetMode(std::string mode, int uav_num)
   new_mode.request.custom_mode = new_custom_mode; //custom_mode expects a char*
 
   //Call the service
-  if(sc_mode.call(new_mode)){
+  if(sc_mode[uav_num].call(new_mode)){
     if(new_mode.response.success == 1) ROS_INFO_STREAM("Mode changed to " << mode << ".");
     else ROS_ERROR_STREAM("Failed to change flight mode to " << mode << ".");
   }
@@ -199,6 +208,8 @@ void SimpleControl::ScoutBuilding(int x, int y, int z, int uav_num)
 
 void SimpleControl::OverrideRC(int channel, int value, int uav_num)
 {
+  uav_num--; //For indexing arrays properly
+
   //Create the message object
   mavros_msgs::OverrideRCIn override_msg;
 
@@ -206,11 +217,13 @@ void SimpleControl::OverrideRC(int channel, int value, int uav_num)
   override_msg.channels[channel-1] = value;
 
   //Publish the message
-  pub_override_rc.publish(override_msg);
+  pub_override_rc[uav_num].publish(override_msg);
 }
 
 void SimpleControl::SetLocalPosition(int x, int y, int z, int uav_num)
 {
+  uav_num--; //For indexing arrays properly
+
   //Create the message object
   geometry_msgs::PoseStamped position_stamped;
 
@@ -222,11 +235,13 @@ void SimpleControl::SetLocalPosition(int x, int y, int z, int uav_num)
   position_stamped.pose = point;
 
   //Publish the message
-  pub_setpoint_position.publish(position_stamped);
+  pub_setpoint_position[uav_num].publish(position_stamped);
 }
 
 void SimpleControl::SetLocalPosition(geometry_msgs::Point new_point, int uav_num)
 {
+  uav_num--; //For indexing arrays properly
+
   //Create the message object
   geometry_msgs::PoseStamped position_stamped;
 
@@ -234,11 +249,13 @@ void SimpleControl::SetLocalPosition(geometry_msgs::Point new_point, int uav_num
   position_stamped.pose.position = new_point;
 
   //Publish the message
-  pub_setpoint_position.publish(position_stamped);
+  pub_setpoint_position[uav_num].publish(position_stamped);
 }
 
 void SimpleControl::SetAttitude(float roll, float pitch, float yaw, int uav_num)
 {
+  uav_num--; //For indexing arrays properly
+
   //Create the message to be published
   geometry_msgs::PoseStamped msg_pose;
 
@@ -247,11 +264,13 @@ void SimpleControl::SetAttitude(float roll, float pitch, float yaw, int uav_num)
   quaternionTFToMsg(q, msg_pose.pose.orientation);
 
   //Publish the message
-  pub_setpoint_attitude.publish(msg_pose);
+  pub_setpoint_attitude[uav_num].publish(msg_pose);
 }
 
 void SimpleControl::SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel, int uav_num)
 {
+  uav_num--; //For indexing arrays properly
+
   //Create the message object
   geometry_msgs::TwistStamped msg_angular_vel;
 
@@ -263,22 +282,25 @@ void SimpleControl::SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel,
   msg_angular_vel.twist = velocity;
 
   //Publish the message
-  pub_angular_vel.publish(msg_angular_vel);
+  pub_angular_vel[uav_num].publish(msg_angular_vel);
 }
 
 void SimpleControl::SetLinearVelocity(float x, float y, float z, int uav_num)
 {
+  uav_num--; //For indexing arrays properly
   geometry_msgs::TwistStamped msg_linear_vel;
 
   msg_linear_vel.twist.linear.x = x;
   msg_linear_vel.twist.linear.y = y;
   msg_linear_vel.twist.linear.z = z;
 
-  pub_linear_vel.publish(msg_linear_vel);
+  pub_linear_vel[uav_num].publish(msg_linear_vel);
 }
 
 void SimpleControl::SetAcceleration(float x, float y, float z, int uav_num)
 {
+  uav_num--; //For indexing arrays properly
+
   //Create the message object
   geometry_msgs::Vector3Stamped msg_accel;
 
@@ -288,37 +310,39 @@ void SimpleControl::SetAcceleration(float x, float y, float z, int uav_num)
   msg_accel.vector.z = z;
 
   //Publish the message
-  pub_setpoint_accel.publish(msg_accel);
+  pub_setpoint_accel[uav_num].publish(msg_accel);
 }
 
 //TODO: Fix Roll, Pitch, Yaw, and Ground Speed values
 FlightState SimpleControl::UpdateFlightState(int uav_num)
 {
-    struct FlightState flight_state;
+  uav_num--; //For indexing arrays properly
 
-    flight_state.roll = imu.orientation.x; //Update Roll value
-    flight_state.pitch = imu.orientation.y; //Update Pitch Value
-    flight_state.yaw = imu.orientation.z; //Update Yaw Value
-    flight_state.heading = heading_deg; //Update heading [degrees]
-    flight_state.altitude = altitude_rel; //Update Altitude [m]
-    flight_state.ground_speed = velocity.twist.linear.x; //Global Velocity X [m/s]
-    flight_state.vertical_speed = velocity.twist.linear.z; //Global Velocity vertical [m/s]
+  struct FlightState flight_state;
 
-    return flight_state;
+  flight_state.roll = imu.orientation.x; //Update Roll value
+  flight_state.pitch = imu.orientation.y; //Update Pitch Value
+  flight_state.yaw = imu.orientation.z; //Update Yaw Value
+  flight_state.heading = heading_deg; //Update heading [degrees]
+  flight_state.altitude = altitude_rel; //Update Altitude [m]
+  flight_state.ground_speed = velocity.twist.linear.x; //Global Velocity X [m/s]
+  flight_state.vertical_speed = velocity.twist.linear.z; //Global Velocity vertical [m/s]
+
+  return flight_state;
 }
 
 int SimpleControl::ComparePosition(geometry_msgs::Point point1, geometry_msgs::Point point2)
 {
-    int result;
+  int result;
 
-    if( abs(point2.x - point1.x) <= THRESHOLD_XY &&
-        abs(point2.y - point1.y) <= THRESHOLD_XY &&
-        abs(point2.z - point1.z) <= THRESHOLD_Z){
-      result = 0;
-    }
-    else result = 1;
+  if( abs(point2.x - point1.x) <= THRESHOLD_XY &&
+      abs(point2.y - point1.y) <= THRESHOLD_XY &&
+      abs(point2.z - point1.z) <= THRESHOLD_Z){
+    result = 0;
+  }
+  else result = 1;
 
-    return result;
+  return result;
 }
 
 int SimpleControl::CalculateDistance(geometry_msgs::Point point1, geometry_msgs::Point point2)

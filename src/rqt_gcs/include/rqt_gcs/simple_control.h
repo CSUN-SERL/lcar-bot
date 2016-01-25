@@ -235,8 +235,8 @@ public:
   void SetRTL() { goal = RTL; }
 
   //Getter Functions
-  mavros_msgs::State GetState(int uav_num) { return state[uav_num]; }
-  mavros_msgs::BatteryStatus GetBatteryStatus(int uav_num) { return battery[uav_num]; }
+  mavros_msgs::State GetState(int uav_num) { return state[uav_num-1]; }
+  mavros_msgs::BatteryStatus GetBatteryStatus(int uav_num) { return battery[uav_num-1]; }
   sensor_msgs::Imu  GetImu() { return imu; }
   FlightState GetFlightState(int uav_num) { return UpdateFlightState(uav_num); }
   //TODO:Fix this function
@@ -270,12 +270,28 @@ private:
 
   //ROS NodeHandle, Service Client, Publisher, and Subscriber Variables
   ros::NodeHandle     nh_simple_control;
-  ros::ServiceClient  sc_arm, sc_takeoff, sc_land, sc_mode, sc_mission;
-  ros::Publisher      pub_override_rc, pub_setpoint_position, pub_setpoint_attitude, pub_angular_vel, pub_linear_vel, pub_setpoint_accel;
-  ros::Subscriber     sub_state, sub_battery[NUM_UAV], sub_imu, sub_pos_global, sub_pos_local, sub_altitude, sub_heading, sub_vel;
+  ros::ServiceClient  sc_arm[NUM_UAV],
+                      sc_takeoff[NUM_UAV],
+                      sc_land[NUM_UAV],
+                      sc_mode[NUM_UAV],
+                      sc_mission[NUM_UAV];
+  ros::Publisher      pub_override_rc[NUM_UAV],
+                      pub_setpoint_position[NUM_UAV],
+                      pub_setpoint_attitude[NUM_UAV],
+                      pub_angular_vel[NUM_UAV],
+                      pub_linear_vel[NUM_UAV],
+                      pub_setpoint_accel[NUM_UAV];
+  ros::Subscriber     sub_state[NUM_UAV],
+                      sub_battery[NUM_UAV],
+                      sub_imu[NUM_UAV],
+                      sub_pos_global[NUM_UAV],
+                      sub_pos_local[NUM_UAV],
+                      sub_altitude[NUM_UAV],
+                      sub_heading[NUM_UAV],
+                      sub_vel[NUM_UAV];
 
   //UAV State Variables
-  std::string uav_ns = "UAV1"; //Default namespace
+  std::string uav_ns = "UAV"; //Default namespace
   mavros_msgs::State state[NUM_UAV];
   mavros_msgs::BatteryStatus battery[NUM_UAV];
   sensor_msgs::Imu imu;
