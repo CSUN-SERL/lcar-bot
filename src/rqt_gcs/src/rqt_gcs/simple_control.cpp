@@ -137,6 +137,8 @@ void SimpleControl::Takeoff(int altitude, int uav_num)
 
 void SimpleControl::Land(int uav_num)
 {
+  uav_num--; //For indexing arrays properly
+
   //Create a message for landing
   mavros_msgs::CommandTOL land;
 
@@ -398,14 +400,12 @@ Eigen::Vector3d SimpleControl::CircleShape(int angle, int uav_num){
 
 void SimpleControl::Run(int uav_num)
 {
-  uav_num--; //For indexing arrays properly
+  geometry_msgs::Point uav_pos_local = pos_local[uav_num-1];
+  geometry_msgs::Point uav_pos_target = pos_target[uav_num-1];
+  geometry_msgs::Point uav_pos_previous = pos_previous[uav_num-1];
+  geometry_msgs::Point uav_pos_home = pos_home[uav_num-1];
 
-  geometry_msgs::Point uav_pos_local = pos_local[uav_num];
-  geometry_msgs::Point uav_pos_target = pos_target[uav_num];
-  geometry_msgs::Point uav_pos_previous = pos_previous[uav_num];
-  geometry_msgs::Point uav_pos_home = pos_home[uav_num];
-
-  if(battery[uav_num].remaining < BATTERY_MIN){
+  if(battery[uav_num-1].remaining < BATTERY_MIN){
     //Return to launch site if battery is starting to get low
     goal = RTL;
   }
@@ -468,7 +468,7 @@ void SimpleControl::Run(int uav_num)
   }
   else if(goal == DISARM){
     //Disarm the vehicle if it's currently armed
-    if(state[uav_num].armed) this->Arm(false, uav_num);
+    if(state[uav_num-1].armed) this->Arm(false, uav_num);
   }
   else{
     //Wait for the goal to change
