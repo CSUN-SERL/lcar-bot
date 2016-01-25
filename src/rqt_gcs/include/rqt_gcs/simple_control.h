@@ -236,8 +236,7 @@ public:
 
   //Getter Functions
   mavros_msgs::State GetState(int uav_num) { return state[uav_num]; }
-  //TODO:Fix this function
-  mavros_msgs::BatteryStatus GetBatteryStatus(int uav_num) { return battery; }
+  mavros_msgs::BatteryStatus GetBatteryStatus(int uav_num) { return battery[uav_num]; }
   sensor_msgs::Imu  GetImu() { return imu; }
   FlightState GetFlightState(int uav_num) { return UpdateFlightState(uav_num); }
   //TODO:Fix this function
@@ -253,7 +252,12 @@ private:
     int index = atoi(str_index.c_str())-1;
     state[index] = *(event_state.getMessage()); //Dereference before equating
   }
-  void BatteryCallback(const mavros_msgs::BatteryStatus& msg_battery) { battery = msg_battery; }
+  void BatteryCallback(const ros::MessageEvent<mavros_msgs::BatteryStatus>& event_battery)
+  {
+    std::string str_index = (event_battery.getPublisherName()).substr(4,1);
+    int index = atoi(str_index.c_str())-1;
+    battery[index] = *(event_battery.getMessage());
+  }
   void ImuCallback(const sensor_msgs::Imu& msg_imu) { imu = msg_imu; }
   void RelAltitudeCallback(const std_msgs::Float64& msg_altitude) { altitude_rel = msg_altitude.data; }
   void HeadingCallback(const std_msgs::Float64& msg_heading) { heading_deg = msg_heading.data; }
@@ -268,12 +272,12 @@ private:
   ros::NodeHandle     nh_simple_control;
   ros::ServiceClient  sc_arm, sc_takeoff, sc_land, sc_mode, sc_mission;
   ros::Publisher      pub_override_rc, pub_setpoint_position, pub_setpoint_attitude, pub_angular_vel, pub_linear_vel, pub_setpoint_accel;
-  ros::Subscriber     sub_state, sub_battery, sub_imu, sub_pos_global, sub_pos_local, sub_altitude, sub_heading, sub_vel;
+  ros::Subscriber     sub_state, sub_battery[NUM_UAV], sub_imu, sub_pos_global, sub_pos_local, sub_altitude, sub_heading, sub_vel;
 
   //UAV State Variables
   std::string uav_ns = "UAV1"; //Default namespace
   mavros_msgs::State state[NUM_UAV];
-  mavros_msgs::BatteryStatus battery;
+  mavros_msgs::BatteryStatus battery[NUM_UAV];
   sensor_msgs::Imu imu;
   sensor_msgs::NavSatFix pos_global;
   geometry_msgs::TwistStamped velocity;

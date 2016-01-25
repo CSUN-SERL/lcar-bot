@@ -3,16 +3,19 @@
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "simple_control");
-  SimpleControl quad1;
+  SimpleControl quadrotors;
 
   //quad1.ScoutBuilding(7,4,1);
   boost::thread_group tg;
-  ros::Rate loop_rate(10); //10Hz
+  ros::Rate loop_rate(1); //10Hz
 
   while(ros::ok())
   {
     //Let the quad do it's current mission
     //quad1.Run();
+    for(int i = 0; i < NUM_UAV; i++){
+      ROS_INFO_STREAM("UAV " << i+1 << " Battery: " << quadrotors.GetBatteryStatus(i));
+    }
 
     ros::spinOnce();
     loop_rate.sleep();
@@ -39,7 +42,8 @@ SimpleControl::SimpleControl(void)  //Class constructor
 
   //Initialze Subscribers
   sub_state       = nh_simple_control.subscribe(uav_ns + "/mavros/state", 1, &SimpleControl::StateCallback, this);
-  sub_battery     = nh_simple_control.subscribe(uav_ns + "/mavros/battery", 1, &SimpleControl::BatteryCallback, this);
+  sub_battery[0]     = nh_simple_control.subscribe("UAV1/mavros/battery", 1, &SimpleControl::BatteryCallback, this);
+  sub_battery[1]     = nh_simple_control.subscribe("UAV2/mavros/battery", 1, &SimpleControl::BatteryCallback, this);
   sub_imu         = nh_simple_control.subscribe(uav_ns + "/mavros/sensor_msgs/Imu", 1, &SimpleControl::ImuCallback, this);
   sub_altitude    = nh_simple_control.subscribe(uav_ns + "/mavros/global_position/rel_alt", 1, &SimpleControl::RelAltitudeCallback, this);
   sub_heading     = nh_simple_control.subscribe(uav_ns + "/mavros/global_position/compass_hdg", 1, &SimpleControl::HeadingCallback, this);
@@ -359,7 +363,7 @@ Eigen::Vector3d SimpleControl::CircleShape(int angle){
 
 void SimpleControl::Run(int uav_num)
 {
-  if(battery.remaining < BATTERY_MIN){
+  if(battery[uav_num].remaining < BATTERY_MIN){
     //Return to launch site if battery is starting to get low
     goal = RTL;
   }
