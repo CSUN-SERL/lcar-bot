@@ -11,9 +11,10 @@
 
 
   <script>
-var longitude =0;
-var latitude =0;
+var longitude =[];
+var latitude =[];
 var num =1;
+var listeners =[];
 
  // Connecting to ROS
   // -----------------
@@ -37,31 +38,53 @@ ros.on('connection', function() {
 
 // Subscribing to a Topic
   // ----------------------
-  function getCoordinates(){
+  //function getCoordinates(i){
 
-    var listener = new ROSLIB.Topic({
+  /* var listener = new ROSLIB.Topic({
       ros : ros, 	//ros object connection
       name : '/UAV' + num + '/mavros/global_position/global',
       messageType : 'sensor_msgs/NavSatFix'
     });
 
      listener.subscribe(function(message) {
-     console.log('latitude ' + listener.name + ': ' + message.latitude);
-     console.log('longitude ' + listener.name + ': ' + message.longitude);
+     //console.log('latitude ' + listener.name + ': ' + message.latitude);
+    // console.log('longitude ' + listener.name + ': ' + message.longitude);
      if(message.latitude != 0 && message.longitude != 0){ //if not 0
   	longitude = message.longitude;
   	latitude = message.latitude;
-  //	console.log('latitude1 ' + longitude);
-   //	console.log('longitude1 ' + latitude);
+  	console.log('latitude1 ' + longitude);
+   	console.log('longitude1 ' + latitude);
   }else{
     	listener.unsubscribe();
   }
     });
-  }
+    */
+  //}
 
 $(document).ready(function(){
+ for (var i = 1; i < 3; i++) {
+    num = i;
+    //save the connections in an array
+   listeners[num] = new ROSLIB.Topic({
+     ros : ros, 	//ros object connection
+     name : '/UAV' + num + '/mavros/global_position/global',
+     messageType : 'sensor_msgs/NavSatFix'
+   });
 
-
+    listeners[num].subscribe(function(message) {
+    //console.log('latitude ' + listener.name + ': ' + message.latitude);
+   // console.log('longitude ' + listener.name + ': ' + message.longitude);
+    if(message.latitude != 0 && message.longitude != 0){ //if not 0
+   longitude[num] = message.longitude;
+   latitude[num] = message.latitude;
+   //console.log('longitude ' + num + ': ' + longitude[num]);
+  // console.log('latitude ' + num + ': ' + latitude[num]);
+ }else{
+     listener.unsubscribe();
+ }
+   });;
+ }
+ num =1;
       	  showPosition();
 });
 
@@ -79,18 +102,24 @@ var image = {
 			 scaledSize: new google.maps.Size(100,100)
 			};
 
+      var image1 = {
+      		      url: 'uav.png',
+
+      			 scaledSize: new google.maps.Size(100,100)
+      			};
+
 function showPosition() {
  //console.log('latitude ' + longitude);
   // console.log('longitude ' + latitude);
 
 
-    latlon = new google.maps.LatLng(longitude, latitude)
+    latlon = new google.maps.LatLng(longitude[num], latitude[num])
     mapholder = document.getElementById('mapholder')
     mapholder.style.height = '800px';
     mapholder.style.width = '100%';
 
     var myOptions = {
-    center:latlon,zoom:18,
+    center:latlon,zoom:10,
     mapTypeId:google.maps.MapTypeId.ROADMAP,
     mapTypeControl:true,
     navigationControlOptions:{style:google.maps.NavigationControlStyle.SMALL}
@@ -98,7 +127,7 @@ function showPosition() {
 
      map = new google.maps.Map(document.getElementById("mapholder"), myOptions);
      marker[num] = new google.maps.Marker({position:latlon,map:map,
-									  title:"Drone inbound",
+									  title:"UAV " + num,
 									  icon: image
 
 	});
@@ -109,13 +138,15 @@ function showPosition() {
 }
 
 function update() {
-getCoordinates();
-la = new google.maps.LatLng(latitude,
-    longitude);
+console.log(1 + "lat: " + latitude[1]);
+console.log(2 + "lat: " + latitude[2]);
+  la = new google.maps.LatLng(latitude[num],
+    longitude[num]);
 
     if (marker[num]) {
       // Marker already created - Move it
       marker[num].setPosition(la);
+      console.log("OLD" + num);
     }
     else {
       // Marker does not exist - Create it
@@ -123,22 +154,26 @@ la = new google.maps.LatLng(latitude,
         position: la,
         map: map,
         title: "UAV " + num,
-        icon: image
+        icon: image1
       });
+      console.log("NEW" + num);
     }
 
     // Center the map on the new position depending on the UAV
 	var checked = $('input[name=uav]:checked').val();
-    console.log(checked);
+  //console.log(checked);
 	if(checked != 'free') { //if its not free roam, then center map to an UAV
    map.setCenter(la);
 	}
+  else{
+    map.setCenter(marker[checked]);
+  }
 
-  outmessage.innerHTML = la ;
+  outmessage.innerHTML = num + "  " + la ;
   uavName.innerHTML = $("input[name=uav]:checked").val();
 
   num++
-  if(num > 5){
+  if(num >= 3){
     num = 1;
   }
    // Call the autoUpdate() function every k seconds
@@ -177,8 +212,8 @@ function showError(error) {
 <center>
 <form name="rform action="" style="display: inline; ">
   <input type="radio" name="uav" value="free"> free-roam
-  <input type="radio" name="uav" value="uav1"> uav1
-  <input type="radio" name="uav" value="uav2"> uav2
+  <input type="radio" name="uav" value="1"> uav1
+  <input type="radio" name="uav" value="2"> uav2
 </form>
 
 </center>
