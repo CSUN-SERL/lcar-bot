@@ -82,9 +82,9 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 
    //setup mission progress widgets
   // tempData = "QuadRotor 1" ;
-   missionSelectWidget1_->setWindowTitle("QuadRotor 1 Mission Select");
-   UavStatWidget1_->setWindowTitle("QuadRotor 1 Stats");
-   missionProgressWidget1_->setWindowTitle("QuadRotor 1 Mission Progress");
+   missionSelectWidget1_->setWindowTitle("Mission Selection");
+   UavStatWidget1_->setWindowTitle("Flight State");
+   missionProgressWidget1_->setWindowTitle("Mission Control");
    connect(mpUi1_.changeMissionButton,SIGNAL(clicked()),this, SLOT(MissionChange()));
 
    //setup Mission select widgets
@@ -152,7 +152,7 @@ void MyPlugin::TimedUpdate(){
 
     mpUi1_.missionProgressBar->setValue(quad1.GetMissionProgress(cur_uav)*100);
 
-    quad1.Run(1);
+    quad1.Run(cur_uav);
 }
 
 void MyPlugin::MissionChange(){
