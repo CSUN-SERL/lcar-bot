@@ -174,10 +174,10 @@ void MyPlugin::MissionSelect(const int i){
 void MyPlugin::MissionSubmit(){
    ROS_INFO_STREAM("Mission Submitted");
    if(msUi_.missionComboBox->currentIndex() == 0){
-        ROS_INFO_STREAM("ARMED");
+        quad1.Arm(true, cur_uav);
    }
    else if(msUi_.missionComboBox->currentIndex() == 1){
-        ROS_INFO_STREAM("DISARMED");
+        quad1.Arm(false, cur_uav);
    }
    else if(msUi_.missionComboBox->currentIndex() == 2){
         ROS_INFO_STREAM("LAND");

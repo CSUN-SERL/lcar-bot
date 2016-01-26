@@ -86,8 +86,8 @@ void SimpleControl::Arm(bool value, int uav_num)
         int count = 0;
         ros::Rate check_frequency(CHECK_FREQUENCY);
 
-        //Wait for the FCU to arm
-        while(!state[uav_num].armed && !timeout){
+        //Wait for the FCU to arm/disarm
+        while((bool)state[uav_num].armed != value && !timeout){
           check_frequency.sleep();
           ros::spinOnce();
           count++;
