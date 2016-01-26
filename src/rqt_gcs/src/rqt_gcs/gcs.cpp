@@ -174,33 +174,31 @@ void MyPlugin::MissionSelect(const int i){
 void MyPlugin::MissionSubmit(){
    ROS_INFO_STREAM("Mission Submitted");
    if(msUi_.missionComboBox->currentIndex() == 0){
-        quad1.Arm(true, cur_uav);
+      quad1.Arm(true, cur_uav);
    }
    else if(msUi_.missionComboBox->currentIndex() == 1){
-        quad1.Arm(false, cur_uav);
+      quad1.Arm(false, cur_uav);
    }
    else if(msUi_.missionComboBox->currentIndex() == 2){
-        ROS_INFO_STREAM("LAND");
+      quad1.Land(cur_uav);
    }
    else if(msUi_.missionComboBox->currentIndex() == 3){
-        ROS_INFO_STREAM("FOLLOW PLAY");
+     ROS_INFO_STREAM("FOLLOW PLAY");
 
-         if(msUi_.playsComboBox->currentIndex() == 0){
-          ROS_INFO_STREAM("SCAN ACCESS POINTS");
-         }
-         else if(msUi_.playsComboBox->currentIndex() == 1){
-  	 quad1.ScoutBuilding(-7,-9,3,cur_uav);
-           ROS_INFO_STREAM("SCOUT BUILDING");
-         }
+     if(msUi_.playsComboBox->currentIndex() == 0){
+       ROS_INFO_STREAM("SCAN ACCESS POINTS");
+     }
+     else if(msUi_.playsComboBox->currentIndex() == 1){
+       quad1.ScoutBuilding(-7,-9,3,cur_uav);
+       ROS_INFO_STREAM("SCOUT BUILDING");}
    }
    else if(msUi_.missionComboBox->currentIndex() == 4){
-           ROS_INFO_STREAM("LOITER");
+     quad1.SetMode("LOITER", cur_uav);
    }
    else if(msUi_.missionComboBox->currentIndex() == 5){
-           ROS_INFO_STREAM("RETURN HOME");
+     quad1.SetMode("RTL", cur_uav);
    }
-
-    missionSelectWidget1_->close();
+   missionSelectWidget1_->close();
 }
 
 void MyPlugin::shutdownPlugin()
