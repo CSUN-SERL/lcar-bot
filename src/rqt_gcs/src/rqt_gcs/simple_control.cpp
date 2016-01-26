@@ -19,6 +19,7 @@ int main(int argc, char **argv)
       ROS_INFO_STREAM("Armed:\t" << (bool)(quadrotors.GetState(i+1).armed));
       ROS_INFO_STREAM("Mode:\t" << quadrotors.GetState(i+1).mode);
       ROS_INFO_STREAM("Vertical Speed:\t" << quadrotors.GetFlightState(i+1).vertical_speed);
+      ROS_INFO_STREAM("Yaw:\t" << quadrotors.GetFlightState(i+1).yaw);
     }
 
     ros::spinOnce();
@@ -51,7 +52,7 @@ SimpleControl::SimpleControl(void)  //Class constructor
     //Initialze Subscribers
     sub_state[index]      = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/state", QUEUE_SIZE, &SimpleControl::StateCallback, this);
     sub_battery[index]    = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/battery", QUEUE_SIZE, &SimpleControl::BatteryCallback, this);
-    sub_imu[index]        = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/sensor_msgs/Imu", QUEUE_SIZE, &SimpleControl::ImuCallback, this);
+    sub_imu[index]        = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/imu/data", QUEUE_SIZE, &SimpleControl::ImuCallback, this);
     sub_altitude[index]   = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/global_position/rel_alt", QUEUE_SIZE, &SimpleControl::RelAltitudeCallback, this);
     sub_heading[index]    = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/global_position/compass_hdg", QUEUE_SIZE, &SimpleControl::HeadingCallback, this);
     sub_vel[index]        = nh_simple_control.subscribe(uav_ns + str_uav_num + "/mavros/local_position/velocity", QUEUE_SIZE, &SimpleControl::VelocityCallback, this);

@@ -120,7 +120,7 @@ void MyPlugin::TimedUpdate(){
     tempData = quad1.GetState(cur_uav).mode.c_str();
     usUi1_.flightModeDisplay->setText(tempData);
 
-    tempData.setNum(12.021f,'f',2);
+    tempData.setNum(quad1.GetFlightState(cur_uav).yaw,'f',2);
     usUi1_.yawDisplay->setText(tempData);
 
     tempData.setNum(quad1.GetFlightState(cur_uav).roll,'f',2);
