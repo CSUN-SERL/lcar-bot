@@ -13,7 +13,7 @@ int main(int argc, char **argv)
   ros::NodeHandle nh;
   int num_uav = 10;
   int cur_uav = 0;
-  float lat = 180, lon = 180;
+  float lat =30, lon = 118;
   ros::Rate loop_rate(10*num_uav); //10Hz per topic
   std::string uav_ns  = "UAV";
   ros::Publisher pub_pos_global[num_uav];

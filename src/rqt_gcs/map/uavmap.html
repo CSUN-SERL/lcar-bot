@@ -70,7 +70,7 @@ $(document).ready(function(){
 
 var x =0;
 var map;
-var marker;
+var marker =[];
 var newPoint ;
 var la ;
 var image = {
@@ -97,7 +97,7 @@ function showPosition() {
     }
 
      map = new google.maps.Map(document.getElementById("mapholder"), myOptions);
-     marker = new google.maps.Marker({position:latlon,map:map,
+     marker[num] = new google.maps.Marker({position:latlon,map:map,
 									  title:"Drone inbound",
 									  icon: image
 
@@ -113,15 +113,17 @@ getCoordinates();
 la = new google.maps.LatLng(latitude,
     longitude);
 
-    if (marker) {
+    if (marker[num]) {
       // Marker already created - Move it
-      marker.setPosition(la);
+      marker[num].setPosition(la);
     }
     else {
       // Marker does not exist - Create it
-      marker = new google.maps.Marker({
+      marker[num] = new google.maps.Marker({
         position: la,
-        map: map
+        map: map,
+        title: "UAV " + num,
+        icon: image
       });
     }
 
@@ -136,7 +138,7 @@ la = new google.maps.LatLng(latitude,
   uavName.innerHTML = $("input[name=uav]:checked").val();
 
   num++
-  if(num > 1){
+  if(num > 5){
     num = 1;
   }
    // Call the autoUpdate() function every k seconds
