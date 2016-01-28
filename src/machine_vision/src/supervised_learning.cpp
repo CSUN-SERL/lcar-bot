@@ -1,8 +1,14 @@
+/*0 is nothing
+ * 1 is door
+ * 2 is window
+ */
 #include <fstream>
 #include <thread>
 
 #include "machine_learning.h"
 #include "boost/algorithm/string.hpp"
+
+using namespace boost;
 
 //#include <sstream>
 
@@ -15,6 +21,8 @@ void run();
 void create_svm();
 void test_svm();
 void detect_objects();
+void static_HOGtest();
+void detect_object(Mat img);
 
 //Globals for object catergorization
 bool running = false;
@@ -30,10 +38,11 @@ queue<int> feature_extraction;
 Mat labels;
 vector<Mat> trainingdata;
 Mat orb_trainingdata;
+Size img_size = Size(128, 128);
 
 //Copys of current image
 Mat src; //original
-Mat display; //used for negative mining display purposes
+Mat display; //used for displaying purposes
 
 //Global queues used to track img names and labels for testing
 queue<string> proc_img;
@@ -51,7 +60,7 @@ float doorcounter, negcounter, windowcounter;
 //what the fuck are these
 int number = 0;
 int label_ = 0;
-int neg_count = 0;
+int neg_count = 2315;
 int object = -1;
 
 //Strings that are resued
@@ -69,24 +78,6 @@ int iteration_2; //number correspons to extraction type
 
 int main(int argc, char * argv[]) {
     run();
-    //ml.train_svm();
-    //    const string modelLibPath = "LinearHOG.xml";
-    //    Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
-    //
-    //    //    //Ptr<SVM> Svm = SVM::create();
-    //    //trainingdata.release();
-    //    //ml.Testing("LinearORB.xml");
-    //    //test_Hog();
-    //    std::thread thread_1(HogObjectDetection, svm);
-    //    std::thread thread_2(catergorize);
-    //
-    //    thread_1.join();
-    //    thread_2.join();
-    //  thread_1.detach();
-    //  thread_2.detach();
-    //OrbDetection(svm);
-    //test_Hog();
-    //   run();
     labels.release();
     src.release();
     return 0;
@@ -96,7 +87,7 @@ void run() {
     int user_input = 0;
     do {
         cout << "What are you planning on doing?\n";
-        cout << "(1)Train a SVM\n(2)Test a current SVM\n(3)Apply negative mining to an existing SVM\n(4)Run object detection\n(5)Exit\nInput: ";
+        cout << "(1)Train a SVM\n(2)Test a current SVM\n(3)Apply negative mining to an existing SVM\n(4)Run object detection\n\(5)Test HOG detection\n(6)Exit\nInput: ";
         cin >> user_input;
         switch (user_input) {
             case 1: create_svm();
@@ -107,10 +98,12 @@ void run() {
                 break;
             case 4: detect_objects();
                 break;
-            case 5: cout << "Goodbye\n";
+            case 5: static_HOGtest();
+                break;
+            case 6: cout << "Goodbye\n";
                 break;
         }
-    } while (user_input != 5);
+    } while (user_input != 6);
 }
 
 void create_svm() {
@@ -166,16 +159,16 @@ void test_svm() {
     }
 }
 
-void detect_objects(){
-        string modelLibPath;
-        cout << "What SVM do you want to use?\nInput: ";
-        cin >> modelLibPath;
-        Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
-        thread thread_1(HogObjectDetection, svm);
-        thread thread_2(catergorize);
+void detect_objects() {
+    string modelLibPath;
+    cout << "What SVM do you want to use?\nInput: ";
+    cin >> modelLibPath;
+    Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
+    thread thread_1(HogObjectDetection, svm);
+    thread thread_2(catergorize);
 
-        thread_1.join();
-        thread_2.join();
+    thread_1.join();
+    thread_2.join();
 }
 
 MachineLearning::MachineLearning(void) {//Class constructor
@@ -248,18 +241,32 @@ void MachineLearning::TraverseDirectory(string path) {
         if (dirEntry->d_type == DT_DIR && dirEntry->d_name[0] != '.') {
             newPath = path + "/" + dirEntry->d_name;
             cout << "\nEntering: " << newPath << endl;
-            TraverseDirectory(newPath);
-            //cout << N << "\n";
+            //            if(contains(newPath, "other")){
+            //                label_ = 0;
+            //            }
+            //            else if(contains(newPath, "doors")){
+            //                label_ = 1;
+            //            }
+            //            if(contains(newPath, "windows")){
+            //                label_ = 2;
+            //            }
+            cout << N << "\n";
             label_ = N++;
+            TraverseDirectory(newPath);
+
         } else if (dirEntry->d_type == DT_REG && dirEntry->d_name[0] != '.') {
 
             Mat greyImgMat = MachineLearning::ProcessImage(path, dirEntry->d_name);
             if (testing == 2) {
                 sample_neg(greyImgMat);
             }
+            if (testing == 3) {
+                detect_object(greyImgMat);
+            }
             int flag = feature_extraction.front();
             switch (flag) {
-                case 1:MachineLearning::HogFeatureExtraction(greyImgMat, label_);
+                case 1:cout << label_ << "\n";
+                    MachineLearning::HogFeatureExtraction(greyImgMat, label_);
                     break;
                 case 2:MachineLearning::OrbFeatureExtraction(greyImgMat);
             }
@@ -283,7 +290,7 @@ Mat MachineLearning::ProcessImage(string path, string file) {
         exit(0);
     }
 
-    resize(src, src, Size(64, 128));
+    resize(src, src, img_size);
     //convert image to grayscale
     Mat gray;
     cvtColor(src, gray, CV_BGR2GRAY);
@@ -294,16 +301,16 @@ Mat MachineLearning::ProcessImage(string path, string file) {
 
 void MachineLearning::HogFeatureExtraction(Mat ImgMat, int label) {
     HOGDescriptor d;
-    d.winSize = Size(64, 128);
+    d.winSize = img_size;
     vector< Point > location;
     vector< float > descriptors;
     d.compute(ImgMat, descriptors, Size(8, 8), Size(0, 0), location);
     trainingdata.push_back(Mat(descriptors).clone());
     if (label != -1)
-        labels.push_back(N); //labels.push_back(label);
+        labels.push_back(label); //labels.push_back(label);
     //cout << label << "\n";
     if (testing == 1) {
-        img_label.push(N);
+        img_label.push(label);
     }
     size_++;
     extraction_type = "HOG";
@@ -468,7 +475,7 @@ void HogObjectDetection(Ptr<SVM> svm) {
     vector< float > hog_detector;
     Scalar reference(0, 255, 0);
     Scalar window(255, 0, 0);
-    vector< Rect > doors;
+    vector< Rect > objects;
     ml.get_svm_detector(svm, hog_detector);
 
     cap.set(CV_CAP_PROP_FRAME_WIDTH, 640);
@@ -477,7 +484,8 @@ void HogObjectDetection(Ptr<SVM> svm) {
     //            return -1;
     Mat img, draw;
     HOGDescriptor hog; //(Size( 90, 160 ), Size(16, 16), Size(8, 8), Size(8, 8), 9);
-    hog.winSize = Size(64, 128);
+    hog.winSize = img_size;
+
     //HOGDescriptor people;
     //hog.setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());
     hog.setSVMDetector(hog_detector);
@@ -490,7 +498,7 @@ void HogObjectDetection(Ptr<SVM> svm) {
         if (!img.data)
             break;
         src = img;
-
+        //       feature_matching(img);
         //Mat greyimg = ml.ProcessImage("", "");
         //ml.HogFeatureExtraction(greyimg, -1);
         //Mat res, predict;
@@ -503,10 +511,10 @@ void HogObjectDetection(Ptr<SVM> svm) {
 
         //draw = img.clone();
 
-        doors.clear();
-        hog.detectMultiScale(img, doors, true);
+        objects.clear();
+        hog.detectMultiScale(img, objects, true);
         //people.detectMultiScale(img, locations);
-        ml.draw_locations(img, doors, reference, "door");
+        ml.draw_locations(img, objects, reference, "door");
         //cout << "door\n";
         imshow("video capture", img);
         //trainingdata.release();
@@ -520,17 +528,17 @@ void HogObjectDetection(Ptr<SVM> svm) {
         if (waitKey(10) >= 0)
             break;
     }
-    destroyAllWindows();
-    cap.release();
-    running = false;
-    while (!categorized_objects.empty()) {
-        //namedWindow("Display window", CV_WINDOW_AUTOSIZE);
-        cout << "done\n";
-        imshow("door", categorized_objects.front());
-        waitKey(0);
-        categorized_labels.pop();
-        categorized_objects.pop();
-    }
+    //    destroyAllWindows();
+    //    cap.release();
+    //    running = false;
+    //    while (!categorized_objects.empty()) {
+    //        //namedWindow("Display window", CV_WINDOW_AUTOSIZE);
+    //        cout << "done\n";
+    //        imshow("door", categorized_objects.front());
+    //        waitKey(0);
+    //        categorized_labels.pop();
+    //        categorized_objects.pop();
+    //    }
 }
 
 void catergorize() {
@@ -552,10 +560,10 @@ void catergorize() {
             for (int j = 0; j < res.rows; j++) {
                 cout << res.at<float>(j, 0) << " " << "res " << res.rows << "\n";
                 //Show ROI
-                if (res.at<float>(j, 0) == 1) {
-                    categorized_labels.push(1);
-                    categorized_objects.push(object);
-                }
+                //                if (res.at<float>(j, 0) == 1) {
+                //                    categorized_labels.push(1);
+                //                    categorized_objects.push(object);
+                //                }
             }
         }
     }
@@ -618,13 +626,13 @@ void sample_neg(Mat greyimg) {
     waitKey(100);
     imwrite("Step2.JPG", display);
     locations.clear();
-    hog.detectMultiScale(src, locations, false);
+    hog.detectMultiScale(src, locations, true);
     for (int i = 0; i < locations.size(); i++) {
         Rect windows(locations.at(i).x, locations.at(i).y, locations.at(i).width, locations.at(i).height);
         img = src(windows).clone();
         Mat Roi = src(windows);
         Mat extract;
-        resize(Roi, extract, Size(64, 128));
+        resize(Roi, extract, img_size);
         Mat res;
         Mat train_data;
         ml.HogFeatureExtraction(extract, -1);
@@ -636,7 +644,7 @@ void sample_neg(Mat greyimg) {
         for (int j = 0; j < res.rows; j++) {
             cout << res.at<float>(j, 0) << " " << "res " << res.rows << " count " << neg_count << "\n";
             //Show ROI
-            if (res.at<float>(j, 0) == 1) {
+            if (res.at<float>(j, 0) == 0) {
                 namedWindow("Step 4 Draw selected Roi", WINDOW_AUTOSIZE);
                 imshow("Step 4 Draw selected Roi", Roi);
                 waitKey(100);
@@ -664,9 +672,76 @@ void sample_neg(Mat greyimg) {
 
 void test_Hog() {
     MachineLearning ml;
-    string IMAGES_DIR = "/home/" + user + "/Pictures/Training/other";
+    string IMAGES_DIR = "/home/thomas/opencv-haar-classifier-training/neg";
+    //string IMAGES_DIR = "/home/" + user + "/Pictures/Training/other";
     testing = 2;
     ml.TraverseDirectory(IMAGES_DIR);
     ml.train_svm();
     cout << neg_count;
+}
+
+void static_HOGtest() {
+    MachineLearning ml;
+    //string IMAGES_DIR = "/home/thomas/Pictures/Testing/Doors";
+    string IMAGES_DIR = "/home/" + user + "/Pictures/Training/doors";
+    testing = 3;
+    ml.TraverseDirectory(IMAGES_DIR);
+}
+
+void detect_object(Mat img) {
+    MachineLearning ml;
+    const string modelLibPath = "LinearHOG.xml";
+    Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
+    vector< float > hog_detector;
+    Scalar reference(0, 255, 0);
+    vector< Rect > objects;
+    vector< Rect > door_objects;
+    ml.get_svm_detector(svm, hog_detector);
+    HOGDescriptor hog; //(Size( 90, 160 ), Size(16, 16), Size(8, 8), Size(8, 8), 9);
+    hog.winSize = img_size;
+    hog.setSVMDetector(hog_detector);
+
+    //int value = 0;
+    namedWindow("video capture", CV_WINDOW_AUTOSIZE);
+
+    //    if (!img.data)
+    //        break;
+    src = img;
+
+    objects.clear();
+    door_objects.clear();
+    //resize(display, display, Size(256, 512));
+    hog.detectMultiScale(display, objects, true);
+    for (int i = 0; i < objects.size(); i++) {
+        Rect windows(objects.at(i).x, objects.at(i).y, objects.at(i).width, objects.at(i).height);
+        // img = src(windows).clone();
+        Mat Roi = display(windows);
+        Mat extract;
+        resize(Roi, extract, img_size);
+        Mat res;
+        Mat train_data;
+        ml.HogFeatureExtraction(extract, -1);
+        ml.convert_to_ml(trainingdata, train_data);
+        trainingdata.clear();
+        //Roi.convertTo(Roi, CV_32FC1);
+        svm->predict(train_data, res, 4);
+        //cout << res.at<float>(i,0) << " " << "locations" << locations.size() << "\n";
+        for (int j = 0; j < res.rows; j++) {
+            cout << res.at<float>(j, 0) << " " << "res " << res.rows << " count " << neg_count << "\n";
+            //Show ROI
+            if (res.at<float>(j, 0) == 0) {
+                //people.detectMultiScale(img, locations);
+                door_objects.push_back(objects.at(i));
+
+            }
+        }
+
+        res.release();
+        train_data.release();
+        extract.release();
+    }
+    ml.draw_locations(display, door_objects, reference, "door");
+    //cout << "door\n";
+    imshow("detected doors", display);
+    waitKey(0);
 }
