@@ -94,6 +94,13 @@ public:
   void SetMode(std::string mode, int uav_num);
 
   /**
+      Enable OFFBOARD mode on the PX4
+
+      @param uav_num The target UAV number
+  */
+  void EnableOffboard(int uav_num);
+
+  /**
       Returns the current location of the UAV in JSON format.
       @param uav_num The target UAV number
   */
@@ -244,7 +251,6 @@ public:
   float GetMissionProgress(int uav_num);
 
 private:
-
   //Callback Functions
   void StateCallback(const ros::MessageEvent<mavros_msgs::State>& event_state)
   {
@@ -331,6 +337,7 @@ private:
                         pos_previous[NUM_UAV];
   float altitude_rel[NUM_UAV], heading_deg[NUM_UAV];
   int goal[NUM_UAV];
+  ros::Time last_request[NUM_UAV];
 };
 
 #endif
