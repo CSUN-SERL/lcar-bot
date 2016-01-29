@@ -5,22 +5,12 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "simple_control");
   SimpleControl quadrotors;
 
-  //quad1.ScoutBuilding(7,4,1);
-  boost::thread_group tg;
+  //boost::thread_group tg;
   ros::Rate loop_rate(1); //10Hz
 
   while(ros::ok())
   {
-    //Let the quad do it's current mission
-    //quad1.Run();
-    for(int i = 0; i < NUM_UAV; i++){
-      ROS_INFO_STREAM("UAV " << i+1);
-      ROS_INFO_STREAM("Battery:\t" << quadrotors.GetBatteryStatus(i+1).remaining);
-      ROS_INFO_STREAM("Armed:\t" << (bool)(quadrotors.GetState(i+1).armed));
-      ROS_INFO_STREAM("Mode:\t" << quadrotors.GetState(i+1).mode);
-      ROS_INFO_STREAM("Vertical Speed:\t" << quadrotors.GetFlightState(i+1).vertical_speed);
-      ROS_INFO_STREAM("Yaw:\t" << quadrotors.GetFlightState(i+1).yaw);
-    }
+    quadrotors.SetMode("AUTO.RTL", 1);
 
     ros::spinOnce();
     loop_rate.sleep();
@@ -162,24 +152,11 @@ void SimpleControl::Land(int uav_num)
 void SimpleControl::SetMode(std::string mode, int uav_num)
 {
   uav_num--; //For indexing arrays properly
-  char new_custom_mode;
-
-  // Set new_custom_mode for the desired flight mode
-  if(mode.compare("Stabilize")       == 0)  new_custom_mode = '0';
-  else if(mode.compare("Alt Hold")   == 0)  new_custom_mode = '2';
-  else if(mode.compare("Auto")       == 0)  new_custom_mode = '3';
-  else if(mode.compare("Guided")     == 0)  new_custom_mode = '4';
-  else if(mode.compare("Loiter")     == 0)  new_custom_mode = '5';
-  else if(mode.compare("RTL")        == 0)  new_custom_mode = '6';
-  else if(mode.compare("Circle")     == 0)  new_custom_mode = '7';
-  else                                      new_custom_mode = '0';
-
-  ros::NodeHandle nh;
 
   //Create a message for changing flight mode
   mavros_msgs::SetMode new_mode;
   new_mode.request.base_mode = 0;
-  new_mode.request.custom_mode = new_custom_mode; //custom_mode expects a char*
+  new_mode.request.custom_mode = mode;
 
   //Call the service
   if(sc_mode[uav_num].call(new_mode)){
@@ -487,6 +464,7 @@ void SimpleControl::Run(int uav_num)
     theta++;
 
     if (theta == 360){
+      ROS_WARN_STREAM("UAV " << uav_num << " done Scouting. Heading home.");
       ROS_INFO_STREAM("Home Target: " << uav_pos_home);
       pos_target[uav_num-1] = uav_pos_home;
       goal[uav_num-1] = RTL;
