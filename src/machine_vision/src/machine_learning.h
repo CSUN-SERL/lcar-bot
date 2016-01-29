@@ -1,6 +1,8 @@
 #ifndef MACHINE_LEARNING_H
 #define	MACHINE_LEARNING_H
 
+#include <fstream>
+#include <thread>
 #include <dirent.h>
 #include <iostream>
 #include <stdio.h>
