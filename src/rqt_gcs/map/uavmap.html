@@ -62,7 +62,7 @@ ros.on('connection', function() {
   //}
 
 $(document).ready(function(){
- for (var i = 1; i < 3; i++) {
+ for (var i = 1; i < 2; i++) {
     num = i;
     //save the connections in an array
    listeners[num] = new ROSLIB.Topic({
@@ -138,8 +138,8 @@ function showPosition() {
 }
 
 function update() {
-console.log(1 + "lat: " + latitude[1]);
-console.log(2 + "lat: " + latitude[2]);
+console.log("lat: " + latitude[1]);
+console.log("lon: " + longitude[1]);
   la = new google.maps.LatLng(latitude[num],
     longitude[num]);
 
@@ -173,11 +173,11 @@ console.log(2 + "lat: " + latitude[2]);
   uavName.innerHTML = $("input[name=uav]:checked").val();
 
   num++
-  if(num >= 3){
+  if(num >= 1){
     num = 1;
   }
    // Call the autoUpdate() function every k seconds
-  setTimeout(update, 1000);
+  setTimeout(update, .05);
 }
 
 function showError(error) {
