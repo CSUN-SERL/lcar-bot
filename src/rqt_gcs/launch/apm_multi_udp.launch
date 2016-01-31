@@ -14,7 +14,7 @@
 	<arg name="tgt_component2" default="1" />
 	<arg name="log_output2" default="screen" />
 
-	<include file="$(find rqt_gcs)/launch/node_UAV.launch">
+	<include file="$(find rqt_gcs)/launch/node_multi.launch">
 		<arg name="pluginlists_yaml" value="$(find mavros)/launch/px4_pluginlists.yaml" />
 		<arg name="config_yaml" value="$(find mavros)/launch/apm_config.yaml" />
 
@@ -26,7 +26,7 @@
 		<arg name="log_output" value="$(arg log_output1)" />
 	</include>
 
-	<include file="$(find rqt_gcs)/launch/node_UAV.launch">
+	<include file="$(find rqt_gcs)/launch/node_multi.launch">
 		<arg name="pluginlists_yaml" value="$(find mavros)/launch/px4_pluginlists.yaml" />
 		<arg name="config_yaml" value="$(find mavros)/launch/apm_config.yaml" />
 

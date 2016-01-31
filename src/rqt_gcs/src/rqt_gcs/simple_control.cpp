@@ -5,12 +5,22 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "simple_control");
   SimpleControl quadrotors;
 
-  //boost::thread_group tg;
+  //quad1.ScoutBuilding(7,4,1);
+  boost::thread_group tg;
   ros::Rate loop_rate(1); //10Hz
 
   while(ros::ok())
   {
-    quadrotors.SetMode("AUTO.RTL", 1);
+    //Let the quad do it's current mission
+    //quad1.Run();
+    for(int i = 0; i < NUM_UAV; i++){
+      ROS_INFO_STREAM("UAV " << i+1);
+      ROS_INFO_STREAM("Battery:\t" << quadrotors.GetBatteryStatus(i+1).remaining);
+      ROS_INFO_STREAM("Armed:\t" << (bool)(quadrotors.GetState(i+1).armed));
+      ROS_INFO_STREAM("Mode:\t" << quadrotors.GetState(i+1).mode);
+      ROS_INFO_STREAM("Vertical Speed:\t" << quadrotors.GetFlightState(i+1).vertical_speed);
+      ROS_INFO_STREAM("Yaw:\t" << quadrotors.GetFlightState(i+1).yaw);
+    }
 
     ros::spinOnce();
     loop_rate.sleep();
@@ -62,8 +72,6 @@ SimpleControl::~SimpleControl(void)
 void SimpleControl::Arm(bool value, int uav_num)
 {
   uav_num--; //For indexing arrays properly
-
-  if(!value) goal[uav_num] = DISARM;
 
   if(state[uav_num].armed != value){ //Only change to new state if it's different
     //Create a message for arming/disarming
@@ -152,11 +160,24 @@ void SimpleControl::Land(int uav_num)
 void SimpleControl::SetMode(std::string mode, int uav_num)
 {
   uav_num--; //For indexing arrays properly
+  char new_custom_mode;
+
+  // Set new_custom_mode for the desired flight mode
+  if(mode.compare("Stabilize")       == 0)  new_custom_mode = '0';
+  else if(mode.compare("Alt Hold")   == 0)  new_custom_mode = '2';
+  else if(mode.compare("Auto")       == 0)  new_custom_mode = '3';
+  else if(mode.compare("Guided")     == 0)  new_custom_mode = '4';
+  else if(mode.compare("Loiter")     == 0)  new_custom_mode = '5';
+  else if(mode.compare("RTL")        == 0)  new_custom_mode = '6';
+  else if(mode.compare("Circle")     == 0)  new_custom_mode = '7';
+  else                                      new_custom_mode = '0';
+
+  ros::NodeHandle nh;
 
   //Create a message for changing flight mode
   mavros_msgs::SetMode new_mode;
   new_mode.request.base_mode = 0;
-  new_mode.request.custom_mode = mode;
+  new_mode.request.custom_mode = new_custom_mode; //custom_mode expects a char*
 
   //Call the service
   if(sc_mode[uav_num].call(new_mode)){
@@ -165,45 +186,6 @@ void SimpleControl::SetMode(std::string mode, int uav_num)
   }
   else{
     ROS_ERROR_STREAM("Failed to call new_mode service!");
-  }
-}
-
-void SimpleControl::EnableOffboard(int uav_num)
-{
-  uav_num--;
-
-  mavros_msgs::SetMode offb_set_mode;
-  offb_set_mode.request.custom_mode = "OFFBOARD";
-
-  geometry_msgs::PoseStamped pose;
-  pose.pose.position.x = pos_local[uav_num].x;
-  pose.pose.position.y = pos_local[uav_num].y;
-  pose.pose.position.z = pos_local[uav_num].z;
-
-  mavros_msgs::CommandBool arm_cmd;
-  arm_cmd.request.value = true;
-
-  if( state[uav_num].mode != "OFFBOARD" && (ros::Time::now() - last_request[uav_num] > ros::Duration(5.0))){
-
-      ros::Rate loop_rate(50); //50Hz
-      //send a few setpoints before starting
-      for(int i = 10; ros::ok() && i > 0; --i){
-          pub_setpoint_position[uav_num].publish(pose);
-          ros::spinOnce();
-          loop_rate.sleep();
-      }
-
-      if( sc_mode[uav_num].call(offb_set_mode) && offb_set_mode.response.success){
-          ROS_INFO("Offboard enabled");
-      }
-      last_request[uav_num] = ros::Time::now();
-  } else {
-      if( !state[uav_num].armed && (ros::Time::now() - last_request[uav_num] > ros::Duration(5.0))){
-          if( sc_arm[uav_num].call(arm_cmd) && arm_cmd.response.success){
-              ROS_INFO("Vehicle armed");
-          }
-          last_request[uav_num] = ros::Time::now();
-      }
   }
 }
 
@@ -232,8 +214,6 @@ void SimpleControl::ScoutBuilding(int x, int y, int z, int uav_num)
 
   pos_previous[uav_num] = pos_local[uav_num];
   goal[uav_num] = TRAVEL;
-  last_request[uav_num] = ros::Time::now();
-
   ROS_INFO_STREAM("Traveling to target location.");
 }
 
@@ -372,7 +352,6 @@ int SimpleControl::ComparePosition(geometry_msgs::Point point1, geometry_msgs::P
     result = 0;
   }
   else result = 1;
-  ROS_INFO_STREAM("Position Compare Result: " << result);
 
   return result;
 }
@@ -422,8 +401,8 @@ Eigen::Vector3d SimpleControl::CircleShape(int angle, int uav_num){
 
 		return Eigen::Vector3d( r * (cos(angles::from_degrees(angle) - 7)),
 				                    r * (sin(angles::from_degrees(angle) - 9)),
-				                    pos_previous[uav_num-1].z);
-}
+				                    pos_previous[uav_num].z);
+	}
 
 void SimpleControl::Run(int uav_num)
 {
@@ -433,17 +412,15 @@ void SimpleControl::Run(int uav_num)
   geometry_msgs::Point uav_pos_home     = pos_home[uav_num-1];
   int uav_goal                          = goal[uav_num -1];
 
-  //Disable for simulation
-  /*if(battery[uav_num-1].remaining < BATTERY_MIN){
+  if(battery[uav_num-1].remaining < BATTERY_MIN){
     //Return to launch site if battery is starting to get low
     uav_goal = RTL;
-  }*/
-
-  if(uav_goal == TRAVEL){
+  }
+  else if(uav_goal == TRAVEL){
     if(ComparePosition(uav_pos_local, uav_pos_target) == 0){
       //Vehicle is at target location => Scout Building
-      pos_previous[uav_num-1] = uav_pos_local;
-      goal[uav_num-1] = SCOUT;
+      uav_pos_previous = uav_pos_local;
+      uav_goal = SCOUT;
       ROS_INFO_STREAM("Scouting Building.");
     }
     else if(abs(uav_pos_local.z - uav_pos_target.z) <= THRESHOLD_Z){
@@ -458,27 +435,26 @@ void SimpleControl::Run(int uav_num)
     //TODO: Fix Scout Functionality. Temporary Circle Path Test
     static int theta = 0;
 
-	  tf::pointEigenToMsg(this->CircleShape(theta, uav_num), uav_pos_target); //Update Target Pos
-	  this->SetLocalPosition(uav_pos_target, uav_num);
-    //uav_goal = TRAVEL;
-    theta++;
+	  /*tf::pointEigenToMsg(this->CircleShape(theta), pos_target); //Update Target Pos
+	  this->SetLocalPosition(pos_target);
+    uav_goal = TRAVEL;
+    theta++;*/
 
-    if (theta == 360){
-      ROS_WARN_STREAM("UAV " << uav_num << " done Scouting. Heading home.");
+    //if (theta == 360){
       ROS_INFO_STREAM("Home Target: " << uav_pos_home);
-      pos_target[uav_num-1] = uav_pos_home;
-      goal[uav_num-1] = RTL;
+      uav_pos_target = uav_pos_home;
+      uav_goal = RTL;
       theta = 0;
-    }
+    //}
   }
   else if(uav_goal == RTL){
     if(ComparePosition(uav_pos_local, uav_pos_target) == 0){
       //Vehicle is at target location => Disarm
-      goal[uav_num-1] = DISARM;
+      uav_goal = DISARM;
     }
     else if(abs(uav_pos_local.x - uav_pos_target.x) <= THRESHOLD_XY && abs(uav_pos_local.y - uav_pos_target.y) <= THRESHOLD_XY){
       this->SetLocalPosition(uav_pos_local.x, uav_pos_local.y, 0, uav_num);
-      //goal[uav_num-1] = LAND;
+      //uav_goal = LAND;
     }
     else if(abs(uav_pos_local.z - ALT_RTL) <= THRESHOLD_Z){
       //Achieved the proper altitude => Go to target location
@@ -491,7 +467,7 @@ void SimpleControl::Run(int uav_num)
   else if(uav_goal == LAND){
     if(uav_pos_local.z == 0){
       //Landed => Disarm
-      goal[uav_num-1] = DISARM;
+      uav_goal = DISARM;
     }
     else{
       this->SetLocalPosition(uav_pos_target, uav_num);

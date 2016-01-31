@@ -3,7 +3,6 @@
 
 #include <ros/ros.h>
 #include <rqt_gui_cpp/plugin.h>
-
 #include <rqt_gcs/simple_control.h>
 
 #include <ui_gcs.h>
@@ -14,11 +13,25 @@
 #include <ui_UavStat.h>
 #include <ui_QuadStats.h>
 
+#include <ui_MainWindow.h>
+#include <ui_WidgetADI.h>
+#include <ui_WidgetALT.h>
+#include <ui_WidgetASI.h>
+#include <ui_WidgetHSI.h>
+#include <ui_WidgetNAV.h>
+#include <ui_WidgetPFD.h>
+#include <ui_WidgetSix.h>
+#include <ui_WidgetTC.h>
+#include <ui_WidgetVSI.h>
+#include <ui_WidgetADI.h>
 
 #include <QWidget>
 #include <QLabel>
 #include <QString>
 #include <QTimer>
+#include <FIS/qfi_NAV.h>
+#include <FIW/MainWindow.h>
+
 
 namespace rqt_gcs{
 
@@ -30,6 +43,9 @@ public:
   MyPlugin();
   SimpleControl quad1;
   QString tempData;
+   
+  MainWindow   win;
+
 
   ros::Subscriber sub;
   ros::NodeHandle nh;
