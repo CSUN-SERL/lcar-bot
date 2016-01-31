@@ -128,7 +128,6 @@ public:
 
       @param channel Channel to override (1-8)
       @param value New value of the channel
-      @param nh Pointer to the NodeHandle object of the publishing class
   */
   void OverrideRC(int channel, int value);
 
@@ -248,9 +247,25 @@ private:
 
   //ROS NodeHandle, Service Client, Publisher, and Subscriber Variables
   ros::NodeHandle     nh_simple_control;
-  ros::ServiceClient  sc_arm, sc_takeoff, sc_land, sc_mode, sc_mission;
-  ros::Publisher      pub_override_rc, pub_setpoint_position, pub_setpoint_attitude, pub_angular_vel, pub_linear_vel, pub_setpoint_accel;
-  ros::Subscriber     sub_state, sub_battery, sub_imu, sub_pos_global, sub_pos_local, sub_altitude, sub_heading, sub_vel;
+  ros::ServiceClient  sc_arm,
+                      sc_takeoff,
+                      sc_land,
+                      sc_mode,
+                      sc_mission;
+  ros::Publisher      pub_override_rc,
+                      pub_setpoint_position,
+                      pub_setpoint_attitude,
+                      pub_angular_vel,
+                      pub_linear_vel,
+                      pub_setpoint_accel;
+  ros::Subscriber     sub_state,
+                      sub_battery,
+                      sub_imu,
+                      sub_pos_global,
+                      sub_pos_local,
+                      sub_altitude,
+                      sub_heading,
+                      sub_vel;
 
   //UAV State Variables
   std::string ns; //Default namespace
@@ -259,7 +274,10 @@ private:
   sensor_msgs::Imu imu;
   sensor_msgs::NavSatFix pos_global;
   geometry_msgs::TwistStamped velocity;
-  geometry_msgs::Point pos_local, pos_target, pos_home, pos_previous;
+  geometry_msgs::Point  pos_local,
+                        pos_target,
+                        pos_home,
+                        pos_previous;
   float altitude_rel, heading_deg;
   int goal = -1;
   ros::Time last_request;
