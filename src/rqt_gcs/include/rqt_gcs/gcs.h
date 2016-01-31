@@ -22,64 +22,61 @@
 #include <QTimer>
 #include <FIW/MainWindow.h>
 
-
 namespace rqt_gcs{
 
-class MyPlugin
+  class MyPlugin
   : public rqt_gui_cpp::Plugin
-{
-  Q_OBJECT
-public:
-  MyPlugin();
-  SimpleControl quad1{1};
-  QString tempData;
+  {
+    Q_OBJECT
+  public:
+    MyPlugin();
+    SimpleControl quad1{1};
+    QString tempData;
 
-  MainWindow   win;
+    MainWindow   win;
 
+    ros::Subscriber sub;
+    ros::NodeHandle nh;
+    void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
 
-  ros::Subscriber sub;
-  ros::NodeHandle nh;
-  void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
+    virtual void initPlugin(qt_gui_cpp::PluginContext& context);
+    virtual void shutdownPlugin();
+    virtual void saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const;
+    virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings);
 
-  virtual void initPlugin(qt_gui_cpp::PluginContext& context);
-  virtual void shutdownPlugin();
-  virtual void saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const;
-  virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings);
-
-protected slots:
-  virtual void Calculate();
-  virtual void TimedUpdate();
-  virtual void MissionChange();
-  virtual void MissionSelect(const int);
-  virtual void MissionSubmit();
-
-
-  // Comment in to signal that the plugin has a way to configure it
-  //bool hasConfiguration() const;
-  //void triggerConfiguration();
-private:
-  Ui::MyPluginWidget ui_;
-  Ui::QuadStatsWidget quadUi1_;
-
-  Ui::MissionCancelWidget mcUi_;
-  Ui::MissionProgressWidget mpUi1_;
-  Ui::MissionSelectWidget msUi_;
-  Ui::UavQuestionWidget uqUi_;
-  Ui::UavStatWidget usUi1_;
+    protected slots:
+    virtual void Calculate();
+    virtual void TimedUpdate();
+    virtual void MissionChange();
+    virtual void MissionSelect(const int);
+    virtual void MissionSubmit();
 
 
-  QWidget* widget_;
-  QWidget* missionCancelWidget1_;
-  QWidget* missionSelectWidget1_;
-  QWidget* missionProgressWidget1_;
-  QWidget* UavQuestionWidget1_;
-  QWidget* UavStatWidget1_;
+    // Comment in to signal that the plugin has a way to configure it
+    //bool hasConfiguration() const;
+    //void triggerConfiguration();
+  private:
+    Ui::MyPluginWidget ui_;
+    Ui::QuadStatsWidget quadUi1_;
 
-  QLabel* label;
-  QTimer* updateTimer;
+    Ui::MissionCancelWidget mcUi_;
+    Ui::MissionProgressWidget mpUi1_;
+    Ui::MissionSelectWidget msUi_;
+    Ui::UavQuestionWidget uqUi_;
+    Ui::UavStatWidget usUi1_;
 
-  int cur_uav = 1;
+    QWidget* widget_;
+    QWidget* missionCancelWidget1_;
+    QWidget* missionSelectWidget1_;
+    QWidget* missionProgressWidget1_;
+    QWidget* UavQuestionWidget1_;
+    QWidget* UavStatWidget1_;
 
-};
+    QLabel* label;
+    QTimer* updateTimer;
+
+    int cur_uav = 1;
+
+  };
 } // namespace
 #endif // my_namespace__my_plugin_H
