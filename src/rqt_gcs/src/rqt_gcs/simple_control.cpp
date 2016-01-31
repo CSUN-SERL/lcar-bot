@@ -3,7 +3,8 @@
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "simple_control");
-  SimpleControl quad1;
+  SimpleControl quad1{1};
+  SimpleControl quad2{2};
 
   boost::thread_group tg;
   ros::Rate loop_rate(1); //10Hz
@@ -16,8 +17,10 @@ int main(int argc, char **argv)
 
 }
 
-SimpleControl::SimpleControl(void)  //Class constructor
+SimpleControl::SimpleControl(int uav_id)  //Class constructor
 {
+  ns = DEF_NS + std::to_string(uav_id); //UAV Namespace
+
   //Initialize Service Clients
   sc_arm      = nh_simple_control.serviceClient<mavros_msgs::CommandBool>(ns + "/mavros/cmd/arming");
   sc_takeoff  = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>(ns + "/mavros/cmd/takeoff");

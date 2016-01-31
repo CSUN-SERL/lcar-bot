@@ -44,6 +44,7 @@
 #define THRESHOLD_Z 1
 #define ALT_RTL 3
 #define BATTERY_MIN 0.30  //Minimum battery level for RTL
+#define DEF_NS "UAV"
 
 //Structs
 struct FlightState {
@@ -56,7 +57,7 @@ struct FlightState {
 class SimpleControl
 {
 public:
-  SimpleControl();
+  SimpleControl(int uav_id);
   ~SimpleControl();
 
   /**
@@ -268,7 +269,7 @@ private:
                       sub_vel;
 
   //UAV State Variables
-  std::string ns = "UAV1"; //Default namespace
+  std::string ns;
   mavros_msgs::State state;
   mavros_msgs::BatteryStatus battery;
   sensor_msgs::Imu imu;

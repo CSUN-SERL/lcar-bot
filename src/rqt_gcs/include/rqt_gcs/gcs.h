@@ -41,7 +41,7 @@ class MyPlugin
   Q_OBJECT
 public:
   MyPlugin();
-  SimpleControl quad1;
+  SimpleControl quad1{1};
   QString tempData;
 
   MainWindow   win;
