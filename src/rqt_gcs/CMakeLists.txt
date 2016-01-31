@@ -4,13 +4,13 @@ project(rqt_gcs)
 find_package(catkin REQUIRED COMPONENTS
 	geometry_msgs
 	mavros
-        mavros_msgs
+  mavros_msgs
 	roscpp
 	rqt_gui
 	rqt_gui_cpp
 	roslib
-        sensor_msgs
-        std_msgs
+  sensor_msgs
+  std_msgs
 	tf
 )
 
@@ -23,54 +23,24 @@ include(MavrosMavlink)
 
 set(rqt_gcs_SRCS
   src/rqt_gcs/gcs.cpp
-  src/rqt_gcs/simple_control.cpp 
+  src/rqt_gcs/simple_control.cpp
 
-  src/FIS/qfi_ADI.cpp
-  src/FIS/qfi_ALT.cpp
-  src/FIS/qfi_ASI.cpp
-  src/FIS/qfi_HSI.cpp
-  src/FIS/qfi_NAV.cpp
   src/FIS/qfi_PFD.cpp
-  src/FIS/qfi_TC.cpp
-  src/FIS/qfi_VSI.cpp
 
   src/FIW/LayoutSquare.cpp
   src/FIW/MainWindow.cpp
-  src/FIW/WidgetADI.cpp
-  src/FIW/WidgetALT.cpp
-  src/FIW/WidgetASI.cpp
-  src/FIW/WidgetHSI.cpp
-  src/FIW/WidgetNAV.cpp
   src/FIW/WidgetPFD.cpp
-  src/FIW/WidgetSix.cpp
-  src/FIW/WidgetTC.cpp
-  src/FIW/WidgetVSI.cpp
 )
 
 set(rqt_gcs_HDRS
   include/rqt_gcs/gcs.h
   include/rqt_gcs/simple_control.h
 
-  include/FIS/qfi_ADI.h
-  include/FIS/qfi_ALT.h
-  include/FIS/qfi_ASI.h
-  include/FIS/qfi_HSI.h 
-  include/FIS/qfi_NAV.h
   include/FIS/qfi_PFD.h
-  include/FIS/qfi_TC.h
-  include/FIS/qfi_VSI.h
 
   include/FIW/LayoutSquare.h
   include/FIW/MainWindow.h
-  include/FIW/WidgetADI.h
-  include/FIW/WidgetALT.h
-  include/FIW/WidgetASI.h
-  include/FIW/WidgetHSI.h
-  include/FIW/WidgetNAV.h
   include/FIW/WidgetPFD.h
-  include/FIW/WidgetSix.h
-  include/FIW/WidgetTC.h
-  include/FIW/WidgetVSI.h
 )
 
 set(rqt_gcs_UIS
@@ -82,15 +52,7 @@ set(rqt_gcs_UIS
   resources/UavQuestion.ui
   resources/QuadStats.ui
   resources/MainWindow.ui
-  resources/WidgetNAV.ui
   resources/WidgetPFD.ui
-  resources/WidgetADI.ui
-  resources/WidgetALT.ui
-  resources/WidgetASI.ui
-  resources/WidgetHSI.ui
-  resources/WidgetTC.ui
-  resources/WidgetVSI.ui
-  resources/WidgetSix.ui
 )
 
 SET(rqt_gcs_RCCS resources/qfi.qrc)
@@ -127,7 +89,7 @@ add_executable(gps_publisher src/rqt_gcs/gps_publisher.cpp)
 
 
 add_library(${PROJECT_NAME}
-						${rqt_gcs_SRCS} 
+						${rqt_gcs_SRCS}
 						${rqt_gcs_MOCS}
 						${rqt_gcs_UIS_H}
                                                 ${rqt_gcs_RCC_SRCS})
