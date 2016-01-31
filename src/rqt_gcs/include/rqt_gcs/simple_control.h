@@ -268,7 +268,7 @@ private:
                       sub_vel;
 
   //UAV State Variables
-  std::string ns; //Default namespace
+  std::string ns = "UAV1"; //Default namespace
   mavros_msgs::State state;
   mavros_msgs::BatteryStatus battery;
   sensor_msgs::Imu imu;
