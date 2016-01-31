@@ -43,7 +43,7 @@ public:
   MyPlugin();
   SimpleControl quad1;
   QString tempData;
-   
+
   MainWindow   win;
 
 
