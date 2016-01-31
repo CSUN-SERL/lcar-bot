@@ -142,7 +142,6 @@ void SimpleControl::SetMode(std::string mode)
   //Create a message for changing flight mode
   mavros_msgs::SetMode new_mode;
   new_mode.request.base_mode = 0;
-  new_mode.request.custom_mode = mode;
   new_mode.request.custom_mode = mode; //custom_mode expects a char*
 
   //Call the service
