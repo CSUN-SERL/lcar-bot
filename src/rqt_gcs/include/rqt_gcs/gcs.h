@@ -14,22 +14,12 @@
 #include <ui_QuadStats.h>
 
 #include <ui_MainWindow.h>
-#include <ui_WidgetADI.h>
-#include <ui_WidgetALT.h>
-#include <ui_WidgetASI.h>
-#include <ui_WidgetHSI.h>
-#include <ui_WidgetNAV.h>
 #include <ui_WidgetPFD.h>
-#include <ui_WidgetSix.h>
-#include <ui_WidgetTC.h>
-#include <ui_WidgetVSI.h>
-#include <ui_WidgetADI.h>
 
 #include <QWidget>
 #include <QLabel>
 #include <QString>
 #include <QTimer>
-#include <FIS/qfi_NAV.h>
 #include <FIW/MainWindow.h>
 
 
@@ -70,40 +60,20 @@ protected slots:
 private:
   Ui::MyPluginWidget ui_;
   Ui::QuadStatsWidget quadUi1_;
- // Ui::QuadStatsWidget quadUi2_;
-  //Ui::QuadStatsWidget quadUi3_;
- // Ui::QuadStatsWidget quadUi4_;
 
   Ui::MissionCancelWidget mcUi_;
   Ui::MissionProgressWidget mpUi1_;
- // Ui::MissionProgressWidget mpUi2_;
- // Ui::MissionProgressWidget mpUi3_;
- // Ui::MissionProgressWidget mpUi4_;
   Ui::MissionSelectWidget msUi_;
   Ui::UavQuestionWidget uqUi_;
   Ui::UavStatWidget usUi1_;
- // Ui::UavStatWidget usUi2_;
 
 
   QWidget* widget_;
   QWidget* missionCancelWidget1_;
   QWidget* missionSelectWidget1_;
   QWidget* missionProgressWidget1_;
- // QWidget* missionProgressWidget2_;
- // QWidget* missionProgressWidget3_;
- // QWidget* missionProgressWidget4_;
   QWidget* UavQuestionWidget1_;
   QWidget* UavStatWidget1_;
-  //QWidget* UavStatWidget2_;
- // QWidget* UavStatWidget3_;
- // QWidget* UavStatWidget4_;
-
- // QWidget* quadWidget1Mission_;
-  //QWidget* quadWidget1Stats_;
-
- // QWidget* quadWidget2_;
-  //QWidget* quadWidget3_;
- // QWidget* quadWidget4_;
 
   QLabel* label;
   QTimer* updateTimer;
