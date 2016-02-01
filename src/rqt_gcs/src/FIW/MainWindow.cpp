@@ -132,19 +132,19 @@ void MainWindow::timerEvent( QTimerEvent *event )
     climbRate =  650.0f * sin( m_realTime /  20.0f );
     machNo    = airspeed / 650.0f;
 
-    m_ui->widgetPFD->setFlightPathMarker ( alpha, beta );
-    m_ui->widgetPFD->setRoll          ( roll     );
-    m_ui->widgetPFD->setPitch         ( pitch     );
-    m_ui->widgetPFD->setSlipSkid      ( slipSkid  );
-    m_ui->widgetPFD->setTurnRate      ( turnRate / 6.0f );
-    m_ui->widgetPFD->setDevH          ( devH      );
-    m_ui->widgetPFD->setDevV          ( devV      );
-    m_ui->widgetPFD->setHeading       ( heading   );
-    m_ui->widgetPFD->setAirspeed      ( airspeed  );
-    m_ui->widgetPFD->setMachNo        ( machNo    );
-    m_ui->widgetPFD->setAltitude      ( altitude  );
-    m_ui->widgetPFD->setPressure      ( pressure  );
-    m_ui->widgetPFD->setClimbRate     ( climbRate / 100.0f );
+    m_ui->widgetPFD->setFlightPathMarker ( alpha, beta        );
+    m_ui->widgetPFD->setRoll             ( roll               );
+    m_ui->widgetPFD->setPitch            ( pitch              );
+    m_ui->widgetPFD->setSlipSkid         ( slipSkid           );
+    m_ui->widgetPFD->setTurnRate         ( turnRate / 6.0f    );
+    m_ui->widgetPFD->setDevH             ( devH               );
+    m_ui->widgetPFD->setDevV             ( devV               );
+    m_ui->widgetPFD->setHeading          ( heading            );
+    m_ui->widgetPFD->setAirspeed         ( airspeed           );
+    m_ui->widgetPFD->setMachNo           ( machNo             );
+    m_ui->widgetPFD->setAltitude         ( altitude           );
+    m_ui->widgetPFD->setPressure         ( pressure           );
+    m_ui->widgetPFD->setClimbRate        ( climbRate / 100.0f );
 
     m_ui->widgetPFD->update();
 

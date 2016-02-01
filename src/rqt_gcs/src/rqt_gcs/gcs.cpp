@@ -19,8 +19,6 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   // access standalone command line arguments
   QStringList argv = context.argv();
 
-  win.show();
-
   // create QWidget
   widget_ = new QWidget();
   missionCancelWidget1_ = new QWidget();
@@ -28,6 +26,7 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   missionProgressWidget1_ = new QWidget();
   UavQuestionWidget1_ = new QWidget();
   UavStatWidget1_ = new QWidget();
+  PFDQWidget       = new QWidget();
 
   ui_.setupUi(widget_);
 
@@ -39,10 +38,13 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 
   usUi1_.setupUi(UavStatWidget1_);
 
+  pfd_ui.setupUi(PFDQWidget);
+
   // add widget to the user interface
   context.addWidget(widget_);
   context.addWidget(missionProgressWidget1_);
   context.addWidget(UavStatWidget1_);
+  context.addWidget(PFDQWidget);
 
    //setup mission progress widgets
    missionSelectWidget1_->setWindowTitle("Mission Selection");
@@ -100,6 +102,8 @@ void MyPlugin::TimedUpdate(){
     mpUi1_.uavNameEdit->setText(tempData);
 
     mpUi1_.missionProgressBar->setValue(quad1.GetMissionProgress()*100);
+
+    this->UpdatePFD();
 
     quad1.Run();
 }
@@ -178,6 +182,19 @@ void triggerConfiguration()
 {
   // Usually used to open a dialog to offer the user a set of configuration
 }*/
+
+void MyPlugin::UpdatePFD()
+{
+  pfd_ui.widgetPFD->setRoll       ((quad1.GetFlightState().roll)*180);
+  pfd_ui.widgetPFD->setPitch      ((quad1.GetFlightState().pitch)*90);
+  pfd_ui.widgetPFD->setHeading    (quad1.GetFlightState().heading);
+  pfd_ui.widgetPFD->setAirspeed   (quad1.GetFlightState().ground_speed);
+  pfd_ui.widgetPFD->setAltitude   (quad1.GetFlightState().altitude);
+  //pfd_ui->widgetPFD->setPressure (quad1.GetFlightState().roll);
+  pfd_ui.widgetPFD->setClimbRate  (quad1.GetFlightState().vertical_speed);
+
+  pfd_ui.widgetPFD->update();
+}
 
 } // namespace
 PLUGINLIB_DECLARE_CLASS(rqt_gcs, MyPlugin, rqt_gcs::MyPlugin, rqt_gui_cpp::Plugin)

@@ -28,7 +28,6 @@ set(rqt_gcs_SRCS
   src/FIS/qfi_PFD.cpp
 
   src/FIW/LayoutSquare.cpp
-  src/FIW/MainWindow.cpp
   src/FIW/WidgetPFD.cpp
 )
 
@@ -39,7 +38,6 @@ set(rqt_gcs_HDRS
   include/FIS/qfi_PFD.h
 
   include/FIW/LayoutSquare.h
-  include/FIW/MainWindow.h
   include/FIW/WidgetPFD.h
 )
 
@@ -51,8 +49,8 @@ set(rqt_gcs_UIS
   resources/UavStat.ui
   resources/UavQuestion.ui
   resources/QuadStats.ui
-  resources/MainWindow.ui
   resources/WidgetPFD.ui
+	resources/PFDWidget_custom.ui
 )
 
 SET(rqt_gcs_RCCS resources/qfi.qrc)

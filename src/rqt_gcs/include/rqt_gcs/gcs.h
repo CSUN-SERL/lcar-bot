@@ -13,14 +13,13 @@
 #include <ui_UavStat.h>
 #include <ui_QuadStats.h>
 
-#include <ui_MainWindow.h>
-#include <ui_WidgetPFD.h>
+#include <ui_PFDWidget_custom.h>
 
 #include <QWidget>
 #include <QLabel>
 #include <QString>
 #include <QTimer>
-#include <FIW/MainWindow.h>
+#include <QMainWindow>
 
 namespace rqt_gcs{
 
@@ -33,7 +32,7 @@ namespace rqt_gcs{
     SimpleControl quad1{1};
     QString tempData;
 
-    MainWindow   win;
+    //MainWindow   win;
 
     ros::Subscriber sub;
     ros::NodeHandle nh;
@@ -56,6 +55,8 @@ namespace rqt_gcs{
     //bool hasConfiguration() const;
     //void triggerConfiguration();
   private:
+    void UpdatePFD();
+
     Ui::MyPluginWidget ui_;
     Ui::QuadStatsWidget quadUi1_;
 
@@ -64,6 +65,7 @@ namespace rqt_gcs{
     Ui::MissionSelectWidget msUi_;
     Ui::UavQuestionWidget uqUi_;
     Ui::UavStatWidget usUi1_;
+    Ui::PFDWidget pfd_ui;
 
     QWidget* widget_;
     QWidget* missionCancelWidget1_;
@@ -71,6 +73,7 @@ namespace rqt_gcs{
     QWidget* missionProgressWidget1_;
     QWidget* UavQuestionWidget1_;
     QWidget* UavStatWidget1_;
+    QWidget* PFDQWidget;
 
     QLabel* label;
     QTimer* updateTimer;
