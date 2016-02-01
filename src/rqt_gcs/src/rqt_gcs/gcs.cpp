@@ -19,73 +19,34 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   // access standalone command line arguments
   QStringList argv = context.argv();
 
-  //QResource::registerResource("../../rsources/myresource.rcc");
-
-  win.show();
-
   // create QWidget
   widget_ = new QWidget();
   missionCancelWidget1_ = new QWidget();
   missionSelectWidget1_ = new QWidget();
   missionProgressWidget1_ = new QWidget();
- // missionProgressWidget2_ = new QWidget();
- // missionProgressWidget3_ = new QWidget();
- // missionProgressWidget4_ = new QWidget();
   UavQuestionWidget1_ = new QWidget();
   UavStatWidget1_ = new QWidget();
- //UavStatWidget2_ = new QWidget();
+  PFDQWidget       = new QWidget();
 
-  //quadWidget1Mission_ = new QWidget();
-  //quadWidget1Stats_ = new QWidget();
-  //quadWidget2_ = new QWidget();
- // quadWidget2_ ->setStyleSheet("background-color: black;");
- // quadWidget3_ = new QWidget();
- // quadWidget4_ = new QWidget();
-
-  // extend the widget with all attributes and children from UI file
   ui_.setupUi(widget_);
-  //quadUi1_.setupUi(quadWidget1Mission_);
-  //quadUi2_.setupUi(quadWidget2_);
-  //quadUi3_.setupUi(quadWidget3_);
-  //quadUi4_.setupUi(quadWidget4_);
 
   mcUi_.setupUi(missionCancelWidget1_);
   mpUi1_.setupUi(missionProgressWidget1_);
- //mpUi2_.setupUi(missionProgressWidget2_);
 
   msUi_.setupUi(missionSelectWidget1_);
   uqUi_.setupUi(UavQuestionWidget1_);
 
   usUi1_.setupUi(UavStatWidget1_);
-  //usUi2_.setupUi(UavStatWidget2_);
+
+  pfd_ui.setupUi(PFDQWidget);
 
   // add widget to the user interface
   context.addWidget(widget_);
   context.addWidget(missionProgressWidget1_);
   context.addWidget(UavStatWidget1_);
-
-
-
-  //context.addWidget(quadWidget1Mission_);
- // context.addWidget(quadWidget2_);
- // context.addWidget(quadWidget3_);
- // context.addWidget(quadWidget4_);
-
-  //ui_.MissionProgressIndividualLayout->addWidget(missionProgressWidget1_);
-  //ui_.MissionProgressIndividualLayout->addWidget(missionProgressWidget2_);
-  //ui_.MissionProgressIndividualLayout->addWidget(missionProgressWidget3_);
-  //ui_.MissionProgressIndividualLayout->addWidget(missionProgressWidget4_);
-  //ui_.UavStatLayout->addWidget(UavStatWidget1_);
-  //ui_.UavStatLayout->addWidget(UavStatWidget2_);
-
-  // quadWidget1_->setWindowTitle("QuadRotor1");
- //  quadUi1_.MissionProgressIndividualLayout->addWidget(missionProgressWidget1_);
-  // quadUi1_.UavStatLayout->addWidget(UavStatWidget1_);
-  // quadWidget1_->show();
-
+  context.addWidget(PFDQWidget);
 
    //setup mission progress widgets
-  // tempData = "QuadRotor 1" ;
    missionSelectWidget1_->setWindowTitle("Mission Selection");
    UavStatWidget1_->setWindowTitle("Flight State");
    missionProgressWidget1_->setWindowTitle("Mission Control");
@@ -95,23 +56,9 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
    connect(msUi_.submitMission,SIGNAL(clicked()),this, SLOT(MissionSubmit()));
    connect(msUi_.missionComboBox,SIGNAL(activated(int)),this, SLOT(MissionSelect(int)));
 
-
    updateTimer = new QTimer(this);
    connect(updateTimer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
    updateTimer->start(100);
-
-
-
-   //quadWidget2_->setWindowTitle("QuadRotor2");
-  // quadWidget2_->show();
-
-   //quadWidget3_->setWindowTitle("QuadRotor3");
-  // quadWidget3_->show();
-
-   //quadWidget4_->setWindowTitle("QuadRotor4");
-  // quadWidget4_->show();
-
-
 }
 
 void MyPlugin::Calculate(){
@@ -155,6 +102,8 @@ void MyPlugin::TimedUpdate(){
     mpUi1_.uavNameEdit->setText(tempData);
 
     mpUi1_.missionProgressBar->setValue(quad1.GetMissionProgress()*100);
+
+    this->UpdatePFD();
 
     quad1.Run();
 }
@@ -209,9 +158,7 @@ void MyPlugin::MissionSubmit(){
 
 void MyPlugin::shutdownPlugin()
 {
-  // TODO unregister all publishers here =
-
-
+  // TODO unregister all publishers here
 }
 
 void MyPlugin::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const
@@ -235,6 +182,19 @@ void triggerConfiguration()
 {
   // Usually used to open a dialog to offer the user a set of configuration
 }*/
+
+void MyPlugin::UpdatePFD()
+{
+  pfd_ui.widgetPFD->setRoll       ((quad1.GetFlightState().roll)*180);
+  pfd_ui.widgetPFD->setPitch      ((quad1.GetFlightState().pitch)*90);
+  pfd_ui.widgetPFD->setHeading    (quad1.GetFlightState().heading);
+  pfd_ui.widgetPFD->setAirspeed   (quad1.GetFlightState().ground_speed);
+  pfd_ui.widgetPFD->setAltitude   (quad1.GetFlightState().altitude);
+  //pfd_ui->widgetPFD->setPressure (quad1.GetFlightState().roll);
+  pfd_ui.widgetPFD->setClimbRate  (quad1.GetFlightState().vertical_speed);
+
+  pfd_ui.widgetPFD->update();
+}
 
 } // namespace
 PLUGINLIB_DECLARE_CLASS(rqt_gcs, MyPlugin, rqt_gcs::MyPlugin, rqt_gui_cpp::Plugin)
