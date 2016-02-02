@@ -9,8 +9,11 @@ int main(int argc, char **argv)
   boost::thread_group tg;
   ros::Rate loop_rate(1); //10Hz
 
+  quad1.ScoutBuilding(7,-9,5);
+
   while(ros::ok())
   {
+    quad1.Run();
     ros::spinOnce();
     loop_rate.sleep();
   }
@@ -217,8 +220,6 @@ void SimpleControl::ScoutBuilding(int x, int y, int z)
 
 void SimpleControl::OverrideRC(int channel, int value)
 {
-
-
   //Create the message object
   mavros_msgs::OverrideRCIn override_msg;
 
@@ -231,8 +232,6 @@ void SimpleControl::OverrideRC(int channel, int value)
 
 void SimpleControl::SetLocalPosition(int x, int y, int z)
 {
-
-
   //Create the message object
   geometry_msgs::PoseStamped position_stamped;
 
@@ -397,18 +396,18 @@ Eigen::Vector3d SimpleControl::CircleShape(int angle){
 		/** @todo Give possibility to user define amplitude of movement (circle radius)*/
 		double r = 6.0f;	// 5 meters radius
 
-		return Eigen::Vector3d( r * (cos(angles::from_degrees(angle) - 7)),
-				                    r * (sin(angles::from_degrees(angle) - 9)),
+		return Eigen::Vector3d( r * (cos(angles::from_degrees(angle))),
+				                    r * (sin(angles::from_degrees(angle))),
 				                    pos_previous.z);
 	}
 
 void SimpleControl::Run()
 {
-  if(battery.remaining < BATTERY_MIN){
+  /*if(battery.remaining < BATTERY_MIN){
     //Return to launch site if battery is starting to get low
     goal = RTL;
-  }
-  else if(goal == TRAVEL){
+  }*/
+  if(goal == TRAVEL){
     if(ComparePosition(pos_local, pos_target) == 0){
       //Vehicle is at target location => Scout Building
       pos_previous = pos_local;
@@ -427,17 +426,17 @@ void SimpleControl::Run()
     //TODO: Fix Scout Functionality. Temporary Circle Path Test
     static int theta = 0;
 
-	  /*tf::pointEigenToMsg(this->CircleShape(theta), pos_target); //Update Target Pos
+	  tf::pointEigenToMsg(this->CircleShape(theta), pos_target); //Update Target Pos
 	  this->SetLocalPosition(pos_target);
     goal = TRAVEL;
-    theta++;*/
+    theta++;
 
-    //if (theta == 360){
+    if (theta == 360){
       ROS_INFO_STREAM("Home Target: " << pos_home);
       pos_target = pos_home;
       goal = RTL;
       theta = 0;
-    //}
+    }
   }
   else if(goal == RTL){
     if(ComparePosition(pos_local, pos_target) == 0){
@@ -446,7 +445,7 @@ void SimpleControl::Run()
     }
     else if(abs(pos_local.x - pos_target.x) <= THRESHOLD_XY && abs(pos_local.y - pos_target.y) <= THRESHOLD_XY){
       this->SetLocalPosition(pos_local.x, pos_local.y, 0);
-      //goal = LAND;
+      goal = LAND;
     }
     else if(abs(pos_local.z - ALT_RTL) <= THRESHOLD_Z){
       //Achieved the proper altitude => Go to target location

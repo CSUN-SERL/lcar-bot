@@ -142,7 +142,8 @@ void MyPlugin::MissionSubmit(){
           ROS_INFO_STREAM("SCAN ACCESS POINTS");
          }
          else if(msUi_.playsComboBox->currentIndex() == 1){
-  	 quad1.ScoutBuilding(-7,-9,3);
+           quad1.EnableOffboard();
+  	        quad1.ScoutBuilding(-7,-9,3);
            ROS_INFO_STREAM("SCOUT BUILDING");
          }
    }
