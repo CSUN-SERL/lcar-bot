@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   roscpp
   std_msgs
+  libuvc
 )
 
 find_package(OpenCV REQUIRED)
@@ -21,13 +22,14 @@ catkin_package()
 
 # Specify locations of header files
 include_directories(include
-  ${catkin_INCLUDE_DIRS}
+  ${catkin_INCLdUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
 )
 
 # Declare executables with source files
 add_executable(camera_publisher src/ros_camera_publisher.cpp)
 add_executable(camera_subscriber src/ros_camera_subscriber.cpp)
+add_executable(stereo_publisher src/stereo_cam_pub.cpp)
 
 #Specify libraries against which to link
 target_link_libraries(camera_publisher
@@ -36,6 +38,11 @@ target_link_libraries(camera_publisher
 )
 
 target_link_libraries(camera_subscriber
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+)
+
+target_link_libraries(stereo_publisher
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
 )
