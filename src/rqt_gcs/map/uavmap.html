@@ -36,38 +36,10 @@
   });
 
 
-  // Subscribing to a Topic
-  // ----------------------
-  //function getCoordinates(i){
 
-  /* var listener = new ROSLIB.Topic({
-  ros : ros, 	//ros object connection
-  name : '/UAV' + num + '/mavros/global_position/global',
-  messageType : 'sensor_msgs/NavSatFix'
-});
-
-listener.subscribe(function(message) {
-//console.log('latitude ' + listener.name + ': ' + message.latitude);
-// console.log('longitude ' + listener.name + ': ' + message.longitude);
-if(message.latitude != 0 && message.longitude != 0){ //if not 0
-longitude = message.longitude;
-latitude = message.latitude;
-console.log('latitude1 ' + longitude);
-console.log('longitude1 ' + latitude);
-}else{
-listener.unsubscribe();
-}
-});
-*/
-//}
 
 $(document).ready(function(){
-
   showPosition();
-
-
-
-
 });
 
 
@@ -78,17 +50,15 @@ var map;
 var marker =[];
 var newPoint ;
 var la ;
-var image = {
-  url: 'uavIcon.png',
+
+var image =[];
+
+image[num] = {
+  url: 'uavIcon' + num + '.png',
 
   scaledSize: new google.maps.Size(100,100)
 };
 
-var image1 = {
-  url: 'uav.png',
-
-  scaledSize: new google.maps.Size(100,100)
-};
 
 function showPosition() {
   //console.log('latitude ' + longitude);
@@ -110,17 +80,9 @@ function showPosition() {
   map = new google.maps.Map(document.getElementById("mapholder"), myOptions);
   marker[num] = new google.maps.Marker({position:latlon,map:map,
     title:"UAV " + num,
-    icon: image
+    icon: image[num]
 
   });
-
-
-
-  /* -------------START TOPIC CONNECTION ------------------- */
-
-
-
-
 
   update();
 
@@ -128,9 +90,7 @@ function showPosition() {
 
 function update() {
 
-  //for (var i = 1; i <= 5; i++) {
-  //num = i;
-  //save the connections in an array
+
   listener = new ROSLIB.Topic({
     ros : ros, 	//ros object connection
     name : '/UAV' + num + '/mavros/global_position/global',
@@ -138,18 +98,14 @@ function update() {
   });
 
   listener.subscribe(function(message) {
-    //console.log('latitude ' + listener.name + ': ' + message.latitude);
-    // console.log('longitude ' + listener.name + ': ' + message.longitude);
+
     if(message.latitude != 0 && message.longitude != 0){ //if not 0
       longitude = message.longitude;
       latitude = message.latitude;
-      //console.log('longitude ' + num + ': ' + longitude[num]);
-      // console.log('latitude ' + num + ': ' + latitude[num]);
+
       listener.unsubscribe();
     }
-    //else{
 
-    //}
   });
 
 
@@ -165,12 +121,18 @@ function update() {
       console.log("OLD" + num);
     }
     else {
+      //add new image
+      image[num] = {
+        url: 'uavIcon' + num + '.png',
+        scaledSize: new google.maps.Size(100,100)
+      };
+
       // Marker does not exist - Create it
-      marker[num] = new google.maps.Marker({
+        marker[num] = new google.maps.Marker({
         position: la,
         map: map,
         title: "UAV " + num,
-        icon: image1
+        icon: image[num]
       });
       console.log("NEW" + num);
     }
@@ -189,13 +151,14 @@ function update() {
     uavName.innerHTML = $("input[name=uav]:checked").val();
 
     num++
+
     if(num >= 11){
       num = 1;
     }
 
 
     // Call the autoUpdate() function every k seconds
-    setTimeout(update, 160);
+    setTimeout(update, 200);
   }
 
 
@@ -218,10 +181,6 @@ function update() {
   }
 
 
-
-
-
-
   </script>
 </head>
 <body>
@@ -242,8 +201,6 @@ function update() {
   <h2 id ="uavName" style="text-align: center;"> </h2>
 
   <div id="mapholder" style = "margin-top: 10px;"></div>
-
-
 
 
 </body>
