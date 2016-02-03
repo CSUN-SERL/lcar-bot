@@ -11,7 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   roscpp
   std_msgs
-  libuvc
+  #libuvc
 )
 
 find_package(OpenCV REQUIRED)
