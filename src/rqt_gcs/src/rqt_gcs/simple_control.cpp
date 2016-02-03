@@ -9,7 +9,7 @@ int main(int argc, char **argv)
   boost::thread_group tg;
   ros::Rate loop_rate(1); //10Hz
 
-  quad1.ScoutBuilding(7,-9,5);
+  quad1.ScoutBuilding(0,0,5);
 
   while(ros::ok())
   {
@@ -394,12 +394,12 @@ float SimpleControl::GetMissionProgress()
 
 Eigen::Vector3d SimpleControl::CircleShape(int angle){
 		/** @todo Give possibility to user define amplitude of movement (circle radius)*/
-		double r = 6.0f;	// 5 meters radius
+		double r = 5.0f;	// 5 mete;rs radius
 
 		return Eigen::Vector3d( r * (cos(angles::from_degrees(angle))),
 				                    r * (sin(angles::from_degrees(angle))),
 				                    pos_previous.z);
-	}
+	};
 
 void SimpleControl::Run()
 {
@@ -437,7 +437,8 @@ void SimpleControl::Run()
       goal = RTL;
       theta = 0;
     }
-  }
+
+    }
   else if(goal == RTL){
     if(ComparePosition(pos_local, pos_target) == 0){
       //Vehicle is at target location => Disarm
