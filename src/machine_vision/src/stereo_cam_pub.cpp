@@ -15,7 +15,7 @@
 
 image_transport::Publisher pubLeft;
 image_transport::Publisher pubRight;
-image_transport::Publisher pubBGR;
+image_transport::Publisher pubRGB;
 
 void cb(uvc_frame_t *frame, void *ptr) {
   frame->frame_format = UVC_FRAME_FORMAT_YUYV;
@@ -23,12 +23,16 @@ void cb(uvc_frame_t *frame, void *ptr) {
   std::cout << frame->frame_format << std::endl;
   uvc_frame_t *greyLeft;
   uvc_frame_t *greyRight;
+  uvc_frame_t *frameRGB;
   uvc_error_t retLeft;
   uvc_error_t retRight;
+  uvc_error_t retRGB;
 
   /* We'll convert the image from YUV/JPEG to gray8, so allocate space */
   greyLeft = uvc_allocate_frame(frame->width * frame->height);
   greyRight = uvc_allocate_frame(frame->width * frame->height);
+  frameRGB = uvc_allocate_frame(frame->width * frame->height);
+  
   if (!greyLeft) {
     printf("unable to allocate grey left frame!");
     return;
@@ -37,10 +41,15 @@ void cb(uvc_frame_t *frame, void *ptr) {
     printf("unable to allocate grey right frame!");
     return;
   }
+  if(!frameRGB){
+      printf("unable to allocate RGB frame!");
+      return;
+  }
 
   /* Do the BGR conversion */
   retLeft = uvc_yuyv2y(frame, greyLeft);
   retRight = uvc_yuyv2uv(frame, greyRight);
+  retRGB = uvc_yuyv2rgb(frame, frameRGB);
 
   if (retLeft) {
     uvc_perror(retLeft, "uvc_yuyv2y");
@@ -55,10 +64,16 @@ void cb(uvc_frame_t *frame, void *ptr) {
     printf("Error with yuyv to uv conversion");
     return;
   }
+  if (retRGB) {
+    uvc_perror(retRGB, "uvc_yuyv2rgb");
+    uvc_free_frame(frameRGB);
+    printf("Error with yuyv to rgb conversion");
+    return;
+  }
 
   cv::Mat left (greyLeft->height, greyLeft->width, CV_8UC1, greyLeft->data);
   cv::Mat right (greyRight->height, greyRight->width, CV_8UC1, greyRight->data);
-  cv::Mat bgrFrame (frame->height, frame->width, CV_8UC3, frame->data);
+  cv::Mat RGB (frameRGB->height, frameRGB->width, CV_8UC3, frameRGB->data);
 
   if(!left.empty()){
       sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(),
@@ -72,17 +87,17 @@ void cb(uvc_frame_t *frame, void *ptr) {
       pubRight.publish(msg);
   }
 
-  /*
-  if(!bgrFrame.empty()){
+  ///*
+  if(!RGB.empty()){
       sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(),
-                                                "bgr8", bgrFrame).toImageMsg();
-      pubBGR.publish(msg);
+                                                "bgr8", RGB).toImageMsg();
+      pubRGB.publish(msg);
   }
-  */
+  //*/
 
   uvc_free_frame(greyLeft);
   uvc_free_frame(greyRight);
-  //uvc_free_frame(frame);
+  uvc_free_frame(frameRGB);
 }
 
 int main (int argc, char** argv){
@@ -92,7 +107,7 @@ int main (int argc, char** argv){
     image_transport::ImageTransport it(nh);
     pubLeft = it.advertise( "stereo_cam/left/image_raw", 1);
     pubRight = it.advertise("stereo_cam/right/image_raw", 1);
-    pubBGR = it.advertise(  "stereo_cam/bgr/image_raw", 1);
+    pubRGB = it.advertise(  "stereo_cam/rgb/image_raw", 1);
 
     //libuvc inits
     uvc_context_t *ctx;
