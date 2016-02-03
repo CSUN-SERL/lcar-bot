@@ -18,6 +18,8 @@ image_transport::Publisher pubRight;
 image_transport::Publisher pubRGB;
 
 void cb(uvc_frame_t *frame, void *ptr) {
+  ros::Rate loop_rate(30);
+  loop_rate.sleep();
   frame->frame_format = UVC_FRAME_FORMAT_YUYV;
   std::cout << "Frame format" << std::endl;
   std::cout << frame->frame_format << std::endl;
@@ -32,7 +34,7 @@ void cb(uvc_frame_t *frame, void *ptr) {
   greyLeft = uvc_allocate_frame(frame->width * frame->height);
   greyRight = uvc_allocate_frame(frame->width * frame->height);
   frameRGB = uvc_allocate_frame(frame->width * frame->height);
-  
+
   if (!greyLeft) {
     printf("unable to allocate grey left frame!");
     return;
@@ -98,8 +100,9 @@ void cb(uvc_frame_t *frame, void *ptr) {
   uvc_free_frame(greyLeft);
   uvc_free_frame(greyRight);
   uvc_free_frame(frameRGB);
-}
 
+}
+////////////////////////////////////////////////////////////////////////////////
 int main (int argc, char** argv){
     //ros inits
     ros::init(argc, argv, "stereo_cam");
@@ -108,6 +111,9 @@ int main (int argc, char** argv){
     pubLeft = it.advertise( "stereo_cam/left/image_raw", 1);
     pubRight = it.advertise("stereo_cam/right/image_raw", 1);
     pubRGB = it.advertise(  "stereo_cam/rgb/image_raw", 1);
+
+    //ros::Rate loop_rate(30); //10Hz
+
 
     //libuvc inits
     uvc_context_t *ctx;
@@ -179,9 +185,10 @@ int main (int argc, char** argv){
             uvc_set_ae_mode(devh, 0); /* e.g., turn on auto exposure */
 
             //sleep(10); /* stream for 10 seconds */
-            while(nh.ok())
+            while(nh.ok()){
                 ros::spinOnce();
-
+                //loop_rate.sleep();
+              }
             /* End the stream. Blocks until last callback is serviced */
             uvc_stop_streaming(devh);
             puts("Done streaming.");
