@@ -14,7 +14,7 @@ using namespace std;
 int main(int argc, char** argv)
 {
 
-  ros::init(argc, argv, "stereo_cam", ros::init_options::AnonymousName);
+  ros::init(argc, argv, "mono_cam", ros::init_options::AnonymousName);
   ros::NodeHandle nh;
   image_transport::ImageTransport it(nh);
 
@@ -32,7 +32,7 @@ int main(int argc, char** argv)
   int video_source;
   paramSet = ros::param::get("~video_id", video_source);
   if(!paramSet){
-      video_source = 0;
+      video_source = -1;
   }
   cout << video_source << "\n";
   cv::VideoCapture cap(video_source);
