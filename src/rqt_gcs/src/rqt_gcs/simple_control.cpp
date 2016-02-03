@@ -9,7 +9,7 @@ int main(int argc, char **argv)
   boost::thread_group tg;
   ros::Rate loop_rate(1); //10Hz
 
-  quad1.ScoutBuilding(0,0,5);
+  //quad1.ScoutBuilding(0,0,5);
 
   while(ros::ok())
   {
@@ -58,15 +58,20 @@ SimpleControl::~SimpleControl(void)
   //Class destructor
 }
 
+void SimpleControl::
+
 void SimpleControl::Arm(bool value)
 {
   if(state.armed != value){ //Only change to new state if it's different
     //Create a message for arming/disarming
     mavros_msgs::CommandBool arm;
     arm.request.value = value;
+      //Call the service
 
-    //Call the service
-    if(sc_arm.call(arm)){
+    if(pos_local.z > 0){
+      this-SetMode("AUTO.LAND");
+    }
+    else if(sc_arm.call(arm)){
       if(arm.response.success == 1){
 
         bool timeout = false;

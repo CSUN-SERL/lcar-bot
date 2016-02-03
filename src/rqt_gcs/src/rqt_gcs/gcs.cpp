@@ -143,7 +143,7 @@ void MyPlugin::MissionSubmit(){
          }
          else if(msUi_.playsComboBox->currentIndex() == 1){
            quad1.EnableOffboard();
-  	       quad1.ScoutBuilding(2,2,2);
+  	       quad1.ScoutBuilding(0,6,3);
            ROS_INFO_STREAM("SCOUT BUILDING");
          }
    }
