@@ -11,11 +11,10 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   roscpp
   std_msgs
-  libuvc
 )
 
 find_package(OpenCV REQUIRED)
-
+find_package(libuvc REQUIRED)
 
 # Declare the package
 catkin_package()
@@ -24,6 +23,7 @@ catkin_package()
 include_directories(include
   ${catkin_INCLdUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
+  ${libuvc_INCLUDE_DIRS}
 )
 
 # Declare executables with source files
@@ -45,4 +45,5 @@ target_link_libraries(camera_subscriber
 target_link_libraries(stereo_publisher
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
+  ${libuvc_LIBRARIES}
 )
