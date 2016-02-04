@@ -108,6 +108,12 @@ function update() {
 
   });
 
+  if(longitude != 0 && latitude != 0 && $('input[name=uav]').length < num + 1) {
+      //create radio buttons
+
+    $(' <input type="radio" name="uav" value= num > uav num').appendTo('#rform');
+
+  }
 
 
   console.log("lat: " + latitude);
@@ -141,10 +147,10 @@ function update() {
     var checked = $('input[name=uav]:checked').val();
     //console.log(checked);
     if(checked != 'free') { //if its not free roam, then center map to an UAV
-      map.setCenter(la);
+      map.setCenter(marker[checked].getPosition());
     }
     else{
-      map.setCenter(marker[checked]);
+    //nothing
     }
 
     outmessage.innerHTML = num + "  " + la ;
@@ -189,10 +195,9 @@ function update() {
 
 
   <center>
-    <form name="rform action="" style="display: inline; ">
+    <form name="rform" action="" style="display: inline; ">
       <input type="radio" name="uav" value="free"> free-roam
-      <input type="radio" name="uav" value="1"> uav1
-      <input type="radio" name="uav" value="2"> uav2
+
     </form>
 
   </center>
