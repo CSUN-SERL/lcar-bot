@@ -155,6 +155,7 @@ void MyPlugin::MissionSubmit(){
         quad1.Arm(false);
    }
    else if(msUi_.missionComboBox->currentIndex() == 2){
+     quad1.SetMode("AUTO.LAND");
         ROS_INFO_STREAM("LAND");
    }
    else if(msUi_.missionComboBox->currentIndex() == 3){
@@ -165,7 +166,7 @@ void MyPlugin::MissionSubmit(){
          }
          else if(msUi_.playsComboBox->currentIndex() == 1){
            quad1.EnableOffboard();
-  	       quad1.ScoutBuilding(0,6,3);
+  	       quad1.ScoutBuilding(0,0,4);
            ROS_INFO_STREAM("SCOUT BUILDING");
          }
    }

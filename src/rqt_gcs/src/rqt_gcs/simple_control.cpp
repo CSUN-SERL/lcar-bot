@@ -58,8 +58,6 @@ SimpleControl::~SimpleControl(void)
   //Class destructor
 }
 
-void SimpleControl::
-
 void SimpleControl::Arm(bool value)
 {
   if(state.armed != value){ //Only change to new state if it's different
@@ -68,8 +66,8 @@ void SimpleControl::Arm(bool value)
     arm.request.value = value;
       //Call the service
 
-    if(pos_local.z > 0){
-      this-SetMode("AUTO.LAND");
+    if(pos_local.z > 0 && !value){
+      this->SetMode("AUTO.LAND");
     }
     else if(sc_arm.call(arm)){
       if(arm.response.success == 1){
@@ -406,6 +404,24 @@ Eigen::Vector3d SimpleControl::CircleShape(int angle){
 				                    pos_previous.z);
 	};
 
+Eigen::Vector3d SimpleControl::DiamondShape(float x, float y, float z){
+
+  double r = 5.0f;
+
+  float Point1,Point2,Point3,Point4;
+ // making array later
+  for()
+  Point1 = pos_local.x + r;
+  Point2 = pos_local.y + r;
+  Point3 = pos_local.x - r;
+  Point4 = pos_local.y - r;
+
+
+
+  return Eigen::Vector3d(geom)
+
+}
+
 void SimpleControl::Run()
 {
   /*if(battery.remaining < BATTERY_MIN){
@@ -426,17 +442,19 @@ void SimpleControl::Run()
     else{ //Ascend to the proper altitude first at the current location
       this->SetLocalPosition(pos_local.x, pos_local.y, pos_target.z);
     }
+      //this->SetLinearVelocity(30,30,0);
   }
+
   else if(goal == SCOUT){
     //TODO: Fix Scout Functionality. Temporary Circle Path Test
     static int theta = 0;
-
-	  tf::pointEigenToMsg(this->CircleShape(theta), pos_target); //Update Target Pos
+    tf::pointEigenToMsg(this->DiamondShape(pos_local.x,pos_local.y,pos_local.z),pos_target);
+	  //tf::pointEigenToMsg(this->CircleShape(theta), pos_target); //Update Target Pos
 	  this->SetLocalPosition(pos_target);
     goal = TRAVEL;
     theta++;
 
-    if (theta == 360){
+    if (theta == 90){
       ROS_INFO_STREAM("Home Target: " << pos_home);
       pos_target = pos_home;
       goal = RTL;
@@ -445,7 +463,7 @@ void SimpleControl::Run()
 
     }
   else if(goal == RTL){
-    if(ComparePosition(pos_local, pos_target) == 0){
+    /*if(ComparePosition(pos_local, pos_target) == 0){
       //Vehicle is at target location => Disarm
       goal = DISARM;
     }
@@ -459,6 +477,9 @@ void SimpleControl::Run()
     }
     else{
       this->SetLocalPosition(pos_local.x, pos_local.y, ALT_RTL);
+    }*/
+    if(state.mode.compare("AUTO.RTL") != 0 && state.mode.compare("AUTO.LAND") != 0){
+      this->SetMode("AUTO.RTL");
     }
   }
   else if(goal == LAND){
