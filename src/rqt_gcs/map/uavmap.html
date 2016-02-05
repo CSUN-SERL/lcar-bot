@@ -111,20 +111,21 @@ function update() {
   if(longitude != 0 && latitude != 0 && $('input[name=uav]').length < num + 1) {
       //create radio buttons
 
-    $(' <input type="radio" name="uav" value= num > uav num').appendTo('#rform');
+    $(' <input type="radio" name="uav" value ="+num+" > UAV "+num+"' )
+    .appendTo('#radB');
 
   }
 
 
-  console.log("lat: " + latitude);
-  console.log("lon: " + longitude);
+  //console.log("lat: " + latitude);
+  //console.log("lon: " + longitude);
   la = new google.maps.LatLng(latitude,
     longitude);
 
     if (marker[num]) {
       // Marker already created - Move it
       marker[num].setPosition(la);
-      console.log("OLD" + num);
+    //  console.log("OLD" + num);
     }
     else {
       //add new image
@@ -140,13 +141,13 @@ function update() {
         title: "UAV " + num,
         icon: image[num]
       });
-      console.log("NEW" + num);
+      //console.log("NEW" + num);
     }
 
     // Center the map on the new position depending on the UAV
     var checked = $('input[name=uav]:checked').val();
-    //console.log(checked);
-    if(checked != 'free') { //if its not free roam, then center map to an UAV
+    console.log(checked);
+    if(checked != 'free' && checked != undefined) { //if its not free roam, then center map to an UAV
       map.setCenter(marker[checked].getPosition());
     }
     else{
@@ -195,10 +196,12 @@ function update() {
 
 
   <center>
+
     <form name="rform" action="" style="display: inline; ">
       <input type="radio" name="uav" value="free"> free-roam
 
     </form>
+    <div id ="radB"></div>
 
   </center>
 
