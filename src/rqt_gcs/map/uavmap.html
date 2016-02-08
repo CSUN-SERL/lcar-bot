@@ -11,8 +11,8 @@
 
 
   <script>
-  var longitude ;
-  var latitude ;
+  var longitude = 2;
+  var latitude  = 2;
   var num =1;
   var listeners =[];
 
@@ -83,7 +83,7 @@ function showPosition() {
     icon: image[num]
 
   });
-
+ //setTimeout("update()", 4000)
   update();
 
 }
@@ -111,11 +111,19 @@ function update() {
   if(longitude != 0 && latitude != 0 && $('input[name=uav]').length < num + 1) {
       //create radio buttons
 
-    $(' <input type="radio" name="uav" value ="+num+" > UAV "+num+"' )
-    .appendTo('#radB');
+   $('<input />', {
+              name: 'uav',
+              id: 'uav' + num,
+              type: "radio",
+              value: num,
+          }).appendTo('#radB');
 
-  }
+         $('<label />', {
+          for: 'uav' + num,
+          text: 'uav ' + num + ' ',
+      }).appendTo('#radB');
 
+}
 
   //console.log("lat: " + latitude);
   //console.log("lon: " + longitude);
@@ -155,11 +163,11 @@ function update() {
     }
 
     outmessage.innerHTML = num + "  " + la ;
-    uavName.innerHTML = $("input[name=uav]:checked").val();
+    uavName.innerHTML = "UAV " + checked;
 
     num++
 
-    if(num >= 11){
+    if(num >= 8){
       num = 1;
     }
 
@@ -197,11 +205,11 @@ function update() {
 
   <center>
 
-    <form name="rform" action="" style="display: inline; ">
+    <form id = "radB" name="rform" action="" style="display: inline; ">
       <input type="radio" name="uav" value="free"> free-roam
 
     </form>
-    <div id ="radB"></div>
+
 
   </center>
 
