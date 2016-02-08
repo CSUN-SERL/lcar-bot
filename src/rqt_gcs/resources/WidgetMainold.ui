@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>652</width>
+    <width>587</width>
     <height>477</height>
    </rect>
   </property>
@@ -40,14 +40,30 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <layout class="QVBoxLayout" name="PFDLayout"/>
+        <widget class="WidgetPFD" name="widgetPFD" native="true">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>100</height>
+          </size>
+         </property>
+        </widget>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="OverviewLayout">
-         <property name="sizeConstraint">
-          <enum>QLayout::SetDefaultConstraint</enum>
+        <widget class="QWidget" name="WidgetOverview" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-        </layout>
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>200</height>
+          </size>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -81,7 +97,14 @@
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="MissionLayout"/>
+        <widget class="QWidget" name="WidgetMission" native="true">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>100</height>
+          </size>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -100,7 +123,7 @@
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <layout class="QVBoxLayout" name="UAVListLayout"/>
+        <widget class="QWidget" name="WidgetUAVList" native="true"/>
        </item>
       </layout>
      </widget>
@@ -108,6 +131,14 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>WidgetPFD</class>
+   <extends>QWidget</extends>
+   <header>../../src/rqt_gcs/include/FIW/WidgetPFD.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

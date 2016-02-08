@@ -50,7 +50,10 @@ set(rqt_gcs_UIS
   resources/UavQuestion.ui
   resources/QuadStats.ui
   resources/WidgetPFD.ui
-	resources/PFDWidget_custom.ui
+  resources/PFDWidget_custom.ui
+  resources/WidgetMain.ui
+  resources/UAVCondition.ui
+
 )
 
 SET(rqt_gcs_RCCS resources/qfi.qrc)

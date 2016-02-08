@@ -12,7 +12,8 @@
 #include <ui_UavQuestion.h>
 #include <ui_UavStat.h>
 #include <ui_QuadStats.h>
-
+#include <ui_UAVCondition.h>
+#include <ui_WidgetMain.h>
 #include <ui_PFDWidget_custom.h>
 
 #include <QWidget>
@@ -61,18 +62,37 @@ namespace rqt_gcs{
     Ui::QuadStatsWidget quadUi1_;
 
     Ui::MissionCancelWidget mcUi_;
+
     Ui::MissionProgressWidget mpUi1_;
+    Ui::MissionProgressWidget mpUi2_;
+
     Ui::MissionSelectWidget msUi_;
+
     Ui::UavQuestionWidget uqUi_;
+
     Ui::UavStatWidget usUi1_;
+
     Ui::PFDWidget pfd_ui;
+
+    Ui::centralWidget central_ui_;
+
+    Ui::UAVConditionWidget  condUi1_;
+    Ui::UAVConditionWidget  condUi2_;
 
     QWidget* widget_;
     QWidget* missionCancelWidget1_;
     QWidget* missionSelectWidget1_;
+
     QWidget* missionProgressWidget1_;
+    QWidget* missionProgressWidget2_;
+
     QWidget* UavQuestionWidget1_;
+
     QWidget* UavStatWidget1_;
+
+    QWidget* UavConditionWidget1_;
+    QWidget* UavConditionWidget2_;
+
     QWidget* PFDQWidget;
 
     QLabel* label;
