@@ -218,8 +218,14 @@ public:
 
   /**
       Manage the UAV and ensure that it completes the mission
+
+      @param index The current point number the quad is traveling to.
   */
+  geometry_msgs::Point DiamondShape(int index);
+
+
   void Run();
+
 
   void SetRTL() { goal = RTL; }
 

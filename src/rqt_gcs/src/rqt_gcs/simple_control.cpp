@@ -404,22 +404,38 @@ Eigen::Vector3d SimpleControl::CircleShape(int angle){
 				                    pos_previous.z);
 	};
 
-Eigen::Vector3d SimpleControl::DiamondShape(float x, float y, float z){
+geometry_msgs::Point SimpleControl::DiamondShape(int index){
 
   double r = 5.0f;
-
+  geometry_msgs::Point mission[4] = { };
   float Point1,Point2,Point3,Point4;
  // making array later
-  for()
-  Point1 = pos_local.x + r;
-  Point2 = pos_local.y + r;
-  Point3 = pos_local.x - r;
-  Point4 = pos_local.y - r;
+  index--;
+  //Point[1] = ((pos_local.x + r),(pos_local.y),(pos_local.z));
+  //Point[2] = ((pos_local.x),(pos_local.y + r),(pos_local.z));
+  //Point[3] = ((pos_local.x - r),(pos_local.y),(pos_local.z));
+  //Point[4] = ((pos_local.x),(pos_local.y - r),(pos_local.z));
+
+  ROS_INFO_STREAM("Traveling to Index " << index);
+  mission[0].x = r;
+  mission[0].y = 0;
+  mission[0].z = 4;
+  //this->SetAttitude(0,0,180);
+  mission[1].x = 0;
+  mission[1].y = r;
+  mission[1].z = 4;
+  //this->SetAttitude(0,0,270);
+  mission[2].x = -r;
+  mission[2].y = 0;
+  mission[2].z = 4;
+  //this->SetAttitude(0,0,0);
+  mission[3].x = 0;
+  mission[3].y = -r;
+  mission[3].z = 4;
+  //this->SetAttitude(0,0,90);
 
 
-
-  return Eigen::Vector3d(geom)
-
+  return mission[index];
 }
 
 void SimpleControl::Run()
@@ -428,7 +444,10 @@ void SimpleControl::Run()
     //Return to launch site if battery is starting to get low
     goal = RTL;
   }*/
+
+
   if(goal == TRAVEL){
+    //this->SetLinearVelocity(5,5,1);
     if(ComparePosition(pos_local, pos_target) == 0){
       //Vehicle is at target location => Scout Building
       pos_previous = pos_local;
@@ -447,18 +466,22 @@ void SimpleControl::Run()
 
   else if(goal == SCOUT){
     //TODO: Fix Scout Functionality. Temporary Circle Path Test
-    static int theta = 0;
-    tf::pointEigenToMsg(this->DiamondShape(pos_local.x,pos_local.y,pos_local.z),pos_target);
+    static int rev_count = 0;
+    static int cur_point = 1;
+    pos_target = this->DiamondShape(cur_point);
 	  //tf::pointEigenToMsg(this->CircleShape(theta), pos_target); //Update Target Pos
 	  this->SetLocalPosition(pos_target);
     goal = TRAVEL;
-    theta++;
+    cur_point++;
 
-    if (theta == 90){
-      ROS_INFO_STREAM("Home Target: " << pos_home);
-      pos_target = pos_home;
-      goal = RTL;
-      theta = 0;
+    if (cur_point > 5){
+      //ROS_INFO_STREAM("Home Target: " << pos_home);
+      //pos_target = pos_home;
+      //goal = RTL;
+      ROS_INFO_STREAM("Circled Building" << rev_count << "times.");
+      rev_count++;
+      cur_point = 1;
+
     }
 
     }
