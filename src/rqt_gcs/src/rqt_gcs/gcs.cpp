@@ -223,7 +223,7 @@ void MyPlugin::Imagecallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
   {
-    central_ui_.image_frame->SetImage(cv_bridge::toCvShare(msg)->image);
+    central_ui_.image_frame->setImage(cv_bridge::toCvShare(msg)->image);
     cv::waitKey(1);
   }
   catch (cv_bridge::Exception& e)
