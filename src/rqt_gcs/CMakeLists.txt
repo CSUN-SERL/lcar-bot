@@ -32,6 +32,8 @@ set(rqt_gcs_SRCS
 
   src/FIW/LayoutSquare.cpp
   src/FIW/WidgetPFD.cpp
+
+	src/rqt_image_view/ratio_layouted_frame.cpp
 )
 
 set(rqt_gcs_HDRS
@@ -42,6 +44,8 @@ set(rqt_gcs_HDRS
 
   include/FIW/LayoutSquare.h
   include/FIW/WidgetPFD.h
+
+	include/rqt_image_view/ratio_layouted_frame.h
 )
 
 set(rqt_gcs_UIS
@@ -56,7 +60,7 @@ set(rqt_gcs_UIS
   resources/PFDWidget_custom.ui
   resources/WidgetMain.ui
   resources/UAVCondition.ui
-
+	resources/ImageView.ui
 )
 
 SET(rqt_gcs_RCCS resources/qfi.qrc)

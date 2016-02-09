@@ -32,6 +32,8 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 
   UavStatWidget1_ = new QWidget();
 
+  ImageViewWidget_ = new QWidget();
+
   PFDQWidget       = new QWidget();
 
   UavConditionWidget1_ = new QWidget();
@@ -49,6 +51,8 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 
   usUi1_.setupUi(UavStatWidget1_);
 
+  ivUi_.setupUi(ImageViewWidget_);
+
   pfd_ui.setupUi(PFDQWidget);
 
   condUi1_.setupUi(UavConditionWidget1_);
@@ -64,6 +68,7 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   central_ui_.MissionLayout->addWidget(missionProgressWidget1_);
   central_ui_.OverviewLayout->addWidget(UavStatWidget1_);
   central_ui_.PFDLayout->addWidget(PFDQWidget);
+  central_ui_.CameraLayout->addWidget(ImageViewWidget_);
   central_ui_.UAVListLayout->addWidget(UavConditionWidget1_);
   central_ui_.UAVListLayout->addWidget(UavConditionWidget2_);
 
@@ -219,14 +224,14 @@ void MyPlugin::UpdatePFD()
   pfd_ui.widgetPFD->update();
 }
 
-void MyPlugin::Imagecallback(const sensor_msgs::ImageConstPtr& msg)
+void MyPlugin::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
   {
     cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::RGB8);
     conversion_mat_ = cv_ptr->image;
     QImage image(conversion_mat_.data, conversion_mat_.cols, conversion_mat_.rows, conversion_mat_.step[0], QImage::Format_RGB888);
-    central_ui_.image_frame->setImage(image);
+    ivUi_.image_frame->setImage(image);
   }
   catch (cv_bridge::Exception& e)
   {

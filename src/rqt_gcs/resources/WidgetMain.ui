@@ -60,26 +60,7 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <widget class="rqt_image_view::RatioLayoutedFrame" name="image_frame">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>80</width>
-           <height>60</height>
-          </size>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::Box</enum>
-         </property>
-         <property name="lineWidth">
-          <number>1</number>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="CameraLayout"/>
        </item>
        <item>
         <layout class="QHBoxLayout" name="MissionLayout"/>
@@ -109,14 +90,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>rqt_image_view::RatioLayoutedFrame</class>
-   <extends>QFrame</extends>
-   <header>../../src/rqt_gcs/include/rqt_image_view/ratio_layouted_frame.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>
