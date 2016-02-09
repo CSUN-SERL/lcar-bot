@@ -223,8 +223,10 @@ void MyPlugin::Imagecallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
   {
-    central_ui_.image_frame->setImage(cv_bridge::toCvShare(msg)->image);
-    cv::waitKey(1);
+    cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::RGB8);
+    conversion_mat_ = cv_ptr->image;
+    QImage image(conversion_mat_.data, conversion_mat_.cols, conversion_mat_.rows, conversion_mat_.step[0], QImage::Format_RGB888);
+    central_ui_.image_frame->setImage(image);
   }
   catch (cv_bridge::Exception& e)
   {
