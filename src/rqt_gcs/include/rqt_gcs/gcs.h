@@ -62,6 +62,7 @@ namespace rqt_gcs{
     //void triggerConfiguration();
   private:
     void UpdatePFD();
+    cv::Mat conversion_mat_;
 
     Ui::MyPluginWidget ui_;
     Ui::QuadStatsWidget quadUi1_;
