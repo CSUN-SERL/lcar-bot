@@ -5,6 +5,10 @@
 #include <rqt_gui_cpp/plugin.h>
 #include <rqt_gcs/simple_control.h>
 
+#include <image_transport/image_transport.h>
+#include "opencv2/highgui.hpp"
+#include <cv_bridge/cv_bridge.h>
+
 #include <ui_gcs.h>
 #include <ui_MissionCancel.h>
 #include <ui_MissionProgress.h>
@@ -38,6 +42,7 @@ namespace rqt_gcs{
     ros::Subscriber sub;
     ros::NodeHandle nh;
     void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
+    void Imagecallback(const sensor_msgs::ImageConstPtr& msg);
 
     virtual void initPlugin(qt_gui_cpp::PluginContext& context);
     virtual void shutdownPlugin();

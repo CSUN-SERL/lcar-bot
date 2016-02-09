@@ -60,7 +60,7 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 
   // add widget to the user interface
   context.addWidget(widget_);
- 
+
   central_ui_.MissionLayout->addWidget(missionProgressWidget1_);
   central_ui_.OverviewLayout->addWidget(UavStatWidget1_);
   central_ui_.PFDLayout->addWidget(PFDQWidget);
@@ -217,6 +217,19 @@ void MyPlugin::UpdatePFD()
   pfd_ui.widgetPFD->setClimbRate  (quad1.GetFlightState().vertical_speed);
 
   pfd_ui.widgetPFD->update();
+}
+
+void Imagecallback(const sensor_msgs::ImageConstPtr& msg)
+{
+  try
+  {
+    central_ui_.SetImage(msg->image);
+    cv::waitKey(1);
+  }
+  catch (cv_bridge::Exception& e)
+  {
+    ROS_ERROR("Error in image subsrcriber: %s", e.what());
+  }
 }
 
 } // namespace
