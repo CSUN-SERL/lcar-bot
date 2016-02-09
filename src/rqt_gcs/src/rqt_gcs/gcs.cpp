@@ -219,11 +219,11 @@ void MyPlugin::UpdatePFD()
   pfd_ui.widgetPFD->update();
 }
 
-void Imagecallback(const sensor_msgs::ImageConstPtr& msg)
+void MyPlugin::Imagecallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
   {
-    central_ui_.SetImage(msg->image);
+    central_ui_.SetImage(cv_bridge::toCvShare(msg)->image);
     cv::waitKey(1);
   }
   catch (cv_bridge::Exception& e)
