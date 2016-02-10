@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>413</width>
-    <height>167</height>
+    <width>402</width>
+    <height>223</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -56,7 +56,7 @@ border-radius: 5px;</string>
   <widget class="QLabel" name="label_2">
    <property name="geometry">
     <rect>
-     <x>17</x>
+     <x>20</x>
      <y>40</y>
      <width>121</width>
      <height>17</height>
@@ -283,7 +283,7 @@ border-radius: 5px;</string>
   <widget class="QPushButton" name="changeMissionButton">
    <property name="geometry">
     <rect>
-     <x>17</x>
+     <x>150</x>
      <y>120</y>
      <width>121</width>
      <height>27</height>
@@ -303,7 +303,7 @@ color: rgb(240, 240, 240);</string>
   <widget class="QPushButton" name="stopMissionButton">
    <property name="geometry">
     <rect>
-     <x>277</x>
+     <x>280</x>
      <y>120</y>
      <width>99</width>
      <height>27</height>
@@ -318,6 +318,110 @@ color: rgb(240, 240, 240);</string>
    </property>
    <property name="text">
     <string>Stop Mission</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="armButton">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>180</y>
+     <width>81</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="cursor">
+    <cursorShape>PointingHandCursor</cursorShape>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(64, 89, 145);
+color: rgb(240, 240, 240);</string>
+   </property>
+   <property name="text">
+    <string>Arm</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="disarmButton">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>180</y>
+     <width>99</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="cursor">
+    <cursorShape>PointingHandCursor</cursorShape>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(161, 20, 40);
+color: rgb(240, 240, 240);</string>
+   </property>
+   <property name="text">
+    <string>Disarm</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="flightModeComboBox">
+   <property name="geometry">
+    <rect>
+     <x>220</x>
+     <y>180</y>
+     <width>121</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Flight Mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="accessibleName">
+    <string/>
+   </property>
+   <property name="editable">
+    <bool>false</bool>
+   </property>
+   <property name="currentIndex">
+    <number>0</number>
+   </property>
+   <property name="maxCount">
+    <number>2147483645</number>
+   </property>
+   <property name="sizeAdjustPolicy">
+    <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
+   </property>
+   <property name="modelColumn">
+    <number>0</number>
+   </property>
+   <item>
+    <property name="text">
+     <string>Stablilize</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string comment="Flight">RTL</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string comment="Flight">Loiter</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Alt Hold</string>
+    </property>
+   </item>
+  </widget>
+  <widget class="QLabel" name="label_4">
+   <property name="geometry">
+    <rect>
+     <x>240</x>
+     <y>160</y>
+     <width>121</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Flight Mode</string>
    </property>
   </widget>
  </widget>
