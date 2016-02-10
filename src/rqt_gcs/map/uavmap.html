@@ -61,18 +61,18 @@ image[num] = {
 
 
 function showPosition() {
-  //console.log('latitude ' + longitude);
+//  console.log('latitude ' + longitude);
   // console.log('longitude ' + latitude);
 
 
   latlon = new google.maps.LatLng(longitude, latitude)
   mapholder = document.getElementById('mapholder')
-  mapholder.style.height = '800px';
+  mapholder.style.height = '950px';
   mapholder.style.width = '100%';
 
   var myOptions = {
     center:latlon,zoom:10,
-    mapTypeId:google.maps.MapTypeId.ROADMAP,
+    mapTypeId:google.maps.MapTypeId.SATELLITE,
     mapTypeControl:true,
     navigationControlOptions:{style:google.maps.NavigationControlStyle.SMALL}
   }
@@ -125,8 +125,8 @@ function update() {
 
 }
 
-  //console.log("lat: " + latitude);
-  //console.log("lon: " + longitude);
+  console.log("lat: " + latitude);
+  console.log("lon: " + longitude);
   la = new google.maps.LatLng(latitude,
     longitude);
 
