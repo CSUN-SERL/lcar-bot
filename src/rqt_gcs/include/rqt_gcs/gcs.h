@@ -5,6 +5,10 @@
 #include <rqt_gui_cpp/plugin.h>
 #include <rqt_gcs/simple_control.h>
 
+#include <image_transport/image_transport.h>
+#include "opencv2/highgui.hpp"
+#include <cv_bridge/cv_bridge.h>
+
 #include <ui_gcs.h>
 #include <ui_MissionCancel.h>
 #include <ui_MissionProgress.h>
@@ -12,8 +16,10 @@
 #include <ui_UavQuestion.h>
 #include <ui_UavStat.h>
 #include <ui_QuadStats.h>
-
+#include <ui_UAVCondition.h>
+#include <ui_WidgetMain.h>
 #include <ui_PFDWidget_custom.h>
+#include <ui_ImageView.h>
 
 #include <QWidget>
 #include <QLabel>
@@ -37,6 +43,7 @@ namespace rqt_gcs{
     ros::Subscriber sub;
     ros::NodeHandle nh;
     void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
+    void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
 
     virtual void initPlugin(qt_gui_cpp::PluginContext& context);
     virtual void shutdownPlugin();
@@ -56,23 +63,46 @@ namespace rqt_gcs{
     //void triggerConfiguration();
   private:
     void UpdatePFD();
+    cv::Mat conversion_mat_;
+    ros::Subscriber sub_image = nh.subscribe("stereo_cam/left/image_raw", 1, &MyPlugin::ImageCallback, this);
 
     Ui::MyPluginWidget ui_;
     Ui::QuadStatsWidget quadUi1_;
 
     Ui::MissionCancelWidget mcUi_;
+
     Ui::MissionProgressWidget mpUi1_;
+    Ui::MissionProgressWidget mpUi2_;
+
     Ui::MissionSelectWidget msUi_;
+
     Ui::UavQuestionWidget uqUi_;
+
     Ui::UavStatWidget usUi1_;
+    Ui::ImageViewWidget ivUi_;
+
     Ui::PFDWidget pfd_ui;
+
+    Ui::centralWidget central_ui_;
+
+    Ui::UAVConditionWidget  condUi1_;
+    Ui::UAVConditionWidget  condUi2_;
 
     QWidget* widget_;
     QWidget* missionCancelWidget1_;
     QWidget* missionSelectWidget1_;
+
     QWidget* missionProgressWidget1_;
+    QWidget* missionProgressWidget2_;
+
     QWidget* UavQuestionWidget1_;
+
     QWidget* UavStatWidget1_;
+    QWidget* ImageViewWidget_;
+
+    QWidget* UavConditionWidget1_;
+    QWidget* UavConditionWidget2_;
+
     QWidget* PFDQWidget;
 
     QLabel* label;

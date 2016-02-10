@@ -21,30 +21,57 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 
   // create QWidget
   widget_ = new QWidget();
+
   missionCancelWidget1_ = new QWidget();
+
   missionSelectWidget1_ = new QWidget();
+
   missionProgressWidget1_ = new QWidget();
+
   UavQuestionWidget1_ = new QWidget();
+
   UavStatWidget1_ = new QWidget();
+
+  ImageViewWidget_ = new QWidget();
+
   PFDQWidget       = new QWidget();
 
-  ui_.setupUi(widget_);
+  UavConditionWidget1_ = new QWidget();
+  UavConditionWidget2_ = new QWidget();
+
+  central_ui_.setupUi(widget_);
 
   mcUi_.setupUi(missionCancelWidget1_);
+
   mpUi1_.setupUi(missionProgressWidget1_);
 
   msUi_.setupUi(missionSelectWidget1_);
+
   uqUi_.setupUi(UavQuestionWidget1_);
 
   usUi1_.setupUi(UavStatWidget1_);
 
+  ivUi_.setupUi(ImageViewWidget_);
+
   pfd_ui.setupUi(PFDQWidget);
+
+  condUi1_.setupUi(UavConditionWidget1_);
+  condUi2_.setupUi(UavConditionWidget2_);
+
+  //central_ui_.verticalLayout->removeWidget(central_ui_.WidgetOverview);
+  //central_ui_.verticalLayout->addWidget(UavStatWidget1_);
+
 
   // add widget to the user interface
   context.addWidget(widget_);
-  context.addWidget(missionProgressWidget1_);
-  context.addWidget(UavStatWidget1_);
-  context.addWidget(PFDQWidget);
+
+  central_ui_.MissionLayout->addWidget(missionProgressWidget1_);
+  central_ui_.OverviewLayout->addWidget(UavStatWidget1_);
+  central_ui_.PFDLayout->addWidget(PFDQWidget);
+  central_ui_.CameraLayout->addWidget(ImageViewWidget_);
+  central_ui_.UAVListLayout->addWidget(UavConditionWidget1_);
+  central_ui_.UAVListLayout->addWidget(UavConditionWidget2_);
+
 
    //setup mission progress widgets
    missionSelectWidget1_->setWindowTitle("Mission Selection");
@@ -195,6 +222,21 @@ void MyPlugin::UpdatePFD()
   pfd_ui.widgetPFD->setClimbRate  (quad1.GetFlightState().vertical_speed);
 
   pfd_ui.widgetPFD->update();
+}
+
+void MyPlugin::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
+{
+  try
+  {
+    cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::RGB8);
+    conversion_mat_ = cv_ptr->image;
+    QImage image(conversion_mat_.data, conversion_mat_.cols, conversion_mat_.rows, conversion_mat_.step[0], QImage::Format_RGB888);
+    ivUi_.image_frame->setImage(image);
+  }
+  catch (cv_bridge::Exception& e)
+  {
+    ROS_ERROR("Error in image subsrcriber: %s", e.what());
+  }
 }
 
 } // namespace

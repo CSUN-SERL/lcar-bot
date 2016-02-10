@@ -12,10 +12,13 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
 	tf
+	cv_bridge
+  image_transport
 )
 
 find_package(Qt4 COMPONENTS QtCore QtGui QtSvg REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread)
+find_package(OpenCV REQUIRED)
 
 include(${QT_USE_FILE})
 include(EnableCXX11)
@@ -29,6 +32,8 @@ set(rqt_gcs_SRCS
 
   src/FIW/LayoutSquare.cpp
   src/FIW/WidgetPFD.cpp
+
+	src/rqt_image_view/ratio_layouted_frame.cpp
 )
 
 set(rqt_gcs_HDRS
@@ -39,6 +44,8 @@ set(rqt_gcs_HDRS
 
   include/FIW/LayoutSquare.h
   include/FIW/WidgetPFD.h
+
+	include/rqt_image_view/ratio_layouted_frame.h
 )
 
 set(rqt_gcs_UIS
@@ -50,7 +57,10 @@ set(rqt_gcs_UIS
   resources/UavQuestion.ui
   resources/QuadStats.ui
   resources/WidgetPFD.ui
-	resources/PFDWidget_custom.ui
+  resources/PFDWidget_custom.ui
+  resources/WidgetMain.ui
+  resources/UAVCondition.ui
+	resources/ImageView.ui
 )
 
 SET(rqt_gcs_RCCS resources/qfi.qrc)
@@ -66,7 +76,10 @@ catkin_package(
   CATKIN_DEPENDS roscpp rqt_gui rqt_gui_cpp
 )
 
-include_directories(${Qt4_INCLUDE_DIRS})
+include_directories(include
+	${Qt4_INCLUDE_DIRS}
+	${OpenCV_INCLUDE_DIRS}
+)
 
 add_definitions(${Qt4_DEFINITIONS})
 
@@ -99,8 +112,9 @@ target_link_libraries(${PROJECT_NAME}
 											${catkin_LIBRARIES}
 											${QT_QTCORE_LIBRARY}
 											${QT_QTGUI_LIBRARY}
-
-${QT_QTSVG_LIBRARY})
+											${QT_QTSVG_LIBRARY}
+											${OpenCV_LIBRARIES}
+)
 
 find_package(class_loader)
 class_loader_hide_library_symbols(${PROJECT_NAME})
