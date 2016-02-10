@@ -25,8 +25,9 @@ int main(int argc, char **argv)
 
     pub_pos_global[i] = nh.advertise<sensor_msgs::NavSatFix>(uav_ns + std::to_string(i+1) + "/mavros/global_position/global",10);
 
-    lat += .005;
-    lon += .005;
+
+    lat += rand() % 180 - 360; //.005
+    lon += rand() % 90 - 180;
   }
 
   while(ros::ok())
