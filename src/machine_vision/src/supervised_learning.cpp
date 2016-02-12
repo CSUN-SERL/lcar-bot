@@ -3,19 +3,19 @@
 //#include <sstream>
 
 void SetLabel(cv::Mat& im, cv::Rect r, const std::string label);
-void TestHog();
+void NegativeMiningSetup();
 void NegativeMining(Mat greyimg);
 void CategorizeObjects();
 void HogObjectDetection(Ptr<SVM> svm);
 void Run();
 void CreateSVM();
-void TestSVM();
+void ClassificationTestingSetup();
 void DetectObjects();
 void StaticHogTest();
 void DetectObject(Mat img);
-void RestGlobals();
+void ResetGlobals();
 
-//Globals for object catergorization
+//Globals for object categorization
 //Tracks when HogObjectdetection is running
 bool running = false;
 //A list of all objects detect during HogObjectDetection
@@ -27,11 +27,13 @@ queue<Mat> categorized_objects;
 queue<int> categorized_labels;
 
 //Globals for user control
-//A list tracking which kernel the user wants to be used in SVM training.
-vector<int> svm_kernels;
-//A list tracking which type of feature extractoion the user wants to use with
+//A variable tracking which kernel the user wants to be used in SVM training.
+int svm_kernel;
+//A variable tracking which type of feature extraction the user wants to use with
 //SVM training.
-queue<int> feature_extraction;
+int feature_extraction;
+//File name of the SVM
+string svm_name;
 
 //Globals mats used for training
 //List of labels to be used for SVM training.
@@ -40,7 +42,7 @@ Mat labels;
 //labels Mat.
 vector<Mat> trainingdata;
 //Use to declare image size and Hog winSize.
-Size img_size = Size(96, 160);
+Size img_size = Size(64, 128);
 
 //Copys of current image
 //Current image being processed
@@ -92,7 +94,7 @@ int iteration_2; //number correspons to extraction type
 
 int main(int argc, char * argv[]) {
     Run();
-    RestGlobals();
+    ResetGlobals();
     return 0;
 }
 
@@ -109,14 +111,14 @@ void Run() {
     int user_input = 0;
     do {
         cout << "What are you planning on doing?\n";
-        cout << "(1)Train a SVM\n(2)Test a current SVM\n(3)Apply negative mining to an existing SVM\n(4)Run object detection\n(5)Test HOG detection\n(6)Exit\nInput: ";
+        cout << "(1)Create a SVM\n(2)Run negative mining\n(3)Run classification testing\n(4)Run static testing\n(5)Run object detection\n(6)Exit\nInput: ";
         cin >> user_input;
         switch (user_input) {
             case 1: CreateSVM();
                 break;
-            case 2: TestSVM();
+            case 2: NegativeMiningSetup();//TestSVM();
                 break;
-            case 3: TestHog();
+            case 3: ClassificationTestingSetup();//NegativeMiningSetup();
                 break;
             case 4: DetectObjects();
                 break;
@@ -132,55 +134,148 @@ void Run() {
 void CreateSVM() {
     MachineLearning ml;
     int user_input;
+    cout << "What do you want to call the SVM?";
+    cin >> svm_name;
     cout << "What type of kernel do you want to use when training your SVM\n";
-    cout << "(1)Linear?\n(2)RBF?\n(3)CHI?\n(4)Poly?\n(5)Sigmoid?\n(6)Continue\n";
-    while (user_input != 6) {
-        cout << "Kernel type ";
-        cin >> user_input;
-        if (user_input < 1 || user_input > 6)
-            cout << "Invalid input\n";
-        else if (user_input != 6)
-            svm_kernels.push_back(user_input);
+    cout << "(1)Linear?\n(2)RBF?\n(3)CHI?\n(4)Poly?\n(5)Sigmoid?\n";
+    cout << "Kernel type ";
+    cin >> user_input;
+    if (user_input < 1 || user_input > 5){
+        cout << "Invalid input\n";
+        CreateSVM();
     }
+   svm_kernel = user_input;
+
     cout << "What type of feature extraction do you want to use?\n";
-    cout << "(1)HOG?\n(2)ORB?\n(3)Continue\n";
+    cout << "(1)HOG?\n(2)ORB?\n";
     user_input = 0;
-    while (user_input != 3) {
-        cout << "Feature extraction: ";
-        cin >> user_input;
-        if (user_input < 1 || user_input > 3)
-            cout << "Invalid input\n";
-        else if (user_input != 3)
-            feature_extraction.push(user_input);
-    }
+    cout << "Feature extraction: ";
+    cin >> user_input;
+    if (user_input < 1 || user_input > 2)
+        cout << "Invalid input\n";
+
+    feature_extraction = user_input;
+
     cout << "Will begin training your SVM\n";
     ml.TrainSvm();
 }
 
-//Prep svm for classification testing
-void TestSVM() {
+//Create and save a svm based on the paremeters entered by the user
+void MachineLearning::TrainSvm() {
     MachineLearning ml;
-    string svm_file;
-    cout << "What svm file do you wish to test?\n Input: ";
-    cin >> svm_file;
-    cout << "What type of feature extraction do you want to use?\n";
-    cout << "(1)HOG?\n(2)ORB?\n(3)Continue\n";
-    int user_input;
-    while (user_input != 3 && feature_extraction.size() < 1) {
-        cout << "Feature extraction: ";
-        cin >> user_input;
-        if (user_input < 1 || user_input > 3)
-            cout << "Invalid input\n";
-        else if (user_input != 3)
-            feature_extraction.push(user_input);
-    }
-    while (!feature_extraction.empty()) {
-        ml.Testing(svm_file);
+    ResetGlobals();
+    string IMAGES_DIR = "/home/" + user + "/Pictures/Training";
+    ml.TraverseDirectory(IMAGES_DIR);
+    labels.convertTo(labels, CV_32SC1);
+    Mat train_data;
+    Ptr<SVM> svm = SVM::create();;
+    ConvertToMl(trainingdata, train_data);
+    trainingdata.clear();
+    //Set up SVM's parameters
+    ml.SetKernal(svm, svm_kernel);
+    //Set up training data
+    Ptr<TrainData> td = TrainData::create(train_data, ROW_SAMPLE, labels);
+    cout << "Beginning Training Process\n";
+    cout << "Training a SVM with a " << svm_type << " kernel using " << extraction_type << "\n";
+    svm->trainAuto(td, 10);
+    string svm_file = svm_name + ".xml";
+    svm->save(svm_file);
+    ResetGlobals();
+}
+
+//Method that sets parameters for negative mining
+void NegativeMiningSetup() {
+    MachineLearning ml;
+    string IMAGES_DIR = "/home/" + user + "/Pictures/Training/other";
+    testing = 2;
+    ml.TraverseDirectory(IMAGES_DIR);
+    ml.TrainSvm();
+    cout << neg_count;
+}
+
+//Perform negtative mining to reduce false positives
+void NegativeMining(Mat greyimg) {
+    MachineLearning ml;
+    vector< float > hog_detector;
+    vector< Rect > locations;
+    svm_name = "";
+    cout << "Run negative mining on which SVM?";
+    cin >> svm_name;
+    const string modelLibPath = svm_name;
+    Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
+    ml.GetSvmDetector(svm, hog_detector);
+    Mat img;
+    HOGDescriptor hog;
+    hog.winSize = img_size;
+    hog.gammaCorrection = true;
+    hog.setSVMDetector(hog_detector);
+    src = greyimg;
+    resize(src, src, Size(256, 512));
+    resize(display, display, Size(256, 512));
+    namedWindow("Step 2 draw Rectangle", WINDOW_AUTOSIZE);
+    imshow("Step 2 draw Rectangle", display);
+    waitKey(100);
+    imwrite("Step2.JPG", display);
+    locations.clear();
+    hog.detectMultiScale(src, locations, true);
+    for (int i = 0; i < locations.size(); i++) {
+        Rect windows(locations.at(i).x, locations.at(i).y, locations.at(i).width, locations.at(i).height);
+        img = src(windows).clone();
+        Mat Roi = src(windows);
+        Mat extract;
+        resize(Roi, extract, img_size);
+        Mat res;
+        Mat train_data;
+        ml.HogFeatureExtraction(extract, -1);
+        ml.ConvertToMl(trainingdata, train_data);
         trainingdata.clear();
-        labels.release();
-        N = 0;
-        feature_extraction.pop();
+        svm->predict(train_data, res, 4);
+        for (int j = 0; j < res.rows; j++) {
+            cout << res.at<float>(j, 0) << " " << "res " << res.rows << " count " << neg_count << "\n";
+            //Show ROI
+            if (res.at<float>(j, 0) == 0) {
+                namedWindow("Step 4 Draw selected Roi", WINDOW_AUTOSIZE);
+                imshow("Step 4 Draw selected Roi", Roi);
+                waitKey(100);
+                imwrite("Step4.JPG", Roi);
+                int neg = neg_count;
+                stringstream ss;
+                ss << neg;
+                string str = ss.str();
+                string destination = "/home/thomas/Pictures/Training/other/" + str + ".JPG";
+                imwrite(destination, Roi);
+                neg_count++;
+            }
+        }
+        ResetGlobals();
     }
+    Mat DrawResultHere = display.clone();
+    // Show  rectangle
+    namedWindow("Step 2 draw Rectangle", WINDOW_AUTOSIZE);
+    imshow("Step 2 draw Rectangle", DrawResultHere);
+    waitKey(100);
+    imwrite("Step2.JPG", DrawResultHere);
+}
+
+//Prep svm for classification testing
+void ClassificationTestingSetup() {
+    MachineLearning ml;
+    svm_name = "";
+    cout << "What svm file do you wish to test?\n Input: ";
+    cin >> svm_name;
+    cout << "What type of feature extraction do you want to use?\n";
+    cout << "(1)HOG?\n(2)ORB?\n";
+    int user_input;
+    cout << "Feature extraction: ";
+    cin >> user_input;
+    if (user_input < 1 || user_input > 3)
+        cout << "Invalid input\n";
+    else if (user_input > 0 && user_input < 3)
+        feature_extraction = user_input;
+
+    ResetGlobals();
+    ml.ClassificationTesting(svm_name);
+    ResetGlobals();
 }
 
 //The goal of this method is detect and classify objects in real time
@@ -261,10 +356,9 @@ void MachineLearning::TraverseDirectory(string path) {
         if (dirEntry->d_type == DT_DIR && dirEntry->d_name[0] != '.') {
             newPath = path + "/" + dirEntry->d_name;
             cout << "\nEntering: " << newPath << endl;
-            cout << N << "\n";
-            label_ = N++;
             TraverseDirectory(newPath);
-
+            cout << N << "\n";
+            N++;
         } else if (dirEntry->d_type == DT_REG && dirEntry->d_name[0] != '.') {
 
             Mat greyImgMat = MachineLearning::ProcessImage(path, dirEntry->d_name);
@@ -274,10 +368,10 @@ void MachineLearning::TraverseDirectory(string path) {
             if (testing == 3) {
                 DetectObject(greyImgMat);
             }
-            int flag = feature_extraction.front();
+            int flag = feature_extraction;
             switch (flag) {
-                case 1:cout << label_ << "\n";
-                    MachineLearning::HogFeatureExtraction(greyImgMat, label_);
+                case 1:
+                    MachineLearning::HogFeatureExtraction(greyImgMat, N);
                     break;
                 case 2:MachineLearning::OrbFeatureExtraction(greyImgMat);
             }
@@ -322,10 +416,10 @@ void MachineLearning::HogFeatureExtraction(Mat ImgMat, int label) {
     d.compute(ImgMat, descriptors, Size(8, 8), Size(0, 0), location);
     trainingdata.push_back(Mat(descriptors).clone());
     if (label != -1)
-        labels.push_back(label); //labels.push_back(label);
+        labels.push_back(N); //labels.push_back(label);
     //cout << label << "\n";
     if (testing == 1) {
-        img_label.push(label);
+        img_label.push(N);
     }
     size_++;
     extraction_type = "HOG";
@@ -357,45 +451,7 @@ void MachineLearning::OrbFeatureExtraction(Mat ImgMat) {
     extraction_type = "ORB";
 }
 
-//Create and save a svm based on the paremeters entered by the user
-void MachineLearning::TrainSvm() {
-    MachineLearning ml;
-    while (!feature_extraction.empty()) {
-        for (int i = 0; i < svm_kernels.size(); i++) {
-            trainingdata.clear();
-            labels.release();
-            string IMAGES_DIR = "/home/" + user + "/Pictures/Training";
-            N = 0;
-            ml.TraverseDirectory(IMAGES_DIR);
-            labels.convertTo(labels, CV_32SC1);
-            //trainingdata.convertTo(trainingdata, CV_32FC1);
-            Mat train_data;
-            Ptr<TrainData> td;
-            Ptr<SVM> svm;
-            ConvertToMl(trainingdata, train_data);
-            trainingdata.clear();
-            //Set up SVM's parameters
-            svm = SVM::create();
-            ml.SetKernal(svm, svm_kernels.at(i));
-            td = TrainData::create(train_data, ROW_SAMPLE, labels);
-            cout << "Beginning Training Process\n";
-            cout << "Training a SVM with a " << svm_type << " kernel using " << extraction_type << "\n";
-            svm->trainAuto(td, 10);
-            string svm_file = svm_type + extraction_type + ".xml";
-            svm->save(svm_file);
-            label_ = 0;
-            N = 0;
-            door_counter = 0;
-            train_data.release();
-            labels.release();
-            src.release();
-            ml.Testing(svm_file);
-            testing = 0;
-        }
-        feature_extraction.pop();
-    }
 
-}
 
 //Set kernel based on previous user input
 void MachineLearning::SetKernal(Ptr<SVM> svm, int flag) {
@@ -440,29 +496,25 @@ void SetLabel(cv::Mat& im, cv::Rect r, const std::string label) {
 }
 
 //Classification testing, see how accurate the svm is at classifying objects
-void MachineLearning::Testing(string svm) {
+void MachineLearning::ClassificationTesting(string svm) {
     testing = 1;
     std::ofstream results;
     const string modelLibPath = svm;
     Ptr<SVM> Svm = StatModel::load<SVM>(modelLibPath);
     string IMAGES_DIR = "/home/" + user + "/Pictures/Classification_Test";
     TraverseDirectory(IMAGES_DIR);
-
     //trainingdata.convertTo(trainingdata, CV_32FC1);
-    bool c = Svm->isClassifier();
-    bool t = Svm->isTrained();
-    cout << c << " " << t << "\n";
+    //bool c = Svm->isClassifier();
+    //bool t = Svm->isTrained();
+    //cout << c << " " << t << "\n";
     Mat train_data;
     ConvertToMl(trainingdata, train_data);
     Mat res;
     Svm->predict(train_data, res, 4);
     float answer = 0;
     for (int i = 0; i < res.rows; i++) {
-
         if (res.at<float>(i, 0) == 0)
             door_counter++;
-        //        else
-        //            negcounter++;
         if (res.at<float>(i, 0) == (float) img_label.front())
             answer++;
         cout << res.at<float>(i, 0) << " " << proc_img.front() << " " << img_label.front() << "\n"; // << "Prediction: " << p << "\n";
@@ -470,19 +522,16 @@ void MachineLearning::Testing(string svm) {
         img_label.pop();
     }
     float correct = answer / (res.rows + 1);
-    cout << "Number of doors: " << door_counter << "/" << res.rows + 1 << "\n";
-    //cout << "Number of other objects: " << negcounter << "/" << res.rows << "\n";
     cout << "Total correct " << correct * 100.0 << "%\n";
-    if (iteration == 1)
-        results.open("Results.txt", std::ofstream::out);
-    else
-        results.open("Results.txt", std::ofstream::app);
-    results << "This svm accurately predicted " << answer << "/" << res.rows + 1 << " which equates to " << correct * 100.0 << "%\n";
-    results << "\n";
-    results.close();
-    //}
-    res.release();
-    train_data.release();
+//    if (iteration == 1)
+//        results.open("Results.txt", std::ofstream::out);
+//    else
+//        results.open("Results.txt", std::ofstream::app);
+//    results << "This svm accurately predicted " << answer << "/" << res.rows + 1 << " which equates to " << correct * 100.0 << "%\n";
+//    results << "\n";
+//    results.close();
+//    //}
+    ResetGlobals();
 }
 
 //Perform real time HOG object detection
@@ -624,81 +673,6 @@ void MachineLearning::DrawLocations(Mat & img, const vector< Rect > & found, con
     }
 }
 
-//Perform negtative mining to reduce false positives
-void NegativeMining(Mat greyimg) {
-    MachineLearning ml;
-    vector< float > hog_detector;
-    vector< Rect > locations;
-    const string modelLibPath = "LinearHOG.xml";
-    Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
-    ml.GetSvmDetector(svm, hog_detector);
-    //        if (!cap.isOpened())
-    //            return -1;
-    Mat draw, img;
-    HOGDescriptor hog;
-    hog.winSize = img_size;
-    hog.gammaCorrection = true;
-    hog.setSVMDetector(hog_detector);
-    src = greyimg;
-    resize(src, src, Size(256, 512));
-    resize(display, display, Size(256, 512));
-    namedWindow("Step 2 draw Rectangle", WINDOW_AUTOSIZE);
-    imshow("Step 2 draw Rectangle", display);
-    waitKey(100);
-    imwrite("Step2.JPG", display);
-    locations.clear();
-    hog.detectMultiScale(src, locations, true);
-    for (int i = 0; i < locations.size(); i++) {
-        Rect windows(locations.at(i).x, locations.at(i).y, locations.at(i).width, locations.at(i).height);
-        img = src(windows).clone();
-        Mat Roi = src(windows);
-        Mat extract;
-        resize(Roi, extract, img_size);
-        Mat res;
-        Mat train_data;
-        ml.HogFeatureExtraction(extract, -1);
-        ml.ConvertToMl(trainingdata, train_data);
-        trainingdata.clear();
-        svm->predict(train_data, res, 4);
-        for (int j = 0; j < res.rows; j++) {
-            cout << res.at<float>(j, 0) << " " << "res " << res.rows << " count " << neg_count << "\n";
-            //Show ROI
-            if (res.at<float>(j, 0) == 0) {
-                namedWindow("Step 4 Draw selected Roi", WINDOW_AUTOSIZE);
-                imshow("Step 4 Draw selected Roi", Roi);
-                waitKey(100);
-                imwrite("Step4.JPG", Roi);
-                int neg = neg_count;
-                stringstream ss;
-                ss << neg;
-                string str = ss.str();
-                string destination = "/home/thomas/Pictures/Training/other/" + str + ".JPG";
-                imwrite(destination, Roi);
-                neg_count++;
-            }
-        }
-        res.release();
-        train_data.release();
-        extract.release();
-    }
-    Mat DrawResultHere = display.clone();
-    // Show  rectangle
-    namedWindow("Step 2 draw Rectangle", WINDOW_AUTOSIZE);
-    imshow("Step 2 draw Rectangle", DrawResultHere);
-    waitKey(100);
-    imwrite("Step2.JPG", DrawResultHere);
-}
-
-//Method that sets parameters for negative mining
-void TestHog() {
-    MachineLearning ml;
-    string IMAGES_DIR = "/home/" + user + "/Pictures/Training/other";
-    testing = 2;
-    ml.TraverseDirectory(IMAGES_DIR);
-    ml.TrainSvm();
-    cout << neg_count;
-}
-
 //Sets parameters for static testing
 void StaticHogTest() {
     MachineLearning ml;
@@ -725,11 +699,12 @@ void DetectObject(Mat img) {
     src = img;
     objects.clear();
     door_objects.clear();
-    resize(src, src, Size(192, 320));
-    resize(display, display, Size(192, 320));
-    //cvtColor(display, display, CV_BGR2GRAY);
+    //resize(src, src, Size(256, 512));
+    resize(display, display, Size(480, 640));
+    cvtColor(display, display, CV_BGR2GRAY);
+    hog.gammaCorrection = true;
     hog.detectMultiScale(display, objects, true);
-    //hog.detectMultiScale(display, objects, 0, Size(4,4), Size(16,16), 1.05, 2.0, true);
+    //hog.detectMultiScale(display, objects, 0, Size(4,4), Size(0,0), 1.03, 2.0, true);
     for (int i = 0; i < objects.size(); i++) {
         Rect windows(objects.at(i).x, objects.at(i).y, objects.at(i).width, objects.at(i).height);
         Mat Roi = display(windows);
@@ -760,8 +735,10 @@ void DetectObject(Mat img) {
     static_total++;
 }
 
-void RestGlobals(){
+void ResetGlobals(){
     labels.release();
     src.release();
     trainingdata.clear();
+    N = 0;
+    label_ = 0;
 }
