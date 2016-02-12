@@ -11,8 +11,8 @@ void Run();
 void CreateSVM();
 void ClassificationTestingSetup();
 void DetectObjects();
-void StaticHogTest();
-void DetectObject(Mat img);
+void StaticHogTestSetup();
+void StaticTest(Mat img);
 void ResetGlobals();
 
 //Globals for object categorization
@@ -116,13 +116,13 @@ void Run() {
         switch (user_input) {
             case 1: CreateSVM();
                 break;
-            case 2: NegativeMiningSetup();//TestSVM();
+            case 2: NegativeMiningSetup();
                 break;
-            case 3: ClassificationTestingSetup();//NegativeMiningSetup();
+            case 3: ClassificationTestingSetup();
                 break;
-            case 4: DetectObjects();
+            case 4: StaticHogTestSetup();cout << static_correct << "/" << static_total << " = " << (static_correct/static_total) * 100 << "%\n";//DetectObjects();
                 break;
-            case 5: StaticHogTest();cout << static_correct << "/" << static_total << " = " << (static_correct/static_total) * 100 << "%\n";
+            case 5: StaticHogTestSetup();cout << static_correct << "/" << static_total << " = " << (static_correct/static_total) * 100 << "%\n";
                 break;
             case 6: cout << "Goodbye\n";
                 break;
@@ -366,7 +366,7 @@ void MachineLearning::TraverseDirectory(string path) {
                 NegativeMining(greyImgMat);
             }
             if (testing == 3) {
-                DetectObject(greyImgMat);
+                StaticTest(greyImgMat);
             }
             int flag = feature_extraction;
             switch (flag) {
@@ -437,8 +437,6 @@ void MachineLearning::OrbFeatureExtraction(Mat ImgMat) {
     //describe keypoints
     detector->compute(ImgMat, keypoints_1, img_keypoints_1);
     drawKeypoints(ImgMat, keypoints_1, img_keypoints_1, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
-    //imshow("test", img_keypoints_1);
-    // waitKey();
     if (!img_keypoints_1.empty()) {
         trainingdata.push_back(img_keypoints_1.reshape(1, 1));
         labels.push_back(N);
@@ -544,15 +542,11 @@ void HogObjectDetection(Ptr<SVM> svm) {
     Scalar window(255, 0, 0);
     vector< Rect > objects;
     ml.GetSvmDetector(svm, hog_detector);
-
     cap.set(CV_CAP_PROP_FRAME_WIDTH, 640);
     cap.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
-    //        if (!cap.isOpened())
-    //            return -1;
     Mat img, draw;
     HOGDescriptor hog; //(Size( 90, 160 ), Size(16, 16), Size(8, 8), Size(8, 8), 9);
     hog.winSize = img_size;
-
     //HOGDescriptor people;
     //hog.setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());
     hog.setSVMDetector(hog_detector);
@@ -565,47 +559,14 @@ void HogObjectDetection(Ptr<SVM> svm) {
         if (!img.data)
             break;
         src = img;
-        //       feature_matching(img);
-        //Mat greyimg = ml.ProcessImage("", "");
-        //ml.HogFeatureExtraction(greyimg, -1);
-        //Mat res, predict;
-        //ml.convert_to_ml(trainingdata, predict);
-        //trainingdata.convertTo(trainingdata, CV_32FC1);
-        //float p = svm->predict(predict, res, 4);
-        //cout << "Prediction: " << p << "\n";
-        //for (int i = 0; i < res.rows; i++) {
-        //if (res.at<float>(i, 0) == 0){
-
-        //draw = img.clone();
-
         objects.clear();
         hog.detectMultiScale(img, objects, true);
         //people.detectMultiScale(img, locations);
         ml.DrawLocations(img, objects, reference, "door");
-        //cout << "door\n";
         imshow("video capture", img);
-        //trainingdata.release();
-        // }
-        //else{
-        //imshow("video capture", img);
-        //}
-        //}
-
-
         if (waitKey(10) >= 0)
             break;
     }
-    //    destroyAllWindows();
-    //    cap.release();
-    //    running = false;
-    //    while (!categorized_objects.empty()) {
-    //        //namedWindow("Display window", CV_WINDOW_AUTOSIZE);
-    //        cout << "done\n";
-    //        imshow("door", categorized_objects.front());
-    //        waitKey(0);
-    //        categorized_labels.pop();
-    //        categorized_objects.pop();
-    //    }
 }
 
 //While objects are being detected catergorize them and store the ones that are desired object
@@ -674,7 +635,7 @@ void MachineLearning::DrawLocations(Mat & img, const vector< Rect > & found, con
 }
 
 //Sets parameters for static testing
-void StaticHogTest() {
+void StaticHogTestSetup() {
     MachineLearning ml;
     string IMAGES_DIR = "/home/" + user + "/Pictures/Static_Test";
     //string IMAGES_DIR = "/home/" + user + "/Pictures/Training/doors";
@@ -683,7 +644,7 @@ void StaticHogTest() {
 }
 
 //Attempt to detect doors on static images
-void DetectObject(Mat img) {
+void StaticTest(Mat img) {
     MachineLearning ml;
     const string modelLibPath = "LinearHOG.xml";
     Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
@@ -699,11 +660,10 @@ void DetectObject(Mat img) {
     src = img;
     objects.clear();
     door_objects.clear();
-    //resize(src, src, Size(256, 512));
-    resize(display, display, Size(480, 640));
-    cvtColor(display, display, CV_BGR2GRAY);
+    resize(img, img, Size(256, 512));
+    resize(display, display, Size(256, 512));
     hog.gammaCorrection = true;
-    hog.detectMultiScale(display, objects, true);
+    hog.detectMultiScale(img, objects, true);
     //hog.detectMultiScale(display, objects, 0, Size(4,4), Size(0,0), 1.03, 2.0, true);
     for (int i = 0; i < objects.size(); i++) {
         Rect windows(objects.at(i).x, objects.at(i).y, objects.at(i).width, objects.at(i).height);
