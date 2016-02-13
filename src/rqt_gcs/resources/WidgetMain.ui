@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>652</width>
+    <width>953</width>
     <height>477</height>
    </rect>
   </property>
@@ -31,6 +31,18 @@ border-radius: 5px;</string>
       <enum>Qt::Horizontal</enum>
      </property>
      <widget class="QFrame" name="frame">
+      <property name="minimumSize">
+       <size>
+        <width>400</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>1000</width>
+        <height>16777215</height>
+       </size>
+      </property>
       <property name="baseSize">
        <size>
         <width>1</width>
@@ -57,6 +69,12 @@ border-radius: 5px;</string>
       </layout>
      </widget>
      <widget class="QFrame" name="frame_2">
+      <property name="minimumSize">
+       <size>
+        <width>300</width>
+        <height>0</height>
+       </size>
+      </property>
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
       </property>
@@ -77,6 +95,12 @@ border-radius: 5px;</string>
        <size>
         <width>100</width>
         <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>400</width>
+        <height>16777215</height>
        </size>
       </property>
       <property name="frameShape">
