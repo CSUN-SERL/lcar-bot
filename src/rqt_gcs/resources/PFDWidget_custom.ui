@@ -14,33 +14,29 @@
    <string>Primary Flight Display</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item row="0" column="0">
-    <widget class="QFrame" name="frame_2">
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
+    <widget class="WidgetPFD" name="widgetPFD" native="true">
+     <property name="enabled">
+      <bool>true</bool>
      </property>
-     <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>2</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
-     <layout class="QGridLayout" name="gridLayout_4">
-      <item row="0" column="0">
-       <layout class="QGridLayout" name="gridLayout_2">
-        <item row="0" column="0" rowspan="2">
-         <widget class="WidgetPFD" name="widgetPFD" native="true">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>2</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-     </layout>
     </widget>
    </item>
   </layout>
