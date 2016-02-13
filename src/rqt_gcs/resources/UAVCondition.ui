@@ -7,8 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>300</width>
-    <height>98</height>
+    <height>90</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="minimumSize">
    <size>
@@ -26,8 +32,9 @@
    <string>Form</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">color: rgb(240, 240, 240);
-background-color: rgb(48, 57, 80);</string>
+   <string notr="true">background-color: rgb(39, 47, 66);
+color: rgb(236, 236, 236);
+border-radius: 5px;</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0" rowspan="3">
@@ -44,9 +51,8 @@ background-color: rgb(48, 57, 80);</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">color: rgb(240, 240, 240);
-background-color: rgb(48, 57, 80);
-border-radius: 5px;</string>
+      <string notr="true">background-color: rgb(64, 89, 145);
+color: rgb(240, 240, 240);</string>
      </property>
      <property name="text">
       <string>1</string>
@@ -56,7 +62,7 @@ border-radius: 5px;</string>
    <item row="0" column="1">
     <widget class="QLabel" name="VehicleNameLabel">
      <property name="text">
-      <string>Vehicle Name:</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Vehicle Name:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>
@@ -70,7 +76,7 @@ border-radius: 5px;</string>
    <item row="1" column="1">
     <widget class="QLabel" name="VehicleConditionLabel">
      <property name="text">
-      <string>Condition:</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Condition:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>
@@ -84,7 +90,7 @@ border-radius: 5px;</string>
    <item row="2" column="1">
     <widget class="QLabel" name="VehicleBatteryLabel">
      <property name="text">
-      <string>Battery:</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Battery:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>
