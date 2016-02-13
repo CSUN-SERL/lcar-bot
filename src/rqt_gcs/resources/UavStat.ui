@@ -6,20 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>352</width>
-    <height>285</height>
+    <width>400</width>
+    <height>320</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>200</width>
-    <height>200</height>
+    <width>400</width>
+    <height>320</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>400</width>
-    <height>400</height>
+    <height>320</height>
    </size>
   </property>
   <property name="font">
@@ -42,7 +42,7 @@ border-radius: 5px;</string>
   <widget class="QLabel" name="yawLabel">
    <property name="geometry">
     <rect>
-     <x>45</x>
+     <x>35</x>
      <y>50</y>
      <width>41</width>
      <height>16</height>
@@ -55,7 +55,7 @@ border-radius: 5px;</string>
   <widget class="QLabel" name="rollLabel">
    <property name="geometry">
     <rect>
-     <x>150</x>
+     <x>180</x>
      <y>50</y>
      <width>41</width>
      <height>17</height>
@@ -68,7 +68,7 @@ border-radius: 5px;</string>
   <widget class="QLabel" name="pitchLabel">
    <property name="geometry">
     <rect>
-     <x>260</x>
+     <x>300</x>
      <y>50</y>
      <width>51</width>
      <height>17</height>
@@ -81,8 +81,8 @@ border-radius: 5px;</string>
   <widget class="QLabel" name="altitudeLabel">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>110</y>
+     <x>20</x>
+     <y>120</y>
      <width>71</width>
      <height>20</height>
     </rect>
@@ -94,8 +94,8 @@ border-radius: 5px;</string>
   <widget class="QLabel" name="horizontalSpaceLabel">
    <property name="geometry">
     <rect>
-     <x>250</x>
-     <y>110</y>
+     <x>290</x>
+     <y>120</y>
      <width>81</width>
      <height>20</height>
     </rect>
@@ -107,8 +107,8 @@ border-radius: 5px;</string>
   <widget class="QLabel" name="verticalSpaceLabel">
    <property name="geometry">
     <rect>
-     <x>140</x>
-     <y>110</y>
+     <x>160</x>
+     <y>120</y>
      <width>81</width>
      <height>20</height>
     </rect>
@@ -120,8 +120,8 @@ border-radius: 5px;</string>
   <widget class="QLabel" name="headingLabel">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>170</y>
+     <x>20</x>
+     <y>190</y>
      <width>81</width>
      <height>20</height>
     </rect>
@@ -133,8 +133,8 @@ border-radius: 5px;</string>
   <widget class="QLabel" name="distanceToWayPointLabel">
    <property name="geometry">
     <rect>
-     <x>150</x>
-     <y>170</y>
+     <x>190</x>
+     <y>190</y>
      <width>191</width>
      <height>20</height>
     </rect>
@@ -146,8 +146,8 @@ border-radius: 5px;</string>
   <widget class="QLabel" name="batteryLabel">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>220</y>
+     <x>150</x>
+     <y>260</y>
      <width>121</width>
      <height>20</height>
     </rect>
@@ -159,10 +159,10 @@ border-radius: 5px;</string>
   <widget class="QProgressBar" name="batteryProgressBar">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>240</y>
-     <width>311</width>
-     <height>17</height>
+     <x>10</x>
+     <y>290</y>
+     <width>381</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -183,8 +183,8 @@ border-radius: 5px;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>351</width>
-     <height>31</height>
+     <width>400</width>
+     <height>40</height>
     </rect>
    </property>
    <property name="sizePolicy">
@@ -224,8 +224,8 @@ border-radius: 5px;</string>
   <widget class="QLineEdit" name="altitudeDisplay">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>130</y>
+     <x>20</x>
+     <y>150</y>
      <width>67</width>
      <height>17</height>
     </rect>
@@ -253,8 +253,8 @@ border-radius: 5px;</string>
   <widget class="QLineEdit" name="yawDisplay">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>70</y>
+     <x>20</x>
+     <y>80</y>
      <width>67</width>
      <height>17</height>
     </rect>
@@ -285,8 +285,8 @@ border-radius: 5px;</string>
   <widget class="QLineEdit" name="rollDisplay">
    <property name="geometry">
     <rect>
-     <x>140</x>
-     <y>70</y>
+     <x>160</x>
+     <y>80</y>
      <width>67</width>
      <height>17</height>
     </rect>
@@ -314,8 +314,8 @@ border-radius: 5px;</string>
   <widget class="QLineEdit" name="waypointDisplay">
    <property name="geometry">
     <rect>
-     <x>200</x>
-     <y>190</y>
+     <x>240</x>
+     <y>220</y>
      <width>67</width>
      <height>17</height>
     </rect>
@@ -343,8 +343,8 @@ border-radius: 5px;</string>
   <widget class="QLineEdit" name="pitchDisplay">
    <property name="geometry">
     <rect>
-     <x>250</x>
-     <y>70</y>
+     <x>290</x>
+     <y>80</y>
      <width>67</width>
      <height>17</height>
     </rect>
@@ -372,8 +372,8 @@ border-radius: 5px;</string>
   <widget class="QLineEdit" name="verticalSpaceDisplay">
    <property name="geometry">
     <rect>
-     <x>140</x>
-     <y>130</y>
+     <x>160</x>
+     <y>150</y>
      <width>67</width>
      <height>17</height>
     </rect>
@@ -401,8 +401,8 @@ border-radius: 5px;</string>
   <widget class="QLineEdit" name="horizontalSpaceDisplay">
    <property name="geometry">
     <rect>
-     <x>250</x>
-     <y>130</y>
+     <x>290</x>
+     <y>150</y>
      <width>67</width>
      <height>17</height>
     </rect>
@@ -430,8 +430,8 @@ border-radius: 5px;</string>
   <widget class="QLineEdit" name="headingDisplay">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>190</y>
+     <x>20</x>
+     <y>220</y>
      <width>67</width>
      <height>17</height>
     </rect>
