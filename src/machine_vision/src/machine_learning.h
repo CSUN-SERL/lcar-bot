@@ -50,7 +50,7 @@ public:
 
       @param svm_file
      */
-    void Testing(string svm_file);
+    void ClassificationTesting(string svm_file);
     /*
      Used to detect objects in images.
 
