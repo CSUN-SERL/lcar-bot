@@ -36,6 +36,8 @@ int feature_extraction;
 string svm_name;
 
 //Globals mats used for training
+//SVM object that wold holds weights
+Ptr<SVM> svm;
 //List of labels to be used for SVM training.
 Mat labels;
 //List of features extracted from training images, meant to be used with
@@ -168,7 +170,7 @@ void MachineLearning::TrainSvm() {
     ml.TraverseDirectory(IMAGES_DIR);
     labels.convertTo(labels, CV_32SC1);
     Mat train_data;
-    Ptr<SVM> svm = SVM::create();;
+    svm = SVM::create();;
     ConvertToMl(trainingdata, train_data);
     trainingdata.clear();
     //Set up SVM's parameters
@@ -202,7 +204,7 @@ void NegativeMining(Mat greyimg) {
     cout << "Run negative mining on which SVM?";
     cin >> svm_name;
     const string modelLibPath = svm_name;
-    Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
+    svm = StatModel::load<SVM>(modelLibPath);
     ml.GetSvmDetector(svm, hog_detector);
     Mat img;
     HOGDescriptor hog;
@@ -259,6 +261,7 @@ void NegativeMining(Mat greyimg) {
 
 //Prep svm for classification testing
 void ClassificationTestingSetup() {
+    ResetGlobals();
     MachineLearning ml;
     svm_name = "";
     cout << "What svm file do you wish to test?\n Input: ";
@@ -273,7 +276,6 @@ void ClassificationTestingSetup() {
     else if (user_input > 0 && user_input < 3)
         feature_extraction = user_input;
 
-    ResetGlobals();
     ml.ClassificationTesting(svm_name);
     ResetGlobals();
 }
@@ -494,11 +496,11 @@ void SetLabel(cv::Mat& im, cv::Rect r, const std::string label) {
 }
 
 //Classification testing, see how accurate the svm is at classifying objects
-void MachineLearning::ClassificationTesting(string svm) {
+void MachineLearning::ClassificationTesting(string svm_path) {
     testing = 1;
-    std::ofstream results;
-    const string modelLibPath = svm;
-    Ptr<SVM> Svm = StatModel::load<SVM>(modelLibPath);
+    //std::ofstream results;
+    const string modelLibPath = svm_path;
+    svm = StatModel::load<SVM>(modelLibPath);
     string IMAGES_DIR = "/home/" + user + "/Pictures/Classification_Test";
     TraverseDirectory(IMAGES_DIR);
     //trainingdata.convertTo(trainingdata, CV_32FC1);
@@ -508,7 +510,7 @@ void MachineLearning::ClassificationTesting(string svm) {
     Mat train_data;
     ConvertToMl(trainingdata, train_data);
     Mat res;
-    Svm->predict(train_data, res, 4);
+    svm->predict(train_data, res, 4);
     float answer = 0;
     for (int i = 0; i < res.rows; i++) {
         if (res.at<float>(i, 0) == 0)
@@ -533,7 +535,7 @@ void MachineLearning::ClassificationTesting(string svm) {
 }
 
 //Perform real time HOG object detection
-void HogObjectDetection(Ptr<SVM> svm) {
+void HogObjectDetection(Ptr<SVM> current_svm) {
     running = true;
     MachineLearning ml;
     VideoCapture cap;
@@ -541,7 +543,7 @@ void HogObjectDetection(Ptr<SVM> svm) {
     Scalar reference(0, 255, 0);
     Scalar window(255, 0, 0);
     vector< Rect > objects;
-    ml.GetSvmDetector(svm, hog_detector);
+    ml.GetSvmDetector(current_svm, hog_detector);
     cap.set(CV_CAP_PROP_FRAME_WIDTH, 640);
     cap.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
     Mat img, draw;
@@ -571,8 +573,8 @@ void HogObjectDetection(Ptr<SVM> svm) {
 
 //While objects are being detected catergorize them and store the ones that are desired object
 void CategorizeObjects() {
-    const string modelLibPath = "LinearHOG.xml";
-    Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
+    const string modelLibPath = svm_name;
+    svm = StatModel::load<SVM>(modelLibPath);
     MachineLearning ml;
     while (true) {
         if (!detected_objects.empty()) {
@@ -636,9 +638,11 @@ void MachineLearning::DrawLocations(Mat & img, const vector< Rect > & found, con
 
 //Sets parameters for static testing
 void StaticHogTestSetup() {
+    ResetGlobals();
+    cout << "Enter SVM to test: ";
+    cin >> svm_name;
     MachineLearning ml;
     string IMAGES_DIR = "/home/" + user + "/Pictures/Static_Test";
-    //string IMAGES_DIR = "/home/" + user + "/Pictures/Training/doors";
     testing = 3;
     ml.TraverseDirectory(IMAGES_DIR);
 }
@@ -646,7 +650,7 @@ void StaticHogTestSetup() {
 //Attempt to detect doors on static images
 void StaticTest(Mat img) {
     MachineLearning ml;
-    const string modelLibPath = "LinearHOG.xml";
+    const string modelLibPath = svm_name;
     Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
     vector< float > hog_detector;
     Scalar reference(0, 255, 0);
@@ -701,4 +705,6 @@ void ResetGlobals(){
     trainingdata.clear();
     N = 0;
     label_ = 0;
+    svm_name = "";
+    svm.release();
 }
