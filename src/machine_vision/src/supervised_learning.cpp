@@ -122,9 +122,9 @@ void Run() {
                 break;
             case 3: ClassificationTestingSetup();
                 break;
-            case 4: StaticHogTestSetup();cout << static_correct << "/" << static_total << " = " << (static_correct/static_total) * 100 << "%\n";//DetectObjects();
+            case 4: StaticHogTestSetup();cout << static_correct << "/" << static_total << " = " << (static_correct/static_total) * 100 << "%\n";
                 break;
-            case 5: StaticHogTestSetup();cout << static_correct << "/" << static_total << " = " << (static_correct/static_total) * 100 << "%\n";
+            case 5: DetectObjects();
                 break;
             case 6: cout << "Goodbye\n";
                 break;
@@ -190,6 +190,9 @@ void NegativeMiningSetup() {
     MachineLearning ml;
     string IMAGES_DIR = "/home/" + user + "/Pictures/Training/other";
     testing = 2;
+    svm_name = "";
+    cout << "Run negative mining on which SVM?";
+    cin >> svm_name;
     ml.TraverseDirectory(IMAGES_DIR);
     ml.TrainSvm();
     cout << neg_count;
@@ -200,9 +203,6 @@ void NegativeMining(Mat greyimg) {
     MachineLearning ml;
     vector< float > hog_detector;
     vector< Rect > locations;
-    svm_name = "";
-    cout << "Run negative mining on which SVM?";
-    cin >> svm_name;
     const string modelLibPath = svm_name;
     svm = StatModel::load<SVM>(modelLibPath);
     ml.GetSvmDetector(svm, hog_detector);
@@ -249,7 +249,7 @@ void NegativeMining(Mat greyimg) {
                 neg_count++;
             }
         }
-        ResetGlobals();
+        //ResetGlobals();
     }
     Mat DrawResultHere = display.clone();
     // Show  rectangle
@@ -282,9 +282,10 @@ void ClassificationTestingSetup() {
 
 //The goal of this method is detect and classify objects in real time
 void DetectObjects() {
-    string modelLibPath;
+    ResetGlobals();
     cout << "What SVM do you want to use?\nInput: ";
-    cin >> modelLibPath;
+    cin >> svm_name;
+    const string modelLibPath = svm_name;
     Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
     thread thread_1(HogObjectDetection, svm);
     thread thread_2(CategorizeObjects);
@@ -366,6 +367,7 @@ void MachineLearning::TraverseDirectory(string path) {
             Mat greyImgMat = MachineLearning::ProcessImage(path, dirEntry->d_name);
             if (testing == 2) {
                 NegativeMining(greyImgMat);
+                break;
             }
             if (testing == 3) {
                 StaticTest(greyImgMat);
@@ -503,10 +505,6 @@ void MachineLearning::ClassificationTesting(string svm_path) {
     svm = StatModel::load<SVM>(modelLibPath);
     string IMAGES_DIR = "/home/" + user + "/Pictures/Classification_Test";
     TraverseDirectory(IMAGES_DIR);
-    //trainingdata.convertTo(trainingdata, CV_32FC1);
-    //bool c = Svm->isClassifier();
-    //bool t = Svm->isTrained();
-    //cout << c << " " << t << "\n";
     Mat train_data;
     ConvertToMl(trainingdata, train_data);
     Mat res;
