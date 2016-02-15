@@ -44,7 +44,7 @@ Mat labels;
 //labels Mat.
 vector<Mat> trainingdata;
 //Use to declare image size and Hog winSize.
-const Size & img_size = Size(64, 128);
+const Size & img_size = Size(96, 160);
 
 //Copys of current image
 //Current image being processed
@@ -59,10 +59,11 @@ queue<string> proc_img;
 queue<int> img_label;
 
 //Parameter used to determine which form of testing is being done.
+//(0) Training
 //(1) Classification testing
 //(2) Negative mining
 //(3) Static testing
-int testing;
+int testing = 0;
 
 //N is label tracker, size_ is for total number of images read
 int N, size_;
@@ -136,6 +137,7 @@ void Run() {
 //Retrieve the parameters used to train an svm, optimize to allow multiple svms to be made at once
 void CreateSVM() {
     ResetGlobals();
+    testing = 0;
     MachineLearning ml;
     int user_input;
     cout << "What do you want to call the SVM?";
@@ -268,7 +270,7 @@ void ClassificationTestingSetup() {
     ResetGlobals();
     MachineLearning ml;
     svm_name = "";
-    cout << "What svm file do you wish to test?\n Input: ";
+    cout << "What svm file do you wish to test?\nInput: ";
     cin >> svm_name;
     cout << "What type of feature extraction do you want to use?\n";
     cout << "(1)HOG?\n(2)ORB?\n";
@@ -362,27 +364,35 @@ void MachineLearning::TraverseDirectory(string path) {
 
         if (dirEntry->d_type == DT_DIR && dirEntry->d_name[0] != '.') {
             newPath = path + "/" + dirEntry->d_name;
-            cout << "\nEntering: " << newPath << endl;
-            cout << N << "\n";
+            cout << "\nEntering: " << newPath << "\n";
+            cout << "Assigning label: " << N << "\n";
 
             TraverseDirectory(newPath);
-            N--;
-        } else if (dirEntry->d_type == DT_REG && dirEntry->d_name[0] != '.') {
 
+            /*This is because of the oddness of traversal and whenever hard coding
+             was tried it caused errors. For training start at N = 1 and decrement
+             for Classification start N = 0 and increment.*/
+            if(testing == 0)
+                N--;
+            if(testing == 1)
+                N++;
+
+        } else if (dirEntry->d_type == DT_REG && dirEntry->d_name[0] != '.') {
             Mat greyImgMat = MachineLearning::ProcessImage(path, dirEntry->d_name);
-            if (testing == 2) {
-                NegativeMining(greyImgMat);
-                break;
-            }
-            if (testing == 3) {
-                StaticTest(greyImgMat);
-            }
+            if(testing == 0 || testing == 1){
             int flag = feature_extraction;
             switch (flag) {
                 case 1:
                     MachineLearning::HogFeatureExtraction(greyImgMat, N);
                     break;
                 case 2:MachineLearning::OrbFeatureExtraction(greyImgMat);
+            }
+            }
+            if (testing == 2) {
+                NegativeMining(greyImgMat);
+            }
+            if (testing == 3) {
+                StaticTest(greyImgMat);
             }
         }
     }
@@ -419,13 +429,13 @@ Mat MachineLearning::ProcessImage(string path, string file) {
 //Feature extraction based on HOG
 void MachineLearning::HogFeatureExtraction(Mat ImgMat, int label) {
     HOGDescriptor d;
-    d.winSize = Size(64,128);//img_size;
+    d.winSize = img_size;
     vector< Point > location;
     vector< float > descriptors;
     d.compute(ImgMat, descriptors, Size(8, 8), Size(0, 0), location);
     Mat hog_features = Mat(descriptors).clone();
     if (!hog_features.empty()){
-        trainingdata.push_back(hog_features);
+        trainingdata.push_back(hog_features.reshape(1,1));
         if(label != -1){
             cout << N << "\n";
             labels.push_back(N); //labels.push_back(label);
@@ -514,6 +524,7 @@ void MachineLearning::ClassificationTesting(string svm_path) {
     const string modelLibPath = svm_path;
     svm = StatModel::load<SVM>(modelLibPath);
     string IMAGES_DIR = "/home/" + user + "/Pictures/Classification_Test";
+    N = 0;
     TraverseDirectory(IMAGES_DIR);
     Mat train_data;
     ConvertToMl(trainingdata, train_data);
@@ -635,7 +646,7 @@ void MachineLearning::DrawLocations(Mat & img, const vector< Rect > & found, con
                 vector< Rect >::const_iterator end = found.end();
                 for (; loc != end; ++loc) {
                     rectangle(img, *loc, color, 2);
-                    SetLabel(img, *loc, label);
+                    //SetLabel(img, *loc, label);
                     detected_objects.push(img.clone());
 
                 }
@@ -666,14 +677,14 @@ void StaticTest(Mat img) {
     vector< Rect > door_objects;
     ml.GetSvmDetector(svm, hog_detector);
     HOGDescriptor hog;
-    hog.winSize = Size(64,128);//img_size;
+    hog.winSize = img_size;
     hog.setSVMDetector(hog_detector);
     namedWindow("video capture", CV_WINDOW_AUTOSIZE);
     src = img;
     objects.clear();
     door_objects.clear();
-    resize(img, img, Size(256, 512));
-    resize(display, display, Size(256, 512));
+    //resize(img, img, Size(256, 512));
+    resize(display, display, Size(480, 640));
     hog.gammaCorrection = true;
     hog.detectMultiScale(display, objects, true);
     //hog.detectMultiScale(display, objects, 0, Size(4,4), Size(0,0), 1.03, 2.0, true);
@@ -711,7 +722,7 @@ void ResetGlobals(){
     labels.release();
     src.release();
     trainingdata.clear();
-    N = 0;
+    N = 1;
     label_ = 0;
     svm_name = "";
     svm.release();
