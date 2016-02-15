@@ -112,6 +112,7 @@ MachineLearning::~MachineLearning(void) {//Class destructor
 void Run() {
     int user_input = 0;
     do {
+        ResetGlobals();
         cout << "What are you planning on doing?\n";
         cout << "(1)Create a SVM\n(2)Run negative mining\n(3)Run classification testing\n(4)Run static testing\n(5)Run object detection\n(6)Exit\nInput: ";
         cin >> user_input;
