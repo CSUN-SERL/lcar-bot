@@ -44,7 +44,7 @@ Mat labels;
 //labels Mat.
 vector<Mat> trainingdata;
 //Use to declare image size and Hog winSize.
-Size img_size = Size(64, 128);
+const Size & img_size = Size(64, 128);
 
 //Copys of current image
 //Current image being processed
@@ -135,6 +135,7 @@ void Run() {
 
 //Retrieve the parameters used to train an svm, optimize to allow multiple svms to be made at once
 void CreateSVM() {
+    ResetGlobals();
     MachineLearning ml;
     int user_input;
     cout << "What do you want to call the SVM?";
@@ -166,8 +167,9 @@ void CreateSVM() {
 //Create and save a svm based on the paremeters entered by the user
 void MachineLearning::TrainSvm() {
     MachineLearning ml;
-    ResetGlobals();
+    //ResetGlobals();
     string IMAGES_DIR = "/home/" + user + "/Pictures/Training";
+    N = 1;
     ml.TraverseDirectory(IMAGES_DIR);
     labels.convertTo(labels, CV_32SC1);
     Mat train_data;
@@ -181,6 +183,7 @@ void MachineLearning::TrainSvm() {
     cout << "Beginning Training Process\n";
     cout << "Training a SVM with a " << svm_type << " kernel using " << extraction_type << "\n";
     svm->trainAuto(td, 10);
+    cout << svm_name << "\n";
     string svm_file = svm_name + ".xml";
     svm->save(svm_file);
     ResetGlobals();
@@ -360,9 +363,10 @@ void MachineLearning::TraverseDirectory(string path) {
         if (dirEntry->d_type == DT_DIR && dirEntry->d_name[0] != '.') {
             newPath = path + "/" + dirEntry->d_name;
             cout << "\nEntering: " << newPath << endl;
-            TraverseDirectory(newPath);
             cout << N << "\n";
-            N++;
+
+            TraverseDirectory(newPath);
+            N--;
         } else if (dirEntry->d_type == DT_REG && dirEntry->d_name[0] != '.') {
 
             Mat greyImgMat = MachineLearning::ProcessImage(path, dirEntry->d_name);
@@ -415,13 +419,18 @@ Mat MachineLearning::ProcessImage(string path, string file) {
 //Feature extraction based on HOG
 void MachineLearning::HogFeatureExtraction(Mat ImgMat, int label) {
     HOGDescriptor d;
-    d.winSize = img_size;
+    d.winSize = Size(64,128);//img_size;
     vector< Point > location;
     vector< float > descriptors;
     d.compute(ImgMat, descriptors, Size(8, 8), Size(0, 0), location);
-    trainingdata.push_back(Mat(descriptors).clone());
-    if (label != -1)
-        labels.push_back(N); //labels.push_back(label);
+    Mat hog_features = Mat(descriptors).clone();
+    if (!hog_features.empty()){
+        trainingdata.push_back(hog_features);
+        if(label != -1){
+            cout << N << "\n";
+            labels.push_back(N); //labels.push_back(label);
+        }
+    }
     //cout << label << "\n";
     if (testing == 1) {
         img_label.push(N);
@@ -657,7 +666,7 @@ void StaticTest(Mat img) {
     vector< Rect > door_objects;
     ml.GetSvmDetector(svm, hog_detector);
     HOGDescriptor hog;
-    hog.winSize = img_size;
+    hog.winSize = Size(64,128);//img_size;
     hog.setSVMDetector(hog_detector);
     namedWindow("video capture", CV_WINDOW_AUTOSIZE);
     src = img;
@@ -666,7 +675,7 @@ void StaticTest(Mat img) {
     resize(img, img, Size(256, 512));
     resize(display, display, Size(256, 512));
     hog.gammaCorrection = true;
-    hog.detectMultiScale(img, objects, true);
+    hog.detectMultiScale(display, objects, true);
     //hog.detectMultiScale(display, objects, 0, Size(4,4), Size(0,0), 1.03, 2.0, true);
     for (int i = 0; i < objects.size(); i++) {
         Rect windows(objects.at(i).x, objects.at(i).y, objects.at(i).width, objects.at(i).height);
@@ -690,7 +699,7 @@ void StaticTest(Mat img) {
         train_data.release();
         extract.release();
     }
-    ml.DrawLocations(display, door_objects, reference, "door");
+    ml.DrawLocations(display, objects, reference, "door");
     imshow("detected doors", display);
     char k = waitKey(0);
     if(k == 'y')
