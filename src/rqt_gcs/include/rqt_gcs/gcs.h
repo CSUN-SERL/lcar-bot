@@ -42,6 +42,7 @@ namespace rqt_gcs{
 
     ros::Subscriber sub;
     ros::NodeHandle nh;
+    image_transport::ImageTransport it_stereo{nh};
     void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
 
@@ -57,14 +58,13 @@ namespace rqt_gcs{
     virtual void MissionSelect(const int);
     virtual void MissionSubmit();
 
-
     // Comment in to signal that the plugin has a way to configure it
     //bool hasConfiguration() const;
     //void triggerConfiguration();
   private:
     void UpdatePFD();
     cv::Mat conversion_mat_;
-    ros::Subscriber sub_image = nh.subscribe("stereo_cam/left/image_raw", 1, &MyPlugin::ImageCallback, this);
+    image_transport::Subscriber sub_stereo = it_stereo.subscribe("stereo_cam/left/image_raw", 1, &MyPlugin::ImageCallback, this);
 
     Ui::MyPluginWidget ui_;
     Ui::QuadStatsWidget quadUi1_;
