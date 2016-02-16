@@ -21,8 +21,7 @@
   </property>
   <property name="styleSheet">
    <string notr="true">color: rgb(240, 240, 240);
-background-color: rgb(48, 57, 80);
-border-radius: 5px;</string>
+background-color: rgb(48, 57, 80);</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
