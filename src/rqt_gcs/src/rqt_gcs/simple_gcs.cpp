@@ -22,45 +22,28 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
   // create QWidget
   widget_ = new QWidget();
 
-  missionCancelWidget1_ = new QWidget();
-
-  missionSelectWidget1_ = new QWidget();
-
+  missionCancelWidget1_   = new QWidget();
+  missionSelectWidget1_   = new QWidget();
   missionProgressWidget1_ = new QWidget();
+  UavQuestionWidget1_     = new QWidget();
+  UavStatWidget1_         = new QWidget();
+  ImageViewWidget_        = new QWidget();
+  PFDQWidget              = new QWidget();
 
-  UavQuestionWidget1_ = new QWidget();
-
-  UavStatWidget1_ = new QWidget();
-
-  ImageViewWidget_ = new QWidget();
-
-  PFDQWidget       = new QWidget();
-
-  UavConditionWidget1_ = new QWidget();
-  UavConditionWidget2_ = new QWidget();
+  UavConditionWidget1_    = new QWidget();
+  UavConditionWidget2_    = new QWidget();
 
   central_ui_.setupUi(widget_);
-
   mcUi_.setupUi(missionCancelWidget1_);
-
   mpUi1_.setupUi(missionProgressWidget1_);
-
   msUi_.setupUi(missionSelectWidget1_);
-
   uqUi_.setupUi(UavQuestionWidget1_);
-
   usUi1_.setupUi(UavStatWidget1_);
-
   ivUi_.setupUi(ImageViewWidget_);
-
   pfd_ui.setupUi(PFDQWidget);
 
   condUi1_.setupUi(UavConditionWidget1_);
   condUi2_.setupUi(UavConditionWidget2_);
-
-  //central_ui_.verticalLayout->removeWidget(central_ui_.WidgetOverview);
-  //central_ui_.verticalLayout->addWidget(UavStatWidget1_);
-
 
   // add widget to the user interface
   context.addWidget(widget_);
@@ -95,44 +78,47 @@ void SimpleGCS::Calculate(){
 
 void SimpleGCS::TimedUpdate(){
 
-    tempData = quad1.GetState().mode.c_str();
-    usUi1_.flightModeDisplay->setText(tempData);
+  QString temp_data;
+  SimpleControl quad = quadrotors[cur_uav];
 
-    tempData.setNum(quad1.GetFlightState().yaw,'f',2);
-    usUi1_.yawDisplay->setText(tempData);
+  temp_data = quad.GetState().mode.c_str();
+  usUi1_.flightModeDisplay->setText(temp_data);
 
-    tempData.setNum(quad1.GetFlightState().roll,'f',2);
-    usUi1_.rollDisplay->setText(tempData);
+  temp_data.setNum(quad.GetFlightState().yaw,'f',2);
+  usUi1_.yawDisplay->setText(temp_data);
 
-    tempData.setNum(quad1.GetFlightState().pitch,'f',2);
-    usUi1_.pitchDisplay->setText(tempData);
+  temp_data.setNum(quad.GetFlightState().roll,'f',2);
+  usUi1_.rollDisplay->setText(temp_data);
 
-    tempData.setNum(quad1.GetFlightState().altitude,'f',2);
-    usUi1_.altitudeDisplay->setText(tempData);
+  temp_data.setNum(quad.GetFlightState().pitch,'f',2);
+  usUi1_.pitchDisplay->setText(temp_data);
 
-    tempData.setNum(quad1.GetFlightState().vertical_speed,'f',2);
-    usUi1_.verticalSpaceDisplay->setText(tempData);
+  temp_data.setNum(quad.GetFlightState().altitude,'f',2);
+  usUi1_.altitudeDisplay->setText(temp_data);
 
-    tempData.setNum(quad1.GetFlightState().ground_speed,'f',2);
-    usUi1_.horizontalSpaceDisplay->setText(tempData);
+  temp_data.setNum(quad.GetFlightState().vertical_speed,'f',2);
+  usUi1_.verticalSpaceDisplay->setText(temp_data);
 
-    tempData.setNum(quad1.GetFlightState().heading,'f',2);
-    usUi1_.headingDisplay->setText(tempData);
+  temp_data.setNum(quad.GetFlightState().ground_speed,'f',2);
+  usUi1_.horizontalSpaceDisplay->setText(temp_data);
 
-    tempData.setNum(quad1.GetDistanceToWP());
-    usUi1_.waypointDisplay->setText(tempData);
+  temp_data.setNum(quad.GetFlightState().heading,'f',2);
+  usUi1_.headingDisplay->setText(temp_data);
 
-    tempData.setNum(quad1.GetBatteryStatus().remaining*100);
-    usUi1_.batteryProgressBar->setValue(tempData.toInt());
+  temp_data.setNum(quad.GetDistanceToWP());
+  usUi1_.waypointDisplay->setText(temp_data);
 
-    tempData = "Quadrotor 1";
-    mpUi1_.uavNameEdit->setText(tempData);
+  temp_data.setNum(quad.GetBatteryStatus().remaining*100);
+  usUi1_.batteryProgressBar->setValue(temp_data.toInt());
 
-    mpUi1_.missionProgressBar->setValue(quad1.GetMissionProgress()*100);
+  temp_data = "Quadrotor 1";
+  mpUi1_.uavNameEdit->setText(temp_data);
 
-    this->UpdatePFD();
+  mpUi1_.missionProgressBar->setValue(quad.GetMissionProgress()*100);
 
-    quad1.Run();
+  this->UpdatePFD();
+
+  quad.Run();
 }
 
 void SimpleGCS::MissionChange(){
@@ -154,10 +140,10 @@ void SimpleGCS::MissionSelect(const int i){
 void SimpleGCS::MissionSubmit(){
    ROS_INFO_STREAM("Mission Submitted");
    if(msUi_.missionComboBox->currentIndex() == 0){
-        quad1.Arm(true);
+        quadrotors[cur_uav].Arm(true);
    }
    else if(msUi_.missionComboBox->currentIndex() == 1){
-        quad1.Arm(false);
+        quadrotors[cur_uav].Arm(false);
    }
    else if(msUi_.missionComboBox->currentIndex() == 2){
         ROS_INFO_STREAM("LAND");
@@ -169,8 +155,8 @@ void SimpleGCS::MissionSubmit(){
           ROS_INFO_STREAM("SCAN ACCESS POINTS");
          }
          else if(msUi_.playsComboBox->currentIndex() == 1){
-           quad1.EnableOffboard();
-  	        quad1.ScoutBuilding(-7,-9,3);
+           quadrotors[cur_uav].EnableOffboard();
+  	        quadrotors[cur_uav].ScoutBuilding(-7,-9,3);
            ROS_INFO_STREAM("SCOUT BUILDING");
          }
    }
@@ -213,13 +199,13 @@ void triggerConfiguration()
 
 void SimpleGCS::UpdatePFD()
 {
-  pfd_ui.widgetPFD->setRoll       ((quad1.GetFlightState().roll)*180);
-  pfd_ui.widgetPFD->setPitch      ((quad1.GetFlightState().pitch)*90);
-  pfd_ui.widgetPFD->setHeading    (quad1.GetFlightState().heading);
-  pfd_ui.widgetPFD->setAirspeed   (quad1.GetFlightState().ground_speed);
-  pfd_ui.widgetPFD->setAltitude   (quad1.GetFlightState().altitude);
-  //pfd_ui->widgetPFD->setPressure (quad1.GetFlightState().roll);
-  pfd_ui.widgetPFD->setClimbRate  (quad1.GetFlightState().vertical_speed);
+  pfd_ui.widgetPFD->setRoll       ((quadrotors[cur_uav].GetFlightState().roll)*180);
+  pfd_ui.widgetPFD->setPitch      ((quadrotors[cur_uav].GetFlightState().pitch)*90);
+  pfd_ui.widgetPFD->setHeading    (quadrotors[cur_uav].GetFlightState().heading);
+  pfd_ui.widgetPFD->setAirspeed   (quadrotors[cur_uav].GetFlightState().ground_speed);
+  pfd_ui.widgetPFD->setAltitude   (quadrotors[cur_uav].GetFlightState().altitude);
+  //pfd_ui->widgetPFD->setPressure (quadrotors[cur_uav].GetFlightState().roll);
+  pfd_ui.widgetPFD->setClimbRate  (quadrotors[cur_uav].GetFlightState().vertical_speed);
 
   pfd_ui.widgetPFD->update();
 }
