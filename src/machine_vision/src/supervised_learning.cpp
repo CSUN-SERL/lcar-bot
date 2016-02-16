@@ -44,7 +44,7 @@ Mat labels;
 //labels Mat.
 vector<Mat> trainingdata;
 //Use to declare image size and Hog winSize.
-const Size & img_size = Size(96, 160);
+const Size & img_size = Size(256, 512);
 
 //Copys of current image
 //Current image being processed
@@ -684,7 +684,7 @@ void StaticTest(Mat img) {
     objects.clear();
     door_objects.clear();
     //resize(img, img, Size(256, 512));
-    resize(display, display, Size(480, 640));
+    //resize(display, display, Size(562, 1000));
     hog.gammaCorrection = true;
     hog.detectMultiScale(display, objects, true);
     //hog.detectMultiScale(display, objects, 0, Size(4,4), Size(0,0), 1.03, 2.0, true);
@@ -722,7 +722,7 @@ void ResetGlobals(){
     labels.release();
     src.release();
     trainingdata.clear();
-    N = 1;
+    N = 0;
     label_ = 0;
     svm_name = "";
     svm.release();
