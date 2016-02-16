@@ -25,7 +25,7 @@ include(EnableCXX11)
 include(MavrosMavlink)
 
 set(rqt_gcs_SRCS
-  src/rqt_gcs/gcs.cpp
+  src/rqt_gcs/simple_gcs.cpp
   src/rqt_gcs/simple_control.cpp
 
   src/FIS/qfi_PFD.cpp
@@ -37,7 +37,7 @@ set(rqt_gcs_SRCS
 )
 
 set(rqt_gcs_HDRS
-  include/rqt_gcs/gcs.h
+  include/rqt_gcs/simple_gcs.h
   include/rqt_gcs/simple_control.h
 
   include/FIS/qfi_PFD.h

@@ -1,10 +1,10 @@
-#include <rqt_gcs/gcs.h>
+#include <rqt_gcs/simple_gcs.h>
 #include <pluginlib/class_list_macros.h>
 #include <QStringList>
 #include <iomanip>
 namespace rqt_gcs {
 
-MyPlugin::MyPlugin()
+SimpleGCS::SimpleGCS()
   : rqt_gui_cpp::Plugin()
   , widget_(0)
 {
@@ -14,7 +14,7 @@ MyPlugin::MyPlugin()
   setObjectName("LCAR Bot GCS");
 }
 
-void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
+void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
 {
   // access standalone command line arguments
   QStringList argv = context.argv();
@@ -88,12 +88,12 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
    updateTimer->start(100);
 }
 
-void MyPlugin::Calculate(){
+void SimpleGCS::Calculate(){
 
 }
 
 
-void MyPlugin::TimedUpdate(){
+void SimpleGCS::TimedUpdate(){
 
     tempData = quad1.GetState().mode.c_str();
     usUi1_.flightModeDisplay->setText(tempData);
@@ -135,12 +135,12 @@ void MyPlugin::TimedUpdate(){
     quad1.Run();
 }
 
-void MyPlugin::MissionChange(){
+void SimpleGCS::MissionChange(){
 
     missionSelectWidget1_->show();
 }
 
-void MyPlugin::MissionSelect(const int i){
+void SimpleGCS::MissionSelect(const int i){
 
     if(i == 3){
      msUi_.playsComboBox->setEnabled(true);
@@ -151,7 +151,7 @@ void MyPlugin::MissionSelect(const int i){
     }
 }
 
-void MyPlugin::MissionSubmit(){
+void SimpleGCS::MissionSubmit(){
    ROS_INFO_STREAM("Mission Submitted");
    if(msUi_.missionComboBox->currentIndex() == 0){
         quad1.Arm(true);
@@ -184,18 +184,18 @@ void MyPlugin::MissionSubmit(){
     missionSelectWidget1_->close();
 }
 
-void MyPlugin::shutdownPlugin()
+void SimpleGCS::shutdownPlugin()
 {
   // TODO unregister all publishers here
 }
 
-void MyPlugin::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const
+void SimpleGCS::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const
 {
   // TODO save intrinsic configuration, usually using:
   // instance_settings.setValue(k, v)
 }
 
-void MyPlugin::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings)
+void SimpleGCS::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings)
 {
   // TODO restore intrinsic configuration, usually using:
   // v = instance_settings.value(k)
@@ -211,7 +211,7 @@ void triggerConfiguration()
   // Usually used to open a dialog to offer the user a set of configuration
 }*/
 
-void MyPlugin::UpdatePFD()
+void SimpleGCS::UpdatePFD()
 {
   pfd_ui.widgetPFD->setRoll       ((quad1.GetFlightState().roll)*180);
   pfd_ui.widgetPFD->setPitch      ((quad1.GetFlightState().pitch)*90);
@@ -224,7 +224,7 @@ void MyPlugin::UpdatePFD()
   pfd_ui.widgetPFD->update();
 }
 
-void MyPlugin::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
+void SimpleGCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
   {
@@ -240,5 +240,5 @@ void MyPlugin::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 }
 
 } // namespace
-PLUGINLIB_DECLARE_CLASS(rqt_gcs, MyPlugin, rqt_gcs::MyPlugin, rqt_gui_cpp::Plugin)
-//PLUGINLIB_EXPORT_CLASS(rqt_gcs::MyPlugin, rqt_gui_cpp::Plugin)
+PLUGINLIB_DECLARE_CLASS(rqt_gcs, SimpleGCS, rqt_gcs::SimpleGCS, rqt_gui_cpp::Plugin)
+//PLUGINLIB_EXPORT_CLASS(rqt_gcs::SimpleGCS, rqt_gui_cpp::Plugin)

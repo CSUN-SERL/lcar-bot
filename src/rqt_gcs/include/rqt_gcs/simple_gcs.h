@@ -1,5 +1,5 @@
-#ifndef rqt_gcs__MyPlugin_H
-#define rqt_gcs__MyPlugin_H
+#ifndef rqt_gcs__SimpleGCS_H
+#define rqt_gcs__SimpleGCS_H
 
 #include <ros/ros.h>
 #include <rqt_gui_cpp/plugin.h>
@@ -29,12 +29,12 @@
 
 namespace rqt_gcs{
 
-  class MyPlugin
+  class SimpleGCS
   : public rqt_gui_cpp::Plugin
   {
     Q_OBJECT
   public:
-    MyPlugin();
+    SimpleGCS();
     SimpleControl quad1{1};
     QString tempData;
 
@@ -64,9 +64,9 @@ namespace rqt_gcs{
   private:
     void UpdatePFD();
     cv::Mat conversion_mat_;
-    image_transport::Subscriber sub_stereo = it_stereo.subscribe("stereo_cam/left/image_raw", 1, &MyPlugin::ImageCallback, this);
+    image_transport::Subscriber sub_stereo = it_stereo.subscribe("stereo_cam/left/image_raw", 1, &SimpleGCS::ImageCallback, this);
 
-    Ui::MyPluginWidget ui_;
+    Ui::SimpleGCSWidget ui_;
     Ui::QuadStatsWidget quadUi1_;
 
     Ui::MissionCancelWidget mcUi_;

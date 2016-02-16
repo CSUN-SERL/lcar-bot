@@ -1,5 +1,5 @@
 <library path="lib/librqt_gcs">
-  <class name="rqt_gcs/MyPlugin" type="rqt_gcs::MyPlugin" base_class_type="rqt_gui_cpp::Plugin">
+  <class name="rqt_gcs/SimpleGCS" type="rqt_gcs::SimpleGCS" base_class_type="rqt_gui_cpp::Plugin">
     <description>
       Ground Control Station Plugin for the LCAR Bot project.
     </description>
