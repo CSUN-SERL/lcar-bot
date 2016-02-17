@@ -109,8 +109,18 @@ background-color: rgb(48, 57, 80);</string>
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
        <item>
-        <layout class="QVBoxLayout" name="UAVListLayout"/>
+        <layout class="QVBoxLayout" name="UAVListLayout">
+         <property name="spacing">
+          <number>3</number>
+         </property>
+         <property name="sizeConstraint">
+          <enum>QLayout::SetDefaultConstraint</enum>
+         </property>
+        </layout>
        </item>
       </layout>
      </widget>

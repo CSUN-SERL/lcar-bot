@@ -54,7 +54,7 @@ var la ;
 var image =[];
 
 image[num] = {
-  url: 'uavIcon' + num + '.png',
+  url: 'images/uavIcon' + num + '.png',
 
   scaledSize: new google.maps.Size(100,100)
 };
@@ -138,7 +138,7 @@ function update() {
     else {
       //add new image
       image[num] = {
-        url: 'uavIcon' + num + '.png',
+        url: 'images/uavIcon' + num + '.png',
         scaledSize: new google.maps.Size(100,100)
       };
 
@@ -167,7 +167,7 @@ function update() {
 
     num++
 
-    if(num >= 8){
+    if(num >= 5){
       num = 1;
     }
 

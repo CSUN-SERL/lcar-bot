@@ -375,6 +375,11 @@ color: rgb(240, 240, 240);</string>
    <property name="accessibleName">
     <string/>
    </property>
+   <property name="styleSheet">
+    <string notr="true">color: rgb(161, 0, 0);
+background-color: rgb(159, 171, 198);
+</string>
+   </property>
    <property name="editable">
     <bool>false</bool>
    </property>
