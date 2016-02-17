@@ -44,7 +44,7 @@ Mat labels;
 //labels Mat.
 vector<Mat> trainingdata;
 //Use to declare image size and Hog winSize.
-const Size & img_size = Size(256, 512);
+const Size & img_size = Size(128, 256);
 
 //Copys of current image
 //Current image being processed
@@ -118,7 +118,12 @@ void Run() {
         cout << "(1)Create a SVM\n(2)Run negative mining\n(3)Run classification testing\n(4)Run static testing\n(5)Run object detection\n(6)Exit\nInput: ";
         cin >> user_input;
         switch (user_input) {
-            case 1: CreateSVM();
+            case 1:
+                /*
+                 *This begins the process used to generate a support vector machine
+                 * that will be used in object detection.
+                 */
+                CreateSVM();
                 break;
             case 2: NegativeMiningSetup();
                 break;
@@ -136,10 +141,12 @@ void Run() {
 
 //Retrieve the parameters used to train an svm, optimize to allow multiple svms to be made at once
 void CreateSVM() {
+    //Erase all data currently stored in global variables
     ResetGlobals();
     testing = 0;
     MachineLearning ml;
     int user_input;
+    /*Set up the parameters used in SVM creation*/
     cout << "What do you want to call the SVM?";
     cin >> svm_name;
     cout << "What type of kernel do you want to use when training your SVM\n";
@@ -150,7 +157,7 @@ void CreateSVM() {
         cout << "Invalid input\n";
         CreateSVM();
     }
-   svm_kernel = user_input;
+    svm_kernel = user_input;
 
     cout << "What type of feature extraction do you want to use?\n";
     cout << "(1)HOG?\n(2)ORB?\n";
@@ -163,6 +170,7 @@ void CreateSVM() {
     feature_extraction = user_input;
 
     cout << "Will begin training your SVM\n";
+    /*After SVM parameters have been set begin training the SVM*/
     ml.TrainSvm();
 }
 
@@ -171,7 +179,11 @@ void MachineLearning::TrainSvm() {
     MachineLearning ml;
     //ResetGlobals();
     string IMAGES_DIR = "/home/" + user + "/Pictures/Training";
+    /*At the moment Door objects are 0 and Other objects are 1. So N starts at
+     * 1 and then decrements
+     */
     N = 1;
+    //Setting up the training data
     ml.TraverseDirectory(IMAGES_DIR);
     labels.convertTo(labels, CV_32SC1);
     Mat train_data;
@@ -180,10 +192,10 @@ void MachineLearning::TrainSvm() {
     trainingdata.clear();
     //Set up SVM's parameters
     ml.SetKernal(svm, svm_kernel);
-    //Set up training data
     Ptr<TrainData> td = TrainData::create(train_data, ROW_SAMPLE, labels);
     cout << "Beginning Training Process\n";
     cout << "Training a SVM with a " << svm_type << " kernel using " << extraction_type << "\n";
+    //Train the SVM using a built in auto trainer
     svm->trainAuto(td, 10);
     cout << svm_name << "\n";
     string svm_file = svm_name + ".xml";
@@ -375,7 +387,7 @@ void MachineLearning::TraverseDirectory(string path) {
             if(testing == 0)
                 N--;
             if(testing == 1)
-                N++;
+                N--;
 
         } else if (dirEntry->d_type == DT_REG && dirEntry->d_name[0] != '.') {
             Mat greyImgMat = MachineLearning::ProcessImage(path, dirEntry->d_name);
@@ -524,7 +536,7 @@ void MachineLearning::ClassificationTesting(string svm_path) {
     const string modelLibPath = svm_path;
     svm = StatModel::load<SVM>(modelLibPath);
     string IMAGES_DIR = "/home/" + user + "/Pictures/Classification_Test";
-    N = 0;
+    N = 1;
     TraverseDirectory(IMAGES_DIR);
     Mat train_data;
     ConvertToMl(trainingdata, train_data);
@@ -563,8 +575,8 @@ void HogObjectDetection(Ptr<SVM> current_svm) {
     Scalar window(255, 0, 0);
     vector< Rect > objects;
     ml.GetSvmDetector(current_svm, hog_detector);
-    cap.set(CV_CAP_PROP_FRAME_WIDTH, 640);
-    cap.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
+    cap.set(CV_CAP_PROP_FRAME_WIDTH, 1000);
+    cap.set(CV_CAP_PROP_FRAME_HEIGHT, 1000);
     Mat img, draw;
     HOGDescriptor hog; //(Size( 90, 160 ), Size(16, 16), Size(8, 8), Size(8, 8), 9);
     hog.winSize = img_size;
