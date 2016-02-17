@@ -26,6 +26,7 @@
 #include <QString>
 #include <QTimer>
 #include <QMainWindow>
+#include <QSignalMapper>
 
 #define NUM_UAV 2 //Total number of UAV's in the system
 
@@ -54,6 +55,7 @@ namespace rqt_gcs{
     virtual void MissionChange();
     virtual void MissionSelect(const int);
     virtual void MissionSubmit();
+    virtual void QuadSelect(int);
 
   private:
     void UpdatePFD();
@@ -93,6 +95,10 @@ namespace rqt_gcs{
     QTimer* updateTimer;
 
     int cur_uav = 0;
+
+    QString temp_data;
+    QString quadId;
+    QSignalMapper* signalMapper;
 
   };
 } // namespace
