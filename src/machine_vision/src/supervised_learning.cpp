@@ -15,6 +15,24 @@ void StaticHogTestSetup();
 void StaticTest(Mat img);
 void ResetGlobals();
 
+/*
+Receive and prepare images to be used for image processing
+*/
+cv::Mat camera_image;
+
+void ImageCallback(const sensor_msgs::ImageConstPtr& msg)
+{
+  try
+  {
+    cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::RGB8);
+    camera_image = cv_ptr->image;
+  }
+  catch (cv_bridge::Exception& e)
+  {
+    ROS_ERROR("Error in image subsrcriber: %s", e.what());
+  }
+}
+
 //Globals for object categorization
 //Tracks when HogObjectdetection is running
 bool running = false;
@@ -96,9 +114,23 @@ int iteration; //number corresponds to svm
 int iteration_2; //number correspons to extraction type
 
 int main(int argc, char * argv[]) {
-    Run();
-    ResetGlobals();
-    return 0;
+  ros::init(argc, argv, "object_detection");
+
+  ros::NodeHandle nh_od;
+  image_transport::ImageTransport camera{nh_od};
+  image_transport::Subscriber sub_camera = camera.subscribe("stereo_cam/left/image_raw", 1, ImageCallback);
+
+  ros::Rate loop_rate(30); //30Hz
+
+  Run();
+
+  while(ros::ok())
+  {
+    ros::spinOnce();
+    loop_rate.sleep();
+  }
+  ResetGlobals();
+  return 0;
 }
 
 MachineLearning::MachineLearning(void) {//Class constructor
@@ -586,9 +618,10 @@ void HogObjectDetection(Ptr<SVM> current_svm) {
 
     //int value = 0;
     namedWindow("video capture", CV_WINDOW_AUTOSIZE);
-    cap.open(0);
+    //cap.open(0);
     while (true) {
-        cap >> img;
+        //cap >> img;
+        img = camera_image;
         if (!img.data)
             break;
         src = img;

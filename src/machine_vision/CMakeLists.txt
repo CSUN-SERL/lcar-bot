@@ -10,11 +10,16 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   sensor_msgs
   roscpp
+  roslib
   std_msgs
+  image_transport
 )
 
 find_package(OpenCV REQUIRED)
 find_package(libuvc REQUIRED)
+
+#Enable C++11 Support
+add_definitions(-std=c++11)
 
 # Declare the package
 catkin_package()
@@ -30,6 +35,7 @@ include_directories(include
 add_executable(camera_publisher src/ros_camera_publisher.cpp)
 add_executable(camera_subscriber src/ros_camera_subscriber.cpp)
 add_executable(stereo_publisher src/stereo_cam_pub.cpp)
+add_executable(object_detection src/supervised_learning.cpp)
 
 #Specify libraries against which to link
 target_link_libraries(camera_publisher
@@ -46,4 +52,9 @@ target_link_libraries(stereo_publisher
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${libuvc_LIBRARIES}
+)
+
+target_link_libraries(object_detection
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
 )
