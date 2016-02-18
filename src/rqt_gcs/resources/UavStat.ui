@@ -7,19 +7,19 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>300</height>
+    <height>330</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>400</width>
-    <height>300</height>
+    <height>330</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>800</width>
-    <height>300</height>
+    <height>364</height>
    </size>
   </property>
   <property name="font">
@@ -48,6 +48,12 @@ border-radius: 5px;</string>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>35</height>
+      </size>
+     </property>
      <property name="maximumSize">
       <size>
        <width>800</width>
@@ -56,8 +62,8 @@ border-radius: 5px;</string>
      </property>
      <property name="font">
       <font>
-       <weight>75</weight>
-       <bold>true</bold>
+       <family>Ubuntu</family>
+       <pointsize>12</pointsize>
       </font>
      </property>
      <property name="styleSheet">
@@ -82,6 +88,19 @@ border-radius: 5px;</string>
       <set>Qt::AlignCenter</set>
      </property>
     </widget>
+   </item>
+   <item>
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
    </item>
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -196,6 +215,19 @@ border-radius: 5px;</string>
       </layout>
      </item>
      <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
         <widget class="QLabel" name="verticalSpaceLabel">
@@ -303,6 +335,19 @@ border-radius: 5px;</string>
       </layout>
      </item>
      <item>
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
       <layout class="QHBoxLayout" name="horizontalLayout_5">
        <item>
         <widget class="QLabel" name="headingLabel">
@@ -393,6 +438,19 @@ border-radius: 5px;</string>
       </layout>
      </item>
     </layout>
+   </item>
+   <item>
+    <spacer name="horizontalSpacer_4">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
    </item>
    <item>
     <widget class="QLabel" name="batteryLabel">
