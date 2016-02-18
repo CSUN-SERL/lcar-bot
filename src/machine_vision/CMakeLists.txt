@@ -31,7 +31,7 @@ include_directories(include
 add_executable(camera_publisher src/ros_camera_publisher.cpp)
 add_executable(camera_subscriber src/ros_camera_subscriber.cpp)
 add_executable(stereo_publisher src/stereo_cam_pub.cpp)
-add_executable(stereo_driver src/camera_driver_node.cpp)
+add_executable(stereo_driver src/ros_camera_driver.cpp src/camera_driver_main.cpp)
 
 #Specify libraries against which to link
 target_link_libraries(camera_publisher
