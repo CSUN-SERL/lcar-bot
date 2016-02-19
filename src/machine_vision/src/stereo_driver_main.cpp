@@ -1,11 +1,11 @@
-#include <camera_driver.h>
+#include <stereo_driver.h>
 #include <camera_info_manager/camera_info_manager.h>
 
 
-int main(){
+int main(int argc, char **argv){
 
     //ros inits
-    ros::init(argc, argv, "stereo_cam");
+    ros::init(argc, argv, "stereo_driver");
     ros::NodeHandle nh;
 
     std::string calib_file = "calibration1.yaml";
@@ -20,17 +20,15 @@ int main(){
     int vendor_id = strtol("0x2a0b", NULL, 0); // leopard imaging vendor id
     int product_id = strtol("0x00f5", NULL,0); //  li usb3 stereo camera id
 
-    CameraDriver camera(vendor_id,
-                        product_id,
-                        nh,
-                        cinfo
+    CameraDriver camera( vendor_id,
+                                        product_id,
+                                        nh,
+                                        cinfo
     );
 
-    camera.stream();
+    //camera.stream();
 
-    while(nh.ok()){
-        ros::spinOnce();
-    }
+    ros::spin();
 
     return 0;
 }

@@ -1,4 +1,4 @@
-#include <camera_driver.h>
+#include <stereo_driver.h>
 
 using namespace camera_info_manager;
 
@@ -74,7 +74,7 @@ void CameraDriver::startStream(){
           /* Start the video stream. The library will call user function cb:
            *   cb(frame, (void*) 12345)
            */
-          res = uvc_start_streaming(devh, &ctrl, &CameraDriver::callBackAdapter, this, 0);
+          res = uvc_start_streaming(devh, &ctrl, &CameraDriver::ImageCallbackAdapter, this, 0);
 
           if (res < 0) {
             uvc_perror(res, "start_streaming"); /* unable to start stream */
@@ -109,7 +109,7 @@ void CameraDriver::startStream(){
     puts("UVC exited");
 }
 
-void CameraDriver::imageCallBack(uvc_frame_t *frame, void *ptr){
+void CameraDriver::ImageCallback(uvc_frame_t *frame){
     //ros::Rate loop_rate(30);
     //loop_rate.sleep();
     frame->frame_format = UVC_FRAME_FORMAT_YUYV;
@@ -200,7 +200,7 @@ void CameraDriver::imageCallBack(uvc_frame_t *frame, void *ptr){
     uvc_free_frame(frameRGB);
 }
 
-void CameraDriver::callBackAdapter(uvc_frame_t *frame, void *ptr){
+void CameraDriver::ImageCallbackAdapter(uvc_frame_t *frame, void *ptr){
     CameraDriver *driver = static_cast<CameraDriver*>(ptr);
-    driver->imageCallBack(frame);
+    driver->ImageCallback(frame);
 }

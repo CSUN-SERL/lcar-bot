@@ -53,6 +53,7 @@ class CameraDriver{
         unsigned int vendor_id_;
         unsigned int product_id_;
 
-        void imageCallBack(uvc_frame_t *frame);
-        void callBackAdapter(uvc_frame_t *frame, void* ptr);
+        // Accept a new image frame from the camera
+        void ImageCallback(uvc_frame_t *frame);
+        static void ImageCallbackAdapter(uvc_frame_t *frame, void *ptr);
 };
