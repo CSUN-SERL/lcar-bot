@@ -11,14 +11,12 @@
 
 
   <script>
-  var longitude = 2;
+  var longitude = 2; //must be initialized in order to google maps to function
   var latitude  = 2;
   var num =1;
   var listeners =[];
 
-  // Connecting to ROS
-  // -----------------
-
+  // Connecting to ROS -----------------
   var ros = new ROSLIB.Ros({ //creating ros object
     url : 'ws://localhost:9090'
   });
@@ -37,7 +35,7 @@
 
 
 
-
+//jQuery waiting for DOM to be ready
 $(document).ready(function(){
   showPosition();
 });
@@ -47,9 +45,9 @@ $(document).ready(function(){
 
 var x =0;
 var map;
-var marker =[];
+var marker =[]; //all UAVs icons will be located here.
 var newPoint ;
-var la ;
+var la ;    //later and longitude
 
 var image =[];
 
@@ -61,8 +59,6 @@ image[num] = {
 
 
 function showPosition() {
-//  console.log('latitude ' + longitude);
-  // console.log('longitude ' + latitude);
 
 
   latlon = new google.maps.LatLng(longitude, latitude)
@@ -71,7 +67,7 @@ function showPosition() {
   mapholder.style.width = '100%';
 
   var myOptions = {
-    center:latlon,zoom:10,
+    center:latlon,zoom:3,
     mapTypeId:google.maps.MapTypeId.SATELLITE,
     mapTypeControl:true,
     navigationControlOptions:{style:google.maps.NavigationControlStyle.SMALL}
@@ -83,7 +79,7 @@ function showPosition() {
     icon: image[num]
 
   });
- //setTimeout("update()", 4000)
+
   update();
 
 }
@@ -104,12 +100,19 @@ function update() {
       latitude = message.latitude;
 
       listener.unsubscribe();
+      /*
+        The proper way to be subscribe would be to keep the subcription alive
+        but there was a lot of bugs and having multiple subscriptions weighted
+        down the system thus slowing it down heavily. The work around this was
+        to change the global longitude and latitude from a specific node and
+        then unsubscribe and keep going with the script.
+      */
     }
 
   });
 
   if(longitude != 0 && latitude != 0 && $('input[name=uav]').length < num + 1) {
-      //create radio buttons
+      //if we got good coordinates then create a radiobutton for this uav.
 
    $('<input />', {
               name: 'uav',
@@ -125,48 +128,48 @@ function update() {
 
 }
 
-  console.log("lat: " + latitude);
-  console.log("lon: " + longitude);
+//la will hold the coordinates.
   la = new google.maps.LatLng(latitude,
     longitude);
 
     if (marker[num]) {
-      // Marker already created - Move it
+      // if Marker already created - Move it
       marker[num].setPosition(la);
-    //  console.log("OLD" + num);
-    }
+        }
     else {
-      //add new image
+      //else add new image/icon
       image[num] = {
         url: 'images/uavIcon' + num + '.png',
         scaledSize: new google.maps.Size(100,100)
       };
 
-      // Marker does not exist - Create it
+      // Since Marker does not exist - Create it
         marker[num] = new google.maps.Marker({
         position: la,
         map: map,
         title: "UAV " + num,
         icon: image[num]
       });
-      //console.log("NEW" + num);
+
     }
 
-    // Center the map on the new position depending on the UAV
+    /* Center the map on the new position depending on the UAV
+       checked will hold the value of the uav we wish to focus
+       on.
+    */
     var checked = $('input[name=uav]:checked').val();
-    console.log(checked);
-    if(checked != 'free' && checked != undefined) { //if its not free roam, then center map to an UAV
+
+    if(checked != 'free' && checked != undefined) {
+      //if its not free roam, then center map to an UAV
       map.setCenter(marker[checked].getPosition());
     }
-    else{
-    //nothing
-    }
 
+    //Display wish UAV is focused.
     outmessage.innerHTML = num + "  " + la ;
     uavName.innerHTML = "UAV " + checked;
 
     num++
-
+    //increase num to check the next UAV
     if(num >= 5){
       num = 1;
     }
