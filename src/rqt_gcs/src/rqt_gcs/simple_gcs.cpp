@@ -4,6 +4,8 @@
 #include <iomanip>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string> 
+
 namespace rqt_gcs {
 
 SimpleGCS::SimpleGCS()
@@ -20,54 +22,51 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
 {
   // access standalone command line arguments
   QStringList argv = context.argv();
-
-  // create QWidget
+  //
   widget_ = new QWidget();
-
-  missionCancelWidget1_   = new QWidget();
-  missionSelectWidget1_   = new QWidget();
-  missionProgressWidget1_ = new QWidget();
-  UavQuestionWidget1_     = new QWidget();
-  UavStatWidget1_         = new QWidget();
-  ImageViewWidget_        = new QWidget();
+  missionCancelWidget_   = new QWidget();
+  missionSelectWidget_   = new QWidget();
+  missionProgressWidget_ = new QWidget();
+  uavQuestionWidget_     = new QWidget();
+  uavStatWidget_         = new QWidget();
+  imageViewWidget_        = new QWidget();
   PFDQWidget              = new QWidget();
 
-  UavConditionWidget1_    = new QWidget();
-  UavConditionWidget2_    = new QWidget();
+ for(int i = 0; i < NUM_UAV; i++){
+	uavListWidgetArr[i] = new QWidget();
+        uavCondWidgetArr[i].setupUi(uavListWidgetArr[i]);
+        uavCondWidgetArr[i].VehicleSelectButton->setText(std::to_string(i+1).c_str());
+	uavCondWidgetArr[i].VehicleNameLine->setText(std::to_string(i).append("UAV ",0).c_str());
+ }
 
+  //sets up the UI objects with the widgets
   central_ui_.setupUi(widget_);
-  mcUi_.setupUi(missionCancelWidget1_);
-  mpUi1_.setupUi(missionProgressWidget1_);
-  msUi_.setupUi(missionSelectWidget1_);
-  uqUi_.setupUi(UavQuestionWidget1_);
-  usUi1_.setupUi(UavStatWidget1_);
-  ivUi_.setupUi(ImageViewWidget_);
+  mcUi_.setupUi(missionCancelWidget_);
+  mpUi_.setupUi(missionProgressWidget_);
+  msUi_.setupUi(missionSelectWidget_);
+  uqUi_.setupUi(uavQuestionWidget_);
+  usUi_.setupUi(uavStatWidget_);
+  ivUi_.setupUi(imageViewWidget_);
   pfd_ui.setupUi(PFDQWidget);
 
-  condUi1_.setupUi(UavConditionWidget1_);
-  condUi1_.VehicleSelectButton->setText("1");
-  condUi1_.VehicleNameLine->setText("Uav 1");
 
-  condUi2_.setupUi(UavConditionWidget2_);
-  condUi2_.VehicleSelectButton->setText("2");
-  condUi2_.VehicleNameLine->setText("Uav 2");
-
-  // add widget to the user interface
+  // add widgets to the Main UI
   context.addWidget(widget_);
 
-  central_ui_.MissionLayout->addWidget(missionProgressWidget1_);
-  central_ui_.OverviewLayout->addWidget(UavStatWidget1_);
+  central_ui_.MissionLayout->addWidget(missionProgressWidget_);
+  central_ui_.OverviewLayout->addWidget(uavStatWidget_);
   central_ui_.PFDLayout->addWidget(PFDQWidget);
-  central_ui_.CameraLayout->addWidget(ImageViewWidget_);
-  central_ui_.UAVListLayout->addWidget(UavConditionWidget1_);
-  central_ui_.UAVListLayout->addWidget(UavConditionWidget2_);
+  central_ui_.CameraLayout->addWidget(imageViewWidget_);
 
+  for(int i = 0; i < NUM_UAV; i++){
+      central_ui_.UAVListLayout->addWidget(uavListWidgetArr[i]);
+  }
 
    //setup mission progress widgets
-   missionSelectWidget1_->setWindowTitle("Mission Selection");
-   UavStatWidget1_->setWindowTitle("Flight State");
-   missionProgressWidget1_->setWindowTitle("Mission Control");
-   connect(mpUi1_.changeMissionButton,SIGNAL(clicked()),this, SLOT(MissionChange()));
+   missionSelectWidget_->setWindowTitle("Mission Selection");
+   uavStatWidget_->setWindowTitle("Flight State");
+   missionProgressWidget_->setWindowTitle("Mission Control");
+   connect(mpUi_.changeMissionButton,SIGNAL(clicked()),this, SLOT(MissionChange()));
 
    //setup Mission select widgets
    connect(msUi_.submitMission,SIGNAL(clicked()),this, SLOT(MissionSubmit()));
@@ -76,28 +75,18 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
    //set up uav lists select functions
    // index 0 refers to quadrotor 1
    // index 1 refers to quadrotor 2
-    signalMapper = new QSignalMapper(this);
-    signalMapper->setMapping(condUi1_.VehicleSelectButton, 0);
-    signalMapper->setMapping(condUi2_.VehicleSelectButton, 1);
-
-    connect(condUi1_.VehicleSelectButton,SIGNAL(clicked()),signalMapper, SLOT(map()));
-    connect(condUi2_.VehicleSelectButton,SIGNAL(clicked()),signalMapper, SLOT(map()));
-
-    connect(signalMapper, SIGNAL(mapped(int)),this, SLOT(QuadSelect(int)));
-
-
-   
-
+   signalMapper = new QSignalMapper(this);
+   for(int i = 0; i < NUM_UAV; i++){
+	signalMapper->setMapping(uavCondWidgetArr[i].VehicleSelectButton, i);
+	connect(uavCondWidgetArr[i].VehicleSelectButton,SIGNAL(clicked()),signalMapper, SLOT(map()));
+   }
+   connect(signalMapper, SIGNAL(mapped(int)),this, SLOT(QuadSelect(int)));
 
 
    //set up update timer
    updateTimer = new QTimer(this);
    connect(updateTimer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
    updateTimer->start(100);
-}
-
-void SimpleGCS::Calculate(){
-
 }
 
 void SimpleGCS::QuadSelect(int quadNumber){
@@ -110,59 +99,57 @@ void SimpleGCS::TimedUpdate(){
   SimpleControl quad = quadrotors[cur_uav];
 
   temp_data = quad.GetState().mode.c_str();
-  usUi1_.flightModeDisplay->setText(temp_data);
+  usUi_.flightModeDisplay->setText(temp_data);
 
   temp_data.setNum(quad.GetFlightState().yaw,'f',2);
-  usUi1_.yawDisplay->setText(temp_data);
+  usUi_.yawDisplay->setText(temp_data);
 
   temp_data.setNum(quad.GetFlightState().roll,'f',2);
-  usUi1_.rollDisplay->setText(temp_data);
+  usUi_.rollDisplay->setText(temp_data);
 
   temp_data.setNum(quad.GetFlightState().pitch,'f',2);
-  usUi1_.pitchDisplay->setText(temp_data);
+  usUi_.pitchDisplay->setText(temp_data);
 
   temp_data.setNum(quad.GetFlightState().altitude,'f',2);
-  usUi1_.altitudeDisplay->setText(temp_data);
+  usUi_.altitudeDisplay->setText(temp_data);
 
   temp_data.setNum(quad.GetFlightState().vertical_speed,'f',2);
-  usUi1_.verticalSpaceDisplay->setText(temp_data);
+  usUi_.verticalSpaceDisplay->setText(temp_data);
 
   temp_data.setNum(quad.GetFlightState().ground_speed,'f',2);
-  usUi1_.horizontalSpaceDisplay->setText(temp_data);
+  usUi_.horizontalSpaceDisplay->setText(temp_data);
 
   temp_data.setNum(quad.GetFlightState().heading,'f',2);
-  usUi1_.headingDisplay->setText(temp_data);
+  usUi_.headingDisplay->setText(temp_data);
 
   temp_data.setNum(quad.GetDistanceToWP());
-  usUi1_.waypointDisplay->setText(temp_data);
+  usUi_.waypointDisplay->setText(temp_data);
 
   temp_data.setNum(quad.GetBatteryStatus().remaining*100);
-  usUi1_.batteryProgressBar->setValue(temp_data.toInt());
+  usUi_.batteryProgressBar->setValue(temp_data.toInt());
 
   temp_data = "UAV ";
   temp_data += quadId;
 
-  mpUi1_.uavNameEdit->setText(temp_data);
+  mpUi_.uavNameEdit->setText(temp_data);
  
-  mpUi1_.missionProgressBar->setValue(quad.GetMissionProgress()*100);
+  mpUi_.missionProgressBar->setValue(quad.GetMissionProgress()*100);
 
   this->UpdatePFD();
 
   quad.Run();
 
   //Update Uav List widgets
-  temp_data.setNum(quadrotors[0].GetBatteryStatus().remaining*100);
-  condUi1_.VehicleBatteryLine->setText(temp_data);
-
-  temp_data.setNum(quadrotors[1].GetBatteryStatus().remaining*100);
-  condUi2_.VehicleBatteryLine->setText(temp_data);
-
+  for(int i = 0; i < NUM_UAV; i++){
+   temp_data.setNum(quadrotors[i].GetBatteryStatus().remaining*100);
+   uavCondWidgetArr[i].VehicleBatteryLine->setText(temp_data);
+  }
 
 }
 
 void SimpleGCS::MissionChange(){
 
-    missionSelectWidget1_->show();
+    missionSelectWidget_->show();
 }
 
 void SimpleGCS::MissionSelect(const int i){
@@ -206,7 +193,7 @@ void SimpleGCS::MissionSubmit(){
            ROS_INFO_STREAM("RETURN HOME");
    }
 
-    missionSelectWidget1_->close();
+    missionSelectWidget_->close();
 }
 
 void SimpleGCS::shutdownPlugin()
