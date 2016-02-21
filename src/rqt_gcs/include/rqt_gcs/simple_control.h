@@ -286,7 +286,7 @@ private:
                         pos_home,
                         pos_previous;
   float altitude_rel, heading_deg;
-  int goal = DISARM;
+  int goal = -1;
   ros::Time last_request;
 };
 

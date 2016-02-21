@@ -441,8 +441,6 @@ void SimpleControl::Run()
     //Return to launch site if battery is starting to get low
     goal = RTL;
   }*/
-
-
   if(goal == TRAVEL){
     //this->SetLinearVelocity(5,5,1);
     if(ComparePosition(pos_local, pos_target) == 0){
@@ -460,7 +458,6 @@ void SimpleControl::Run()
     }
       //this->SetLinearVelocity(30,30,0);
   }
-
   else if(goal == SCOUT){
     //TODO: Fix Scout Functionality. Temporary Circle Path Test
     static int rev_count = 0;
@@ -483,7 +480,7 @@ void SimpleControl::Run()
 
     }
   else if(goal == RTL){
-    /*if(ComparePosition(pos_local, pos_target) == 0){
+    if(ComparePosition(pos_local, pos_target) == 0){
       //Vehicle is at target location => Disarm
       goal = DISARM;
     }
@@ -497,10 +494,11 @@ void SimpleControl::Run()
     }
     else{
       this->SetLocalPosition(pos_local.x, pos_local.y, ALT_RTL);
-    }*/
-    if(state.mode.compare("AUTO.RTL") != 0 && state.mode.compare("AUTO.LAND") != 0){
+    }
+    /*if(state.mode.compare("AUTO.RTL") != 0 && state.mode.compare("AUTO.LAND") != 0){
       this->SetMode("AUTO.RTL");
     }
+    */
   }
   else if(goal == LAND){
     if(pos_local.z == 0){
