@@ -23,7 +23,6 @@ int main(int argc, char** argv)
   std::string topic;
   bool paramSet = ros::param::get("~image_topic", topic);
 
-
   if(!paramSet){
       topic = "mono_cam/image_raw";
   }

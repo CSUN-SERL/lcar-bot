@@ -23,13 +23,14 @@ int main(int argc, char **argv)
   cv::namedWindow("view");
   cv::startWindowThread();
   image_transport::ImageTransport it(nh);
-  
+
   std::string topic;
   if(argc >= 2)
       topic = argv[1];
   else topic = "mono_cam/image_raw";
-  
+
   image_transport::Subscriber sub = it.subscribe(topic, 1, imageCallback);
   ros::spin();
   cv::destroyWindow("view");
 }
+   
