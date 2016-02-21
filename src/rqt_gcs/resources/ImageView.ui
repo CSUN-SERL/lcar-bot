@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>PFDWidget</class>
- <widget class="QWidget" name="PFDWidget">
+ <class>ImageViewWidget</class>
+ <widget class="QWidget" name="ImageViewWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -27,15 +27,12 @@
     <number>0</number>
    </property>
    <item row="0" column="0">
-    <widget class="WidgetPFD" name="widgetPFD" native="true">
-     <property name="enabled">
-      <bool>true</bool>
+    <widget class="rqt_image_view::RatioLayoutedFrame" name="image_frame">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
      </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-       <horstretch>2</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
      </property>
     </widget>
    </item>
@@ -43,9 +40,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>WidgetPFD</class>
-   <extends>QWidget</extends>
-   <header>../../src/rqt_gcs/include/FIW/WidgetPFD.h</header>
+   <class>rqt_image_view::RatioLayoutedFrame</class>
+   <extends>QFrame</extends>
+   <header>../../src/rqt_gcs/include/rqt_image_view/ratio_layouted_frame.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

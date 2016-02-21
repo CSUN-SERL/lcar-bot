@@ -366,15 +366,12 @@ int SimpleControl::CalculateDistance(geometry_msgs::Point point1, geometry_msgs:
 
 float SimpleControl::GetMissionProgress()
 {
-
-
   geometry_msgs::Point pos_local = pos_local;
   geometry_msgs::Point pos_target = pos_target;
   geometry_msgs::Point pos_previous = pos_previous;
   geometry_msgs::Point pos_home = pos_home;
 
   float progress  = 0;
-  int goal    = goal;
 
   if(goal == TRAVEL){
     float distance_remaining  = CalculateDistance(pos_target,pos_local);

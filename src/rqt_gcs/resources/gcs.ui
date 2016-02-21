@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MyPluginWidget</class>
- <widget class="QWidget" name="MyPluginWidget">
+ <class>SimpleGCSWidget</class>
+ <widget class="QWidget" name="SimpleGCSWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
