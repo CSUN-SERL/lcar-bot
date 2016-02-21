@@ -3,7 +3,6 @@
 //#include <sstream>
 
 void SetLabel(cv::Mat& im, cv::Rect r, const std::string label);
-void NegativeMiningSetup();
 void NegativeMining(Mat greyimg);
 void CategorizeObjects();
 void HogObjectDetection(Ptr<SVM> svm);
@@ -135,6 +134,8 @@ void Run() {
                 break;
             case 6: cout << "Goodbye\n";
                 break;
+	    default:
+                break;
         }
     } while (user_input != 6);
 }
@@ -160,12 +161,14 @@ void CreateSVM() {
     svm_kernel = user_input;
 
     cout << "What type of feature extraction do you want to use?\n";
-    cout << "(1)HOG?\n(2)ORB?\n";
+    cout << "(1)HOG?\n(2)ORB?\n(3)Restart\n";
     user_input = 0;
     cout << "Feature extraction: ";
     cin >> user_input;
-    if (user_input < 1 || user_input > 2)
+    if (user_input < 1 || user_input > 3)
         cout << "Invalid input\n";
+    if (user_input==3)
+	return;
 
     feature_extraction = user_input;
 
@@ -308,8 +311,15 @@ void DetectObjects() {
     thread thread_1(HogObjectDetection, svm);
     thread thread_2(CategorizeObjects);
 
-    thread_1.join();
-    thread_2.join();
+      if(thread_1.joinable()){
+        
+        cout << "thread 1 detached";
+        thread_1.detach();
+    }
+    if(thread_2.joinable()){
+        cout << "thread 2";
+        thread_2.join();
+    }
 }
 
 //Convert a vector mat into a single mat
@@ -597,8 +607,9 @@ void HogObjectDetection(Ptr<SVM> current_svm) {
         //people.detectMultiScale(img, locations);
         ml.DrawLocations(img, objects, reference, "door");
         imshow("video capture", img);
-        if (waitKey(10) >= 0)
-            break;
+        if (waitKey(10) >= 0){ //any key pressed
+            std::terminate(); //terminates all running threads
+        }
     }
 }
 
