@@ -7,9 +7,9 @@ int main(int argc, char **argv)
   SimpleControl quad2{2};
 
   boost::thread_group tg;
-  ros::Rate loop_rate(1); //10Hz
+  ros::Rate loop_rate(10); //10Hz
 
-  quad1.ScoutBuilding(7,-9,5);
+  //quad1.ScoutBuilding(0,0,5);
 
   while(ros::ok())
   {
@@ -64,9 +64,12 @@ void SimpleControl::Arm(bool value)
     //Create a message for arming/disarming
     mavros_msgs::CommandBool arm;
     arm.request.value = value;
+      //Call the service
 
-    //Call the service
-    if(sc_arm.call(arm)){
+    if(pos_local.z > 0.5 && !value){
+      this->SetMode("AUTO.LAND");
+    }
+    else if(sc_arm.call(arm)){
       if(arm.response.success == 1){
 
         bool timeout = false;
@@ -248,8 +251,6 @@ void SimpleControl::SetLocalPosition(int x, int y, int z)
 
 void SimpleControl::SetLocalPosition(geometry_msgs::Point new_point)
 {
-
-
   //Create the message object
   geometry_msgs::PoseStamped position_stamped;
 
@@ -391,12 +392,45 @@ float SimpleControl::GetMissionProgress()
 
 Eigen::Vector3d SimpleControl::CircleShape(int angle){
 		/** @todo Give possibility to user define amplitude of movement (circle radius)*/
-		double r = 6.0f;	// 5 meters radius
+		double r = 5.0f;	// 5 mete;rs radius
 
 		return Eigen::Vector3d( r * (cos(angles::from_degrees(angle))),
 				                    r * (sin(angles::from_degrees(angle))),
 				                    pos_previous.z);
-	}
+	};
+
+geometry_msgs::Point SimpleControl::DiamondShape(int index){
+
+  double r = 5.0f;
+  geometry_msgs::Point mission[4] = { };
+  float Point1,Point2,Point3,Point4;
+ // making array later
+  index--;
+  //Point[1] = ((pos_local.x + r),(pos_local.y),(pos_local.z));
+  //Point[2] = ((pos_local.x),(pos_local.y + r),(pos_local.z));
+  //Point[3] = ((pos_local.x - r),(pos_local.y),(pos_local.z));
+  //Point[4] = ((pos_local.x),(pos_local.y - r),(pos_local.z));
+
+  ROS_INFO_STREAM("Traveling to Index " << index);
+  mission[0].x = r;
+  mission[0].y = 0;
+  mission[0].z = 4;
+  //this->SetAttitude(0,0,180);
+  mission[1].x = 0;
+  mission[1].y = r;
+  mission[1].z = 4;
+  //this->SetAttitude(0,0,270);
+  mission[2].x = -r;
+  mission[2].y = 0;
+  mission[2].z = 4;
+  //this->SetAttitude(0,0,0);
+  mission[3].x = 0;
+  mission[3].y = -r;
+  mission[3].z = 4;
+  //this->SetAttitude(0,0,90);
+
+  return mission[index];
+}
 
 void SimpleControl::Run()
 {
@@ -405,34 +439,44 @@ void SimpleControl::Run()
     goal = RTL;
   }*/
   if(goal == TRAVEL){
+    //this->SetLinearVelocity(5,5,1);
     if(ComparePosition(pos_local, pos_target) == 0){
       //Vehicle is at target location => Scout Building
       pos_previous = pos_local;
-      goal = SCOUT;
-      ROS_INFO_STREAM("Scouting Building.");
+      //goal = SCOUT;
+      pos_target.x = 0;
+      pos_target.y = 0;
+      pos_target.z = 0;
+      goal = LAND;
+      ROS_DEBUG_STREAM_ONCE("Scouting Building.");
     }
     else if(abs(pos_local.z - pos_target.z) <= THRESHOLD_Z){
       //Achieved the proper altitude => Go to target location
       this->SetLocalPosition(pos_target);
     }
-    else{ //Ascend to the proper altitude first at the current location
+    else{
+      //Ascend to the proper altitude first at the current location
       this->SetLocalPosition(pos_local.x, pos_local.y, pos_target.z);
     }
+      //this->SetLinearVelocity(30,30,0);
   }
   else if(goal == SCOUT){
     //TODO: Fix Scout Functionality. Temporary Circle Path Test
-    static int theta = 0;
-
-	  tf::pointEigenToMsg(this->CircleShape(theta), pos_target); //Update Target Pos
+    static int rev_count = 0;
+    static int cur_point = 1;
+    pos_target = this->DiamondShape(cur_point);
+	  //tf::pointEigenToMsg(this->CircleShape(theta), pos_target); //Update Target Pos
 	  this->SetLocalPosition(pos_target);
     goal = TRAVEL;
-    theta++;
+    cur_point++;
 
-    if (theta == 360){
-      ROS_INFO_STREAM("Home Target: " << pos_home);
-      pos_target = pos_home;
-      goal = RTL;
-      theta = 0;
+    if (cur_point > 5){
+      //ROS_INFO_STREAM("Home Target: " << pos_home);
+      //pos_target = pos_home;
+      //goal = RTL;
+      ROS_INFO_STREAM("Circled Building" << rev_count << "times.");
+      rev_count++;
+      cur_point = 1;
     }
   }
   else if(goal == RTL){
@@ -451,21 +495,21 @@ void SimpleControl::Run()
     else{
       this->SetLocalPosition(pos_local.x, pos_local.y, ALT_RTL);
     }
+    /*if(state.mode.compare("AUTO.RTL") != 0 && state.mode.compare("AUTO.LAND") != 0){
+      this->SetMode("AUTO.RTL");
+    }
+    */
   }
   else if(goal == LAND){
-    if(pos_local.z == 0){
-      //Landed => Disarm
-      goal = DISARM;
-    }
-    else{
-      this->SetLocalPosition(pos_target);
-    }
+    this->SetMode("AUTO.LAND");
+    goal = IDLE;
   }
   else if(goal == DISARM){
     //Disarm the vehicle if it's currently armed
     if(state.armed) this->Arm(false);
+    goal = IDLE;
   }
-  else{
+  else if(goal == IDLE){
     //Wait for the goal to change
   }
 }
