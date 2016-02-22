@@ -377,10 +377,10 @@ float SimpleControl::GetMissionProgress()
     float distance_completion = distance_remaining/distance_total;
     progress =  TRAVEL_WT*(1 - distance_completion);
   }
-  else if(goal == SCOUT){
+  else if(goal == scout){
     progress = TRAVEL_WT/*+ building revolution completion*/;
   }
-  else if(goal == RTL || goal == LAND){ //RTL or Land
+  else if(goal == rtl || goal == land){ //RTL or Land
     float distance_remaining  = CalculateDistance(pos_target,pos_local);
     float distance_total      = CalculateDistance(pos_target,pos_previous);
     float distance_completion = distance_remaining/distance_total;

@@ -42,7 +42,7 @@
 #define DEF_NS "UAV"
 
 //Enumerators
-enum mode{
+enum Mode{
     travel,
     scout,
     rtl,
@@ -292,7 +292,7 @@ private:
                         pos_previous;
   float altitude_rel, heading_deg;
   //int goal = IDLE;
-  mode goal = idle;
+  Mode goal = idle;
   ros::Time last_request;
 };
 
