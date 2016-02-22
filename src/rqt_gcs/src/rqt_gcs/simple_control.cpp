@@ -205,7 +205,7 @@ std::string SimpleControl::GetLocation()
   return std::to_string(lat) + "," + std::to_string(lon);
 }
 
-void SimpleControl::ScoutBuilding(int x, int y, int z)
+void SimpleControl::ScoutBuilding(float x, float y, float z)
 {
   //Update the target location
   pos_target.x = x;

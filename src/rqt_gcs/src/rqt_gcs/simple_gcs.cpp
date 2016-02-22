@@ -183,7 +183,7 @@ void SimpleGCS::MissionSubmit(){
         }
         else if(msUi_.playsComboBox->currentIndex() == 1){
             quadrotors[cur_uav].EnableOffboard();
-            quadrotors[cur_uav].ScoutBuilding(0,0,3);
+            quadrotors[cur_uav].ScoutBuilding(0,0,1.5);
             ROS_INFO_STREAM("SCOUT BUILDING");
         }
     }

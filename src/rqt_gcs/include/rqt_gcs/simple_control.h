@@ -36,7 +36,7 @@
 #define TRAVEL_WT 0.5
 #define SCOUT_WT 0.5
 #define THRESHOLD_XY 1
-#define THRESHOLD_Z 1
+#define THRESHOLD_Z 0.2
 #define ALT_RTL 3
 #define BATTERY_MIN 0.30  //Minimum battery level for RTL
 #define DEF_NS "UAV"
@@ -127,7 +127,7 @@ public:
       @param y Y coordinate of the local position of the building
       @param z The height at which the UAV should arrive at the building
   */
-  void ScoutBuilding(int x, int y, int z);
+  void ScoutBuilding(float x, float y, float z);
 
   /**
       Override the RC value of the transmitter.
