@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string> 
+#include <string>
 
 namespace rqt_gcs {
 
@@ -34,8 +34,8 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
 
  for(int i = 0; i < NUM_UAV; i++){
 	uavListWidgetArr[i] = new QWidget();
-        uavCondWidgetArr[i].setupUi(uavListWidgetArr[i]);
-        uavCondWidgetArr[i].VehicleSelectButton->setText(std::to_string(i+1).c_str());
+    uavCondWidgetArr[i].setupUi(uavListWidgetArr[i]);
+    uavCondWidgetArr[i].VehicleSelectButton->setText(std::to_string(i+1).c_str());
 	uavCondWidgetArr[i].VehicleNameLine->setText(std::to_string(i).append("UAV ",0).c_str());
  }
 
@@ -132,12 +132,15 @@ void SimpleGCS::TimedUpdate(){
   temp_data += quadId;
 
   mpUi_.uavNameEdit->setText(temp_data);
- 
+
   mpUi_.missionProgressBar->setValue(quad.GetMissionProgress()*100);
 
   this->UpdatePFD();
 
-  quad.Run();
+  //Update all UAV's in the system
+  for(int index = 0; index < NUM_UAV; index++){
+    quadrotors[index].Run();
+  }
 
   //Update Uav List widgets
   for(int i = 0; i < NUM_UAV; i++){
@@ -164,34 +167,32 @@ void SimpleGCS::MissionSelect(const int i){
 }
 
 void SimpleGCS::MissionSubmit(){
-   ROS_INFO_STREAM("Mission Submitted");
-   if(msUi_.missionComboBox->currentIndex() == 0){
+    ROS_INFO_STREAM("Mission Submitted");
+    if(msUi_.missionComboBox->currentIndex() == 0){
         quadrotors[cur_uav].Arm(true);
-   }
-   else if(msUi_.missionComboBox->currentIndex() == 1){
+    }
+    else if(msUi_.missionComboBox->currentIndex() == 1){
         quadrotors[cur_uav].Arm(false);
-   }
-   else if(msUi_.missionComboBox->currentIndex() == 2){
-        ROS_INFO_STREAM("LAND");
-   }
-   else if(msUi_.missionComboBox->currentIndex() == 3){
-        ROS_INFO_STREAM("FOLLOW PLAY");
-
-         if(msUi_.playsComboBox->currentIndex() == 0){
-          ROS_INFO_STREAM("SCAN ACCESS POINTS");
-         }
-         else if(msUi_.playsComboBox->currentIndex() == 1){
-           quadrotors[cur_uav].EnableOffboard();
-  	        quadrotors[cur_uav].ScoutBuilding(-7,-9,3);
-           ROS_INFO_STREAM("SCOUT BUILDING");
-         }
-   }
-   else if(msUi_.missionComboBox->currentIndex() == 4){
-           ROS_INFO_STREAM("LOITER");
-   }
-   else if(msUi_.missionComboBox->currentIndex() == 5){
-           ROS_INFO_STREAM("RETURN HOME");
-   }
+    }
+    else if(msUi_.missionComboBox->currentIndex() == 2){
+        quadrotors[cur_uav].SetMode("AUTO.LAND");
+    }
+    else if(msUi_.missionComboBox->currentIndex() == 3){
+        if(msUi_.playsComboBox->currentIndex() == 0){
+            ROS_INFO_STREAM("SCAN ACCESS POINTS");
+        }
+        else if(msUi_.playsComboBox->currentIndex() == 1){
+            quadrotors[cur_uav].EnableOffboard();
+            quadrotors[cur_uav].ScoutBuilding(0,0,3);
+            ROS_INFO_STREAM("SCOUT BUILDING");
+        }
+    }
+    else if(msUi_.missionComboBox->currentIndex() == 4){
+        quadrotors[cur_uav].SetMode("AUTO.LOITER");
+    }
+    else if(msUi_.missionComboBox->currentIndex() == 5){
+        quadrotors[cur_uav].SetMode("AUTO.RTL");
+    }
 
     missionSelectWidget_->close();
 }

@@ -444,9 +444,7 @@ void SimpleControl::Run()
       //Vehicle is at target location => Scout Building
       pos_previous = pos_local;
       //goal = SCOUT;
-      pos_target.x = 0;
-      pos_target.y = 0;
-      pos_target.z = 0;
+      pos_target = pos_home;
       goal = LAND;
       ROS_DEBUG_STREAM_ONCE("Scouting Building.");
     }
