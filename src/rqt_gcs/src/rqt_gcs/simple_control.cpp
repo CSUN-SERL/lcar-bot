@@ -217,7 +217,7 @@ void SimpleControl::ScoutBuilding(int x, int y, int z)
   //this->SetMode("Guided");
 
   pos_previous = pos_local;
-  goal = TRAVEL;
+  goal = travel;
   ROS_INFO_STREAM("Traveling to target location.");
 }
 
@@ -371,7 +371,7 @@ float SimpleControl::GetMissionProgress()
 
   float progress  = 0;
 
-  if(goal == TRAVEL){
+  if(goal == travel){
     float distance_remaining  = CalculateDistance(pos_target,pos_local);
     float distance_total      = CalculateDistance(pos_target,pos_home);
     float distance_completion = distance_remaining/distance_total;
@@ -438,14 +438,14 @@ void SimpleControl::Run()
     //Return to launch site if battery is starting to get low
     goal = RTL;
   }*/
-  if(goal == TRAVEL){
+  if(goal == travel){
     //this->SetLinearVelocity(5,5,1);
     if(ComparePosition(pos_local, pos_target) == 0){
       //Vehicle is at target location => Scout Building
       pos_previous = pos_local;
       //goal = SCOUT;
       pos_target = pos_home;
-      goal = LAND;
+      goal = land;
       ROS_DEBUG_STREAM_ONCE("Scouting Building.");
     }
     else if(abs(pos_local.z - pos_target.z) <= THRESHOLD_Z){
@@ -458,14 +458,14 @@ void SimpleControl::Run()
     }
       //this->SetLinearVelocity(30,30,0);
   }
-  else if(goal == SCOUT){
+  else if(goal == scout){
     //TODO: Fix Scout Functionality. Temporary Circle Path Test
     static int rev_count = 0;
     static int cur_point = 1;
     pos_target = this->DiamondShape(cur_point);
 	  //tf::pointEigenToMsg(this->CircleShape(theta), pos_target); //Update Target Pos
 	  this->SetLocalPosition(pos_target);
-    goal = TRAVEL;
+    goal = travel;
     cur_point++;
 
     if (cur_point > 5){
@@ -477,14 +477,14 @@ void SimpleControl::Run()
       cur_point = 1;
     }
   }
-  else if(goal == RTL){
+  else if(goal == rtl){
     if(ComparePosition(pos_local, pos_target) == 0){
       //Vehicle is at target location => Disarm
-      goal = DISARM;
+      goal = disarm;
     }
     else if(abs(pos_local.x - pos_target.x) <= THRESHOLD_XY && abs(pos_local.y - pos_target.y) <= THRESHOLD_XY){
       this->SetLocalPosition(pos_local.x, pos_local.y, 0);
-      goal = LAND;
+      goal = land;
     }
     else if(abs(pos_local.z - ALT_RTL) <= THRESHOLD_Z){
       //Achieved the proper altitude => Go to target location
@@ -498,16 +498,16 @@ void SimpleControl::Run()
     }
     */
   }
-  else if(goal == LAND){
+  else if(goal == land){
     this->SetMode("AUTO.LAND");
-    goal = IDLE;
+    goal = idle;
   }
-  else if(goal == DISARM){
+  else if(goal == disarm){
     //Disarm the vehicle if it's currently armed
     if(state.armed) this->Arm(false);
-    goal = IDLE;
+    goal = idle;
   }
-  else if(goal == IDLE){
+  else if(goal == idle){
     //Wait for the goal to change
   }
 }

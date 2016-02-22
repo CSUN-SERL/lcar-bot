@@ -33,12 +33,6 @@
 #define QUEUE_SIZE 100            //Message Queue size for publishers
 #define CHECK_FREQUENCY 1         //Frequency for checking change of state
 #define TIMEOUT 3*CHECK_FREQUENCY //3 Second timeout
-#define TRAVEL 0
-#define SCOUT 1
-#define RTL 2
-#define LAND 3
-#define DISARM 4
-#define IDLE 5
 #define TRAVEL_WT 0.5
 #define SCOUT_WT 0.5
 #define THRESHOLD_XY 1
@@ -46,6 +40,16 @@
 #define ALT_RTL 3
 #define BATTERY_MIN 0.30  //Minimum battery level for RTL
 #define DEF_NS "UAV"
+
+//Enumerators
+enum mode{
+    travel,
+    scout,
+    rtl,
+    land,
+    disarm,
+    idle
+};
 
 //Structs
 struct FlightState {
@@ -228,7 +232,7 @@ public:
   void Run();
 
 
-  void SetRTL() { goal = RTL; }
+  void SetRTL() { goal = rtl; }
 
   //Getter Functions
   mavros_msgs::State GetState() { return state; }
@@ -287,7 +291,8 @@ private:
                         pos_home,
                         pos_previous;
   float altitude_rel, heading_deg;
-  int goal = IDLE;
+  //int goal = IDLE;
+  mode goal = idle;
   ros::Time last_request;
 };
 
