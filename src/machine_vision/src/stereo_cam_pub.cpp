@@ -5,7 +5,10 @@
 
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
+#include <image_transport/camera_publisher.h>
 #include <cv_bridge/cv_bridge.h>
+
+#include <camera_info_manager/camera_info_manager.h>
 
 #include <stdio.h>
 #include <unistd.h>
@@ -13,16 +16,23 @@
 #include <sstream> // for converting the command line parameter to integer#
 #include <stdlib.h>
 
-image_transport::Publisher pubLeft;
-image_transport::Publisher pubRight;
+image_transport::CameraPublisher pubLeft;
+image_transport::CameraPublisher pubRight;
 image_transport::Publisher pubRGB;
+
+
+camera_info_manager::CameraInfoManager *cinfo_left;
+camera_info_manager::CameraInfoManager *cinfo_right;
+
 
 void cb(uvc_frame_t *frame, void *ptr) {
   ros::Rate loop_rate(30);
   loop_rate.sleep();
   frame->frame_format = UVC_FRAME_FORMAT_YUYV;
-  std::cout << "Frame format" << std::endl;
-  std::cout << frame->frame_format << std::endl;
+
+  //std::cout << "Frame format" << std::endl;
+  //std::cout << frame->frame_format << std::endl;
+
   uvc_frame_t *greyLeft;
   uvc_frame_t *greyRight;
   uvc_frame_t *frameRGB;
@@ -47,6 +57,13 @@ void cb(uvc_frame_t *frame, void *ptr) {
       printf("unable to allocate RGB frame!");
       return;
   }
+
+    sensor_msgs::CameraInfoPtr ci_left(new sensor_msgs::CameraInfo(cinfo_left->getCameraInfo()));
+
+    sensor_msgs::CameraInfoPtr ci_right(new sensor_msgs::CameraInfo(cinfo_right->getCameraInfo()));
+
+    ci_left->header.stamp = ci_right->header.stamp = ros::Time::now();
+
 
   /* Do the BGR conversion */
   retLeft = uvc_yuyv2y(frame, greyLeft);
@@ -80,13 +97,13 @@ void cb(uvc_frame_t *frame, void *ptr) {
   if(!left.empty()){
       sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(),
                                                 "mono8", left).toImageMsg();
-      pubLeft.publish(msg);
+      pubLeft.publish(msg, ci_left);
   }
 
   if(!right.empty()){
       sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(),
                                                 "mono8", right).toImageMsg();
-      pubRight.publish(msg);
+      pubRight.publish(msg, ci_right);
   }
 
   ///*
@@ -102,15 +119,25 @@ void cb(uvc_frame_t *frame, void *ptr) {
   uvc_free_frame(frameRGB);
 
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 int main (int argc, char** argv){
     //ros inits
     ros::init(argc, argv, "stereo_cam");
     ros::NodeHandle nh;
+
+    camera_info_manager::CameraInfoManager temp_left(nh, "stereo_cam/left", "package://machine_vision/calibrations/left.yaml");
+    camera_info_manager::CameraInfoManager temp_right(nh, "stereo_cam/right", "package://machine_vision/calibrations/right.yaml");
+    cinfo_left = &temp_left;
+    cinfo_right = &temp_right;
+
+
     image_transport::ImageTransport it(nh);
-    pubLeft = it.advertise( "stereo_cam/left/image_raw", 1);
-    pubRight = it.advertise("stereo_cam/right/image_raw", 1);
+    pubLeft  = it.advertiseCamera( "stereo_cam/left/image_raw", 1);
+    pubRight = it.advertiseCamera("stereo_cam/right/image_raw", 1);
     pubRGB = it.advertise(  "stereo_cam/rgb/image_raw", 1);
+
+
 
     //ros::Rate loop_rate(30); //10Hz
 
@@ -136,10 +163,12 @@ int main (int argc, char** argv){
       return res;
     }
 
+    int vendor_id = strtol("0x2a0b", NULL, 0);
+
     /* Locates the first attached UVC device, stores in dev */
     res = uvc_find_device(
         ctx, &dev,
-        0, 0, NULL); /* filter devices: vendor_id, product_id, "serial_num" */
+        vendor_id, 0, NULL); /* filter devices: vendor_id, product_id, "serial_num" */
 
     if (res < 0) {
       uvc_perror(res, "uvc_find_device"); /* no devices found */
