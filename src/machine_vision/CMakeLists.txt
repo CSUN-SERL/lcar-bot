@@ -31,11 +31,11 @@ include_directories(include
 add_executable(camera_publisher src/ros_camera_publisher.cpp)
 add_executable(camera_subscriber src/ros_camera_subscriber.cpp)
 add_executable(stereo_publisher src/stereo_cam_pub.cpp)
-<<<<<<< HEAD
+#<<<<<<< HEAD
 # add_executable(stereo_driver src/ros_camera_driver.cpp src/camera_driver_main.cpp)
-=======
+#=======
 add_executable(stereo_driver src/stereo_driver.cpp src/stereo_driver_main.cpp)
->>>>>>> 4bac26099c102b8ebb1d5427c8ad0a88dce04c73
+#>>>>>>> 4bac26099c102b8ebb1d5427c8ad0a88dce04c73
 
 #Specify libraries against which to link
 target_link_libraries(camera_publisher
@@ -54,8 +54,8 @@ target_link_libraries(stereo_publisher
   ${libuvc_LIBRARIES}
 )
 
-# target_link_libraries(stereo_driver
-#   ${catkin_LIBRARIES}
-#   ${OpenCV_LIBRARIES}
-#   ${libuvc_LIBRARIES}
-# )
+target_link_libraries(stereo_driver
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${libuvc_LIBRARIES}
+)

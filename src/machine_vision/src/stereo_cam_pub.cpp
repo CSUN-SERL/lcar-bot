@@ -21,16 +21,18 @@ image_transport::CameraPublisher pubRight;
 image_transport::Publisher pubRGB;
 
 
-camera_info_manager::CameraInfoManager *cinfo_left; //(nh, "stereo_cam/left", "package://machine_vision/calibrations/left.yaml");
-camera_info_manager::CameraInfoManager *cinfo_right; //(nh, "stereo_cam/right", "package://machine_vision/calibrations/right.yaml");
+camera_info_manager::CameraInfoManager *cinfo_left;
+camera_info_manager::CameraInfoManager *cinfo_right;
 
 
 void cb(uvc_frame_t *frame, void *ptr) {
   ros::Rate loop_rate(30);
   loop_rate.sleep();
   frame->frame_format = UVC_FRAME_FORMAT_YUYV;
-  std::cout << "Frame format" << std::endl;
-  std::cout << frame->frame_format << std::endl;
+
+  //std::cout << "Frame format" << std::endl;
+  //std::cout << frame->frame_format << std::endl;
+
   uvc_frame_t *greyLeft;
   uvc_frame_t *greyRight;
   uvc_frame_t *frameRGB;
@@ -60,10 +62,7 @@ void cb(uvc_frame_t *frame, void *ptr) {
 
     sensor_msgs::CameraInfoPtr ci_right(new sensor_msgs::CameraInfo(cinfo_right->getCameraInfo()));
 
-    ros::Time time_stamp;
-
-    ci_left->header.stamp = time_stamp;
-    ci_right->header.stamp = time_stamp;
+    ci_left->header.stamp = ci_right->header.stamp = ros::Time::now();
 
 
   /* Do the BGR conversion */

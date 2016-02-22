@@ -5,6 +5,7 @@
 #include <ros/ros.h>
 #include <camera_info_manager/camera_info_manager.h>
 #include <image_transport/image_transport.h>
+#include <image_transport/camera_publisher.h>
 #include <cv_bridge/cv_bridge.h>
 
 #include <string.h>
@@ -17,20 +18,20 @@
 
 using namespace camera_info_manager;
 
-class CameraDriver{
+class StereoDriver{
 
     public:
 
-        CameraDriver(
+        StereoDriver(
             int vendor_id,
             int product_id,
-            ros::NodeHandle nh,
-            CameraInfoManager &cinfo
+            ros::NodeHandle nh
         );
-        ~CameraDriver();
+        ~StereoDriver();
 
         //bool open(int, int);
-        void startStream();
+        void StartStream();
+        bool IsOpen();
         //void stop();
 
     private:
@@ -43,13 +44,15 @@ class CameraDriver{
         uvc_error_t res;
 
         ros::NodeHandle nh_;
-        //ros::Rate loop_rate;
-        CameraInfoManager *cinfo_;
+        CameraInfoManager cinfo_left_;
+        CameraInfoManager cinfo_right_;
         image_transport::ImageTransport it_;
-        image_transport::Publisher pub_left_;
-        image_transport::Publisher pub_right_;
+        image_transport::CameraPublisher pub_left_;
+        image_transport::CameraPublisher pub_right_;
         image_transport::Publisher pub_rgb_;
 
+        int stereo_image_id_;
+        bool open_;
         unsigned int vendor_id_;
         unsigned int product_id_;
 
