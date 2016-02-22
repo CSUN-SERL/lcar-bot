@@ -38,6 +38,7 @@
 #define RTL 2
 #define LAND 3
 #define DISARM 4
+#define IDLE 5
 #define TRAVEL_WT 0.5
 #define SCOUT_WT 0.5
 #define THRESHOLD_XY 1
@@ -286,7 +287,7 @@ private:
                         pos_home,
                         pos_previous;
   float altitude_rel, heading_deg;
-  int goal = -1;
+  int goal = IDLE;
   ros::Time last_request;
 };
 
