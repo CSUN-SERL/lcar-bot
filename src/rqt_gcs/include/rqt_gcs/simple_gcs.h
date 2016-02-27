@@ -5,6 +5,8 @@
 #include <rqt_gui_cpp/plugin.h>
 #include <rqt_gcs/simple_control.h>
 
+#include <vector>
+
 #include <image_transport/image_transport.h>
 #include "opencv2/highgui.hpp"
 #include <cv_bridge/cv_bridge.h>
@@ -20,6 +22,7 @@
 #include <ui_WidgetMain.h>
 #include <ui_PFDWidget_custom.h>
 #include <ui_ImageView.h>
+#include <ui_MissionConfirm.h>
 
 #include <QWidget>
 #include <QLabel>
@@ -52,15 +55,25 @@ namespace rqt_gcs{
   protected slots:
     virtual void TimedUpdate();
     virtual void MissionChange();
+    virtual void MissionChangeCancel();
+    virtual void StopQuad();
     virtual void MissionSelect(const int);
     virtual void MissionSubmit();
+    virtual void MissionConfirm();
+    virtual void MissionConfirmCancel();
+    
+    
     virtual void QuadSelect(int);
+    virtual void ArmSelectedQuad();
+    virtual void DisarmSelectedQuad();
+    virtual void QuadMissionList(const int);
 
   private:
     void UpdatePFD();
 
     int cur_uav = 0;
-    SimpleControl quadrotors[NUM_UAV] =  {SimpleControl{1}, SimpleControl{2}};
+   // SimpleControl quadrotors[NUM_UAV] =  {SimpleControl{1}, SimpleControl{2}};
+   std::vector<SimpleControl> quadrotors;
 
     cv::Mat conversion_mat_;
     image_transport::Subscriber sub_stereo = it_stereo.subscribe("stereo_cam/left/image_raw", 1, &SimpleGCS::ImageCallback, this);
@@ -75,6 +88,7 @@ namespace rqt_gcs{
     Ui::PFDWidget pfd_ui;
     Ui::centralWidget central_ui_;
     Ui::UAVConditionWidget uavCondWidgetArr[NUM_UAV];
+    Ui::MissionConfirmWidget mConfirmUi_;
 
     QWidget* widget_;
     QWidget* missionCancelWidget_;
@@ -85,6 +99,7 @@ namespace rqt_gcs{
     QWidget* imageViewWidget_;
     QWidget* uavListWidgetArr[NUM_UAV];
     QWidget* PFDQWidget;
+    QWidget* missionConfirmWidget_;
 
     QLabel* label;
     QTimer* updateTimer;
