@@ -36,7 +36,6 @@ add_executable(camera_publisher src/ros_camera_publisher.cpp)
 add_executable(camera_subscriber src/ros_camera_subscriber.cpp)
 add_executable(stereo_publisher src/stereo_cam_pub.cpp)
 add_executable(object_detection src/object_detect.cpp)
-add_executable(object_recognition src/object_recognition.cpp)
 
 
 #Specify libraries against which to link
@@ -57,12 +56,6 @@ target_link_libraries(stereo_publisher
 )
 
 target_link_libraries(object_detection
-  ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-  ${libuvc_LIBRARIES}
-)
-
-target_link_libraries(object_recognition
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${libuvc_LIBRARIES}

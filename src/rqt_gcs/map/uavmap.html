@@ -50,7 +50,7 @@ var map;
 var marker =[];
 var newPoint ;
 var la ;
-
+var focus = false;
 var image =[];
 
 image[num] = {
@@ -103,7 +103,9 @@ function update() {
       longitude = message.longitude;
       latitude = message.latitude;
 
-      listener.unsubscribe();
+      if(!focus){  //if focus not set then unsubscribe
+        listener.unsubscribe();
+      }
     }
 
   });
@@ -155,21 +157,29 @@ function update() {
     // Center the map on the new position depending on the UAV
     var checked = $('input[name=uav]:checked').val();
     console.log(checked);
-    if(checked != 'free' && checked != undefined) { //if its not free roam, then center map to an UAV
+    if(checked != 'free' && checked != undefined) {
+      //if its not free roam, then center map to an UAV
+      //also start updating every UAV
+
       map.setCenter(marker[checked].getPosition());
+      focus =true; //only the current UAV should be updated
     }
     else{
-    //nothing
+    focus = false; //every UAV should be updated now
     }
 
     outmessage.innerHTML = num + "  " + la ;
     uavName.innerHTML = "UAV " + checked;
 
+    if( !focus){ //if not focused then check next UAV
     num++
 
     if(num >= 5){
       num = 1;
     }
+  }
+
+
 
 
     // Call the autoUpdate() function every k seconds
