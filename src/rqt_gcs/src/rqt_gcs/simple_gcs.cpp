@@ -8,12 +8,6 @@ SimpleGCS::SimpleGCS()
 {
   //Constructor is called first before initPlugin function
   setObjectName("LCAR Bot GCS");
-
-  //Create all vehicle objects
-  quadrotors.reserve(NUM_UAV);
-  for(int i = 1; i <= NUM_UAV; i++){
-      quadrotors.push_back(SimpleControl{i});
-  }
 }
 
 void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
@@ -102,36 +96,36 @@ void SimpleGCS::QuadSelect(int quadNumber){
 }
 
 void SimpleGCS::ArmSelectedQuad(){
-	quadrotors.at(cur_uav).Arm(true);
+	quadrotors[cur_uav].Arm(true);
 }
 
 void SimpleGCS::DisarmSelectedQuad(){
-	quadrotors.at(cur_uav).Arm(false);
+	quadrotors[cur_uav].Arm(false);
 }
 
 void SimpleGCS::QuadMissionList(const int i){
     if(i == 0){
         ROS_INFO_STREAM("Quadrotor Stablized");
-        quadrotors.at(cur_uav).SetMode("STABILIZED");
+        quadrotors[cur_uav].SetMode("STABILIZED");
     }
     else if(i == 1){
         ROS_INFO_STREAM("Quadrotor RTL");
-        quadrotors.at(cur_uav).SetMode("AUTO.RTL");
+        quadrotors[cur_uav].SetMode("AUTO.RTL");
     }
     else if(i == 2){
         ROS_INFO_STREAM("Quadrotor Loiter");
-        quadrotors.at(cur_uav).SetMode("AUTO.LOITER");
+        quadrotors[cur_uav].SetMode("AUTO.LOITER");
     }
     else if(i == 3){
         ROS_INFO_STREAM("Quadrotor alt hold");
-        quadrotors.at(cur_uav).SetMode("ALTCTL");
+        quadrotors[cur_uav].SetMode("ALTCTL");
     }
 }
 
 void SimpleGCS::TimedUpdate(){
 
   quad_id.setNum(cur_uav+1);
-  SimpleControl quad = quadrotors.at(cur_uav);
+  SimpleControl quad = quadrotors[cur_uav];
 
   temp_data = quad.GetState().mode.c_str();
   usUi_.flightModeDisplay->setText(temp_data);
@@ -174,12 +168,12 @@ void SimpleGCS::TimedUpdate(){
 
   //Update all UAV's in the system
   for(int index = 0; index < NUM_UAV; index++){
-    quadrotors.at(index).Run();
+    quadrotors[index].Run();
   }
 
   //Update Uav List widgets
   for(int i = 0; i < NUM_UAV; i++){
-   temp_data.setNum(quadrotors.at(i).GetBatteryStatus().remaining*100);
+   temp_data.setNum(quadrotors[i].GetBatteryStatus().remaining*100);
    uavCondWidgetArr[i].VehicleBatteryLine->setText(temp_data);
   }
 
@@ -196,7 +190,7 @@ void SimpleGCS::MissionChangeCancel(){
 }
 
 void SimpleGCS::StopQuad(){
-	quadrotors.at(cur_uav).SetMode("AUTO.RTL");
+	quadrotors[cur_uav].SetMode("AUTO.RTL");
 }
 
 void SimpleGCS::MissionSelect(const int i){
@@ -213,29 +207,29 @@ void SimpleGCS::MissionSelect(const int i){
 void SimpleGCS::MissionSubmit(){
     ROS_INFO_STREAM("Mission Submitted");
     if(msUi_.missionComboBox->currentIndex() == 0){
-        quadrotors.at(cur_uav).Arm(true);
+        quadrotors[cur_uav].Arm(true);
     }
     else if(msUi_.missionComboBox->currentIndex() == 1){
-        quadrotors.at(cur_uav).Arm(false);
+        quadrotors[cur_uav].Arm(false);
     }
     else if(msUi_.missionComboBox->currentIndex() == 2){
-        quadrotors.at(cur_uav).SetMode("AUTO.LAND");
+        quadrotors[cur_uav].SetMode("AUTO.LAND");
     }
     else if(msUi_.missionComboBox->currentIndex() == 3){
         if(msUi_.playsComboBox->currentIndex() == 0){
             ROS_INFO_STREAM("SCAN ACCESS POINTS");
         }
         else if(msUi_.playsComboBox->currentIndex() == 1){
-            quadrotors.at(cur_uav).EnableOffboard();
-            quadrotors.at(cur_uav).ScoutBuilding(0,0,1.5);
+            quadrotors[cur_uav].EnableOffboard();
+            quadrotors[cur_uav].ScoutBuilding(0,0,1.5);
             ROS_INFO_STREAM("SCOUT BUILDING");
         }
     }
     else if(msUi_.missionComboBox->currentIndex() == 4){
-        quadrotors.at(cur_uav).SetMode("AUTO.LOITER");
+        quadrotors[cur_uav].SetMode("AUTO.LOITER");
     }
     else if(msUi_.missionComboBox->currentIndex() == 5){
-        quadrotors.at(cur_uav).SetMode("AUTO.RTL");
+        quadrotors[cur_uav].SetMode("AUTO.RTL");
     }
 
     missionSelectWidget_->close();
@@ -283,12 +277,12 @@ void triggerConfiguration()
 
 void SimpleGCS::UpdatePFD()
 {
-  pfd_ui.widgetPFD->setRoll       ((quadrotors.at(cur_uav).GetFlightState().roll)*180);
-  pfd_ui.widgetPFD->setPitch      ((quadrotors.at(cur_uav).GetFlightState().pitch)*90);
-  pfd_ui.widgetPFD->setHeading    (quadrotors.at(cur_uav).GetFlightState().heading);
-  pfd_ui.widgetPFD->setAirspeed   (quadrotors.at(cur_uav).GetFlightState().ground_speed);
-  pfd_ui.widgetPFD->setAltitude   (quadrotors.at(cur_uav).GetFlightState().altitude);
-  pfd_ui.widgetPFD->setClimbRate  (quadrotors.at(cur_uav).GetFlightState().vertical_speed);
+  pfd_ui.widgetPFD->setRoll       ((quadrotors[cur_uav].GetFlightState().roll)*180);
+  pfd_ui.widgetPFD->setPitch      ((quadrotors[cur_uav].GetFlightState().pitch)*90);
+  pfd_ui.widgetPFD->setHeading    (quadrotors[cur_uav].GetFlightState().heading);
+  pfd_ui.widgetPFD->setAirspeed   (quadrotors[cur_uav].GetFlightState().ground_speed);
+  pfd_ui.widgetPFD->setAltitude   (quadrotors[cur_uav].GetFlightState().altitude);
+  pfd_ui.widgetPFD->setClimbRate  (quadrotors[cur_uav].GetFlightState().vertical_speed);
 
   pfd_ui.widgetPFD->update();
 }

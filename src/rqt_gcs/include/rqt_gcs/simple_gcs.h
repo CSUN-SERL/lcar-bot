@@ -76,9 +76,11 @@ namespace rqt_gcs{
 
   private:
     void UpdatePFD();
-
     int cur_uav = 0;
-    std::vector<SimpleControl> quadrotors;
+ 
+
+    SimpleControl quadrotors[NUM_UAV] = {SimpleControl{1}};
+
 
     cv::Mat conversion_mat_;
     image_transport::Subscriber sub_stereo = it_stereo.subscribe("stereo_cam/left/image_raw", 1, &SimpleGCS::ImageCallback, this);
