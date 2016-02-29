@@ -1,10 +1,4 @@
 #include <rqt_gcs/simple_gcs.h>
-#include <pluginlib/class_list_macros.h>
-#include <QStringList>
-#include <iomanip>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
 
 namespace rqt_gcs {
 
@@ -12,44 +6,39 @@ SimpleGCS::SimpleGCS()
   : rqt_gui_cpp::Plugin()
   , widget_(0)
 {
-
-  // Constructor is called first before initPlugin function, needless to say.
-  // give QObjects reasonable names
+  //Constructor is called first before initPlugin function
   setObjectName("LCAR Bot GCS");
 
-
+  //Create all vehicle objects
   quadrotors.reserve(NUM_UAV);
-  for(int i = 0; i < NUM_UAV; i++){
-      quadrotors.push_back(SimpleControl(i));
+  for(int i = 1; i <= NUM_UAV; i++){
+      quadrotors.push_back(SimpleControl{i});
   }
-  
-   
-
 }
 
 void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
 {
   // access standalone command line arguments
   QStringList argv = context.argv();
-  //
+
   widget_ = new QWidget();
   missionCancelWidget_   = new QWidget();
   missionSelectWidget_   = new QWidget();
   missionProgressWidget_ = new QWidget();
   uavQuestionWidget_     = new QWidget();
   uavStatWidget_         = new QWidget();
-  imageViewWidget_        = new QWidget();
-  PFDQWidget              = new QWidget();
-  missionConfirmWidget_   = new QWidget();
+  imageViewWidget_       = new QWidget();
+  PFDQWidget             = new QWidget();
+  missionConfirmWidget_  = new QWidget();
 
  for(int i = 0; i < NUM_UAV; i++){
-	uavListWidgetArr[i] = new QWidget();
+    uavListWidgetArr[i] = new QWidget();
     uavCondWidgetArr[i].setupUi(uavListWidgetArr[i]);
     uavCondWidgetArr[i].VehicleSelectButton->setText(std::to_string(i+1).c_str());
-	uavCondWidgetArr[i].VehicleNameLine->setText(std::to_string(i).append("UAV ",0).c_str());
+    uavCondWidgetArr[i].VehicleNameLine->setText(std::to_string(i).append("UAV ",0).c_str());
  }
 
-  //sets up the UI objects with the widgets
+  //Setup the UI objects with the widgets
   central_ui_.setupUi(widget_);
   mcUi_.setupUi(missionCancelWidget_);
   mpUi_.setupUi(missionProgressWidget_);
@@ -61,7 +50,7 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
   mConfirmUi_.setupUi(missionConfirmWidget_);
 
 
-  // add widgets to the Main UI
+  //Add widgets to the Main UI
   context.addWidget(widget_);
 
   central_ui_.MissionLayout->addWidget(missionProgressWidget_);
@@ -73,7 +62,7 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
       central_ui_.UAVListLayout->addWidget(uavListWidgetArr[i]);
   }
 
-   //setup mission progress widgets
+   //Setup mission progress widgets
    missionSelectWidget_->setWindowTitle("Mission Selection");
    uavStatWidget_->setWindowTitle("Flight State");
    missionProgressWidget_->setWindowTitle("Mission Control");
@@ -81,34 +70,31 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
    connect(mpUi_.stopMissionButton,SIGNAL(clicked()),this, SLOT(StopQuad()));
    connect(mpUi_.armButton, SIGNAL(clicked()),this,SLOT(ArmSelectedQuad()));
    connect(mpUi_.disarmButton, SIGNAL(clicked()),this,SLOT(DisarmSelectedQuad()));
-    connect(mpUi_.flightModeComboBox,SIGNAL(activated(int)),this, SLOT(QuadMissionList(int)));
+   connect(mpUi_.flightModeComboBox,SIGNAL(activated(int)),this, SLOT(QuadMissionList(int)));
    
-
-   //setup Mission select widgets
+   //Setup Mission select widgets
    connect(msUi_.submitMission,SIGNAL(clicked()),this, SLOT(MissionConfirm()));
    connect(msUi_.cancelMission,SIGNAL(clicked()),this, SLOT(MissionChangeCancel()));
    connect(msUi_.missionComboBox,SIGNAL(activated(int)),this, SLOT(MissionSelect(int)));
   
-
-  //setup confirm widget
+   //Setup confirm widget
    connect(mConfirmUi_.yesButton,SIGNAL(clicked()),this, SLOT(MissionSubmit()));
    connect(mConfirmUi_.noButton,SIGNAL(clicked()),this, SLOT(MissionConfirmCancel()));
 
-   //set up uav lists select functions
-   // index 0 refers to quadrotor 1
-   // index 1 refers to quadrotor 2
-   signalMapper = new QSignalMapper(this);
+   //Setup UAV lists select functions
+   //index 0 refers to quadrotor 1
+   //index 1 refers to quadrotor 2
+   signal_mapper = new QSignalMapper(this);
    for(int i = 0; i < NUM_UAV; i++){
-	signalMapper->setMapping(uavCondWidgetArr[i].VehicleSelectButton, i);
-	connect(uavCondWidgetArr[i].VehicleSelectButton,SIGNAL(clicked()),signalMapper, SLOT(map()));
+    signal_mapper->setMapping(uavCondWidgetArr[i].VehicleSelectButton, i);
+    connect(uavCondWidgetArr[i].VehicleSelectButton,SIGNAL(clicked()),signal_mapper, SLOT(map()));
    }
-   connect(signalMapper, SIGNAL(mapped(int)),this, SLOT(QuadSelect(int)));
+   connect(signal_mapper, SIGNAL(mapped(int)),this, SLOT(QuadSelect(int)));
 
-
-   //set up update timer
-   updateTimer = new QTimer(this);
-   connect(updateTimer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
-   updateTimer->start(100);
+   //Setup update timer
+   update_timer = new QTimer(this);
+   connect(update_timer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
+   update_timer->start(100);
 }
 
 void SimpleGCS::QuadSelect(int quadNumber){
@@ -116,37 +102,35 @@ void SimpleGCS::QuadSelect(int quadNumber){
 }
 
 void SimpleGCS::ArmSelectedQuad(){
-         ROS_INFO_STREAM("Quadrotor Armed");
 	quadrotors.at(cur_uav).Arm(true);
 }
 
 void SimpleGCS::DisarmSelectedQuad(){
-         ROS_INFO_STREAM("Quadrotor Disarmed");
 	quadrotors.at(cur_uav).Arm(false);
 }
 
 void SimpleGCS::QuadMissionList(const int i){
-	if(i == 0){
-     		ROS_INFO_STREAM("Quadrotor Stablized");
-		quadrotors.at(cur_uav).SetMode("AUTO.STABILIZE");
-    	}
-    	else if(i == 1){
-    		  ROS_INFO_STREAM("Quadrotor RTL");
-		  quadrotors.at(cur_uav).SetMode("AUTO.RTL");
-    	}
-	else if(i == 2){
-    		  ROS_INFO_STREAM("Quadrotor Loiter");
-		  quadrotors.at(cur_uav).SetMode("AUTO.LOITER");
-    	}
-	else if(i == 3){
-    		  ROS_INFO_STREAM("Quadrotor alt hold");
-		quadrotors.at(cur_uav).SetMode("AUTO.ALT_HOLD");
-    	}
+    if(i == 0){
+        ROS_INFO_STREAM("Quadrotor Stablized");
+        quadrotors.at(cur_uav).SetMode("STABILIZED");
+    }
+    else if(i == 1){
+        ROS_INFO_STREAM("Quadrotor RTL");
+        quadrotors.at(cur_uav).SetMode("AUTO.RTL");
+    }
+    else if(i == 2){
+        ROS_INFO_STREAM("Quadrotor Loiter");
+        quadrotors.at(cur_uav).SetMode("AUTO.LOITER");
+    }
+    else if(i == 3){
+        ROS_INFO_STREAM("Quadrotor alt hold");
+        quadrotors.at(cur_uav).SetMode("ALTCTL");
+    }
 }
 
 void SimpleGCS::TimedUpdate(){
 
-  quadId.setNum(cur_uav+1);
+  quad_id.setNum(cur_uav+1);
   SimpleControl quad = quadrotors.at(cur_uav);
 
   temp_data = quad.GetState().mode.c_str();
@@ -180,7 +164,7 @@ void SimpleGCS::TimedUpdate(){
   usUi_.batteryProgressBar->setValue(temp_data.toInt());
 
   temp_data = "UAV ";
-  temp_data += quadId;
+  temp_data += quad_id;
 
   mpUi_.uavNameEdit->setText(temp_data);
 
@@ -304,7 +288,6 @@ void SimpleGCS::UpdatePFD()
   pfd_ui.widgetPFD->setHeading    (quadrotors.at(cur_uav).GetFlightState().heading);
   pfd_ui.widgetPFD->setAirspeed   (quadrotors.at(cur_uav).GetFlightState().ground_speed);
   pfd_ui.widgetPFD->setAltitude   (quadrotors.at(cur_uav).GetFlightState().altitude);
-  //pfd_ui->widgetPFD->setPressure (quadrotors[cur_uav].GetFlightState().roll);
   pfd_ui.widgetPFD->setClimbRate  (quadrotors.at(cur_uav).GetFlightState().vertical_speed);
 
   pfd_ui.widgetPFD->update();

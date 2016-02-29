@@ -6,7 +6,6 @@ int main(int argc, char **argv)
   SimpleControl quad1{1};
   SimpleControl quad2{2};
 
-  boost::thread_group tg;
   ros::Rate loop_rate(10); //10Hz
 
   //quad1.ScoutBuilding(0,0,5);

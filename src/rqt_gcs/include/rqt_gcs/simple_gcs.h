@@ -5,6 +5,11 @@
 #include <rqt_gui_cpp/plugin.h>
 #include <rqt_gcs/simple_control.h>
 
+#include <pluginlib/class_list_macros.h>
+#include <iomanip>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
 #include <vector>
 
 #include <image_transport/image_transport.h>
@@ -27,11 +32,12 @@
 #include <QWidget>
 #include <QLabel>
 #include <QString>
+#include <QStringList>
 #include <QTimer>
 #include <QMainWindow>
 #include <QSignalMapper>
 
-#define NUM_UAV 2 //Total number of UAV's in the system
+#define NUM_UAV 1 //Total number of UAV's in the system
 
 namespace rqt_gcs{
 
@@ -72,8 +78,7 @@ namespace rqt_gcs{
     void UpdatePFD();
 
     int cur_uav = 0;
-   // SimpleControl quadrotors[NUM_UAV] =  {SimpleControl{1}, SimpleControl{2}};
-   std::vector<SimpleControl> quadrotors;
+    std::vector<SimpleControl> quadrotors;
 
     cv::Mat conversion_mat_;
     image_transport::Subscriber sub_stereo = it_stereo.subscribe("stereo_cam/left/image_raw", 1, &SimpleGCS::ImageCallback, this);
@@ -102,11 +107,11 @@ namespace rqt_gcs{
     QWidget* missionConfirmWidget_;
 
     QLabel* label;
-    QTimer* updateTimer;
+    QTimer* update_timer;
 
     QString temp_data;
-    QString quadId;
-    QSignalMapper* signalMapper;
+    QString quad_id;
+    QSignalMapper* signal_mapper;
 
   };
 } // namespace
