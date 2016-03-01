@@ -8,7 +8,8 @@ int main(int argc, char **argv)
 
   ros::Rate loop_rate(10); //10Hz
 
-  //quad1.ScoutBuilding(0,0,5);
+  quad1.SendMission("NULL");
+  quad1.SetMode("AUTO.MISSION");
 
   while(ros::ok())
   {
@@ -218,6 +219,54 @@ void SimpleControl::ScoutBuilding(float x, float y, float z)
   pos_previous = pos_local;
   goal = travel;
   ROS_INFO_STREAM("Traveling to target location.");
+}
+
+void SimpleControl::SendMission(std::string mission_file)
+{
+  //Create a message for storing the the waypoint
+  mavros_msgs::WaypointPush msg_mission;
+
+  //TODO: Add ability to create waypoints from a text file.
+  mavros_msgs::Waypoint wp1;
+  wp1.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL;
+  wp1.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
+  wp1.is_current   = false;
+  wp1.autocontinue = true;
+  wp1.x_lat        = -35.3632621765;
+  wp1.y_long       = 149.165237427;
+  wp1.z_alt        = 585;
+
+  mavros_msgs::Waypoint wp2;
+  wp2.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT;
+  wp2.command      = mavros_msgs::CommandCode::NAV_TAKEOFF;
+  wp2.is_current   = false;
+  wp2.autocontinue = true;
+  wp2.x_lat        = -35.3628807068;
+  wp2.y_long       = 149.165222168;
+  wp2.z_alt        = 20;
+
+  mavros_msgs::Waypoint wp3;
+  wp3.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT;
+  wp3.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
+  wp3.is_current   = false;
+  wp3.autocontinue = true;
+  wp3.x_lat        = -35.3646507263;
+  wp3.y_long       = 149.163497925;
+  wp3.z_alt        = 0;
+
+  //Update the message with the new waypoint
+  //NOTE: waypoints is a Vector object
+  msg_mission.request.waypoints.push_back(wp1);
+  msg_mission.request.waypoints.push_back(wp2);
+  msg_mission.request.waypoints.push_back(wp3);
+
+  //Call the service
+  if(sc_mission.call(msg_mission)){
+    ROS_INFO_STREAM("Response from service: " << msg_mission.response);
+  }
+  else{
+    ROS_ERROR_STREAM("Failed to call msg_mission service!");
+  }
 }
 
 void SimpleControl::OverrideRC(int channel, int value)

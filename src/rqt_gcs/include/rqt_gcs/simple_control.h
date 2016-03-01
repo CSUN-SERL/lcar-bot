@@ -12,7 +12,6 @@
 #include <angles/angles.h>
 #include <eigen_conversions/eigen_msg.h>
 
-#include <mavros/mavros.h>
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/CommandTOL.h>
 #include <mavros_msgs/SetMode.h>
@@ -128,6 +127,12 @@ public:
       @param z The height at which the UAV should arrive at the building
   */
   void ScoutBuilding(float x, float y, float z);
+
+  /**
+      Send a list of waypoints (mission) to the UAV.
+      @param mission_file Name of the text file that contains the mision
+  */
+  void SendMission(std::string mission_file);
 
   /**
       Override the RC value of the transmitter.
