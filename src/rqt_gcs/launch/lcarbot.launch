@@ -1,0 +1,22 @@
+<!--
+  -----------------Learning, Classifying and Recognizing Bot--------------------
+  Main Launch file for the LCAR Bot project. It launches all required nodes on
+  their respective computers for a system with 2 Quadrotors.
+-->
+
+<launch>
+  <machine name="Quad1" address="Quad1" user="ubuntu" password="ubuntu"/>
+  <machine name="Quad2" address="Quad2" user="ubuntu" password="ubuntu"/>
+
+  <include file="$(find rqt_gcs)/launch/px4_jetson.launch">
+    	<arg name="target_system" value="1" />
+      <arg name="namespace" value="UAV1" />
+      <arg name="machine_name" value="Quad1" />
+  </include>
+  <include file="$(find rqt_gcs)/launch/px4_jetson.launch">
+      <arg name="target_system" value="2" />
+      <arg name="namespace" value="UAV2" />
+    	<arg name="machine_name" value="Quad2" />
+  </include>
+  <include file="$(find machine_vision)/launch/object_detection.launch" />
+</launch>
