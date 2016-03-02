@@ -11,11 +11,11 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "gps_publisher");
   ros::NodeHandle nh;
-  int num_uav = 10;
+  int num_uav = 100;
   int cur_uav = 0;
   int boolean = 0;
   float lat =0, lon = 0;
-  ros::Rate loop_rate(10*num_uav); //10Hz per topic
+  ros::Rate loop_rate(100*num_uav); //10Hz per topic
   std::string uav_ns  = "UAV";
   ros::Publisher pub_pos_global[num_uav];
   sensor_msgs::NavSatFix position[num_uav];
