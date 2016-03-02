@@ -56,7 +56,7 @@ var image =[];
 image[num] = {
   url: 'images/uavIcon' + num + '.png',
 
-  scaledSize: new google.maps.Size(100,100)
+  scaledSize: new google.maps.Size(60,60)
 };
 
 
@@ -67,7 +67,7 @@ function showPosition() {
 
   latlon = new google.maps.LatLng(longitude, latitude)
   mapholder = document.getElementById('mapholder')
-  mapholder.style.height = '850px';
+  mapholder.style.height = '800px';
   mapholder.style.width = '100%';
 
   var myOptions = {
@@ -140,12 +140,12 @@ function update() {
       if(num > 10){
         image[num] = {
           url: 'images/uavIcon1.png',
-          scaledSize: new google.maps.Size(100,100)
+          scaledSize: new google.maps.Size(60,60)
         };
       }else{
       image[num] = {
         url: 'images/uavIcon' + num + '.png',
-        scaledSize: new google.maps.Size(100,100)
+        scaledSize: new google.maps.Size(60,60)
       };
     }
 
@@ -214,7 +214,7 @@ function update() {
   <center>
 
     <form id = "radB" name="rform" action="" style="display: inline; ">
-      <input type="radio" name="uav" value="free"> free-roam
+      <input type="radio" name="uav" value="free"> <span style="color: red">free-roam </span>
 
     </form>
 
