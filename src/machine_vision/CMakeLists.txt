@@ -6,7 +6,7 @@ project(machine_vision)
 
 # Find catkin build system and specify needed packages
 find_package(catkin REQUIRED COMPONENTS
-  cv_bridge
+  cv_bridge # requires opencv 3 version
   image_transport
   sensor_msgs
   roscpp
@@ -15,7 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
 )
 
-find_package(OpenCV  REQUIRED)
+find_package(OpenCV 3 REQUIRED)
 find_package(libuvc REQUIRED)
 
 #Enable C++11 Support
