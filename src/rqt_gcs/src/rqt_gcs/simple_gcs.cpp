@@ -253,7 +253,7 @@ void SimpleGCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
   {
-    cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::RGB8);
+    cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(msg);
     conversion_mat_ = cv_ptr->image;
     QImage image(conversion_mat_.data, conversion_mat_.cols, conversion_mat_.rows, conversion_mat_.step[0], QImage::Format_RGB888);
     ivUi_.image_frame->setImage(image);
