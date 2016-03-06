@@ -9,7 +9,7 @@
               env-loader="$HOME/lcar-bot-files/lcar_env.sh"/>
 
     <include file="$(find rqt_gcs)/launch/jetson.launch">
-      	<arg name="tgt_system" value="1" />
+      <arg name="tgt_system" value="1" />
     </include>
   </group>
   <group ns="UAV2">
@@ -21,13 +21,7 @@
               env-loader="$HOME/lcar-bot-files/lcar_env.sh"/>
 
     <include file="$(find rqt_gcs)/launch/jetson.launch">
-      	<arg name="tgt_system" value="2" />
+      <arg name="tgt_system" value="2" />
     </include>
-  </group>
-  <group ns="UAV1">
-    <include file="$(find machine_vision)/launch/object_detection.launch" />
-  </group>
-  <group ns="UAV2">
-    <include file="$(find machine_vision)/launch/object_detection.launch" />
   </group>
 </launch>

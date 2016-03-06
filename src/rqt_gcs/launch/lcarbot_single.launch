@@ -1,0 +1,15 @@
+<launch>
+  <machine name="Mobile-Station1" address="localhost" default="true"/>
+  <group ns="UAV1">
+    <machine  name="Quad1"
+              address="Quad1"
+              default="true"
+              user="ubuntu"
+              password="ubuntu"
+              env-loader="$HOME/lcar-bot-files/lcar_env.sh"/>
+
+    <include file="$(find rqt_gcs)/launch/jetson.launch">
+      <arg name="tgt_system" value="1" />
+    </include>
+  </group>
+</launch>

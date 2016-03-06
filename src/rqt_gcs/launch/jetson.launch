@@ -1,7 +1,5 @@
 <launch>
 	<!-- vim: set ft=xml noet : -->
-	<!-- example launch script for PX4 based FCU's -->
-
 	<arg name="fcu_url" default="serial:///dev/ttyUSB0:921600" />
 	<arg name="gcs_url" default="" />
 	<arg name="tgt_system" default="1" />
@@ -17,7 +15,8 @@
 		<arg name="tgt_component" value="$(arg tgt_component)" />
 		<arg name="log_output" value="$(arg log_output)" />
 	</include>
-
-	<node pkg="machine_vision" type="stereo_publisher" name="stereo_cam" required="true"/>
+	<node pkg="machine_vision" type="stereo_driver" name="stereo_driver" required="true"/>
+	<node pkg="machine_vision" type="object_detec" name="object_detect" required="true"/>
+	<param name="image_transport" type="string" value="compressed" />
 
 </launch>
