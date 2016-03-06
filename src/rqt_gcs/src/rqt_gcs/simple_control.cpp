@@ -453,7 +453,6 @@ geometry_msgs::Point SimpleControl::DiamondShape(int index){
   geometry_msgs::Point mission[4] = { };
   float Point1,Point2,Point3,Point4;
  // making array later
-  index--;
   //Point[1] = ((pos_local.x + r),(pos_local.y),(pos_local.z));
   //Point[2] = ((pos_local.x),(pos_local.y + r),(pos_local.z));
   //Point[3] = ((pos_local.x - r),(pos_local.y),(pos_local.z));
@@ -509,14 +508,14 @@ void SimpleControl::Run()
   else if(goal == scout){
     //TODO: Fix Scout Functionality. Temporary Circle Path Test
     static int rev_count = 0;
-    static int cur_point = 1;
+    static int cur_point = 0;
     pos_target = this->DiamondShape(cur_point);
 	  //tf::pointEigenToMsg(this->CircleShape(theta), pos_target); //Update Target Pos
 	  this->SetLocalPosition(pos_target);
     goal = travel;
     cur_point++;
 
-    if (cur_point > 5){
+    if (cur_point > 3){
       //ROS_INFO_STREAM("Home Target: " << pos_home);
       //pos_target = pos_home;
       //goal = RTL;
