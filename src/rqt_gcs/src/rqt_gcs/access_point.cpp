@@ -46,54 +46,54 @@ AccessPoint::~AccessPoint()
 
 //setters
 
-void AccessPoint::set_image(Mat img)
+void AccessPoint::SetImage(Mat img)
 {
 	image = img;
 }
 
-void AccessPoint::set_GPS(float coord)
+void AccessPoint::SetImage(float coord)
 {
 	GPS_location = coord;
 }
 
-void AccessPoint::set_compass(float heading)
+void AccessPoint::SetCompass(float heading)
 {
 	compass_heading = heading;
 }
 
-void AccessPoint::set_altitude(float altitude)
+void AccessPoint::SetAltitude(float altitude)
 {
 	this.altitude=altitude;
 }
 
-void AccessPoint::set_time(time_t t)
+void AccessPoint::SetTime(time_t t)
 {
 	current_time = t;
 }
 
 //getters
 
-Mat get_img()
+Mat GetImage()
 {
 	return image;
 }
 
-float get_GPS()
+float GetGPS()
 {
 	return GPS_location;
 }
 
-float get_compass()
+float GetCompass()
 {
 	return compass_heading;
 }
 
-float get_altitude()
+float GetAltitude()
 {
 	return altitude;
 }
 
-time_t get_time()
+time_t GetTime()
 {
 	return current_time;
 }
