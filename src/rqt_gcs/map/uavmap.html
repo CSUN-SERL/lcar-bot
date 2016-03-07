@@ -51,9 +51,11 @@ var marker =[];
 var newPoint ;
 var la ;
 var squadCreation = 1;
-var team = ['Alpha', 'Beta', 'Shield', 'Raid', 'Airborne', 'Batman', 'Daemon', 'Nemesis', 'Viper', 'Cyclone' ];
+var team = ["Alpha", "Beta", "Shield", "Raid", "Airborne", "Batman", "Daemon", "Nemesis", "Viper", "Cyclone" ];
+
 var image =[];
 var list = 0;
+var limit =0;
 
 image[num] = {
   url: 'images/uavIcon' + num + '.png',
@@ -119,7 +121,7 @@ function update() {
         squadCreation = 0;
       }
 
-      if(squadCreation == 0) {
+      if(squadCreation == 0 && limit < 10) {
 
         $('<select />', {
           id: team[list],
@@ -127,19 +129,77 @@ function update() {
           value: team[list],
         }).appendTo('#radB');
         list++;
+        limit++;
       }
-      console.log("#" + team[list]);
-      var appendThis = team[list];
-      var number ="";
-     number = team[list].toString();
-       console.log("#" +number);
 
-      $("#"+number).append($("<option >", {
-        value: squadCreation,
-        text: "UAV " + squadCreation
-      }));
+if(limit < 10){
+    if(list-1 == 0){
+      $('#Alpha').append($('<option>', {
+       value:team[list-1] + squadCreation,
+       text :  team[list-1] + " " +  squadCreation
+   }));
+ }
+ if(list-1 == 1){
+ $('#Beta').append($('<option>', {
+  value:team[list-1] + squadCreation,
+  text : team[list-1] + " " + squadCreation
+}));
+}
+if(list-1 == 2){
+$('#Shield').append($('<option>', {
+ value:team[list-1] + squadCreation,
+ text :team[list-1] + " " + squadCreation
+}));
+}
+if(list-1 == 3){
+$('#Raid').append($('<option>', {
+ value:team[list-1] + squadCreation,
+ text : team[list-1] + " " + squadCreation
+}));
+}
 
+if(list-1 == 4){
+$('#Airborne').append($('<option>', {
+ value:team[list-1] + squadCreation,
+ text : team[list-1] + " " + squadCreation
+}));
+}
+if(list-1 == 5){
+$('#Batman').append($('<option>', {
+ value:team[list-1] + squadCreation,
+ text :team[list-1] + " " + squadCreation
+}));
+}
+if(list-1 == 6){
+$('#Daemon').append($('<option>', {
+ value:team[list-1] + squadCreation,
+ text :team[list-1] + " " + squadCreation
+}));
+}
+if(list-1 == 7){
+$('#Nemesis').append($('<option>', {
+ value:team[list-1] + squadCreation,
+ text :team[list-1] + " " + squadCreation
+}));
+}
+if(list-1 == 8){
+$('#Viper').append($('<option>', {
+ value:team[list-1] + squadCreation,
+ text : team[list-1] + " " + squadCreation
+}));
+}
+if(list-1 == 9){
+$('#Cyclone').append($('<option>', {
+ value:team[list-1] + squadCreation,
+ text :team[list-1] + " " + squadCreation
+}));
+}
+}
+      //console.log(team[list]);
 
+      //nameThem(list, squadCreation); //create option
+
+console.log(list + " this");
 
 
 
@@ -236,6 +296,12 @@ function update() {
       break;
     }
   }
+
+  function nameThem( x, squadCreation ) {
+
+    //Alpha", "Beta", "Shield", "Raid", "Airborne", "Batman", "Daemon", "Nemesis", "Viper", "Cyclone"
+
+}
 
 
   </script>
