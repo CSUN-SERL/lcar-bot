@@ -65,12 +65,12 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
    connect(mpUi_.armButton, SIGNAL(clicked()),this,SLOT(ArmSelectedQuad()));
    connect(mpUi_.disarmButton, SIGNAL(clicked()),this,SLOT(DisarmSelectedQuad()));
    connect(mpUi_.flightModeComboBox,SIGNAL(activated(int)),this, SLOT(QuadMissionList(int)));
-   
+
    //Setup Mission select widgets
    connect(msUi_.submitMission,SIGNAL(clicked()),this, SLOT(MissionConfirm()));
    connect(msUi_.cancelMission,SIGNAL(clicked()),this, SLOT(MissionChangeCancel()));
    connect(msUi_.missionComboBox,SIGNAL(activated(int)),this, SLOT(MissionSelect(int)));
-  
+
    //Setup confirm widget
    connect(mConfirmUi_.yesButton,SIGNAL(clicked()),this, SLOT(MissionSubmit()));
    connect(mConfirmUi_.noButton,SIGNAL(clicked()),this, SLOT(MissionConfirmCancel()));
@@ -291,7 +291,7 @@ void SimpleGCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
   {
-    cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::RGB8);
+    cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(msg);
     conversion_mat_ = cv_ptr->image;
     QImage image(conversion_mat_.data, conversion_mat_.cols, conversion_mat_.rows, conversion_mat_.step[0], QImage::Format_RGB888);
     ivUi_.image_frame->setImage(image);
