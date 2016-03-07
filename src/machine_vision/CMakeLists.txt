@@ -12,11 +12,11 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   roslib
   std_msgs
-<<<<<<< HEAD
+#<<<<<<< HEAD
   image_transport
-=======
+#=======
   camera_info_manager
->>>>>>> f7a6bf2539b82f7b446b8dce84b6005bd96f88c3
+#>>>>>>> f7a6bf2539b82f7b446b8dce84b6005bd96f88c3
 )
 
 find_package(OpenCV 3 REQUIRED)
@@ -39,16 +39,16 @@ include_directories(include
 add_executable(camera_publisher src/ros_camera_publisher.cpp)
 add_executable(camera_subscriber src/ros_camera_subscriber.cpp)
 add_executable(stereo_publisher src/stereo_cam_pub.cpp)
-<<<<<<< HEAD
+#<<<<<<< HEAD
 add_executable(object_detection src/object_detect.cpp)
 
-=======
+#=======
 #<<<<<<< HEAD
 # add_executable(stereo_driver src/ros_camera_driver.cpp src/camera_driver_main.cpp)
 #=======
 add_executable(stereo_driver src/stereo_driver.cpp src/stereo_driver_main.cpp)
 #>>>>>>> 4bac26099c102b8ebb1d5427c8ad0a88dce04c73
->>>>>>> f7a6bf2539b82f7b446b8dce84b6005bd96f88c3
+#>>>>>>> f7a6bf2539b82f7b446b8dce84b6005bd96f88c3
 
 #Specify libraries against which to link
 target_link_libraries(camera_publisher
@@ -67,11 +67,15 @@ target_link_libraries(stereo_publisher
   ${libuvc_LIBRARIES}
 )
 
-<<<<<<< HEAD
+#<<<<<<< HEAD
 target_link_libraries(object_detection
-=======
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${libuvc_LIBRARIES}
+)
+#=======
 target_link_libraries(stereo_driver
->>>>>>> f7a6bf2539b82f7b446b8dce84b6005bd96f88c3
+#>>>>>>> f7a6bf2539b82f7b446b8dce84b6005bd96f88c3
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${libuvc_LIBRARIES}
