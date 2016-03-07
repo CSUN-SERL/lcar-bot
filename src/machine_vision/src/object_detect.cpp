@@ -134,6 +134,12 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
         src = image.clone();
         thread thread_1(ObjectCategorize, image);
         thread thread_2(ImageShow);
+        if(thread_1.joinable()){
+          thread_1.detach();
+        }
+        if(thread_2.joinable()){
+          thread_2.join();
+        }
 //        vector <Point> detected_objects;
         double t = (double)cvGetTickCount();
 //        hog.detectMultiScale(image, detected_objects, false);
