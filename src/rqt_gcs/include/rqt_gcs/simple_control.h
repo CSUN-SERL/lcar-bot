@@ -61,6 +61,8 @@ struct FlightState {
 class SimpleControl
 {
 public:
+  static int id;
+  SimpleControl();
   SimpleControl(int uav_id);
   ~SimpleControl();
 

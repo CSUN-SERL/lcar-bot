@@ -37,7 +37,7 @@
 #include <QMainWindow>
 #include <QSignalMapper>
 
-#define NUM_UAV 1 //Total number of UAV's in the system
+#define NUM_UAV 5 //Total number of UAV's in the system
 
 namespace rqt_gcs{
 
@@ -79,7 +79,7 @@ namespace rqt_gcs{
     int cur_uav = 0;
  
 
-    SimpleControl quadrotors[NUM_UAV] = {SimpleControl{1}};
+    SimpleControl quadrotors[NUM_UAV] = {};
 
 
     cv::Mat conversion_mat_;

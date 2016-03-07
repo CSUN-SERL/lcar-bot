@@ -20,6 +20,43 @@ int main(int argc, char **argv)
 
 }
 
+int SimpleControl::id = 0;
+
+
+SimpleControl::SimpleControl()  //Class constructor
+{
+  ++id;
+  ns = DEF_NS + std::to_string(id); //UAV Namespace
+
+  //Initialize Service Clients
+  sc_arm      = nh_simple_control.serviceClient<mavros_msgs::CommandBool>(ns + "/mavros/cmd/arming");
+  sc_takeoff  = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>(ns + "/mavros/cmd/takeoff");
+  sc_land     = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>(ns + "/mavros/cmd/land");
+  sc_mode     = nh_simple_control.serviceClient<mavros_msgs::SetMode>(ns + "/mavros/set_mode");
+  sc_mission  = nh_simple_control.serviceClient<mavros_msgs::WaypointPush>(ns + "/mavros/mission/push");
+
+  //Initialize Publisher Objects
+  pub_override_rc       = nh_simple_control.advertise<mavros_msgs::OverrideRCIn>(ns + "/mavros/rc/override",QUEUE_SIZE);
+  pub_setpoint_position = nh_simple_control.advertise<geometry_msgs::PoseStamped>(ns + "/mavros/setpoint_position/local",QUEUE_SIZE);
+  pub_setpoint_attitude = nh_simple_control.advertise<geometry_msgs::PoseStamped>(ns + "/mavros/setpoint_attitude/attitude",QUEUE_SIZE);
+  pub_angular_vel       = nh_simple_control.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
+  pub_linear_vel        = nh_simple_control.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_velocity/cmd_vel",QUEUE_SIZE);
+  pub_setpoint_accel    = nh_simple_control.advertise<geometry_msgs::Vector3Stamped>(ns + "/mavros/setpoint_accel/accel",QUEUE_SIZE);
+
+  //Initialze Subscribers
+  sub_state      = nh_simple_control.subscribe(ns + "/mavros/state", QUEUE_SIZE, &SimpleControl::StateCallback, this);
+  sub_battery    = nh_simple_control.subscribe(ns + "/mavros/battery", QUEUE_SIZE, &SimpleControl::BatteryCallback, this);
+  sub_imu        = nh_simple_control.subscribe(ns + "/mavros/imu/data", QUEUE_SIZE, &SimpleControl::ImuCallback, this);
+  sub_altitude   = nh_simple_control.subscribe(ns + "/mavros/global_position/rel_alt", QUEUE_SIZE, &SimpleControl::RelAltitudeCallback, this);
+  sub_heading    = nh_simple_control.subscribe(ns + "/mavros/global_position/compass_hdg", QUEUE_SIZE, &SimpleControl::HeadingCallback, this);
+  sub_vel        = nh_simple_control.subscribe(ns + "/mavros/local_position/velocity", QUEUE_SIZE, &SimpleControl::VelocityCallback, this);
+  sub_pos_global = nh_simple_control.subscribe(ns + "/mavros/global_position/global", QUEUE_SIZE, &SimpleControl::NavSatFixCallback, this);
+  sub_pos_local  = nh_simple_control.subscribe(ns + "/mavros/local_position/pose", QUEUE_SIZE, &SimpleControl::LocalPosCallback, this);
+
+  //Set Home position
+  pos_home.x = pos_home.y = pos_home.z = 0;
+}
+
 SimpleControl::SimpleControl(int uav_id)  //Class constructor
 {
   ns = DEF_NS + std::to_string(uav_id); //UAV Namespace
