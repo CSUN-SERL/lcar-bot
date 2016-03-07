@@ -16,7 +16,7 @@
 		<arg name="log_output" value="$(arg log_output)" />
 	</include>
 	<node pkg="machine_vision" type="stereo_driver" name="stereo_driver" required="true"/>
-	<node pkg="machine_vision" type="object_detec" name="object_detect" required="true"/>
+	<node pkg="machine_vision" type="object_detect" name="object_detect" required="true"/>
 	<param name="image_transport" type="string" value="compressed" />
 
 </launch>
