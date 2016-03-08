@@ -1,43 +1,48 @@
 #ifdef ACCESS_POINT_H
 #define ACCESS_POINT_H
 
-#include <rqt_gcs/simple_control.h>
-#include <rqt_gcs/simple_control.cpp>
+#include <ros/ros.h>
+#include <string.h>
+#include <sensor_msgs/NavSatFix.h>
+#include <std_msgs/Float64>
+#include <opencv2/cv.h>
 
 class AccessPoint
 {
 	public:
-		Mat image; 						//Access Point image
-		float GPS_location;	//GPS location at time of image capture
-		float compass_heading;
-		float altitude;
-		time_t current_time;
+		cv::Mat image; 						//Access Point image
+		sensor_msgs::NavSatFix gps_location;	//GPS location at time of image capture
+		std_msgs::Float64 compass_heading;
+		std_msgs::Float64 altitude;
+		ros::Time current_time;
 
 	public:
 		AccessPoint();
 		~AccessPoint();
 
-		void set_image(Mat img);
-		void set_GPS(float coord);
-		void set_compass(float heading);
-		void set_altitude(float altitude);
-		void set_time(time_t t);
+		//setters
+		void SetImage(cv::Mat& img);
+		void SetGPS(sensor_msgs::NavSatFix& coord);
+		void SetCompass(std_msgs::Float64& heading);
+		void SetAltitude(std_msgs::Float64& altitude);
+		void SetTime(ros::Time& t);
 
-		Mat get_img();
-		float get_GPS();
-		float get_compass();
-		float get_altitude();
-		time_t get_time();
+		//getters
+		cv::Mat GetImage();
+		sensor_msgs::NavSatFix GetGPS();
+		std_msgs::Float64 GetCompass();
+		std_msgs::Float64 GetAltitude();
+		ros::Time GetTime();
 };
 
-AccessPoint::AccessPoint()
-{
-	image = null;
-	GPS_location = 0;
-	compass_heading = 0;
-	altitude = 0;
-	current_time = std::time(nullptr);
-}
+// AccessPoint::AccessPoint()
+// {
+// 	image = null;
+// 	GPS_location = 0;
+// 	compass_heading = 0;
+// 	altitude = 0;
+// 	current_time = std::time(nullptr);
+// }
 //destructor
 AccessPoint::~AccessPoint()
 {
@@ -46,56 +51,60 @@ AccessPoint::~AccessPoint()
 
 //setters
 
-void AccessPoint::SetImage(Mat img)
-{
+void AccessPoint::SetImage(cv::Mat& img){
 	image = img;
 }
 
-void AccessPoint::SetImage(float coord)
+void AccessPoint::SetImage(sensor_msgs::NavSatFix& coord)
 {
-	GPS_location = coord;
+	gps_location = coord;
 }
 
-void AccessPoint::SetCompass(float heading)
+void AccessPoint::SetCompass(std_msgs::Float64& heading)
 {
 	compass_heading = heading;
 }
 
-void AccessPoint::SetAltitude(float altitude)
+void AccessPoint::SetAltitude(std_msgs::Float64& altitude)
 {
-	this.altitude=altitude;
+	this.altitude = altitude;
 }
 
-void AccessPoint::SetTime(time_t t)
+void AccessPoint::SetTime(ros::Time t)
 {
 	current_time = t;
 }
 
 //getters
 
-Mat GetImage()
+cv::Mat GetImage()
 {
 	return image;
 }
 
 float GetGPS()
 {
-	return GPS_location;
+	return gps_location;
 }
 
-float GetCompass()
+std_msgs::Float64 GetCompass()
 {
 	return compass_heading;
 }
 
-float GetAltitude()
+std_msgs::Float64& GetAltitude()
 {
 	return altitude;
 }
 
-time_t GetTime()
+ros::Time GetTime()
 {
 	return current_time;
+}
+
+ros::Time GetCurrentTime()
+{
+	return ros::Time::now();
 }
 
 #endif //ACCESSPOINT_H
