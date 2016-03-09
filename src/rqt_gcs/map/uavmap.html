@@ -15,8 +15,8 @@
   var latitude  = 2;
   var num =1;
   var listeners =[];
-  var total = 100;
-  var sections = total/10;
+  var total = 109;
+  var sections = 10;
   var done = false;
   var ChoosenOne;
 
@@ -125,7 +125,7 @@ function update() {
         squadCreation = 0;
       }
 
-      if(squadCreation == 0 && limit < 10 && done == false) {
+      if(squadCreation == 0 && limit < 11 && done == false) {
 
         $('<select />', {
           id: team[list],
@@ -147,7 +147,7 @@ function update() {
         limit++;
       }
 
-if(limit <= sections && done == false){
+if( done == false){
     if(list-1 == 0){
       $('#Alpha').append($('<option>', {
        value:team[list-1] + (squadCreation ),
@@ -212,27 +212,9 @@ $('#Cyclone').append($('<option>', {
 }));
 }
 }
-      //console.log(team[list]);
-
-      //nameThem(list, squadCreation); //create option
 
 console.log(list + " this");
 
-
-
-
-   /* $('<input />', {
-              name: 'uav',
-              id: 'uav' + num,
-              type: "radio",
-              value: num,
-          }).appendTo('#radB');
-
-         $('<label />', {
-          for: 'uav' + num,
-          text: 'uav ' + num + ' ',
-      }).appendTo('#radB');
-*/
 }
 
   console.log("lat: " + latitude);
@@ -271,7 +253,7 @@ console.log(list + " this");
 
     // Center the map on the new position depending on the UAV
     var checked = $('input[name=uav]:checked').val();
-    if(checked != undefined){
+    if(checked != undefined && checked != "free" && checked.length < 2){
     checked = parseInt((checked + '').charAt(0));
   }
     console.log((checked -1)  + " checked");
@@ -290,7 +272,7 @@ console.log(list + " this");
       console.log("checked == 0");
        theChoosenOne = (datNum  );
     } else{
-      console.log("UAV: " + (checked)+datNum);
+      console.log("UAV: " + (checked-1)+datNum);
       console.log("checked != 0");
        theChoosenOne = (checked-1) + (datNum );
   }
@@ -306,13 +288,13 @@ console.log(list + " this");
     uavName.innerHTML = "UAV " + theChoosenOne;
 
     num++
-    if(squadCreation <= 10){
+    if(squadCreation < 10){
     squadCreation++;
   }
   else {
     done = true;
   }
-
+  console.log(num + "TOTAL");
     if(num > total){
       num = 1;
     }
