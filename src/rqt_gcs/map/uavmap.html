@@ -75,7 +75,7 @@ function showPosition() {
 
   latlon = new google.maps.LatLng(longitude, latitude)
   mapholder = document.getElementById('mapholder')
-  mapholder.style.height = '800px';
+  mapholder.style.height = '850px';
   mapholder.style.width = '100%';
 
 
@@ -229,17 +229,21 @@ console.log(list + " this");
     }
     else {
       //add new image
-      if(num > 10){
+      //if(num > 10){
         image[num] = {
-          url: 'images/uavIcon1.png',
+          url: 'images/uavIcon' + (list +1) + '.png',
           scaledSize: new google.maps.Size(60,60)
         };
-      }else{
+
+        /* }else{
       image[num] = {
-        url: 'images/uavIcon' + num + '.png',
+        url: 'images/uavIcon' + list + '.png',
         scaledSize: new google.maps.Size(60,60)
       };
     }
+      */
+
+
 
       // Marker does not exist - Create it
         marker[num] = new google.maps.Marker({
@@ -277,15 +281,17 @@ console.log(list + " this");
        theChoosenOne = (checked-1) + (datNum );
   }
     console.log(theChoosenOne + " ChoosenOne");
-    if(checked != 'free' && checked != undefined) { //if its not free roam, then center map to an UAV
+    if(checked != 'free' && checked != undefined && theChoosenOne != 0) { //if its not free roam, then center map to an UAV
       map.setCenter(marker[theChoosenOne].getPosition());
     }
     else{
     //nothing
     }
 
-    outmessage.innerHTML = num + "  " + la ;
-    uavName.innerHTML = "UAV " + theChoosenOne;
+    //outmessage.innerHTML = num + "  " + la ;
+    if(index != undefined){
+    uavName.innerHTML = index + " " + theChoosenOne;
+   }
 
     num++
     if(squadCreation < 10){
@@ -334,7 +340,7 @@ console.log(list + " this");
   </script>
 </head>
 <body>
-  Location(coordinates):
+
   <span id="outmessage"></span>
 
 

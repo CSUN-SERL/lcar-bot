@@ -7,3 +7,14 @@ color: rgb(236, 236, 236);
 #mapholder {
   border-radius: 5px;
 }
+
+select {
+  border-radius: 5px;
+  width: 100px;
+  height: 40px;
+}
+
+input {
+  width: 30px;
+
+}
