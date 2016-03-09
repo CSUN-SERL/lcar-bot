@@ -14,7 +14,18 @@ select {
   height: 40px;
 }
 
-input {
-  width: 30px;
+
+.startB {
+  width: 400px;
+  height: 40px;
+  border-radius: 5px;
+  display: inline;
+  margin: 5px;
+
+}
+
+.controlsI {
+  margin: auto;
+  display: inline;
 
 }
