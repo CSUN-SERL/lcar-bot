@@ -8,6 +8,7 @@
   <script type="text/javascript" src="http://cdn.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
   <script type="text/javascript" src="uav.js"></script>
   <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 
 
 
@@ -16,25 +17,136 @@
 
   </script>
 </head>
-<body>
-
+<body onunload="GUnload()">
+<div class="container">
   <span id="outmessage"></span>
 
+  <ul class="nav nav-pills">
+      <li class="active"><a data-toggle="pill" href="#home">Home</a></li>
+      <li><a data-toggle="pill" href="#menu1">UAV</a></li>
+      <li><a data-toggle="pill" href="#menu2">Rover</a></li>
 
-  <center>
+    </ul>
+ <div class="tab-content">
+    <div id="home" class="tab-pane fade in active">
+      <center>
 
-    <form id = "radB" name="rform" action="" style="display: inline; ">
-      <input type="radio" name="uav" value="free"> <span style="font-size: 1.2em; color: rgb(300, 0, 0);">free-roam </span>
-    </form>
+        <form id = "radB" name="rform" action="" style="display: inline; ">
+          <input type="radio" name="uav" value="free"> <span style="font-size: 1.2em; color: rgb(300, 0, 0);">free-roam </span>
+        </form>
+      </center>
+      <h2 id ="uavName" style="text-align: center;"></h2>
+
+      <div id="mapholder" style = "margin-top: 10px;"></div>
+
+  </div>
+
+   <div id="menu1" class="tab-pane fade">
+
+     <body >
+       <center>
+       <div id="controls" class ="controlsI">
+        <form onsubmit="start();" action="#">
+         Enter start and end addresses.<br />
+         <input type="text" size="80" maxlength="200" id="startpoint" value="34.24203265889959, -118.52938055992126" /><br />
+         <input type="text" size="80" maxlength="200" id="endpoint" value="34.239647368535515,-118.52839887142181" />
 
 
-  </center>
+
+       </div>
+        <input type="submit" value="Start" class = "startB" />
+         </form>
+     </center>
+       <div id="map" style="width: 95%; height: 780px; margin: auto;"></div>
+       <div id="step">&nbsp;</div>
+       <div id="distance">Miles: 0.00</div>
+    </div>
+       <script type="text/javascript">
+       //<![CDATA[
+       if (GBrowserIsCompatible()) {
+
+         var map = new GMap2(document.getElementById("map"));
+         map.addControl(new GMapTypeControl());
+         map.setCenter(new GLatLng(0,0),2);
+         var dirn = new GDirections();
+         var step = 5; // meters
+         var tick = 100; // milliseconds
+         var poly;
+         var eol;
+         var car = new GIcon();
+             car.image="images/rover.png"
+             car.iconSize=new GSize(45,25);
+             car.iconAnchor=new GPoint(17,9);
+         var marker;
+         var k=0;
+         var stepnum=0;
+         var speed = "";
+
+         function animate(d) {
+           if (d>eol) {
+             document.getElementById("step").innerHTML = "<b>Trip completed<\/b>";
+             document.getElementById("distance").innerHTML =  "Miles: "+(d/1609.344).toFixed(2);
+             return;
+           }
+           var p = poly.GetPointAtDistance(d);
+           if (k++>=180/step) {
+             map.panTo(p);
+             k=0;
+           }
+           marker.setPoint(p);
+           document.getElementById("distance").innerHTML =  "Miles: "+(d/1609.344).toFixed(2)+speed;
+           if (stepnum+1 < dirn.getRoute(0).getNumSteps()) {
+             if (dirn.getRoute(0).getStep(stepnum).getPolylineIndex() < poly.GetIndexAtDistance(d)) {
+               stepnum++;
+               var steptext = dirn.getRoute(0).getStep(stepnum).getDescriptionHtml();
+               document.getElementById("step").innerHTML = "<b>Next:<\/b> "+steptext;
+               //dirn.getRoute(0).getStep(stepnum-1).getDistance().meters;
+               //dirn.getRoute(0).getStep(stepnum-1).getDuration().seconds;
+               var stepdist = 1
+               var steptime = 1
+               var stepspeed = ((stepdist/steptime) * 2.24).toFixed(0);
+               step = stepspeed/2.5;
+               speed = "<br>Current speed: " + stepspeed +" mph";
+             }
+           } else {
+             if (dirn.getRoute(0).getStep(stepnum).getPolylineIndex() < poly.GetIndexAtDistance(d)) {
+               document.getElementById("step").innerHTML = "<b>Next: Arrive at your destination<\/b>";
+             }
+           }
+           setTimeout("animate("+(d+step)+")", tick);
+         }
+
+         GEvent.addListener(dirn,"load", function() {
+           //document.getElementById("controls").style.display="none";
+           poly=dirn.getPolyline();
+           eol=poly.Distance();
+           map.setCenter(poly.getVertex(0),17);
+           map.addOverlay(new GMarker(poly.getVertex(0),G_START_ICON));
+           map.addOverlay(new GMarker(poly.getVertex(poly.getVertexCount()-1),G_END_ICON));
+           marker = new GMarker(poly.getVertex(0),{icon:car});
+           map.addOverlay(marker);
+           var steptext = dirn.getRoute(0).getStep(stepnum).getDescriptionHtml();
+           document.getElementById("step").innerHTML = steptext;
+           setTimeout("animate(0)",2000);  // Allow time for the initial map display
+         });
+
+         GEvent.addListener(dirn,"error", function() {
+           alert("Location(s) not recognised. Code: "+dirn.getStatus().code);
+         });
+
+         function start() {
+           var startpoint = document.getElementById("startpoint").value;
+           var endpoint = document.getElementById("endpoint").value;
+           dirn.loadFromWaypoints([startpoint,endpoint],{getPolyline:true,getSteps:true});
+         }
+
+       }
 
 
-  <h2 id ="uavName" style="text-align: center;"></h2>
+       //]]>
+       </script>
 
-  <div id="mapholder" style = "margin-top: 10px;"></div>
 
-
+</div>
 </body>
 </html>
