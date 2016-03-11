@@ -36,6 +36,7 @@
 #define SCOUT_WT 0.5
 #define THRESHOLD_XY 1
 #define THRESHOLD_Z 0.2
+#define THRESHOLD_YAW 0.5
 #define ALT_RTL 3
 #define BATTERY_MIN 0.30  //Minimum battery level for RTL
 #define DEF_NS "UAV"
@@ -147,18 +148,19 @@ public:
   /**
       Send a new position command to the UAV.
 
-      @param x New x position
-      @param y New y position
-      @param z New z position
+      @param x      New x position
+      @param y      New y position
+      @param z      New z position
+      @param yaw    New yaw value
   */
-  void SetLocalPosition(int x, int y, int z);
+  void SetLocalPosition(float x, float y, float z, float yaw);
 
   /**
       Send a new position command to the UAV.
 
       @param new_pose The new local position passed as a Pose object
   */
-  void SetLocalPosition(geometry_msgs::Point new_point);
+  void SetLocalPosition(geometry_msgs::Pose new_pose);
 
   /**
       Change the UAV's roll, pitch, and yaw values. Requires the UAV to be
@@ -182,7 +184,7 @@ public:
       @param pitch_vel  New pitch velocity
       @param yaw_vel    New yaw velocity
   */
-  void SetAngularVelocity(int roll_vel, int pitch_vel, int yaw_vel);
+  void SetAngularVelocity(float roll_vel, float pitch_vel, float yaw_vel);
 
   /**
       Change the UAV's linear velocity for roll, pitch, and yaw.
@@ -209,7 +211,7 @@ public:
       @param point1  First point to compare
       @param point2  Second point to compare
   */
-  int ComparePosition(geometry_msgs::Point point1, geometry_msgs::Point point2);
+  int ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2);
 
   /**
       Calculate the distance between two points.
@@ -217,7 +219,7 @@ public:
       @param point1  First point
       @param point2  Second point
   */
-  int CalculateDistance(geometry_msgs::Point point1, geometry_msgs::Point point2);
+  int CalculateDistance(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2);
 
   /**
       Calculate a Vector3d object that defines the displacement for reaching a
@@ -226,14 +228,14 @@ public:
       @param angle  Angle, in degrees, for which the next Vector should be
                     generated.
   */
-  Eigen::Vector3d CircleShape(int angle);
+  geometry_msgs::Pose CircleShape(int angle);
 
   /**
       Manage the UAV and ensure that it completes the mission
 
       @param index The current point number the quad is traveling to.
   */
-  geometry_msgs::Point DiamondShape(int index);
+  geometry_msgs::Pose DiamondShape(int index);
 
 
   void Run();
@@ -246,7 +248,7 @@ public:
   mavros_msgs::BatteryStatus GetBatteryStatus() { return battery; }
   sensor_msgs::Imu  GetImu() { return imu; }
   FlightState GetFlightState() { return UpdateFlightState(); }
-  int GetDistanceToWP() { return CalculateDistance(pos_target, pos_local); }
+  int GetDistanceToWP() { return CalculateDistance(pose_target, pose_local); }
   float GetMissionProgress();
 
 private:
@@ -259,7 +261,7 @@ private:
   void HeadingCallback(const std_msgs::Float64& msg_heading) { heading_deg = msg_heading.data; }
   void VelocityCallback(const geometry_msgs::TwistStamped& msg_vel) { velocity = msg_vel; }
   void NavSatFixCallback(const sensor_msgs::NavSatFix& msg_gps) { pos_global = msg_gps; }
-  void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) { pos_local = msg_pos.pose.position; }
+  void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) { pose_local = msg_pos.pose; }
 
   //For returning Flight State Data to GCS
   FlightState UpdateFlightState();
@@ -293,10 +295,10 @@ private:
   sensor_msgs::Imu imu;
   sensor_msgs::NavSatFix pos_global;
   geometry_msgs::TwistStamped velocity;
-  geometry_msgs::Point  pos_local,
-                        pos_target,
-                        pos_home,
-                        pos_previous;
+  geometry_msgs::Pose  pose_local,
+                       pose_target,
+                       pose_home,
+                       pose_previous;
   float altitude_rel, heading_deg;
   //int goal = IDLE;
   Mode goal = idle;
