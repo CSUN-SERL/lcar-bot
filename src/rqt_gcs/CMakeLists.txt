@@ -60,7 +60,7 @@ set(rqt_gcs_UIS
   resources/PFDWidget_custom.ui
   resources/WidgetMain.ui
   resources/UAVCondition.ui
-	resources/ImageView.ui
+  resources/ImageView.ui
   resources/MissionConfirm.ui
 )
 
@@ -92,29 +92,30 @@ qt4_wrap_cpp(rqt_gcs_MOCS ${rqt_gcs_HDRS})
 qt4_wrap_ui(rqt_gcs_UIS_H ${rqt_gcs_UIS})
 
 include_directories(${rqt_gcs_INCLUDE_DIRECTORIES}
-										${Boost_INCLUDE_DIRS}
-										${catkin_INCLUDE_DIRS})
+                    ${Boost_INCLUDE_DIRS}
+                    ${catkin_INCLUDE_DIRS})
 
 # Declare executables with source files
 add_executable(simple_control src/rqt_gcs/simple_control.cpp)
 add_executable(gps_publisher src/rqt_gcs/gps_publisher.cpp)
-
+add_executable(connection_manager src/rqt_gcs/connection_manager.cpp)
 
 add_library(${PROJECT_NAME}
-						${rqt_gcs_SRCS}
-						${rqt_gcs_MOCS}
-						${rqt_gcs_UIS_H}
-                                                ${rqt_gcs_RCC_SRCS})
+            ${rqt_gcs_SRCS}
+            ${rqt_gcs_MOCS}
+            ${rqt_gcs_UIS_H}
+            ${rqt_gcs_RCC_SRCS})
 
 #Specify libraries against which to link
 target_link_libraries(simple_control ${catkin_LIBRARIES})
 target_link_libraries(gps_publisher ${catkin_LIBRARIES})
-target_link_libraries(${PROJECT_NAME}
-											${catkin_LIBRARIES}
-											${QT_QTCORE_LIBRARY}
-											${QT_QTGUI_LIBRARY}
-											${QT_QTSVG_LIBRARY}
-											${OpenCV_LIBRARIES}
+target_link_libraries(connection_manager ${catkin_LIBRARIES})
+target_link_libraries(  ${PROJECT_NAME}
+                        ${catkin_LIBRARIES}
+                        ${QT_QTCORE_LIBRARY}
+                        ${QT_QTGUI_LIBRARY}
+                        ${QT_QTSVG_LIBRARY}
+                        ${OpenCV_LIBRARIES}
 )
 
 find_package(class_loader)
