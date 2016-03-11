@@ -12,7 +12,11 @@ select {
   border-radius: 5px;
   width: 100px;
   height: 40px;
+  background-color: rgb(159, 171, 198);
+  color: rgb(161, 0, 0);
+  font-weight: bold;
 }
+
 
 
 .startB {

@@ -38,9 +38,9 @@
       var poly;
       var eol;
       var car = new GIcon();
-          car.image="uav.png"
-          car.iconSize=new GSize(32,18);
-          car.iconAnchor=new GPoint(16,9);
+          car.image="images/rover.png"
+          car.iconSize=new GSize(50,25);
+          car.iconAnchor=new GPoint(17,9);
       var marker;
       var k=0;
       var stepnum=0;
@@ -64,8 +64,10 @@
             stepnum++;
             var steptext = dirn.getRoute(0).getStep(stepnum).getDescriptionHtml();
             document.getElementById("step").innerHTML = "<b>Next:<\/b> "+steptext;
-            var stepdist = dirn.getRoute(0).getStep(stepnum-1).getDistance().meters;
-            var steptime = dirn.getRoute(0).getStep(stepnum-1).getDuration().seconds;
+            //dirn.getRoute(0).getStep(stepnum-1).getDistance().meters;
+            //dirn.getRoute(0).getStep(stepnum-1).getDuration().seconds;
+            var stepdist = 1
+            var steptime = 1
             var stepspeed = ((stepdist/steptime) * 2.24).toFixed(0);
             step = stepspeed/2.5;
             speed = "<br>Current speed: " + stepspeed +" mph";
