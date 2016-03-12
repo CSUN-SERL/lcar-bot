@@ -10,21 +10,31 @@ int main(int argc, char **argv)
   while(ros::ok())
   {
     connection.PublishConnection();
-    
+
     ros::spinOnce();
     loop_rate.sleep();
   }
 
 }
 
+int ConnectionManager::id = 0;
+
 ConnectionManager::ConnectionManager()  //Class constructor
 {
+  ++id;
   std::string ns = DEF_NS + std::to_string(id); //UAV Namespace
   pub_connection = nh.advertise<std_msgs::Int8>(ns + "/connection_status",QUEUE_SIZE);
 }
 
-ConnectionManager::PublishConnection()
+ConnectionManager::~ConnectionManager()
 {
-  std_msgs::Int8 connection_status = 1;
+    //Default destructor
+}
+
+void ConnectionManager::PublishConnection()
+{
+  std_msgs::Int8 connection_status;
+  connection_status.data = 1;
+
   pub_connection.publish(connection_status);
 }
