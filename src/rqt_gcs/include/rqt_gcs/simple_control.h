@@ -252,6 +252,7 @@ public:
   float GetMissionProgress();
 
 private:
+  void InitialSetup();
 
   //Callback Prototypes
   void StateCallback(const mavros_msgs::State& msg_state) { state = msg_state; }

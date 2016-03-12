@@ -2,18 +2,18 @@ cmake_minimum_required(VERSION 2.8.3)
 project(rqt_gcs)
 
 find_package(catkin REQUIRED COMPONENTS
-	geometry_msgs
-	mavros
-  mavros_msgs
-	roscpp
-	rqt_gui
-	rqt_gui_cpp
-	roslib
-  sensor_msgs
-  std_msgs
-	tf
-	cv_bridge
-  image_transport
+            geometry_msgs
+            mavros
+            mavros_msgs
+            roscpp
+            rqt_gui
+            rqt_gui_cpp
+            roslib
+            sensor_msgs
+            std_msgs
+            tf
+            cv_bridge
+            image_transport
 )
 
 find_package(Qt4 COMPONENTS QtCore QtGui QtSvg REQUIRED)
