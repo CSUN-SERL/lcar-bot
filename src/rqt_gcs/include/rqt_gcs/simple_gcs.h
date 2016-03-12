@@ -28,6 +28,8 @@
 #include <ui_PFDWidget_custom.h>
 #include <ui_ImageView.h>
 #include <ui_MissionConfirm.h>
+#include <ui_AccessPointsMenu.h>
+#include <ui_AccessPointStats.h>
 
 #include <QWidget>
 #include <QLabel>
@@ -60,53 +62,45 @@ namespace rqt_gcs{
 
   protected slots:
     virtual void TimedUpdate();
-    virtual void MissionChange();
-    virtual void MissionChangeCancel();
+    virtual void ExecutePlay();
+    virtual void CancelPlay();
+    virtual void ScoutBuilding();
     virtual void StopQuad();
-    virtual void MissionSelect(const int);
-    virtual void MissionSubmit();
-    virtual void MissionConfirm();
-    virtual void MissionConfirmCancel();
-    
-    
+    virtual void ChangeFlightMode();
+    virtual void OpenAccessPointsMenu();
+
     virtual void QuadSelect(int);
     virtual void ArmSelectedQuad();
     virtual void DisarmSelectedQuad();
-    virtual void QuadMissionList(const int);
 
   private:
     void UpdatePFD();
     int cur_uav = 0;
- 
-
     SimpleControl quadrotors[NUM_UAV] = {};
-
-
     cv::Mat conversion_mat_;
     image_transport::Subscriber sub_stereo = it_stereo.subscribe("stereo_cam/left/image_raw", 1, &SimpleGCS::ImageCallback, this);
 
     Ui::SimpleGCSWidget ui_;
-    Ui::MissionCancelWidget mcUi_;
     Ui::MissionProgressWidget mpUi_;
-    Ui::MissionSelectWidget msUi_;
     Ui::UavQuestionWidget uqUi_;
     Ui::UavStatWidget usUi_;
     Ui::ImageViewWidget ivUi_;
     Ui::PFDWidget pfd_ui;
     Ui::centralWidget central_ui_;
     Ui::UAVConditionWidget uavCondWidgetArr[NUM_UAV];
-    Ui::MissionConfirmWidget mConfirmUi_;
+    Ui::AccessPointsMenuWidget apmUi_;
+    Ui::AccessPointStatsWidget apsUi_;
 
     QWidget* widget_;
-    QWidget* missionCancelWidget_;
-    QWidget* missionSelectWidget_;
     QWidget* missionProgressWidget_;
     QWidget* uavQuestionWidget_;
     QWidget* uavStatWidget_;
     QWidget* imageViewWidget_;
     QWidget* uavListWidgetArr[NUM_UAV];
     QWidget* PFDQWidget;
-    QWidget* missionConfirmWidget_;
+    QWidget* apmQWidget_;
+    QWidget* apsQWidget_;
+ 
 
     QLabel* label;
     QTimer* update_timer;

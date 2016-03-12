@@ -15,16 +15,17 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
   // access standalone command line arguments
   QStringList argv = context.argv();
 
-  widget_ = new QWidget();
-  missionCancelWidget_   = new QWidget();
-  missionSelectWidget_   = new QWidget();
+  widget_                = new QWidget();
   missionProgressWidget_ = new QWidget();
   uavQuestionWidget_     = new QWidget();
   uavStatWidget_         = new QWidget();
   imageViewWidget_       = new QWidget();
   PFDQWidget             = new QWidget();
-  missionConfirmWidget_  = new QWidget();
+  apmQWidget_            = new QWidget();
+  apsQWidget_            = new QWidget();
 
+//For each of the Uav condition widgets
+//we set up the ui of the uavcondition widget(name, selection num)
  for(int i = 0; i < NUM_UAV; i++){
     uavListWidgetArr[i] = new QWidget();
     uavCondWidgetArr[i].setupUi(uavListWidgetArr[i]);
@@ -34,50 +35,42 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
 
   //Setup the UI objects with the widgets
   central_ui_.setupUi(widget_);
-  mcUi_.setupUi(missionCancelWidget_);
   mpUi_.setupUi(missionProgressWidget_);
-  msUi_.setupUi(missionSelectWidget_);
   uqUi_.setupUi(uavQuestionWidget_);
   usUi_.setupUi(uavStatWidget_);
   ivUi_.setupUi(imageViewWidget_);
   pfd_ui.setupUi(PFDQWidget);
-  mConfirmUi_.setupUi(missionConfirmWidget_);
-
-
+  apmUi_.setupUi(apmQWidget_);
+  apsUi_.setupUi(apsQWidget_);
+  
   //Add widgets to the Main UI
   context.addWidget(widget_);
-
   central_ui_.MissionLayout->addWidget(missionProgressWidget_);
   central_ui_.OverviewLayout->addWidget(uavStatWidget_);
   central_ui_.PFDLayout->addWidget(PFDQWidget);
   central_ui_.CameraLayout->addWidget(imageViewWidget_);
-
   for(int i = 0; i < NUM_UAV; i++){
       central_ui_.UAVListLayout->addWidget(uavListWidgetArr[i]);
   }
-
+   
    //Setup mission progress widgets
-   missionSelectWidget_->setWindowTitle("Mission Selection");
    uavStatWidget_->setWindowTitle("Flight State");
    missionProgressWidget_->setWindowTitle("Mission Control");
-   connect(mpUi_.changeMissionButton,SIGNAL(clicked()),this, SLOT(MissionChange()));
+
+   //setup button logic for the widgets
+   
+   connect(mpUi_.executePlayButton,SIGNAL(clicked()),this, SLOT(ExecutePlay()));
+   connect(mpUi_.cancelPlayButton,SIGNAL(clicked()),this, SLOT(CancelPlay()));
+   connect(mpUi_.scoutBuildingButton, SIGNAL(clicked()),this, SLOT(ScoutBuilding()));
    connect(mpUi_.stopMissionButton,SIGNAL(clicked()),this, SLOT(StopQuad()));
+   connect(mpUi_.changeFlightModeButton,SIGNAL(clicked()),this, SLOT(ChangeFlightMode()));
+   connect(mpUi_.viewAccessPointsButton,SIGNAL(clicked()),this, SLOT(OpenAccessPointsMenu()));
+
    connect(mpUi_.armButton, SIGNAL(clicked()),this,SLOT(ArmSelectedQuad()));
    connect(mpUi_.disarmButton, SIGNAL(clicked()),this,SLOT(DisarmSelectedQuad()));
-   connect(mpUi_.flightModeComboBox,SIGNAL(activated(int)),this, SLOT(QuadMissionList(int)));
 
-   //Setup Mission select widgets
-   connect(msUi_.submitMission,SIGNAL(clicked()),this, SLOT(MissionConfirm()));
-   connect(msUi_.cancelMission,SIGNAL(clicked()),this, SLOT(MissionChangeCancel()));
-   connect(msUi_.missionComboBox,SIGNAL(activated(int)),this, SLOT(MissionSelect(int)));
-
-   //Setup confirm widget
-   connect(mConfirmUi_.yesButton,SIGNAL(clicked()),this, SLOT(MissionSubmit()));
-   connect(mConfirmUi_.noButton,SIGNAL(clicked()),this, SLOT(MissionConfirmCancel()));
 
    //Setup UAV lists select functions
-   //index 0 refers to quadrotor 1
-   //index 1 refers to quadrotor 2
    signal_mapper = new QSignalMapper(this);
    for(int i = 0; i < NUM_UAV; i++){
     signal_mapper->setMapping(uavCondWidgetArr[i].VehicleSelectButton, i);
@@ -91,37 +84,7 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
    update_timer->start(100);
 }
 
-void SimpleGCS::QuadSelect(int quadNumber){
-	cur_uav = quadNumber;
-}
-
-void SimpleGCS::ArmSelectedQuad(){
-	quadrotors[cur_uav].Arm(true);
-}
-
-void SimpleGCS::DisarmSelectedQuad(){
-	quadrotors[cur_uav].Arm(false);
-}
-
-void SimpleGCS::QuadMissionList(const int i){
-    if(i == 0){
-        ROS_INFO_STREAM("Quadrotor Stablized");
-        quadrotors[cur_uav].SetMode("STABILIZED");
-    }
-    else if(i == 1){
-        ROS_INFO_STREAM("Quadrotor RTL");
-        quadrotors[cur_uav].SetMode("AUTO.RTL");
-    }
-    else if(i == 2){
-        ROS_INFO_STREAM("Quadrotor Loiter");
-        quadrotors[cur_uav].SetMode("AUTO.LOITER");
-    }
-    else if(i == 3){
-        ROS_INFO_STREAM("Quadrotor alt hold");
-        quadrotors[cur_uav].SetMode("ALTCTL");
-    }
-}
-
+//Timed update of for the GCS
 void SimpleGCS::TimedUpdate(){
 
   quad_id.setNum(cur_uav+1);
@@ -179,72 +142,87 @@ void SimpleGCS::TimedUpdate(){
 
 }
 
-void SimpleGCS::MissionChange(){
 
-    missionSelectWidget_->show();
+void SimpleGCS::ExecutePlay(){
+	if(mpUi_.playComboBox->currentIndex() == 0){
+		ROS_INFO_STREAM("Play 1 initiated");
+        }
+        else if(mpUi_.playComboBox->currentIndex() == 1){
+		ROS_INFO_STREAM("Play 2 initiated");
+        }
+        else if(mpUi_.playComboBox->currentIndex() == 2){
+		ROS_INFO_STREAM("Play 3 initiated");
+	}
 }
 
-void SimpleGCS::MissionChangeCancel(){
 
-    missionSelectWidget_->close();
+void SimpleGCS::CancelPlay(){
+
+}
+
+
+void SimpleGCS::ScoutBuilding(){
+	if(mpUi_.buildingsComboBox->currentIndex() == 0){
+		ROS_INFO_STREAM("Scouting Building 1");
+        }
+        else if(mpUi_.buildingsComboBox->currentIndex() == 1){
+		ROS_INFO_STREAM("Scouting Building 2");
+        }
+        else if(mpUi_.buildingsComboBox->currentIndex() == 2){
+		ROS_INFO_STREAM("Scouting Building 3");
+	}
 }
 
 void SimpleGCS::StopQuad(){
 	quadrotors[cur_uav].SetMode("AUTO.RTL");
 }
 
-void SimpleGCS::MissionSelect(const int i){
-
-    if(i == 3){
-     msUi_.playsComboBox->setEnabled(true);
-
-    }
-    else{
-     msUi_.playsComboBox->setEnabled(false);
-    }
-}
-
-void SimpleGCS::MissionSubmit(){
-    ROS_INFO_STREAM("Mission Submitted");
-    if(msUi_.missionComboBox->currentIndex() == 0){
-        quadrotors[cur_uav].Arm(true);
-    }
-    else if(msUi_.missionComboBox->currentIndex() == 1){
-        quadrotors[cur_uav].Arm(false);
-    }
-    else if(msUi_.missionComboBox->currentIndex() == 2){
-        quadrotors[cur_uav].SetMode("AUTO.LAND");
-    }
-    else if(msUi_.missionComboBox->currentIndex() == 3){
-        if(msUi_.playsComboBox->currentIndex() == 0){
-            ROS_INFO_STREAM("SCAN ACCESS POINTS");
+void SimpleGCS::ChangeFlightMode(){
+	if(mpUi_.flightModeComboBox->currentIndex() == 0){
+		 ROS_INFO_STREAM("Quadrotor Stablized");
+		 quadrotors[cur_uav].SetMode("STABILIZED");
         }
-        else if(msUi_.playsComboBox->currentIndex() == 1){
-            quadrotors[cur_uav].EnableOffboard();
-            quadrotors[cur_uav].ScoutBuilding(0,0,1.5);
-            ROS_INFO_STREAM("SCOUT BUILDING");
+        else if(mpUi_.flightModeComboBox->currentIndex() == 1){
+		ROS_INFO_STREAM("Quadrotor RTL");
+		quadrotors[cur_uav].SetMode("AUTO.RTL");
         }
-    }
-    else if(msUi_.missionComboBox->currentIndex() == 4){
-        quadrotors[cur_uav].SetMode("AUTO.LOITER");
-    }
-    else if(msUi_.missionComboBox->currentIndex() == 5){
-        quadrotors[cur_uav].SetMode("AUTO.RTL");
-    }
-
-    missionSelectWidget_->close();
-    missionConfirmWidget_->close();
+        else if(mpUi_.flightModeComboBox->currentIndex() == 2){
+		ROS_INFO_STREAM("Quadrotor Loiter");
+		quadrotors[cur_uav].SetMode("AUTO.LOITER");
+	}
+	else if(mpUi_.flightModeComboBox->currentIndex() == 3){
+		ROS_INFO_STREAM("Quadrotor Land");
+		quadrotors[cur_uav].SetMode("AUTO.LAND");
+	}
+	else if(mpUi_.flightModeComboBox->currentIndex() == 4){
+		ROS_INFO_STREAM("Quadrotor alt hold");
+		quadrotors[cur_uav].SetMode("ALTCTL");
+	}
+	else if(mpUi_.flightModeComboBox->currentIndex() == 5){
+		
+	}
+	else if(mpUi_.flightModeComboBox->currentIndex() == 6){
+		
+	}
 }
 
-void SimpleGCS::MissionConfirm(){
-
-    missionConfirmWidget_->show();
+void SimpleGCS::OpenAccessPointsMenu(){
+        apmUi_.AccessPointMenuLayout->addWidget(apsQWidget_);
+	apmQWidget_->show();  
 }
 
-void SimpleGCS::MissionConfirmCancel(){
-    missionConfirmWidget_->close();
-    missionSelectWidget_->close();
+void SimpleGCS::QuadSelect(int quadNumber){
+	cur_uav = quadNumber;
 }
+
+void SimpleGCS::ArmSelectedQuad(){
+	quadrotors[cur_uav].Arm(true);
+}
+
+void SimpleGCS::DisarmSelectedQuad(){
+	quadrotors[cur_uav].Arm(false);
+}
+
 
 
 void SimpleGCS::shutdownPlugin()
