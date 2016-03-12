@@ -33,3 +33,7 @@ select {
   display: inline;
 
 }
+
+input {
+    background-color: rgb(159, 171, 198);
+}
