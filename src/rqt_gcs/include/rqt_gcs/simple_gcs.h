@@ -5,6 +5,13 @@
 #include <rqt_gui_cpp/plugin.h>
 #include <rqt_gcs/simple_control.h>
 
+#include <pluginlib/class_list_macros.h>
+#include <iomanip>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
+#include <vector>
+
 #include <image_transport/image_transport.h>
 #include "opencv2/highgui.hpp"
 #include <cv_bridge/cv_bridge.h>
@@ -20,15 +27,19 @@
 #include <ui_WidgetMain.h>
 #include <ui_PFDWidget_custom.h>
 #include <ui_ImageView.h>
+#include <ui_MissionConfirm.h>
+#include <ui_AccessPointsMenu.h>
+#include <ui_AccessPointStats.h>
 
 #include <QWidget>
 #include <QLabel>
 #include <QString>
+#include <QStringList>
 #include <QTimer>
 #include <QMainWindow>
 #include <QSignalMapper>
 
-#define NUM_UAV 2 //Total number of UAV's in the system
+#define NUM_UAV 5 //Total number of UAV's in the system
 
 namespace rqt_gcs{
 
@@ -50,55 +61,53 @@ namespace rqt_gcs{
     virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings);
 
   protected slots:
-    virtual void Calculate();
     virtual void TimedUpdate();
-    virtual void MissionChange();
-    virtual void MissionSelect(const int);
-    virtual void MissionSubmit();
+    virtual void ExecutePlay();
+    virtual void CancelPlay();
+    virtual void ScoutBuilding();
+    virtual void StopQuad();
+    virtual void ChangeFlightMode();
+    virtual void OpenAccessPointsMenu();
+
     virtual void QuadSelect(int);
+    virtual void ArmSelectedQuad();
+    virtual void DisarmSelectedQuad();
 
   private:
     void UpdatePFD();
-
-    SimpleControl quadrotors[NUM_UAV] =  {SimpleControl{1}, SimpleControl{2}};
-
+    int cur_uav = 0;
+    SimpleControl quadrotors[NUM_UAV] = {};
     cv::Mat conversion_mat_;
     image_transport::Subscriber sub_stereo = it_stereo.subscribe("stereo_cam/left/image_raw", 1, &SimpleGCS::ImageCallback, this);
 
     Ui::SimpleGCSWidget ui_;
-    Ui::QuadStatsWidget quadUi1_;
-    Ui::MissionCancelWidget mcUi_;
-    Ui::MissionProgressWidget mpUi1_;
-    Ui::MissionProgressWidget mpUi2_;
-    Ui::MissionSelectWidget msUi_;
+    Ui::MissionProgressWidget mpUi_;
     Ui::UavQuestionWidget uqUi_;
-    Ui::UavStatWidget usUi1_;
+    Ui::UavStatWidget usUi_;
     Ui::ImageViewWidget ivUi_;
     Ui::PFDWidget pfd_ui;
     Ui::centralWidget central_ui_;
-    Ui::UAVConditionWidget  condUi1_;
-    Ui::UAVConditionWidget  condUi2_;
+    Ui::UAVConditionWidget uavCondWidgetArr[NUM_UAV];
+    Ui::AccessPointsMenuWidget apmUi_;
+    Ui::AccessPointStatsWidget apsUi_;
 
     QWidget* widget_;
-    QWidget* missionCancelWidget1_;
-    QWidget* missionSelectWidget1_;
-    QWidget* missionProgressWidget1_;
-    QWidget* missionProgressWidget2_;
-    QWidget* UavQuestionWidget1_;
-    QWidget* UavStatWidget1_;
-    QWidget* ImageViewWidget_;
-    QWidget* UavConditionWidget1_;
-    QWidget* UavConditionWidget2_;
+    QWidget* missionProgressWidget_;
+    QWidget* uavQuestionWidget_;
+    QWidget* uavStatWidget_;
+    QWidget* imageViewWidget_;
+    QWidget* uavListWidgetArr[NUM_UAV];
     QWidget* PFDQWidget;
+    QWidget* apmQWidget_;
+    QWidget* apsQWidget_;
+ 
 
     QLabel* label;
-    QTimer* updateTimer;
-
-    int cur_uav = 0;
+    QTimer* update_timer;
 
     QString temp_data;
-    QString quadId;
-    QSignalMapper* signalMapper;
+    QString quad_id;
+    QSignalMapper* signal_mapper;
 
   };
 } // namespace

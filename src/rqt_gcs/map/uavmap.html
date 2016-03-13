@@ -6,11 +6,14 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   <script type="text/javascript" src="http://cdn.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
   <script type="text/javascript" src="http://cdn.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+  <script type="text/javascript" src="uav.js"></script>
   <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+  
 
 
 
   <script>
+<<<<<<< HEAD
   var longitude = 2;
   var latitude  = 2;
   var num =1;
@@ -204,27 +207,28 @@ function update() {
       break;
     }
   }
+=======
+>>>>>>> 656a8f4d13e8a991e59ec5abd27f23b0c8c1974f
 
 
   </script>
 </head>
 <body>
-  Location(coordinates):
+
   <span id="outmessage"></span>
 
 
   <center>
 
     <form id = "radB" name="rform" action="" style="display: inline; ">
-      <input type="radio" name="uav" value="free"> free-roam
-
+      <input type="radio" name="uav" value="free"> <span style="font-size: 1.2em; color: rgb(300, 0, 0);">free-roam </span>
     </form>
 
 
   </center>
 
 
-  <h2 id ="uavName" style="text-align: center;"> </h2>
+  <h2 id ="uavName" style="text-align: center;"></h2>
 
   <div id="mapholder" style = "margin-top: 10px;"></div>
 

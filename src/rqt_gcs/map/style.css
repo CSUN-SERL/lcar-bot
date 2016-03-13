@@ -7,3 +7,33 @@ color: rgb(236, 236, 236);
 #mapholder {
   border-radius: 5px;
 }
+
+select {
+  border-radius: 5px;
+  width: 100px;
+  height: 40px;
+  background-color: rgb(159, 171, 198);
+  color: rgb(161, 0, 0);
+  font-weight: bold;
+}
+
+
+
+.startB {
+  width: 400px;
+  height: 40px;
+  border-radius: 5px;
+  display: inline;
+  margin: 5px;
+
+}
+
+.controlsI {
+  margin: auto;
+  display: inline;
+
+}
+
+input {
+    background-color: rgb(159, 171, 198);
+}

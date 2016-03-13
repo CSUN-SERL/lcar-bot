@@ -3,7 +3,6 @@
 // //#include <sstream>
 //
 void SetLabel(cv::Mat& im, cv::Rect r, const std::string label);
-void NegativeMiningSetup();
 void NegativeMining(Mat greyimg);
 void CategorizeObjects();
 void HogObjectDetection(Ptr<SVM> svm);
@@ -38,6 +37,7 @@ int svm_kernel;
 // //Globals mats used for training
 // //SVM object that wold holds weights
 Ptr<SVM> svm;
+<<<<<<< HEAD
 // //List of labels to be used for SVM training.
 Mat* labels;
 // //List of features extracted from training images, meant to be used with
@@ -120,6 +120,311 @@ Receive and prepare images to be used for image processing
     catch (cv_bridge::Exception& e)
     {
       ROS_ERROR("Error in image subscriber: %s", e.what());
+=======
+//List of labels to be used for SVM training.
+Mat labels;
+//List of features extracted from training images, meant to be used with
+//labels Mat.
+vector<Mat> trainingdata;
+//Use to declare image size and Hog winSize.
+const Size & img_size = Size(128, 256);
+
+//Copys of current image
+//Current image being processed
+Mat src;
+//Another copy of the image being processed
+Mat display;
+
+//Global queues used to track img names and labels for testing
+//A queue of image names
+queue<string> proc_img;
+//A queue of the correct label of an image, to be used with proc_image
+queue<int> img_label;
+
+//Parameter used to determine which form of testing is being done.
+//(0) Training
+//(1) Classification testing
+//(2) Negative mining
+//(3) Static testing
+int testing = 0;
+
+//N is label tracker, size_ is for total number of images read
+int N, size_;
+
+//Variables to be used in the Classification testing process
+float door_counter, neg_counter, window_counter;
+//Variables to be used in Static testing process.
+float static_correct, static_total;
+
+//what the fuck are these
+int number = 0;
+int label_ = 0;
+int neg_count = 2315;
+int object = -1;
+
+//Strings that are resued
+//Retrieve the desktop user.
+string user = getenv("USER");
+//Stores the kernel type of the svm.
+string svm_type;
+//Stores the extraction type of the svm.
+string extraction_type;
+
+//May later be used for testing purposes
+float best_correct;
+string best_svm;
+
+
+int iteration; //number corresponds to svm
+int iteration_2; //number correspons to extraction type
+
+int main(int argc, char * argv[]) {
+    Run();
+    ResetGlobals();
+    return 0;
+}
+
+MachineLearning::MachineLearning(void) {//Class constructor
+
+}
+
+MachineLearning::~MachineLearning(void) {//Class destructor
+
+}
+
+//Menu that allows for quick testing
+void Run() {
+    int user_input = 0;
+    do {
+        ResetGlobals();
+        cout << "What are you planning on doing?\n";
+        cout << "(1)Create a SVM\n(2)Run negative mining\n(3)Run classification testing\n(4)Run static testing\n(5)Run object detection\n(6)Exit\nInput: ";
+        cin >> user_input;
+        switch (user_input) {
+            case 1:
+                /*
+                 *This begins the process used to generate a support vector machine
+                 * that will be used in object detection.
+                 */
+                CreateSVM();
+                break;
+            case 2: NegativeMiningSetup();
+                break;
+            case 3: ClassificationTestingSetup();
+                break;
+            case 4: StaticHogTestSetup();cout << static_correct << "/" << static_total << " = " << (static_correct/static_total) * 100 << "%\n";
+                break;
+            case 5: DetectObjects();
+                break;
+            case 6: cout << "Goodbye\n";
+                break;
+	    default:
+                break;
+        }
+    } while (user_input != 6);
+}
+
+//Retrieve the parameters used to train an svm, optimize to allow multiple svms to be made at once
+void CreateSVM() {
+    //Erase all data currently stored in global variables
+    ResetGlobals();
+    testing = 0;
+    MachineLearning ml;
+    int user_input;
+    /*Set up the parameters used in SVM creation*/
+    cout << "What do you want to call the SVM?";
+    cin >> svm_name;
+    cout << "What type of kernel do you want to use when training your SVM\n";
+    cout << "(1)Linear?\n(2)RBF?\n(3)CHI?\n(4)Poly?\n(5)Sigmoid?\n";
+    cout << "Kernel type ";
+    cin >> user_input;
+    if (user_input < 1 || user_input > 5){
+        cout << "Invalid input\n";
+        CreateSVM();
+    }
+    svm_kernel = user_input;
+
+    cout << "What type of feature extraction do you want to use?\n";
+    cout << "(1)HOG?\n(2)ORB?\n(3)Restart\n";
+    user_input = 0;
+    cout << "Feature extraction: ";
+    cin >> user_input;
+    if (user_input < 1 || user_input > 3)
+        cout << "Invalid input\n";
+    if (user_input==3)
+	return;
+
+    feature_extraction = user_input;
+
+    cout << "Will begin training your SVM\n";
+    /*After SVM parameters have been set begin training the SVM*/
+    ml.TrainSvm();
+}
+
+//Create and save a svm based on the paremeters entered by the user
+void MachineLearning::TrainSvm() {
+    MachineLearning ml;
+    //ResetGlobals();
+    string IMAGES_DIR = "/home/" + user + "/Pictures/Training";
+    /*At the moment Door objects are 0 and Other objects are 1. So N starts at
+     * 1 and then decrements
+     */
+    N = 1;
+    //Setting up the training data
+    ml.TraverseDirectory(IMAGES_DIR);
+    labels.convertTo(labels, CV_32SC1);
+    Mat train_data;
+    svm = SVM::create();;
+    ConvertToMl(trainingdata, train_data);
+    trainingdata.clear();
+    //Set up SVM's parameters
+    ml.SetKernal(svm, svm_kernel);
+    Ptr<TrainData> td = TrainData::create(train_data, ROW_SAMPLE, labels);
+    cout << "Beginning Training Process\n";
+    cout << "Training a SVM with a " << svm_type << " kernel using " << extraction_type << "\n";
+    //Train the SVM using a built in auto trainer
+    svm->trainAuto(td, 10);
+    cout << svm_name << "\n";
+    string svm_file = svm_name + ".xml";
+    svm->save(svm_file);
+    ResetGlobals();
+}
+
+//Method that sets parameters for negative mining
+void NegativeMiningSetup() {
+    MachineLearning ml;
+    string IMAGES_DIR = "/home/" + user + "/Pictures/Training/other";
+    testing = 2;
+    svm_name = "";
+    cout << "Run negative mining on which SVM?";
+    cin >> svm_name;
+    ml.TraverseDirectory(IMAGES_DIR);
+    ml.TrainSvm();
+    cout << neg_count;
+}
+
+//Perform negtative mining to reduce false positives
+void NegativeMining(Mat greyimg) {
+    MachineLearning ml;
+    vector< float > hog_detector;
+    vector< Rect > locations;
+    const string modelLibPath = svm_name;
+    svm = StatModel::load<SVM>(modelLibPath);
+    ml.GetSvmDetector(svm, hog_detector);
+    Mat img;
+    HOGDescriptor hog;
+    hog.winSize = img_size;
+    hog.gammaCorrection = true;
+    hog.setSVMDetector(hog_detector);
+    src = greyimg;
+    resize(src, src, Size(256, 512));
+    resize(display, display, Size(256, 512));
+    namedWindow("Step 2 draw Rectangle", WINDOW_AUTOSIZE);
+    imshow("Step 2 draw Rectangle", display);
+    waitKey(100);
+    imwrite("Step2.JPG", display);
+    locations.clear();
+    hog.detectMultiScale(src, locations, true);
+    for (int i = 0; i < locations.size(); i++) {
+        Rect windows(locations.at(i).x, locations.at(i).y, locations.at(i).width, locations.at(i).height);
+        img = src(windows).clone();
+        Mat Roi = src(windows);
+        Mat extract;
+        resize(Roi, extract, img_size);
+        Mat res;
+        Mat train_data;
+        ml.HogFeatureExtraction(extract, -1);
+        ml.ConvertToMl(trainingdata, train_data);
+        trainingdata.clear();
+        svm->predict(train_data, res, 4);
+        for (int j = 0; j < res.rows; j++) {
+            cout << res.at<float>(j, 0) << " " << "res " << res.rows << " count " << neg_count << "\n";
+            //Show ROI
+            if (res.at<float>(j, 0) == 0) {
+                namedWindow("Step 4 Draw selected Roi", WINDOW_AUTOSIZE);
+                imshow("Step 4 Draw selected Roi", Roi);
+                waitKey(100);
+                imwrite("Step4.JPG", Roi);
+                int neg = neg_count;
+                stringstream ss;
+                ss << neg;
+                string str = ss.str();
+                string destination = "/home/thomas/Pictures/Training/other/" + str + ".JPG";
+                imwrite(destination, Roi);
+                neg_count++;
+            }
+        }
+        //ResetGlobals();
+    }
+    Mat DrawResultHere = display.clone();
+    // Show  rectangle
+    namedWindow("Step 2 draw Rectangle", WINDOW_AUTOSIZE);
+    imshow("Step 2 draw Rectangle", DrawResultHere);
+    waitKey(100);
+    imwrite("Step2.JPG", DrawResultHere);
+}
+
+//Prep svm for classification testing
+void ClassificationTestingSetup() {
+    ResetGlobals();
+    MachineLearning ml;
+    svm_name = "";
+    cout << "What svm file do you wish to test?\nInput: ";
+    cin >> svm_name;
+    cout << "What type of feature extraction do you want to use?\n";
+    cout << "(1)HOG?\n(2)ORB?\n";
+    int user_input;
+    cout << "Feature extraction: ";
+    cin >> user_input;
+    if (user_input < 1 || user_input > 3)
+        cout << "Invalid input\n";
+    else if (user_input > 0 && user_input < 3)
+        feature_extraction = user_input;
+
+    ml.ClassificationTesting(svm_name);
+    ResetGlobals();
+}
+
+//The goal of this method is detect and classify objects in real time
+void DetectObjects() {
+    ResetGlobals();
+    cout << "What SVM do you want to use?\nInput: ";
+    cin >> svm_name;
+    const string modelLibPath = svm_name;
+    Ptr<SVM> svm = StatModel::load<SVM>(modelLibPath);
+    thread thread_1(HogObjectDetection, svm);
+    thread thread_2(CategorizeObjects);
+
+      if(thread_1.joinable()){
+        
+        cout << "thread 1 detached";
+        thread_1.detach();
+    }
+    if(thread_2.joinable()){
+        cout << "thread 2";
+        thread_2.join();
+    }
+}
+
+//Convert a vector mat into a single mat
+void MachineLearning::ConvertToMl(const std::vector< cv::Mat > & train_samples, cv::Mat& trainData) {
+    //--Convert data
+    const int rows = (int) train_samples.size();
+    const int cols = (int) std::max(train_samples[0].cols, train_samples[0].rows);
+    cv::Mat tmp(1, cols, CV_32FC1); //< used for transposition if needed
+    trainData = cv::Mat(rows, cols, CV_32FC1);
+    vector< Mat >::const_iterator itr = train_samples.begin();
+    vector< Mat >::const_iterator end = train_samples.end();
+    for (int i = 0; itr != end; ++itr, ++i) {
+        CV_Assert(itr->cols == 1 ||
+                itr->rows == 1);
+        if (itr->cols == 1) {
+            transpose(*(itr), tmp);
+            tmp.copyTo(trainData.row(i));
+        } else if (itr->rows == 1) {
+            itr->copyTo(trainData.row(i));
+        }
+>>>>>>> 656a8f4d13e8a991e59ec5abd27f23b0c8c1974f
     }
  }
 
@@ -615,6 +920,7 @@ Feature extraction based on ORB
  }
 
 //Perform real time HOG object detection
+<<<<<<< HEAD
  void HogObjectDetection(Ptr<SVM> current_svm) {
    cout << "in thread\n";
      running = true;
@@ -647,6 +953,69 @@ Feature extraction based on ORB
           if (!camera_image.data){
             cout << "no image info\n";
               break;
+=======
+void HogObjectDetection(Ptr<SVM> current_svm) {
+    running = true;
+    MachineLearning ml;
+    VideoCapture cap;
+    vector< float > hog_detector;
+    Scalar reference(0, 255, 0);
+    Scalar window(255, 0, 0);
+    vector< Rect > objects;
+    ml.GetSvmDetector(current_svm, hog_detector);
+    cap.set(CV_CAP_PROP_FRAME_WIDTH, 1000);
+    cap.set(CV_CAP_PROP_FRAME_HEIGHT, 1000);
+    Mat img, draw;
+    HOGDescriptor hog; //(Size( 90, 160 ), Size(16, 16), Size(8, 8), Size(8, 8), 9);
+    hog.winSize = img_size;
+    //HOGDescriptor people;
+    //hog.setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());
+    hog.setSVMDetector(hog_detector);
+
+    //int value = 0;
+    namedWindow("video capture", CV_WINDOW_AUTOSIZE);
+    cap.open(0);
+    while (true) {
+        cap >> img;
+        if (!img.data)
+            break;
+        src = img;
+        objects.clear();
+        hog.detectMultiScale(img, objects, true);
+        //people.detectMultiScale(img, locations);
+        ml.DrawLocations(img, objects, reference, "door");
+        imshow("video capture", img);
+        if (waitKey(10) >= 0){ //any key pressed
+            std::terminate(); //terminates all running threads
+        }
+    }
+}
+
+//While objects are being detected catergorize them and store the ones that are desired object
+void CategorizeObjects() {
+    const string modelLibPath = svm_name;
+    svm = StatModel::load<SVM>(modelLibPath);
+    MachineLearning ml;
+    while (true) {
+        if (!detected_objects.empty()) {
+            Mat object, train_data, res;
+            resize(detected_objects.front(), object, img_size);
+            detected_objects.pop();
+            ml.HogFeatureExtraction(object, -1);
+            ml.ConvertToMl(trainingdata, train_data);
+            trainingdata.clear();
+
+            //Roi.convertTo(Roi, CV_32FC1);
+            svm->predict(train_data, res, 4);
+            //cout << res.at<float>(i,0) << " " << "locations" << locations.size() << "\n";
+            for (int j = 0; j < res.rows; j++) {
+                cout << res.at<float>(j, 0) << " " << "res " << res.rows << "\n";
+                //Show ROI
+                //                if (res.at<float>(j, 0) == 1) {
+                //                    categorized_labels.push(1);
+                //                    categorized_objects.push(object);
+                //                }
+>>>>>>> 656a8f4d13e8a991e59ec5abd27f23b0c8c1974f
             }
          src = camera_image;
          objects.clear();

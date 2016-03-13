@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>AccessPointStatsWidget</class>
+ <widget class="QWidget" name="AccessPointStatsWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>525</width>
+    <height>208</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Access Point</string>
+  </property>
+  <property name="autoFillBackground">
+   <bool>false</bool>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(39, 47, 66);
+color: rgb(236, 236, 236);
+border-radius: 5px;</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0" rowspan="5">
+    <widget class="QGraphicsView" name="graphicsView"/>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="bulidingNameLine">
+     <property name="text">
+      <string>Building Name</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLabel" name="gpsCoordinateLabel">
+     <property name="text">
+      <string>GPS Coordinates:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <widget class="QLineEdit" name="gpsCoordinatesLineEdit"/>
+   </item>
+   <item row="2" column="1">
+    <widget class="QLabel" name="compassHeadingLabel">
+     <property name="text">
+      <string>Compass Heading:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="2">
+    <widget class="QLineEdit" name="compassHeadingLineEdit"/>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLabel" name="apitudeLabel">
+     <property name="text">
+      <string>Aptitude:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2">
+    <widget class="QLineEdit" name="aptitudeLineEdit"/>
+   </item>
+   <item row="4" column="1">
+    <widget class="QLabel" name="captureTimeLabel">
+     <property name="text">
+      <string>Capture Time:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="2">
+    <widget class="QLineEdit" name="captureTimeLineEdit"/>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

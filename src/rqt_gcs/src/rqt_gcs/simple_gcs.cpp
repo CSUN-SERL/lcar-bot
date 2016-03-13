@@ -1,18 +1,12 @@
 #include <rqt_gcs/simple_gcs.h>
-#include <pluginlib/class_list_macros.h>
-#include <QStringList>
-#include <iomanip>
-#include <stdio.h>
-#include <stdlib.h>
+
 namespace rqt_gcs {
 
 SimpleGCS::SimpleGCS()
   : rqt_gui_cpp::Plugin()
   , widget_(0)
 {
-
-  // Constructor is called first before initPlugin function, needless to say.
-  // give QObjects reasonable names
+  //Constructor is called first before initPlugin function
   setObjectName("LCAR Bot GCS");
 }
 
@@ -21,197 +15,220 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
   // access standalone command line arguments
   QStringList argv = context.argv();
 
-  // create QWidget
-  widget_ = new QWidget();
+  widget_                = new QWidget();
+  missionProgressWidget_ = new QWidget();
+  uavQuestionWidget_     = new QWidget();
+  uavStatWidget_         = new QWidget();
+  imageViewWidget_       = new QWidget();
+  PFDQWidget             = new QWidget();
+  apmQWidget_            = new QWidget();
+  apsQWidget_            = new QWidget();
 
-  missionCancelWidget1_   = new QWidget();
-  missionSelectWidget1_   = new QWidget();
-  missionProgressWidget1_ = new QWidget();
-  UavQuestionWidget1_     = new QWidget();
-  UavStatWidget1_         = new QWidget();
-  ImageViewWidget_        = new QWidget();
-  PFDQWidget              = new QWidget();
+//For each of the Uav condition widgets
+//we set up the ui of the uavcondition widget(name, selection num)
+ for(int i = 0; i < NUM_UAV; i++){
+    uavListWidgetArr[i] = new QWidget();
+    uavCondWidgetArr[i].setupUi(uavListWidgetArr[i]);
+    uavCondWidgetArr[i].VehicleSelectButton->setText(std::to_string(i+1).c_str());
+    uavCondWidgetArr[i].VehicleNameLine->setText(std::to_string(i).append("UAV ",0).c_str());
+ }
 
-  UavConditionWidget1_    = new QWidget();
-  UavConditionWidget2_    = new QWidget();
-
+  //Setup the UI objects with the widgets
   central_ui_.setupUi(widget_);
-  mcUi_.setupUi(missionCancelWidget1_);
-  mpUi1_.setupUi(missionProgressWidget1_);
-  msUi_.setupUi(missionSelectWidget1_);
-  uqUi_.setupUi(UavQuestionWidget1_);
-  usUi1_.setupUi(UavStatWidget1_);
-  ivUi_.setupUi(ImageViewWidget_);
+  mpUi_.setupUi(missionProgressWidget_);
+  uqUi_.setupUi(uavQuestionWidget_);
+  usUi_.setupUi(uavStatWidget_);
+  ivUi_.setupUi(imageViewWidget_);
   pfd_ui.setupUi(PFDQWidget);
-
-  condUi1_.setupUi(UavConditionWidget1_);
-  condUi1_.VehicleSelectButton->setText("1");
-  condUi1_.VehicleNameLine->setText("Uav 1");
-
-  condUi2_.setupUi(UavConditionWidget2_);
-  condUi2_.VehicleSelectButton->setText("2");
-  condUi2_.VehicleNameLine->setText("Uav 2");
-
-  // add widget to the user interface
+  apmUi_.setupUi(apmQWidget_);
+  apsUi_.setupUi(apsQWidget_);
+  
+  //Add widgets to the Main UI
   context.addWidget(widget_);
-
-  central_ui_.MissionLayout->addWidget(missionProgressWidget1_);
-  central_ui_.OverviewLayout->addWidget(UavStatWidget1_);
+  central_ui_.MissionLayout->addWidget(missionProgressWidget_);
+  central_ui_.OverviewLayout->addWidget(uavStatWidget_);
   central_ui_.PFDLayout->addWidget(PFDQWidget);
-  central_ui_.CameraLayout->addWidget(ImageViewWidget_);
-  central_ui_.UAVListLayout->addWidget(UavConditionWidget1_);
-  central_ui_.UAVListLayout->addWidget(UavConditionWidget2_);
-
-
-   //setup mission progress widgets
-   missionSelectWidget1_->setWindowTitle("Mission Selection");
-   UavStatWidget1_->setWindowTitle("Flight State");
-   missionProgressWidget1_->setWindowTitle("Mission Control");
-   connect(mpUi1_.changeMissionButton,SIGNAL(clicked()),this, SLOT(MissionChange()));
-
-   //setup Mission select widgets
-   connect(msUi_.submitMission,SIGNAL(clicked()),this, SLOT(MissionSubmit()));
-   connect(msUi_.missionComboBox,SIGNAL(activated(int)),this, SLOT(MissionSelect(int)));
-
-   //set up uav lists select functions
-   // index 0 refers to quadrotor 1
-   // index 1 refers to quadrotor 2
-    signalMapper = new QSignalMapper(this);
-    signalMapper->setMapping(condUi1_.VehicleSelectButton, 0);
-    signalMapper->setMapping(condUi2_.VehicleSelectButton, 1);
-
-    connect(condUi1_.VehicleSelectButton,SIGNAL(clicked()),signalMapper, SLOT(map()));
-    connect(condUi2_.VehicleSelectButton,SIGNAL(clicked()),signalMapper, SLOT(map()));
-
-    connect(signalMapper, SIGNAL(mapped(int)),this, SLOT(QuadSelect(int)));
-
-
+  central_ui_.CameraLayout->addWidget(imageViewWidget_);
+  for(int i = 0; i < NUM_UAV; i++){
+      central_ui_.UAVListLayout->addWidget(uavListWidgetArr[i]);
+  }
    
+   //Setup mission progress widgets
+   uavStatWidget_->setWindowTitle("Flight State");
+   missionProgressWidget_->setWindowTitle("Mission Control");
+
+   //setup button logic for the widgets
+   
+   connect(mpUi_.executePlayButton,SIGNAL(clicked()),this, SLOT(ExecutePlay()));
+   connect(mpUi_.cancelPlayButton,SIGNAL(clicked()),this, SLOT(CancelPlay()));
+   connect(mpUi_.scoutBuildingButton, SIGNAL(clicked()),this, SLOT(ScoutBuilding()));
+   connect(mpUi_.stopMissionButton,SIGNAL(clicked()),this, SLOT(StopQuad()));
+   connect(mpUi_.changeFlightModeButton,SIGNAL(clicked()),this, SLOT(ChangeFlightMode()));
+   connect(mpUi_.viewAccessPointsButton,SIGNAL(clicked()),this, SLOT(OpenAccessPointsMenu()));
+
+   connect(mpUi_.armButton, SIGNAL(clicked()),this,SLOT(ArmSelectedQuad()));
+   connect(mpUi_.disarmButton, SIGNAL(clicked()),this,SLOT(DisarmSelectedQuad()));
 
 
+   //Setup UAV lists select functions
+   signal_mapper = new QSignalMapper(this);
+   for(int i = 0; i < NUM_UAV; i++){
+    signal_mapper->setMapping(uavCondWidgetArr[i].VehicleSelectButton, i);
+    connect(uavCondWidgetArr[i].VehicleSelectButton,SIGNAL(clicked()),signal_mapper, SLOT(map()));
+   }
+   connect(signal_mapper, SIGNAL(mapped(int)),this, SLOT(QuadSelect(int)));
 
-   //set up update timer
-   updateTimer = new QTimer(this);
-   connect(updateTimer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
-   updateTimer->start(100);
+   //Setup update timer
+   update_timer = new QTimer(this);
+   connect(update_timer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
+   update_timer->start(100);
 }
 
-void SimpleGCS::Calculate(){
+//Timed update of for the GCS
+void SimpleGCS::TimedUpdate(){
 
+  quad_id.setNum(cur_uav+1);
+  SimpleControl quad = quadrotors[cur_uav];
+
+  temp_data = quad.GetState().mode.c_str();
+  usUi_.flightModeDisplay->setText(temp_data);
+
+  temp_data.setNum(quad.GetFlightState().yaw,'f',2);
+  usUi_.yawDisplay->setText(temp_data);
+
+  temp_data.setNum(quad.GetFlightState().roll,'f',2);
+  usUi_.rollDisplay->setText(temp_data);
+
+  temp_data.setNum(quad.GetFlightState().pitch,'f',2);
+  usUi_.pitchDisplay->setText(temp_data);
+
+  temp_data.setNum(quad.GetFlightState().altitude,'f',2);
+  usUi_.altitudeDisplay->setText(temp_data);
+
+  temp_data.setNum(quad.GetFlightState().vertical_speed,'f',2);
+  usUi_.verticalSpaceDisplay->setText(temp_data);
+
+  temp_data.setNum(quad.GetFlightState().ground_speed,'f',2);
+  usUi_.horizontalSpaceDisplay->setText(temp_data);
+
+  temp_data.setNum(quad.GetFlightState().heading,'f',2);
+  usUi_.headingDisplay->setText(temp_data);
+
+  temp_data.setNum(quad.GetDistanceToWP());
+  usUi_.waypointDisplay->setText(temp_data);
+
+  temp_data.setNum(quad.GetBatteryStatus().remaining*100);
+  usUi_.batteryProgressBar->setValue(temp_data.toInt());
+
+  temp_data = "UAV ";
+  temp_data += quad_id;
+
+  mpUi_.uavNameEdit->setText(temp_data);
+
+  mpUi_.missionProgressBar->setValue(quad.GetMissionProgress()*100);
+
+  this->UpdatePFD();
+
+  //Update all UAV's in the system
+  for(int index = 0; index < NUM_UAV; index++){
+    quadrotors[index].Run();
+  }
+
+  //Update Uav List widgets
+  for(int i = 0; i < NUM_UAV; i++){
+   temp_data.setNum(quadrotors[i].GetBatteryStatus().remaining*100);
+   uavCondWidgetArr[i].VehicleBatteryLine->setText(temp_data);
+  }
+
+}
+
+
+void SimpleGCS::ExecutePlay(){
+	if(mpUi_.playComboBox->currentIndex() == 0){
+		ROS_INFO_STREAM("Play 1 initiated");
+        }
+        else if(mpUi_.playComboBox->currentIndex() == 1){
+		ROS_INFO_STREAM("Play 2 initiated");
+        }
+        else if(mpUi_.playComboBox->currentIndex() == 2){
+		ROS_INFO_STREAM("Play 3 initiated");
+	}
+}
+
+
+void SimpleGCS::CancelPlay(){
+
+}
+
+
+void SimpleGCS::ScoutBuilding(){
+	if(mpUi_.buildingsComboBox->currentIndex() == 0){
+		ROS_INFO_STREAM("Scouting Building 1");
+        }
+        else if(mpUi_.buildingsComboBox->currentIndex() == 1){
+		ROS_INFO_STREAM("Scouting Building 2");
+        }
+        else if(mpUi_.buildingsComboBox->currentIndex() == 2){
+		ROS_INFO_STREAM("Scouting Building 3");
+	}
+}
+
+void SimpleGCS::StopQuad(){
+	quadrotors[cur_uav].SetMode("AUTO.RTL");
+}
+
+void SimpleGCS::ChangeFlightMode(){
+	if(mpUi_.flightModeComboBox->currentIndex() == 0){
+		 ROS_INFO_STREAM("Quadrotor Stablized");
+		 quadrotors[cur_uav].SetMode("STABILIZED");
+        }
+        else if(mpUi_.flightModeComboBox->currentIndex() == 1){
+		ROS_INFO_STREAM("Quadrotor RTL");
+		quadrotors[cur_uav].SetMode("AUTO.RTL");
+        }
+        else if(mpUi_.flightModeComboBox->currentIndex() == 2){
+		ROS_INFO_STREAM("Quadrotor Loiter");
+		quadrotors[cur_uav].SetMode("AUTO.LOITER");
+	}
+	else if(mpUi_.flightModeComboBox->currentIndex() == 3){
+		ROS_INFO_STREAM("Quadrotor Land");
+		quadrotors[cur_uav].SetMode("AUTO.LAND");
+	}
+	else if(mpUi_.flightModeComboBox->currentIndex() == 4){
+		ROS_INFO_STREAM("Quadrotor alt hold");
+		quadrotors[cur_uav].SetMode("ALTCTL");
+	}
+	else if(mpUi_.flightModeComboBox->currentIndex() == 5){
+		
+	}
+	else if(mpUi_.flightModeComboBox->currentIndex() == 6){
+		
+	}
+}
+
+void SimpleGCS::OpenAccessPointsMenu(){
+        apmUi_.AccessPointMenuLayout->addWidget(apsQWidget_);
+	apmQWidget_->show();  
 }
 
 void SimpleGCS::QuadSelect(int quadNumber){
 	cur_uav = quadNumber;
 }
 
-void SimpleGCS::TimedUpdate(){
-
-  quadId.setNum(cur_uav+1);
-  SimpleControl quad = quadrotors[cur_uav];
-
-  temp_data = quad.GetState().mode.c_str();
-  usUi1_.flightModeDisplay->setText(temp_data);
-
-  temp_data.setNum(quad.GetFlightState().yaw,'f',2);
-  usUi1_.yawDisplay->setText(temp_data);
-
-  temp_data.setNum(quad.GetFlightState().roll,'f',2);
-  usUi1_.rollDisplay->setText(temp_data);
-
-  temp_data.setNum(quad.GetFlightState().pitch,'f',2);
-  usUi1_.pitchDisplay->setText(temp_data);
-
-  temp_data.setNum(quad.GetFlightState().altitude,'f',2);
-  usUi1_.altitudeDisplay->setText(temp_data);
-
-  temp_data.setNum(quad.GetFlightState().vertical_speed,'f',2);
-  usUi1_.verticalSpaceDisplay->setText(temp_data);
-
-  temp_data.setNum(quad.GetFlightState().ground_speed,'f',2);
-  usUi1_.horizontalSpaceDisplay->setText(temp_data);
-
-  temp_data.setNum(quad.GetFlightState().heading,'f',2);
-  usUi1_.headingDisplay->setText(temp_data);
-
-  temp_data.setNum(quad.GetDistanceToWP());
-  usUi1_.waypointDisplay->setText(temp_data);
-
-  temp_data.setNum(quad.GetBatteryStatus().remaining*100);
-  usUi1_.batteryProgressBar->setValue(temp_data.toInt());
-
-  temp_data = "UAV ";
-  temp_data += quadId;
-
-  mpUi1_.uavNameEdit->setText(temp_data);
- 
-  mpUi1_.missionProgressBar->setValue(quad.GetMissionProgress()*100);
-
-  this->UpdatePFD();
-
-  quad.Run();
-
-  //Update Uav List widgets
-  temp_data.setNum(quadrotors[0].GetBatteryStatus().remaining*100);
-  condUi1_.VehicleBatteryLine->setText(temp_data);
-
-  temp_data.setNum(quadrotors[1].GetBatteryStatus().remaining*100);
-  condUi2_.VehicleBatteryLine->setText(temp_data);
-
-
+void SimpleGCS::ArmSelectedQuad(){
+	quadrotors[cur_uav].Arm(true);
 }
 
-void SimpleGCS::MissionChange(){
-
-    missionSelectWidget1_->show();
+void SimpleGCS::DisarmSelectedQuad(){
+	quadrotors[cur_uav].Arm(false);
 }
 
-void SimpleGCS::MissionSelect(const int i){
 
-    if(i == 3){
-     msUi_.playsComboBox->setEnabled(true);
-
-    }
-    else{
-     msUi_.playsComboBox->setEnabled(false);
-    }
-}
-
-void SimpleGCS::MissionSubmit(){
-   ROS_INFO_STREAM("Mission Submitted");
-   if(msUi_.missionComboBox->currentIndex() == 0){
-        quadrotors[cur_uav].Arm(true);
-   }
-   else if(msUi_.missionComboBox->currentIndex() == 1){
-        quadrotors[cur_uav].Arm(false);
-   }
-   else if(msUi_.missionComboBox->currentIndex() == 2){
-        ROS_INFO_STREAM("LAND");
-   }
-   else if(msUi_.missionComboBox->currentIndex() == 3){
-        ROS_INFO_STREAM("FOLLOW PLAY");
-
-         if(msUi_.playsComboBox->currentIndex() == 0){
-          ROS_INFO_STREAM("SCAN ACCESS POINTS");
-         }
-         else if(msUi_.playsComboBox->currentIndex() == 1){
-           quadrotors[cur_uav].EnableOffboard();
-  	        quadrotors[cur_uav].ScoutBuilding(-7,-9,3);
-           ROS_INFO_STREAM("SCOUT BUILDING");
-         }
-   }
-   else if(msUi_.missionComboBox->currentIndex() == 4){
-           ROS_INFO_STREAM("LOITER");
-   }
-   else if(msUi_.missionComboBox->currentIndex() == 5){
-           ROS_INFO_STREAM("RETURN HOME");
-   }
-
-    missionSelectWidget1_->close();
-}
 
 void SimpleGCS::shutdownPlugin()
 {
   // TODO unregister all publishers here
+
 }
 
 void SimpleGCS::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const
@@ -243,7 +260,6 @@ void SimpleGCS::UpdatePFD()
   pfd_ui.widgetPFD->setHeading    (quadrotors[cur_uav].GetFlightState().heading);
   pfd_ui.widgetPFD->setAirspeed   (quadrotors[cur_uav].GetFlightState().ground_speed);
   pfd_ui.widgetPFD->setAltitude   (quadrotors[cur_uav].GetFlightState().altitude);
-  //pfd_ui->widgetPFD->setPressure (quadrotors[cur_uav].GetFlightState().roll);
   pfd_ui.widgetPFD->setClimbRate  (quadrotors[cur_uav].GetFlightState().vertical_speed);
 
   pfd_ui.widgetPFD->update();

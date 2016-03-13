@@ -9,7 +9,7 @@
 	      var poly;
 	      var eol;
 	      var car = new GIcon();
-	          car.image="uav.png"
+	          car.image="images/rover.png"
 	          car.iconSize=new GSize(32,18);
 	          car.iconAnchor=new GPoint(16,9);
 	      var marker;
@@ -72,5 +72,3 @@
 	        var endpoint = document.getElementById("endpoint").value;
 	        dirn.loadFromWaypoints([startpoint,endpoint],{getPolyline:true,getSteps:true});
 	      }
-
-	  

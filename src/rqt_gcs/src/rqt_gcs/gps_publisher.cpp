@@ -11,11 +11,11 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "gps_publisher");
   ros::NodeHandle nh;
-  int num_uav = 10;
+  int num_uav = 99;
   int cur_uav = 0;
   int boolean = 0;
   float lat =0, lon = 0;
-  ros::Rate loop_rate(10*num_uav); //10Hz per topic
+  ros::Rate loop_rate(100*num_uav); //10Hz per topic
   std::string uav_ns  = "UAV";
   ros::Publisher pub_pos_global[num_uav];
   sensor_msgs::NavSatFix position[num_uav];
@@ -24,11 +24,15 @@ int main(int argc, char **argv)
     position[i].latitude  = lat;
     position[i].longitude = lon;
 
-    pub_pos_global[i] = nh.advertise<sensor_msgs::NavSatFix>(uav_ns + std::to_string(i+1) + "/mavros/global_position/global",10);
+    pub_pos_global[i] = nh.advertise<sensor_msgs::NavSatFix>(uav_ns + std::to_string(i) + "/mavros/global_position/global",10);
 
-
-    lat = rand() % 180 + (-90); //-90 to 90
-    lon = rand() % 360 + (-180); //-180 to 180
+      if( (i) % 10 == 0){
+        lat = rand() % 170 + (-85); //-90 to 90
+        lon = rand() % 355 + (-175); //-180 to 180
+      } else {
+        lat += .0001;
+        lon += .0001;
+      }
   }
 
   while(ros::ok())
