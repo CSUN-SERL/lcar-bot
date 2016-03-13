@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>605</width>
-    <height>390</height>
+    <height>469</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -104,8 +104,14 @@ background-color: rgb(159, 171, 198);
          <widget class="QPushButton" name="executePlayButton">
           <property name="minimumSize">
            <size>
-            <width>0</width>
+            <width>150</width>
             <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>150</width>
+            <height>16777215</height>
            </size>
           </property>
           <property name="cursor">
@@ -124,8 +130,14 @@ color: rgb(240, 240, 240);</string>
          <widget class="QPushButton" name="cancelPlayButton">
           <property name="minimumSize">
            <size>
-            <width>0</width>
+            <width>150</width>
             <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>150</width>
+            <height>16777215</height>
            </size>
           </property>
           <property name="cursor">
@@ -472,8 +484,14 @@ background-color: rgb(159, 171, 198);
          <widget class="QPushButton" name="scoutBuildingButton">
           <property name="minimumSize">
            <size>
-            <width>0</width>
+            <width>150</width>
             <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>150</width>
+            <height>16777215</height>
            </size>
           </property>
           <property name="cursor">
@@ -492,8 +510,14 @@ color: rgb(240, 240, 240);</string>
          <widget class="QPushButton" name="stopMissionButton">
           <property name="minimumSize">
            <size>
-            <width>0</width>
+            <width>150</width>
             <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>150</width>
+            <height>16777215</height>
            </size>
           </property>
           <property name="cursor">
@@ -657,8 +681,14 @@ background-color: rgb(159, 171, 198);
          <widget class="QPushButton" name="changeFlightModeButton">
           <property name="minimumSize">
            <size>
-            <width>0</width>
+            <width>150</width>
             <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>150</width>
+            <height>16777215</height>
            </size>
           </property>
           <property name="cursor">
@@ -677,8 +707,14 @@ color: rgb(240, 240, 240);</string>
          <widget class="QPushButton" name="viewAccessPointsButton">
           <property name="minimumSize">
            <size>
-            <width>0</width>
+            <width>150</width>
             <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>150</width>
+            <height>16777215</height>
            </size>
           </property>
           <property name="cursor">
