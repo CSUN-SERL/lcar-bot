@@ -50,6 +50,8 @@ set(rqt_gcs_HDRS
 
 set(rqt_gcs_UIS
   resources/gcs.ui
+  resources/AccessPointsMenu.ui
+  resources/AccessPointStats.ui
   resources/MissionSelect.ui
   resources/MissionCancel.ui
   resources/MissionProgress.ui

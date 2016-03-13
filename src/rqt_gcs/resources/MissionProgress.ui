@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>480</width>
-    <height>298</height>
+    <width>605</width>
+    <height>390</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,658 +21,741 @@
 color: rgb(236, 236, 236);
 border-radius: 5px;</string>
   </property>
-  <widget class="QLineEdit" name="uavNameEdit">
-   <property name="geometry">
-    <rect>
-     <x>140</x>
-     <y>80</y>
-     <width>161</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true"/>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-  </widget>
-  <widget class="QLabel" name="missionProgressLabel">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>110</y>
-     <width>121</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Mission Progress</string>
-   </property>
-  </widget>
-  <widget class="QProgressBar" name="missionProgressBar">
-   <property name="geometry">
-    <rect>
-     <x>140</x>
-     <y>110</y>
-     <width>321</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="palette">
-    <palette>
-     <active>
-      <colorrole role="WindowText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>12</red>
-         <green>12</green>
-         <blue>12</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Button">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>39</red>
-         <green>47</green>
-         <blue>66</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Text">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>12</red>
-         <green>12</green>
-         <blue>12</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="ButtonText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>12</red>
-         <green>12</green>
-         <blue>12</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Base">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>39</red>
-         <green>47</green>
-         <blue>66</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Window">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>39</red>
-         <green>47</green>
-         <blue>66</blue>
-        </color>
-       </brush>
-      </colorrole>
-     </active>
-     <inactive>
-      <colorrole role="WindowText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>12</red>
-         <green>12</green>
-         <blue>12</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Button">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>39</red>
-         <green>47</green>
-         <blue>66</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Text">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>12</red>
-         <green>12</green>
-         <blue>12</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="ButtonText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>12</red>
-         <green>12</green>
-         <blue>12</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Base">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>39</red>
-         <green>47</green>
-         <blue>66</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Window">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>39</red>
-         <green>47</green>
-         <blue>66</blue>
-        </color>
-       </brush>
-      </colorrole>
-     </inactive>
-     <disabled>
-      <colorrole role="WindowText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>12</red>
-         <green>12</green>
-         <blue>12</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Button">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>39</red>
-         <green>47</green>
-         <blue>66</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Text">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>12</red>
-         <green>12</green>
-         <blue>12</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="ButtonText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>12</red>
-         <green>12</green>
-         <blue>12</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Base">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>39</red>
-         <green>47</green>
-         <blue>66</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Window">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>39</red>
-         <green>47</green>
-         <blue>66</blue>
-        </color>
-       </brush>
-      </colorrole>
-     </disabled>
-    </palette>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">color: rgb(12, 12, 12);</string>
-   </property>
-   <property name="value">
-    <number>24</number>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="scoutBuildingButton">
-   <property name="geometry">
-    <rect>
-     <x>180</x>
-     <y>160</y>
-     <width>151</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="cursor">
-    <cursorShape>PointingHandCursor</cursorShape>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgb(64, 89, 145);
-color: rgb(240, 240, 240);</string>
-   </property>
-   <property name="text">
-    <string>Scout Building</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="stopMissionButton">
-   <property name="geometry">
-    <rect>
-     <x>338</x>
-     <y>160</y>
-     <width>131</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="cursor">
-    <cursorShape>PointingHandCursor</cursorShape>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgb(161, 20, 40);
-color: rgb(240, 240, 240);</string>
-   </property>
-   <property name="text">
-    <string>Stop Mission</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="armButton">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>266</y>
-     <width>201</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="cursor">
-    <cursorShape>PointingHandCursor</cursorShape>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgb(64, 89, 145);
-color: rgb(240, 240, 240);</string>
-   </property>
-   <property name="text">
-    <string>Arm</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="disarmButton">
-   <property name="geometry">
-    <rect>
-     <x>248</x>
-     <y>266</y>
-     <width>201</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="cursor">
-    <cursorShape>PointingHandCursor</cursorShape>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgb(161, 20, 40);
-color: rgb(240, 240, 240);</string>
-   </property>
-   <property name="text">
-    <string>Disarm</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="flightModeComboBox">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>220</y>
-     <width>151</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Flight Mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-   <property name="accessibleName">
-    <string/>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">color: rgb(161, 0, 0);
+  <layout class="QHBoxLayout" name="horizontalLayout_7">
+   <item>
+    <widget class="QWidget" name="verticalWidget" native="true">
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QLabel" name="masterControlLabel">
+        <property name="font">
+         <font>
+          <pointsize>14</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Master Control</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QComboBox" name="playComboBox">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Flight Mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="accessibleName">
+           <string/>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(161, 0, 0);
 background-color: rgb(159, 171, 198);
 </string>
-   </property>
-   <property name="editable">
-    <bool>false</bool>
-   </property>
-   <property name="currentIndex">
-    <number>0</number>
-   </property>
-   <property name="maxCount">
-    <number>2147483645</number>
-   </property>
-   <property name="sizeAdjustPolicy">
-    <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
-   </property>
-   <property name="modelColumn">
-    <number>0</number>
-   </property>
-   <item>
-    <property name="text">
-     <string>Stablilize</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string comment="Flight">Return-to-Launch</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string comment="Flight">Loiter</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Land</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Travel</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Alt Hold</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Auto</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Acro</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Sport</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Drift</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Guided</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Circle</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>PosHold</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Brake</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Follow Me</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Simple</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Super Simple</string>
-    </property>
-   </item>
-  </widget>
-  <widget class="QPushButton" name="changeFlightModeButton">
-   <property name="geometry">
-    <rect>
-     <x>180</x>
-     <y>220</y>
-     <width>151</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="cursor">
-    <cursorShape>PointingHandCursor</cursorShape>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgb(64, 89, 145);
+          </property>
+          <property name="editable">
+           <bool>false</bool>
+          </property>
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <property name="maxCount">
+           <number>2147483645</number>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
+          </property>
+          <property name="modelColumn">
+           <number>0</number>
+          </property>
+          <item>
+           <property name="text">
+            <string>Play 1</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string comment="Flight">Play 2</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string comment="Flight">Play 3</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Play 4</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="executePlayButton">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="cursor">
+           <cursorShape>PointingHandCursor</cursorShape>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(64, 89, 145);
 color: rgb(240, 240, 240);</string>
-   </property>
-   <property name="text">
-    <string>Change Flight Mode</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="viewAccessPointsButton">
-   <property name="geometry">
-    <rect>
-     <x>338</x>
-     <y>220</y>
-     <width>131</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="cursor">
-    <cursorShape>PointingHandCursor</cursorShape>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgb(64, 89, 145);
+          </property>
+          <property name="text">
+           <string>Execute Play</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="cancelPlayButton">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="cursor">
+           <cursorShape>PointingHandCursor</cursorShape>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(161, 20, 40);
 color: rgb(240, 240, 240);</string>
-   </property>
-   <property name="text">
-    <string>View Access Points</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="buildingsComboBox">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>160</y>
-     <width>151</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Flight Mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-   <property name="accessibleName">
-    <string/>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">color: rgb(161, 0, 0);
+          </property>
+          <property name="text">
+           <string>Cancel Play</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="uavNameEdit">
+        <property name="font">
+         <font>
+          <pointsize>14</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_5">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QLabel" name="missionProgressLabel">
+          <property name="minimumSize">
+           <size>
+            <width>130</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Mission Progress</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QProgressBar" name="missionProgressBar">
+          <property name="palette">
+           <palette>
+            <active>
+             <colorrole role="WindowText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>12</red>
+                <green>12</green>
+                <blue>12</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Button">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>39</red>
+                <green>47</green>
+                <blue>66</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Text">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>12</red>
+                <green>12</green>
+                <blue>12</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="ButtonText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>12</red>
+                <green>12</green>
+                <blue>12</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Base">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>39</red>
+                <green>47</green>
+                <blue>66</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Window">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>39</red>
+                <green>47</green>
+                <blue>66</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </active>
+            <inactive>
+             <colorrole role="WindowText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>12</red>
+                <green>12</green>
+                <blue>12</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Button">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>39</red>
+                <green>47</green>
+                <blue>66</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Text">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>12</red>
+                <green>12</green>
+                <blue>12</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="ButtonText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>12</red>
+                <green>12</green>
+                <blue>12</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Base">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>39</red>
+                <green>47</green>
+                <blue>66</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Window">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>39</red>
+                <green>47</green>
+                <blue>66</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </inactive>
+            <disabled>
+             <colorrole role="WindowText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>12</red>
+                <green>12</green>
+                <blue>12</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Button">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>39</red>
+                <green>47</green>
+                <blue>66</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Text">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>12</red>
+                <green>12</green>
+                <blue>12</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="ButtonText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>12</red>
+                <green>12</green>
+                <blue>12</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Base">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>39</red>
+                <green>47</green>
+                <blue>66</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Window">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>39</red>
+                <green>47</green>
+                <blue>66</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </disabled>
+           </palette>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(12, 12, 12);</string>
+          </property>
+          <property name="value">
+           <number>24</number>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_4">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>10</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="buildingsLabel">
+        <property name="text">
+         <string>Building Name</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QComboBox" name="buildingsComboBox">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Flight Mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="accessibleName">
+           <string/>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(161, 0, 0);
 background-color: rgb(159, 171, 198);
 </string>
-   </property>
-   <property name="editable">
-    <bool>false</bool>
-   </property>
-   <property name="currentIndex">
-    <number>0</number>
-   </property>
-   <property name="maxCount">
-    <number>2147483645</number>
-   </property>
-   <property name="sizeAdjustPolicy">
-    <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
-   </property>
-   <property name="modelColumn">
-    <number>0</number>
-   </property>
-   <item>
-    <property name="text">
-     <string>Building 1</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string comment="Flight">Building 2</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string comment="Flight">Building 3</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Building 4</string>
-    </property>
-   </item>
-  </widget>
-  <widget class="QLabel" name="buildingsLabel">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>140</y>
-     <width>66</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Buildings</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="FlightModesLabel">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>200</y>
-     <width>121</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Flight Modes</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="masterControlLabel">
-   <property name="geometry">
-    <rect>
-     <x>180</x>
-     <y>10</y>
-     <width>101</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Master Control</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="playComboBox">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>40</y>
-     <width>211</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Flight Mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-   <property name="accessibleName">
-    <string/>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">color: rgb(161, 0, 0);
+          </property>
+          <property name="editable">
+           <bool>false</bool>
+          </property>
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <property name="maxCount">
+           <number>2147483645</number>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
+          </property>
+          <property name="modelColumn">
+           <number>0</number>
+          </property>
+          <item>
+           <property name="text">
+            <string>Building 1</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string comment="Flight">Building 2</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string comment="Flight">Building 3</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Building 4</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="scoutBuildingButton">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="cursor">
+           <cursorShape>PointingHandCursor</cursorShape>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(64, 89, 145);
+color: rgb(240, 240, 240);</string>
+          </property>
+          <property name="text">
+           <string>Scout Building</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="stopMissionButton">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="cursor">
+           <cursorShape>PointingHandCursor</cursorShape>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(161, 20, 40);
+color: rgb(240, 240, 240);</string>
+          </property>
+          <property name="text">
+           <string>Stop Mission</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>10</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="FlightModesLabel">
+        <property name="text">
+         <string>Flight Mode</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <widget class="QComboBox" name="flightModeComboBox">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Flight Mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="accessibleName">
+           <string/>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(161, 0, 0);
 background-color: rgb(159, 171, 198);
 </string>
-   </property>
-   <property name="editable">
-    <bool>false</bool>
-   </property>
-   <property name="currentIndex">
-    <number>0</number>
-   </property>
-   <property name="maxCount">
-    <number>2147483645</number>
-   </property>
-   <property name="sizeAdjustPolicy">
-    <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
-   </property>
-   <property name="modelColumn">
-    <number>0</number>
-   </property>
-   <item>
-    <property name="text">
-     <string>Play 1</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string comment="Flight">Play 2</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string comment="Flight">Play 3</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Play 4</string>
-    </property>
-   </item>
-  </widget>
-  <widget class="QPushButton" name="executePlayButton">
-   <property name="geometry">
-    <rect>
-     <x>240</x>
-     <y>40</y>
-     <width>121</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="cursor">
-    <cursorShape>PointingHandCursor</cursorShape>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgb(64, 89, 145);
+          </property>
+          <property name="editable">
+           <bool>false</bool>
+          </property>
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <property name="maxCount">
+           <number>2147483645</number>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
+          </property>
+          <property name="modelColumn">
+           <number>0</number>
+          </property>
+          <item>
+           <property name="text">
+            <string>Stablilize</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string comment="Flight">Return-to-Launch</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string comment="Flight">Loiter</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Land</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Travel</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Alt Hold</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Auto</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Acro</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Sport</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Drift</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Guided</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Circle</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>PosHold</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Brake</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Follow Me</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Simple</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Super Simple</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="changeFlightModeButton">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="cursor">
+           <cursorShape>PointingHandCursor</cursorShape>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(64, 89, 145);
 color: rgb(240, 240, 240);</string>
-   </property>
-   <property name="text">
-    <string>Execute Play</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="cancelPlayButton">
-   <property name="geometry">
-    <rect>
-     <x>370</x>
-     <y>40</y>
-     <width>99</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="cursor">
-    <cursorShape>PointingHandCursor</cursorShape>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgb(161, 20, 40);
+          </property>
+          <property name="text">
+           <string>Change Flight Mode</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="viewAccessPointsButton">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="cursor">
+           <cursorShape>PointingHandCursor</cursorShape>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(64, 89, 145);
 color: rgb(240, 240, 240);</string>
-   </property>
-   <property name="text">
-    <string>Cancel Play</string>
-   </property>
-  </widget>
+          </property>
+          <property name="text">
+           <string>View Access Points</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <widget class="QPushButton" name="armButton">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="cursor">
+           <cursorShape>PointingHandCursor</cursorShape>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(64, 89, 145);
+color: rgb(240, 240, 240);</string>
+          </property>
+          <property name="text">
+           <string>Arm</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="disarmButton">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="cursor">
+           <cursorShape>PointingHandCursor</cursorShape>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(161, 20, 40);
+color: rgb(240, 240, 240);</string>
+          </property>
+          <property name="text">
+           <string>Disarm</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>
