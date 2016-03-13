@@ -15,18 +15,6 @@ int main(int argc, char **argv){
         calib_file_left = argv [3];
     }
 
-    // CameraInfoManager cinfo_left(
-    //     nh,
-    //     "stereo_cam/left",
-    //     ("package://machine_vision/calibrations/" + calib_file_left)
-    // );
-    //
-    // CameraInfoManager cinfo_right(
-    //     nh,
-    //     "stereo_cam/right",
-    //     ("package://machine_vision/calibrations/" + calib_file_right)
-    // );
-
     int vendor_id  = strtol("0x2a0b", NULL, 0); // leopard imaging vendor id
     int product_id = strtol("0x00f5", NULL, 0); //  li usb3 stereo camera id
 
@@ -37,8 +25,7 @@ int main(int argc, char **argv){
     );
 
     camera.StartStream();
-
-
+    
     while(nh.ok() && camera.IsOpen()){
         ros::spinOnce();
     }

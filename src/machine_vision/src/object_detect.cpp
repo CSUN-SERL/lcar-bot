@@ -14,7 +14,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <ros/package.h>
 
-
+    
 #include <iostream>
 #include <thread>
 
@@ -22,13 +22,14 @@ using namespace std;
 using namespace cv;
 using namespace cv::ml;
 
+//image_transport::CameraPublisher pub_right_;
+image_transport::Publisher pub_mat_;
+
 Ptr<SVM> svm;
 vector< float > hog_detector;
-Scalar reference(0, 255, 0);
 HOGDescriptor hog; //(Size( 90, 160 ), Size(16, 16), Size(8, 8), Size(8, 8), 9)
-//vector <cv::Mat > images;
-Mat src;
-//bool start_detection = false;
+
+cv::Mat src;
 vector<Mat> trainingdata;
 const Size & img_size = Size(128, 256);
 
@@ -78,92 +79,74 @@ void DrawLocations(cv::Mat & img, const std::vector< Rect > & found, const vecto
            //cout << weights[i] << endl;
            //if(weights[i] > 0.8)
 //               rectangle(img, *loc, *loc, color, 2); //Point implementation used with hog.detect
-               rectangle(img, *loc, color, 2); //Rect implementation used with hog.detectMultiScale
+               rectangle(src, *loc, color, 2); //Rect implementation used with hog.detectMultiScale
           }
     }
 }
 
-void ObjectCategorize(cv::Mat image){
-  vector <double> weights;
-  vector <Rect> detected_objects;
-  vector< Rect > door_objects;
-  hog.detectMultiScale(
-          image,
-          detected_objects,
-          weights
-          ,0         // hit threshold
-          ,Size(0,0) // step size
-          ,Size(0,0) // padding
-          ,1.05       // scale factor
-          ,2       // final threshold
-          ,false      // use mean shift grouping?
-  );
-  for(int i = 0; i < detected_objects.size(); i++){
-     Rect windows(detected_objects.at(i).x, detected_objects.at(i).y, detected_objects.at(i).width, detected_objects.at(i).height);
-     Mat Roi = image(windows);
-     Mat extract, res, train_data;
-     resize(Roi, extract, img_size);
-     HogFeatureExtraction(extract);
-     ConvertToMl(trainingdata, train_data);
-     trainingdata.clear();
-     svm->predict(train_data, res, 4);
-     for (int j = 0; j < res.rows; j++) {
-            if (res.at<float>(j, 0) == 0) {
-                door_objects.push_back(detected_objects.at(i));
+void ObjectCategorize(cv::Mat image) {
+    if (!image.empty()) {
+        vector <double> weights;
+        vector <Rect> detected_objects;
+        vector< Rect > door_objects;
+        hog.detectMultiScale(
+                image,
+                detected_objects,
+                //weights
+                //,0         // hit threshold
+                //,Size(0,0) // step size
+                //,Size(0,0) // padding
+                //,1.05       // scale factor
+                //,2       // final threshold
+                true // use mean shift grouping?
+                );
+        for (int i = 0; i < detected_objects.size(); i++) {
+            Rect windows(detected_objects.at(i).x, detected_objects.at(i).y, detected_objects.at(i).width, detected_objects.at(i).height);
+            Mat Roi = image(windows);
+            Mat extract, res, train_data;
+            resize(Roi, extract, img_size);
+            HogFeatureExtraction(extract);
+            ConvertToMl(trainingdata, train_data);
+            trainingdata.clear();
+            svm->predict(train_data, res, 4);
+            for (int j = 0; j < res.rows; j++) {
+                if (res.at<float>(j, 0) == 0) {
+                    door_objects.push_back(detected_objects.at(i));
+                }
             }
+            res.release();
+            train_data.release();
+            extract.release();
+        }
+        DrawLocations(src, door_objects, weights, Scalar(0, 255, 0));
     }
-    res.release();
-    train_data.release();
-    extract.release();
-  }
-  DrawLocations(src, door_objects, weights, Scalar(0,255,0));
-
 }
 
 void ImageShow(){
-  imshow("view", src);
-  cv::waitKey(1);
+   if(!src.empty()){ 
+    imshow("view", src);
+    cv::waitKey(1);
+   }
 }
+
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
   {
     cv::Mat image;
-    if(frame_id++ % 1 == 0){
+    if(frame_id % 1 == 0){
         image = cv_bridge::toCvCopy(msg, "mono8")->image;
-        src = image.clone();
-        thread thread_1(ObjectCategorize, image);
-        thread thread_2(ImageShow);
-        if(thread_1.joinable()){
-          thread_1.detach();
-        }
-        if(thread_2.joinable()){
-          thread_2.join();
-        }
-//        vector <Point> detected_objects;
+        src = image;
         double t = (double)cvGetTickCount();
-//        hog.detectMultiScale(image, detected_objects, false);
-
-
-
-//        hog.detect(
-//                image,
-//                detected_objects,
-//                weights
-//                //,0
-//                //,Size(8,8)
-//                //,Size(0,0)
-//                //,1.5
-//                //,1.0
-//                //,true
-//        );
         t = cvGetTickCount() - t;
         t = t / ((double)cvGetTickFrequency()*1000);
         avg += t;
         if(frame_id %10 == 0 ){
-            cout << "detection time = " << avg / 10 << endl;
-            avg = 0;
+           ROS_INFO_STREAM( "detection time = " << avg / frame_id);
         }
+        
+        pub_mat_.publish(cv_bridge::CvImage(std_msgs::Header(),
+                                                "mono8", image).toImageMsg());
     }
     else
         image = cv_bridge::toCvShare(msg, "mono8")->image;
@@ -172,6 +155,8 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
   {
     ROS_ERROR("Error in image subscriber callback: %s", e.what());
   }
+  
+  frame_id++;
 }
 
 //extract svm weights and store in a float vector
@@ -214,8 +199,21 @@ int main (int argc, char** argv){
   hog.winSize = Size(128, 256);
   hog.setSVMDetector(hog_detector);
 
-
+  pub_mat_ = it.advertise("detected_objects", 1);
+  
+  
   image_transport::Subscriber sub = it.subscribe(topic, 1, imageCallback);
+
+  ROS_INFO_STREAM("subscribed to topic : " << topic);
+  thread thread_1(ObjectCategorize, src);
+  thread thread_2(ImageShow);
+    if(thread_1.joinable()){
+       thread_1.detach();
+     }
+    if(thread_2.joinable()){
+       thread_2.join();
+      }
   ros::spin();
+  
   cv::destroyWindow("view");
 }

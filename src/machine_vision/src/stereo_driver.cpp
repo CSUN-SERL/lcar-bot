@@ -16,7 +16,6 @@ StereoDriver::StereoDriver(
     open_(false),
     stereo_image_id_(0)
 {
-
     cinfo_left_.loadCameraInfo("package://machine_vision/calibrations/left.yaml");
     cinfo_right_.loadCameraInfo("package://machine_vision/calibrations/right.yaml");
 
