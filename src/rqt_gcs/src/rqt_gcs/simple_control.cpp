@@ -220,6 +220,7 @@ std::string SimpleControl::GetLocation()
 
 void SimpleControl::ScoutBuilding(float x, float y, float z)
 {
+  this->EnableOffboard();
   //Update the target location
   pose_target.position.x = x;
   pose_target.position.y = y;
@@ -487,10 +488,10 @@ void SimpleControl::Run()
   if(goal == travel){
     if(ComparePosition(pose_local, pose_target) == 0){
       //Vehicle is at target location => Scout Building
-      pose_previous = pose_local;
-      goal = scout;
-      //pose_target = pose_home;
-      //goal = land;
+      //pose_previous = pose_local;
+      //goal = scout;
+      pose_target = pose_home;
+      goal = land;
       ROS_DEBUG_STREAM_ONCE("Scouting Building.");
     }
     else if(abs(pose_local.position.z - pose_target.position.z) <= THRESHOLD_Z){

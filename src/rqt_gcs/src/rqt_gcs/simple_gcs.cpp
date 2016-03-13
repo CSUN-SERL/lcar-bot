@@ -164,6 +164,7 @@ void SimpleGCS::CancelPlay(){
 void SimpleGCS::ScoutBuilding(){
 	if(mpUi_.buildingsComboBox->currentIndex() == 0){
 		ROS_INFO_STREAM("Scouting Building 1");
+            quadrotors[cur_uav].ScoutBuilding(0,0,0.5);
         }
         else if(mpUi_.buildingsComboBox->currentIndex() == 1){
 		ROS_INFO_STREAM("Scouting Building 2");

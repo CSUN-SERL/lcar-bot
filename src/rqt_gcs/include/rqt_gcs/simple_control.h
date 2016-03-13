@@ -34,10 +34,10 @@
 #define TIMEOUT 3*CHECK_FREQUENCY //3 Second timeout
 #define TRAVEL_WT 0.5
 #define SCOUT_WT 0.5
-#define THRESHOLD_XY 1
-#define THRESHOLD_Z 0.2
-#define THRESHOLD_YAW 0.5
-#define ALT_RTL 3
+#define THRESHOLD_XY 0.01
+#define THRESHOLD_Z 0.01
+#define THRESHOLD_YAW 0.01
+#define ALT_RTL 1
 #define BATTERY_MIN 0.30  //Minimum battery level for RTL
 #define DEF_NS "UAV"
 
