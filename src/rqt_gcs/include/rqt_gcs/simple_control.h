@@ -262,8 +262,7 @@ private:
   void HeadingCallback(const std_msgs::Float64& msg_heading) { heading_deg = msg_heading.data; }
   void VelocityCallback(const geometry_msgs::TwistStamped& msg_vel) { velocity = msg_vel; }
   void NavSatFixCallback(const sensor_msgs::NavSatFix& msg_gps) { pos_global = msg_gps; }
-  void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) { pose_local = msg_pos.pose; }
-  void VrpnCallback(const geometry_msgs::PoseStamped& msg_pos) {pub_mocap.publish(msg_pos);}
+  void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pose) { pose_local = msg_pose.pose; }
 
   //For returning Flight State Data to GCS
   FlightState UpdateFlightState();
@@ -280,8 +279,7 @@ private:
                       pub_setpoint_attitude,
                       pub_angular_vel,
                       pub_linear_vel,
-                      pub_setpoint_accel,
-                      pub_mocap;
+                      pub_setpoint_accel;
   ros::Subscriber     sub_state,
                       sub_battery,
                       sub_imu,
@@ -289,8 +287,7 @@ private:
                       sub_pos_local,
                       sub_altitude,
                       sub_heading,
-                      sub_vel,
-                      sub_vrpn;
+                      sub_vel;
 
   //UAV State Variables
   std::string ns;

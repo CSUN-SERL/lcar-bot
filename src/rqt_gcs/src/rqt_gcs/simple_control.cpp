@@ -54,7 +54,6 @@ void SimpleControl::InitialSetup()
     pub_angular_vel       = nh_simple_control.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
     pub_linear_vel        = nh_simple_control.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_velocity/cmd_vel",QUEUE_SIZE);
     pub_setpoint_accel    = nh_simple_control.advertise<geometry_msgs::Vector3Stamped>(ns + "/mavros/setpoint_accel/accel",QUEUE_SIZE);
-    pub_mocap             = nh_simple_control.advertise<geometry_msgs::PoseStamped>(ns + "/mavros/mocap/pose",QUEUE_SIZE);
 
     //Initialze Subscribers
     sub_state      = nh_simple_control.subscribe(ns + "/mavros/state", QUEUE_SIZE, &SimpleControl::StateCallback, this);
@@ -65,7 +64,6 @@ void SimpleControl::InitialSetup()
     sub_vel        = nh_simple_control.subscribe(ns + "/mavros/local_position/velocity", QUEUE_SIZE, &SimpleControl::VelocityCallback, this);
     sub_pos_global = nh_simple_control.subscribe(ns + "/mavros/global_position/global", QUEUE_SIZE, &SimpleControl::NavSatFixCallback, this);
     sub_pos_local  = nh_simple_control.subscribe(ns + "/mavros/local_position/pose", QUEUE_SIZE, &SimpleControl::LocalPosCallback, this);
-    sub_vrpn       = nh_simple_control.subscribe("vrpn_client_node/" + ns + "/pose", QUEUE_SIZE, &SimpleControl::VrpnCallback, this);
 
     //Set Home position
     pose_home.position.x = pose_home.position.y = pose_home.position.z = 0;
