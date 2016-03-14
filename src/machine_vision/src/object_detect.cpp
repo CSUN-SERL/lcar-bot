@@ -74,6 +74,8 @@ void ConvertToMl(const std::vector< cv::Mat > & train_samples, cv::Mat& trainDat
 void DrawLocations(cv::Mat & img, const std::vector< Rect > & found, const vector<double> weights, const Scalar & color) {
        std::vector< Rect >::const_iterator loc = found.begin(); // Rect for detectMultiscale(), Point for detect()
        std::vector< Rect >::const_iterator end = found.end();   // same as above
+       ROS_INFO_STREAM(weights.size());
+
        for (int i = 0; loc != end && i < weights.size(); ++loc) {
            //cout << weights[i] << endl;
            //if(weights[i] > 0.8)
@@ -90,7 +92,7 @@ void ObjectCategorize(cv::Mat image) {
         hog.detectMultiScale(
                 image,
                 detected_objects,
-                //weights
+                weights,
                 //,0         // hit threshold
                 //,Size(0,0) // step size
                 //,Size(0,0) // padding
@@ -108,7 +110,7 @@ void ObjectCategorize(cv::Mat image) {
             trainingdata.clear();
             svm->predict(train_data, res, 4);
             for (int j = 0; j < res.rows; j++) {
-                if (res.at<float>(j, 0) == 0) {
+                if (res.at<float>(j, 0) == 1) {
                     door_objects.push_back(detected_objects.at(i));
                 }
             }
@@ -116,11 +118,12 @@ void ObjectCategorize(cv::Mat image) {
             train_data.release();
             extract.release();
         }
-        DrawLocations(image, detected_objects, weights, Scalar(0, 255, 0));
+        DrawLocations(image, door_objects, weights, Scalar(0, 255, 0));
         imshow("view", image);
         waitKey(10);
 
     }
+
 }
 
 void ImageShow(){
@@ -136,8 +139,10 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
   {
     cv::Mat image;
     if(frame_id % 1 == 0){
+        src.release();
         image = cv_bridge::toCvCopy(msg, "mono8")->image;
         src = image;
+        ObjectCategorize(image);
 
         double t = (double)cvGetTickCount();
         t = cvGetTickCount() - t;
@@ -191,7 +196,7 @@ int main (int argc, char** argv){
   if(argc >= 2)
       topic = argv[1];
   else
-      topic = "stereo_cam/left/image_raw";
+      topic = "mono_cam/image_raw";
 
   string svmPath = ros::package::getPath("machine_vision");
   svm = StatModel::load<SVM>( svmPath + "/LinearHOG.xml" );
@@ -202,7 +207,6 @@ int main (int argc, char** argv){
   hog.setSVMDetector(hog_detector);
 
   pub_mat_ = it.advertise("detected_objects", 1);
-  ObjectCategorize(src);
 
 
   image_transport::Subscriber sub = it.subscribe(topic, 1, imageCallback);
