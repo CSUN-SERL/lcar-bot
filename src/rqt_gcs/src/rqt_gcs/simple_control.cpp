@@ -402,7 +402,7 @@ int SimpleControl::ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pos
   }
   else result = 1;
 
-  return result;
+  return 1;
 }
 
 int SimpleControl::CalculateDistance(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)

@@ -9,7 +9,7 @@
               env-loader="$HOME/lcar-bot-files/lcar_env.sh"/>
 
     <include file="$(find rqt_gcs)/launch/jetson.launch">
-      <arg name="tgt_system" value="1" />
+      <arg name="tgt_system" value="2" />
     </include>
   </group>
 </launch>
