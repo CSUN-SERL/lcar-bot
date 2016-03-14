@@ -17,6 +17,8 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(OpenCV REQUIRED)
 find_package(libuvc REQUIRED)
 
+#Enable C++11 Support
+add_definitions(-std=c++11)
 # Declare the package
 catkin_package()
 
@@ -35,6 +37,8 @@ add_executable(stereo_publisher src/stereo_cam_pub.cpp)
 # add_executable(stereo_driver src/ros_camera_driver.cpp src/camera_driver_main.cpp)
 #=======
 add_executable(stereo_driver src/stereo_driver.cpp src/stereo_driver_main.cpp)
+add_executable(object_detection src/object_detect.cpp)
+
 #>>>>>>> 4bac26099c102b8ebb1d5427c8ad0a88dce04c73
 
 #Specify libraries against which to link
@@ -55,6 +59,12 @@ target_link_libraries(stereo_publisher
 )
 
 target_link_libraries(stereo_driver
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${libuvc_LIBRARIES}
+)
+
+target_link_libraries(object_detection
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${libuvc_LIBRARIES}
