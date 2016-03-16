@@ -1,8 +1,8 @@
 var longitude = 2;
 var latitude  = 2;
-var num =1;
+var num =0;
 var listeners =[];
-var total = 109;
+var total = 108;
 var sections = 10;
 var done = false;
 var ChoosenOne;
@@ -41,7 +41,7 @@ var map;
 var marker =[];
 var newPoint ;
 var la ;
-var squadCreation = 1;
+var squadCreation = 0;
 var team = ["Alpha", "Beta", "Shield", "Raid", "Airborne", "Batman", "Daemon", "Nemesis", "Viper", "Cyclone" ];
 
 var image =[];
@@ -101,14 +101,14 @@ listener.subscribe(function(message) {
 
 });
 
-if(longitude != 0 && latitude != 0 && $('input[name=uav]').length < num + 1)  {
+if(longitude != 0 && latitude != 0 && $('input[name=uav]').length < num )  {
     //create select list buttons
     console.log("squadCreation: " + squadCreation);
     if(squadCreation == 10){
       squadCreation = 0;
     }
 
-    if(squadCreation == 0 && limit < 11 && done == false) {
+    if(squadCreation == 0 && limit < 10 && done == false) {
 
       $('<select />', {
         id: team[list],
@@ -119,7 +119,7 @@ if(longitude != 0 && latitude != 0 && $('input[name=uav]').length < num + 1)  {
                  name: 'uav',
                  id: 'uav' + num,
                  type: "radio",
-                 value: list +1 ,
+                 value: list  ,
              }).appendTo('#radB');
 
             $('<label />', {
@@ -214,7 +214,7 @@ la = new google.maps.LatLng(latitude,
     //add new image
     //if(num > 10){
       image[num] = {
-        url: 'images/uavIcon' + (list +1) + '.png',
+        url: 'images/uavIcon' + (list + 1 ) + '.png',
         scaledSize: new google.maps.Size(60,60)
       };
 
@@ -235,28 +235,28 @@ la = new google.maps.LatLng(latitude,
   if(checked != undefined && checked != "free" && checked.length < 2){
   checked = parseInt((checked + '').charAt(0));
 }
-  console.log((checked -1)  + " checked");
+  console.log((checked )  + " checked");
 
-  var index = team[checked -1];
+  var index = team[checked ];
 
   var selected = $('#'+index).val();
-  console.log(index + " " + (checked-1) + selected);
+  console.log(index + " " + (checked) + selected);
 
   if(selected != undefined){
   var datNum = selected.slice(-1); //get second word, the number
 }
   console.log(datNum + " the numba!");
 
-  if(checked -1   == 0){
+  if(checked    == 0){
     console.log("checked == 0");
      theChoosenOne = (datNum  );
   } else{
-    console.log("UAV: " + (checked-1)+datNum);
+    console.log("UAV: " + (checked)+datNum);
     console.log("checked != 0");
-     theChoosenOne = (checked-1) + (datNum );
+     theChoosenOne = (checked) + (datNum );
 }
   console.log(theChoosenOne + " ChoosenOne");
-  if(checked != 'free' && checked != undefined && theChoosenOne != 0) { //if its not free roam, then center map to an UAV
+  if(checked != 'free' && checked != undefined ) { //if its not free roam, then center map to an UAV
     map.setCenter(marker[theChoosenOne].getPosition());
   }
   else{
