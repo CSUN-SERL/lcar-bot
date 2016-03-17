@@ -35,8 +35,6 @@ set(rqt_gcs_SRCS
 
 set(rqt_gcs_HDRS
   include/rqt_gcs/simple_gcs.h
-  include/rqt_gcs/simple_control.h
-  include/rqt_gcs/access_point.h
   include/FIS/qfi_PFD.h
   include/FIW/LayoutSquare.h
   include/FIW/WidgetPFD.h

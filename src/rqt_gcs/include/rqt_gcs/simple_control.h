@@ -272,11 +272,12 @@ private:
   {
       AccessPoint new_point;
 
+      new_point.SetTime(ros::Time::now());
       new_point.SetImage(msg_detection);
       new_point.SetAltitude(altitude_rel);
       new_point.SetHeading(heading_deg);
       new_point.SetLocation(pos_global);
-      new_point.SetTime(ros::Time::now());
+      new_point.SetType(AccessPoint::door);
 
       access_pts.push_back(new_point);
   }
