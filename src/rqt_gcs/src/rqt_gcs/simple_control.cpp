@@ -41,31 +41,32 @@ void SimpleControl::InitialSetup()
     ns = DEF_NS + std::to_string(id); //UAV Namespace
 
     //Initialize Service Clients
-    sc_arm      = nh_simple_control.serviceClient<mavros_msgs::CommandBool>(ns + "/mavros/cmd/arming");
-    sc_takeoff  = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>(ns + "/mavros/cmd/takeoff");
-    sc_land     = nh_simple_control.serviceClient<mavros_msgs::CommandTOL>(ns + "/mavros/cmd/land");
-    sc_mode     = nh_simple_control.serviceClient<mavros_msgs::SetMode>(ns + "/mavros/set_mode");
-    sc_mission  = nh_simple_control.serviceClient<mavros_msgs::WaypointPush>(ns + "/mavros/mission/push");
+    sc_arm      = nh.serviceClient<mavros_msgs::CommandBool>(ns + "/mavros/cmd/arming");
+    sc_takeoff  = nh.serviceClient<mavros_msgs::CommandTOL>(ns + "/mavros/cmd/takeoff");
+    sc_land     = nh.serviceClient<mavros_msgs::CommandTOL>(ns + "/mavros/cmd/land");
+    sc_mode     = nh.serviceClient<mavros_msgs::SetMode>(ns + "/mavros/set_mode");
+    sc_mission  = nh.serviceClient<mavros_msgs::WaypointPush>(ns + "/mavros/mission/push");
 
     //Initialize Publisher Objects
-    pub_override_rc       = nh_simple_control.advertise<mavros_msgs::OverrideRCIn>(ns + "/mavros/rc/override",QUEUE_SIZE);
-    pub_setpoint_position = nh_simple_control.advertise<geometry_msgs::PoseStamped>(ns + "/mavros/setpoint_position/local",QUEUE_SIZE);
-    pub_setpoint_attitude = nh_simple_control.advertise<geometry_msgs::PoseStamped>(ns + "/mavros/setpoint_attitude/attitude",QUEUE_SIZE);
-    pub_angular_vel       = nh_simple_control.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
-    pub_linear_vel        = nh_simple_control.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_velocity/cmd_vel",QUEUE_SIZE);
-    pub_setpoint_accel    = nh_simple_control.advertise<geometry_msgs::Vector3Stamped>(ns + "/mavros/setpoint_accel/accel",QUEUE_SIZE);
-    pub_mocap             = nh_simple_control.advertise<geometry_msgs::PoseStamped>(ns + "/mavros/mocap/pose",QUEUE_SIZE);
+    pub_override_rc       = nh.advertise<mavros_msgs::OverrideRCIn>(ns + "/mavros/rc/override",QUEUE_SIZE);
+    pub_setpoint_position = nh.advertise<geometry_msgs::PoseStamped>(ns + "/mavros/setpoint_position/local",QUEUE_SIZE);
+    pub_setpoint_attitude = nh.advertise<geometry_msgs::PoseStamped>(ns + "/mavros/setpoint_attitude/attitude",QUEUE_SIZE);
+    pub_angular_vel       = nh.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
+    pub_linear_vel        = nh.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_velocity/cmd_vel",QUEUE_SIZE);
+    pub_setpoint_accel    = nh.advertise<geometry_msgs::Vector3Stamped>(ns + "/mavros/setpoint_accel/accel",QUEUE_SIZE);
+    pub_mocap             = nh.advertise<geometry_msgs::PoseStamped>(ns + "/mavros/mocap/pose",QUEUE_SIZE);
 
     //Initialze Subscribers
-    sub_state      = nh_simple_control.subscribe(ns + "/mavros/state", QUEUE_SIZE, &SimpleControl::StateCallback, this);
-    sub_battery    = nh_simple_control.subscribe(ns + "/mavros/battery", QUEUE_SIZE, &SimpleControl::BatteryCallback, this);
-    sub_imu        = nh_simple_control.subscribe(ns + "/mavros/imu/data", QUEUE_SIZE, &SimpleControl::ImuCallback, this);
-    sub_altitude   = nh_simple_control.subscribe(ns + "/mavros/global_position/rel_alt", QUEUE_SIZE, &SimpleControl::RelAltitudeCallback, this);
-    sub_heading    = nh_simple_control.subscribe(ns + "/mavros/global_position/compass_hdg", QUEUE_SIZE, &SimpleControl::HeadingCallback, this);
-    sub_vel        = nh_simple_control.subscribe(ns + "/mavros/local_position/velocity", QUEUE_SIZE, &SimpleControl::VelocityCallback, this);
-    sub_pos_global = nh_simple_control.subscribe(ns + "/mavros/global_position/global", QUEUE_SIZE, &SimpleControl::NavSatFixCallback, this);
-    sub_pos_local  = nh_simple_control.subscribe(ns + "/mavros/local_position/pose", QUEUE_SIZE, &SimpleControl::LocalPosCallback, this);
-    sub_vrpn       = nh_simple_control.subscribe("vrpn_client_node/" + ns + "/pose", QUEUE_SIZE, &SimpleControl::VrpnCallback, this);
+    sub_state      = nh.subscribe(ns + "/mavros/state", QUEUE_SIZE, &SimpleControl::StateCallback, this);
+    sub_battery    = nh.subscribe(ns + "/mavros/battery", QUEUE_SIZE, &SimpleControl::BatteryCallback, this);
+    sub_imu        = nh.subscribe(ns + "/mavros/imu/data", QUEUE_SIZE, &SimpleControl::ImuCallback, this);
+    sub_altitude   = nh.subscribe(ns + "/mavros/global_position/rel_alt", QUEUE_SIZE, &SimpleControl::RelAltitudeCallback, this);
+    sub_heading    = nh.subscribe(ns + "/mavros/global_position/compass_hdg", QUEUE_SIZE, &SimpleControl::HeadingCallback, this);
+    sub_vel        = nh.subscribe(ns + "/mavros/local_position/velocity", QUEUE_SIZE, &SimpleControl::VelocityCallback, this);
+    sub_pos_global = nh.subscribe(ns + "/mavros/global_position/global", QUEUE_SIZE, &SimpleControl::NavSatFixCallback, this);
+    sub_pos_local  = nh.subscribe(ns + "/mavros/local_position/pose", QUEUE_SIZE, &SimpleControl::LocalPosCallback, this);
+    sub_vrpn       = nh.subscribe("vrpn_client_node/" + ns + "/pose", QUEUE_SIZE, &SimpleControl::VrpnCallback, this);
+    sub_detection  = nh.subscribe(ns + "/object_detection/door", QUEUE_SIZE, &SimpleControl::DetectionCallback, this);
 
     //Set Home position
     pose_home.position.x = pose_home.position.y = pose_home.position.z = 0;
@@ -382,8 +383,8 @@ FlightState SimpleControl::UpdateFlightState()
   flight_state.roll = imu.orientation.x; //Update Roll value
   flight_state.pitch = imu.orientation.y; //Update Pitch Value
   flight_state.yaw = imu.orientation.z; //Update Yaw Value
-  flight_state.heading = heading_deg; //Update heading [degrees]
-  flight_state.altitude = altitude_rel; //Update Altitude [m]
+  flight_state.heading = heading_deg.data; //Update heading [degrees]
+  flight_state.altitude = altitude_rel.data; //Update Altitude [m]
   flight_state.ground_speed = velocity.twist.linear.x; //Global Velocity X [m/s]
   flight_state.vertical_speed = velocity.twist.linear.z; //Global Velocity vertical [m/s]
 

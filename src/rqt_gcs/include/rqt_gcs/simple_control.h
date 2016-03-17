@@ -262,19 +262,30 @@ private:
   void StateCallback(const mavros_msgs::State& msg_state) { state = msg_state; }
   void BatteryCallback(const mavros_msgs::BatteryStatus& msg_battery) { battery = msg_battery; }
   void ImuCallback(const sensor_msgs::Imu& msg_imu) { imu = msg_imu; }
-  void RelAltitudeCallback(const std_msgs::Float64& msg_altitude) { altitude_rel = msg_altitude.data; }
-  void HeadingCallback(const std_msgs::Float64& msg_heading) { heading_deg = msg_heading.data; }
+  void RelAltitudeCallback(const std_msgs::Float64& msg_altitude) { altitude_rel = msg_altitude; }
+  void HeadingCallback(const std_msgs::Float64& msg_heading) { heading_deg = msg_heading; }
   void VelocityCallback(const geometry_msgs::TwistStamped& msg_vel) { velocity = msg_vel; }
   void NavSatFixCallback(const sensor_msgs::NavSatFix& msg_gps) { pos_global = msg_gps; }
   void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) { pose_local = msg_pos.pose; }
   void VrpnCallback(const geometry_msgs::PoseStamped& msg_pos) {pub_mocap.publish(msg_pos);}
-  void DetectionCallback(const sensor_msgs::Image& msg_detection);
+  void DetectionCallback(const sensor_msgs::Image& msg_detection)
+  {
+      AccessPoint new_point;
+
+      new_point.SetImage(msg_detection);
+      new_point.SetAltitude(altitude_rel);
+      new_point.SetHeading(heading_deg);
+      new_point.SetLocation(pos_global);
+      new_point.SetTime(ros::Time::now());
+
+      access_pts.push_back(new_point);
+  }
 
   //For returning Flight State Data to GCS
   FlightState UpdateFlightState();
 
   //ROS NodeHandle, Service Client, Publisher, and Subscriber Variables
-  ros::NodeHandle     nh_simple_control;
+  ros::NodeHandle     nh;
   ros::ServiceClient  sc_arm,
                       sc_takeoff,
                       sc_land,
@@ -299,20 +310,21 @@ private:
                       sub_detection;
 
   //UAV State Variables
-  std::string ns;
-  mavros_msgs::State state;
-  mavros_msgs::BatteryStatus battery;
-  sensor_msgs::Imu imu;
-  sensor_msgs::NavSatFix pos_global;
-  geometry_msgs::TwistStamped velocity;
-  geometry_msgs::Pose  pose_local,
-                       pose_target,
-                       pose_home,
-                       pose_previous;
-  float altitude_rel, heading_deg;
-  std::vector<AccessPoint> access_pts;
-  Mode goal = idle;
-  ros::Time last_request;
+  std::string                   ns;
+  mavros_msgs::State            state;
+  mavros_msgs::BatteryStatus    battery;
+  sensor_msgs::Imu              imu;
+  sensor_msgs::NavSatFix        pos_global;
+  geometry_msgs::TwistStamped   velocity;
+  geometry_msgs::Pose           pose_local,
+                                pose_target,
+                                pose_home,
+                                pose_previous;
+  std_msgs::Float64             altitude_rel,
+                                heading_deg;
+  std::vector<AccessPoint>      access_pts;
+  Mode                          goal = idle;
+  ros::Time                     last_request;
 };
 
 #endif
