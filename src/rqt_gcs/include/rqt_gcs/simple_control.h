@@ -23,11 +23,14 @@
 #include <mavros_msgs/WaypointPush.h>
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/NavSatFix.h>
+#include <sensor_msgs/Image.h>
 #include <std_msgs/Float64.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
+
+#include <rqt_gcs/access_point.h>
 
 #define QUEUE_SIZE 100            //Message Queue size for publishers
 #define CHECK_FREQUENCY 1         //Frequency for checking change of state
@@ -250,6 +253,7 @@ public:
   FlightState GetFlightState() { return UpdateFlightState(); }
   int GetDistanceToWP() { return CalculateDistance(pose_target, pose_local); }
   float GetMissionProgress();
+  std::vector<AccessPoint> GetAccessPoints() { return access_pts; }
 
 private:
   void InitialSetup();
@@ -264,6 +268,7 @@ private:
   void NavSatFixCallback(const sensor_msgs::NavSatFix& msg_gps) { pos_global = msg_gps; }
   void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) { pose_local = msg_pos.pose; }
   void VrpnCallback(const geometry_msgs::PoseStamped& msg_pos) {pub_mocap.publish(msg_pos);}
+  void DetectionCallback(const sensor_msgs::Image& msg_detection);
 
   //For returning Flight State Data to GCS
   FlightState UpdateFlightState();
@@ -290,7 +295,8 @@ private:
                       sub_altitude,
                       sub_heading,
                       sub_vel,
-                      sub_vrpn;
+                      sub_vrpn,
+                      sub_detection;
 
   //UAV State Variables
   std::string ns;
@@ -304,7 +310,7 @@ private:
                        pose_home,
                        pose_previous;
   float altitude_rel, heading_deg;
-  //int goal = IDLE;
+  std::vector<AccessPoint> access_pts;
   Mode goal = idle;
   ros::Time last_request;
 };
