@@ -42,7 +42,7 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
   pfd_ui.setupUi(PFDQWidget);
   apmUi_.setupUi(apmQWidget_);
   apsUi_.setupUi(apsQWidget_);
-  
+
   //Add widgets to the Main UI
   context.addWidget(widget_);
   central_ui_.MissionLayout->addWidget(missionProgressWidget_);
@@ -52,13 +52,13 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
   for(int i = 0; i < NUM_UAV; i++){
       central_ui_.UAVListLayout->addWidget(uavListWidgetArr[i]);
   }
-   
+
    //Setup mission progress widgets
    uavStatWidget_->setWindowTitle("Flight State");
    missionProgressWidget_->setWindowTitle("Mission Control");
 
    //setup button logic for the widgets
-   
+
    connect(mpUi_.executePlayButton,SIGNAL(clicked()),this, SLOT(ExecutePlay()));
    connect(mpUi_.cancelPlayButton,SIGNAL(clicked()),this, SLOT(CancelPlay()));
    connect(mpUi_.scoutBuildingButton, SIGNAL(clicked()),this, SLOT(ScoutBuilding()));
@@ -164,6 +164,7 @@ void SimpleGCS::CancelPlay(){
 void SimpleGCS::ScoutBuilding(){
 	if(mpUi_.buildingsComboBox->currentIndex() == 0){
 		ROS_INFO_STREAM("Scouting Building 1");
+            quadrotors[cur_uav].ScoutBuilding(0,0,0.5);
         }
         else if(mpUi_.buildingsComboBox->currentIndex() == 1){
 		ROS_INFO_STREAM("Scouting Building 2");
@@ -199,16 +200,16 @@ void SimpleGCS::ChangeFlightMode(){
 		quadrotors[cur_uav].SetMode("ALTCTL");
 	}
 	else if(mpUi_.flightModeComboBox->currentIndex() == 5){
-		
+
 	}
 	else if(mpUi_.flightModeComboBox->currentIndex() == 6){
-		
+
 	}
 }
 
 void SimpleGCS::OpenAccessPointsMenu(){
         apmUi_.AccessPointMenuLayout->addWidget(apsQWidget_);
-	apmQWidget_->show();  
+	apmQWidget_->show();
 }
 
 void SimpleGCS::QuadSelect(int quadNumber){

@@ -2,8 +2,7 @@
 /devel
 *~
 *.log
-<<<<<<< HEAD
 nbproject/
-=======
 *CMakeLists.txt.user
->>>>>>> 656a8f4d13e8a991e59ec5abd27f23b0c8c1974f
+<<<<<<< HEAD
+/nbproject
