@@ -11,7 +11,7 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "gps_publisher");
   ros::NodeHandle nh;
-  int num_uav = 99;
+  int num_uav =99;
   int cur_uav = 0;
   int boolean = 0;
   float lat =0, lon = 0;
