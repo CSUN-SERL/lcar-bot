@@ -48,7 +48,6 @@ namespace rqt_gcs{
   Q_OBJECT
   public:
     SimpleGCS();
-
     ros::Subscriber sub;
     ros::NodeHandle nh;
     image_transport::ImageTransport it_stereo{nh};
@@ -60,6 +59,7 @@ namespace rqt_gcs{
     virtual void saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const;
     virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings);
 
+
   protected slots:
     virtual void TimedUpdate();
     virtual void ExecutePlay();
@@ -67,8 +67,8 @@ namespace rqt_gcs{
     virtual void ScoutBuilding();
     virtual void StopQuad();
     virtual void ChangeFlightMode();
-    virtual void OpenAccessPointsMenu();
-
+    virtual void InitializeAccessPointsMenu();
+    virtual void RefreshAccessPoints();
     virtual void QuadSelect(int);
     virtual void ArmSelectedQuad();
     virtual void DisarmSelectedQuad();
@@ -77,6 +77,8 @@ namespace rqt_gcs{
     void UpdatePFD();
     int cur_uav = 0;
     SimpleControl quadrotors[NUM_UAV] = {};
+
+
     cv::Mat conversion_mat_;
     image_transport::Subscriber sub_stereo = it_stereo.subscribe("stereo_cam/left/image_raw", 1, &SimpleGCS::ImageCallback, this);
 
@@ -89,7 +91,8 @@ namespace rqt_gcs{
     Ui::centralWidget central_ui_;
     Ui::UAVConditionWidget uavCondWidgetArr[NUM_UAV];
     Ui::AccessPointsMenuWidget apmUi_;
-    Ui::AccessPointStatsWidget apsUi_;
+
+    //std::vector<Ui::AccessPointStatsWidget> accessPointsUiForms_;
 
     QWidget* widget_;
     QWidget* missionProgressWidget_;
@@ -99,14 +102,16 @@ namespace rqt_gcs{
     QWidget* uavListWidgetArr[NUM_UAV];
     QWidget* PFDQWidget;
     QWidget* apmQWidget_;
-    QWidget* apsQWidget_;
- 
+
+    std::vector<QWidget*> accessPointsQWidgets_;
 
     QLabel* label;
     QTimer* update_timer;
 
     QString temp_data;
     QString quad_id;
+    QString access_point_temp_data;
+    QString access_point_id;
     QSignalMapper* signal_mapper;
 
   };
