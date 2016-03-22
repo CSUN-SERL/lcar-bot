@@ -27,25 +27,18 @@ include(MavrosMavlink)
 set(rqt_gcs_SRCS
   src/rqt_gcs/simple_gcs.cpp
   src/rqt_gcs/simple_control.cpp
-
   src/FIS/qfi_PFD.cpp
-
   src/FIW/LayoutSquare.cpp
   src/FIW/WidgetPFD.cpp
-
-	src/rqt_image_view/ratio_layouted_frame.cpp
+  src/rqt_image_view/ratio_layouted_frame.cpp
 )
 
 set(rqt_gcs_HDRS
   include/rqt_gcs/simple_gcs.h
-  include/rqt_gcs/simple_control.h
-
   include/FIS/qfi_PFD.h
-
   include/FIW/LayoutSquare.h
   include/FIW/WidgetPFD.h
-
-	include/rqt_image_view/ratio_layouted_frame.h
+  include/rqt_image_view/ratio_layouted_frame.h
 )
 
 set(rqt_gcs_UIS

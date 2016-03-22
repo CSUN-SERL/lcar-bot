@@ -2,13 +2,13 @@
 	<!-- vim: set ft=xml noet : -->
 	<!-- base node launch file-->
 
-	<arg name="fcu_url" />
-	<arg name="gcs_url" />
-	<arg name="tgt_system" />
-	<arg name="tgt_component"/>
+	<arg name="fcu_url" default="udp://localhost:14580@" />
+	<arg name="gcs_url" default="" />
+	<arg name="tgt_system" default="1" />
+	<arg name="tgt_component" default="1" />
 	<arg name="namespace" default="UAV1"/>
-	<arg name="pluginlists_yaml" />
-	<arg name="config_yaml" />
+	<arg name="pluginlists_yaml" default="$(find mavros)/launch/px4_pluginlists.yaml" />
+	<arg name="config_yaml" default="$(find mavros)/launch/apm_config.yaml" />
 	<arg name="log_output" default="screen" />
 
 	<node pkg="mavros" type="mavros_node" name="mavros" ns="$(arg namespace)" required="true" clear_params="true" output="$(arg log_output)">

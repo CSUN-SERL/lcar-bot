@@ -22,16 +22,22 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
   imageViewWidget_       = new QWidget();
   PFDQWidget             = new QWidget();
   apmQWidget_            = new QWidget();
-  apsQWidget_            = new QWidget();
+
 
 //For each of the Uav condition widgets
 //we set up the ui of the uavcondition widget(name, selection num)
  for(int i = 0; i < NUM_UAV; i++){
+
+    temp_data = "UAV ";
+    quad_id.setNum(i+1);
+    temp_data += quad_id;
     uavListWidgetArr[i] = new QWidget();
     uavCondWidgetArr[i].setupUi(uavListWidgetArr[i]);
     uavCondWidgetArr[i].VehicleSelectButton->setText(std::to_string(i+1).c_str());
-    uavCondWidgetArr[i].VehicleNameLine->setText(std::to_string(i).append("UAV ",0).c_str());
+    //uavCondWidgetArr[i].VehicleNameLine->setText(std::to_string(i).append("UAV ",0).c_str());
+    uavCondWidgetArr[i].VehicleNameLine->setText(temp_data);
  }
+
 
   //Setup the UI objects with the widgets
   central_ui_.setupUi(widget_);
@@ -41,7 +47,7 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
   ivUi_.setupUi(imageViewWidget_);
   pfd_ui.setupUi(PFDQWidget);
   apmUi_.setupUi(apmQWidget_);
-  apsUi_.setupUi(apsQWidget_);
+
 
   //Add widgets to the Main UI
   context.addWidget(widget_);
@@ -64,8 +70,8 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
    connect(mpUi_.scoutBuildingButton, SIGNAL(clicked()),this, SLOT(ScoutBuilding()));
    connect(mpUi_.stopMissionButton,SIGNAL(clicked()),this, SLOT(StopQuad()));
    connect(mpUi_.changeFlightModeButton,SIGNAL(clicked()),this, SLOT(ChangeFlightMode()));
-   connect(mpUi_.viewAccessPointsButton,SIGNAL(clicked()),this, SLOT(OpenAccessPointsMenu()));
-
+   connect(mpUi_.viewAccessPointsButton,SIGNAL(clicked()),this, SLOT(InitializeAccessPointsMenu()));
+   //connect(apmUi_.//, SIGNAL(()),this,SLOT(CloseAccessPointsMenu()));
    connect(mpUi_.armButton, SIGNAL(clicked()),this,SLOT(ArmSelectedQuad()));
    connect(mpUi_.disarmButton, SIGNAL(clicked()),this,SLOT(DisarmSelectedQuad()));
 
@@ -207,9 +213,95 @@ void SimpleGCS::ChangeFlightMode(){
 	}
 }
 
-void SimpleGCS::OpenAccessPointsMenu(){
-        apmUi_.AccessPointMenuLayout->addWidget(apsQWidget_);
-	apmQWidget_->show();
+void SimpleGCS::InitializeAccessPointsMenu(){
+
+    AccessPoint new_point;
+     AccessPoint new_point2;
+   // new_point.SetAltitude();
+
+    std::vector<AccessPoint> accessPointsVector = quadrotors[cur_uav].GetAccessPoints();
+
+   // quadrotors[cur_uav].GetAccessPoints().push_back(new_point);
+     accessPointsVector.push_back(new_point);
+      accessPointsVector.push_back(new_point2);
+    //Get our new number of Access points and create widgets for each access points
+
+    //int numOfAccessPoints = 2;
+    //int numOfAccessPoints = quadrotors[cur_uav].GetAccessPoints().size();
+      int numOfAccessPoints = accessPointsVector.size();
+
+    QWidget* apWidgets[numOfAccessPoints];
+    Ui::AccessPointStatsWidget apUiWidgets[numOfAccessPoints];
+
+
+    //clear out old list of Access points
+    for(int i = 0; i < accessPointsQWidgets_.size(); i++)
+    {
+        delete accessPointsQWidgets_.at(i);
+        accessPointsQWidgets_.at(i) = NULL;
+
+    }
+     accessPointsQWidgets_.clear();
+
+
+
+     //create  a new list of access points if there are any access points
+     if( numOfAccessPoints != 0){
+        for( int i = 0; i < numOfAccessPoints; i++){
+           // AccessPoint accessPoint = quadrotors[cur_uav].GetAccessPoints().at(i);
+              AccessPoint accessPoint = accessPointsVector.at(i);
+            accessPointsQWidgets_.push_back(apWidgets[i]);
+            accessPointsQWidgets_.at(i) = new QWidget();
+            apUiWidgets[i].setupUi(accessPointsQWidgets_.at(i));
+
+            //access point name
+            access_point_id.setNum(i+1);
+            access_point_temp_data = "Building ";
+            access_point_temp_data += access_point_id;
+            apUiWidgets[i].buildingNameLine->setText(access_point_temp_data);
+
+            //altitude
+            access_point_temp_data.setNum(accessPoint.GetAltitude().data,'f',2);
+            apUiWidgets[i].altitudeLineEdit->setText(access_point_temp_data);
+
+            //heading
+             access_point_temp_data.setNum(accessPoint.GetHeading().data,'f',2);
+             apUiWidgets[i].compassHeadingLineEdit->setText(access_point_temp_data);
+
+             //image
+             //accessPoint.GetImage().
+             // apUiWidgets[i].
+
+             //location longitude
+             access_point_temp_data.setNum(accessPoint.GetLocation().longitude,'f',2);
+             apUiWidgets[i].longitudeLineEdit->setText(access_point_temp_data);
+
+             //location latitude
+             access_point_temp_data.setNum(accessPoint.GetLocation().latitude,'f',2);
+             apUiWidgets[i].latitudeLineEdit->setText(access_point_temp_data);
+
+
+            //time
+            access_point_temp_data.setNum(accessPoint.GetTime().toSec(),'f',6);
+            apUiWidgets[i].captureTimeLineEdit->setText(access_point_temp_data);
+
+            apmUi_.AccessPointMenuLayout->addWidget(accessPointsQWidgets_.at(i));
+        }
+    }
+
+    // show the menu
+     temp_data = "UAV ";
+     quad_id.setNum(cur_uav+1);
+     temp_data += quad_id;
+     apmUi_.uavNameLineEdit->setText(temp_data);
+     apmQWidget_->show();
+     //test++;
+}
+
+void SimpleGCS::RefreshAccessPoints(){
+    ROS_INFO_STREAM("Access point menu closed");
+    delete accessPointsQWidgets_.at(0);
+    accessPointsQWidgets_.pop_back();
 }
 
 void SimpleGCS::QuadSelect(int quadNumber){

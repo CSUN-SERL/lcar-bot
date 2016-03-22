@@ -4,6 +4,7 @@
 
 void SetLabel(cv::Mat& im, cv::Rect r, const std::string label);
 void NegativeMining(Mat greyimg);
+void NegativeMiningSetup();
 void CategorizeObjects();
 void HogObjectDetection(Ptr<SVM> svm);
 void Run();
@@ -168,7 +169,7 @@ void CreateSVM() {
     if (user_input < 1 || user_input > 3)
         cout << "Invalid input\n";
     if (user_input==3)
-	return;
+	CreateSVM;
 
     feature_extraction = user_input;
 
@@ -219,7 +220,7 @@ void NegativeMiningSetup() {
     cout << neg_count;
 }
 
-//Perform negtative mining to reduce false positives
+//Perform negative mining to reduce false positives
 void NegativeMining(Mat greyimg) {
     MachineLearning ml;
     vector< float > hog_detector;
@@ -265,7 +266,7 @@ void NegativeMining(Mat greyimg) {
                 stringstream ss;
                 ss << neg;
                 string str = ss.str();
-                string destination = "/home/thomas/Pictures/Training/other/" + str + ".JPG";
+                string destination = "/home/murther/Pictures/Training/other/" + str + ".JPG";
                 imwrite(destination, Roi);
                 neg_count++;
             }
@@ -311,15 +312,21 @@ void DetectObjects() {
     thread thread_1(HogObjectDetection, svm);
     thread thread_2(CategorizeObjects);
 
-      if(thread_1.joinable()){
+    //  if(thread_1.joinable()){
         
         cout << "thread 1 detached";
-        thread_1.detach();
-    }
-    if(thread_2.joinable()){
-        cout << "thread 2";
-        thread_2.join();
-    }
+        thread_1.join();
+//        if(!thread_1.joinable()){
+//            ResetGlobals();
+//            destroyAllWindows();
+//            return;
+//        }
+    //}
+//    if(thread_2.joinable()){
+//        cout << "thread 2";
+       thread_2.join();
+//    }
+        
 }
 
 //Convert a vector mat into a single mat
@@ -607,14 +614,32 @@ void HogObjectDetection(Ptr<SVM> current_svm) {
         //people.detectMultiScale(img, locations);
         ml.DrawLocations(img, objects, reference, "door");
         imshow("video capture", img);
-        if (waitKey(10) >= 0){ //any key pressed
+        if (waitKey(10) == 27){ //any key pressed
             std::terminate(); //terminates all running threads
+            //ResetGlobals();
+//           cout << "keyPressed";
+//           //cap.release();
+//           //cv::VideoCapture
+//           ResetGlobals();
+//            destroyAllWindows();
+//            break;
+//            img;    
+            //src;
+            //return;
+            //CreateSVM();
+            
         }
     }
+//    destroyAllWindows();
+//    ResetGlobals();
+    return;
 }
 
 //While objects are being detected catergorize them and store the ones that are desired object
 void CategorizeObjects() {
+    Mat img_array[10];
+    int i=0;
+    stringstream file;
     const string modelLibPath = svm_name;
     svm = StatModel::load<SVM>(modelLibPath);
     MachineLearning ml;
@@ -633,10 +658,23 @@ void CategorizeObjects() {
             for (int j = 0; j < res.rows; j++) {
                 cout << res.at<float>(j, 0) << " " << "res " << res.rows << "\n";
                 //Show ROI
-                //                if (res.at<float>(j, 0) == 1) {
-                //                    categorized_labels.push(1);
-                //                    categorized_objects.push(object);
-                //                }
+                                if (res.at<float>(j, 0) == 1) {
+                                   
+                                   //categorized_labels.push(1);
+                                   //categorized_objects.push(object);
+                                    if(i<10){
+                                        file << "test--00" << i << ".png";
+                                        img_array[i] = imwrite(file.str() ,object );
+                                        imwrite(file.str() ,object );
+                                    }
+                                    else{
+                                        i=0;
+                                        cout << "finished";
+                                        namedWindow( "test", WINDOW_AUTOSIZE);
+                                        imshow("test", img_array[i]);
+                                    }
+                                    i++;
+                                }
             }
         }
     }
@@ -668,9 +706,12 @@ void MachineLearning::DrawLocations(Mat & img, const vector< Rect > & found, con
                 vector< Rect >::const_iterator loc = found.begin();
                 vector< Rect >::const_iterator end = found.end();
                 for (; loc != end; ++loc) {
-                    rectangle(img, *loc, color, 2);
-                    //SetLabel(img, *loc, label);
-                    detected_objects.push(img.clone());
+                    //rectangle(img, *loc, color, 2);
+                    //SetLabel(img, *.loc, label.);.
+                    Rect windows(loc->x, loc->y, loc->width, loc->height);
+                    Mat Roi = img(windows).clone();
+                    resize(Roi, Roi, Size(256,512));
+                    detected_objects.push(Roi);
 
                 }
 
@@ -706,8 +747,8 @@ void StaticTest(Mat img) {
     src = img;
     objects.clear();
     door_objects.clear();
-    //resize(img, img, Size(256, 512));
-    //resize(display, display, Size(562, 1000));
+    resize(img, img, Size(256, 512));
+    resize(display, display, Size(562, 1000));
     hog.gammaCorrection = true;
     hog.detectMultiScale(display, objects, true);
     //hog.detectMultiScale(display, objects, 0, Size(4,4), Size(0,0), 1.03, 2.0, true);
@@ -742,6 +783,7 @@ void StaticTest(Mat img) {
 }
 
 void ResetGlobals(){
+    cout <<"realease ";
     labels.release();
     src.release();
     trainingdata.clear();

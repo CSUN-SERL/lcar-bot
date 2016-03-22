@@ -2,40 +2,34 @@
 	<!-- vim: set ft=xml noet : -->
 	<!-- example launch script for APM based FCU's -->
 
-	<arg name="fcu_url1" default="udp://localhost:14580@" />
-	<arg name="gcs_url1" default="" />
-	<arg name="tgt_system1" default="1" />
-	<arg name="tgt_component1" default="1" />
-	<arg name="log_output1" default="screen" />
-
-	<arg name="fcu_url2" default="udp://localhost:14590@" />
-	<arg name="gcs_url2" default="" />
-	<arg name="tgt_system2" default="2" />
-	<arg name="tgt_component2" default="1" />
-	<arg name="log_output2" default="screen" />
-
 	<include file="$(find rqt_gcs)/launch/node_UAV.launch">
-		<arg name="pluginlists_yaml" value="$(find mavros)/launch/px4_pluginlists.yaml" />
-		<arg name="config_yaml" value="$(find mavros)/launch/apm_config.yaml" />
-
-		<arg name="fcu_url" value="$(arg fcu_url1)" />
-		<arg name="gcs_url" value="$(arg gcs_url1)" />
-		<arg name="tgt_system" value="$(arg tgt_system1)" />
-		<arg name="tgt_component" value="$(arg tgt_component1)" />
+		<arg name="fcu_url" value="udp://localhost:14580@" />
+		<arg name="tgt_system" value="1" />
 		<arg name="namespace" value="UAV1" />
-		<arg name="log_output" value="$(arg log_output1)" />
 	</include>
 
 	<include file="$(find rqt_gcs)/launch/node_UAV.launch">
-		<arg name="pluginlists_yaml" value="$(find mavros)/launch/px4_pluginlists.yaml" />
-		<arg name="config_yaml" value="$(find mavros)/launch/apm_config.yaml" />
-
-		<arg name="fcu_url" value="$(arg fcu_url2)" />
-		<arg name="gcs_url" value="$(arg gcs_url2)" />
-		<arg name="tgt_system" value="$(arg tgt_system2)" />
-		<arg name="tgt_component" value="$(arg tgt_component2)" />
+		<arg name="fcu_url" value="udp://localhost:14590@" />
+		<arg name="tgt_system" value="2" />
 		<arg name="namespace" value="UAV2" />
-		<arg name="log_output" value="$(arg log_output2)" />
+	</include>
+
+	<include file="$(find rqt_gcs)/launch/node_UAV.launch">
+		<arg name="fcu_url" value="udp://localhost:15110@" />
+		<arg name="tgt_system" value="3" />
+		<arg name="namespace" value="UAV3" />
+	</include>
+
+	<include file="$(find rqt_gcs)/launch/node_UAV.launch">
+		<arg name="fcu_url" value="udp://localhost:15120@" />
+		<arg name="tgt_system" value="4" />
+		<arg name="namespace" value="UAV4" />
+	</include>
+
+	<include file="$(find rqt_gcs)/launch/node_UAV.launch">
+		<arg name="fcu_url" value="udp://localhost:15130@" />
+		<arg name="tgt_system" value="5" />
+		<arg name="namespace" value="UAV5" />
 	</include>
 
 </launch>
