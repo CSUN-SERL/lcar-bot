@@ -2,6 +2,7 @@
 #define rqt_gcs__SimpleGCS_H
 
 #include <ros/ros.h>
+#include <ros/common.h>
 #include <rqt_gui_cpp/plugin.h>
 #include <rqt_gcs/simple_control.h>
 
@@ -67,8 +68,8 @@ namespace rqt_gcs{
     virtual void ScoutBuilding();
     virtual void StopQuad();
     virtual void ChangeFlightMode();
-    virtual void InitializeAccessPointsMenu();
-    virtual void RefreshAccessPoints();
+    virtual void RefreshAccessPointsMenu();
+    virtual void DeleteAccessPoint(QWidget*);
     virtual void QuadSelect(int);
     virtual void ArmSelectedQuad();
     virtual void DisarmSelectedQuad();
@@ -77,7 +78,7 @@ namespace rqt_gcs{
     void UpdatePFD();
     int cur_uav = 0;
     SimpleControl quadrotors[NUM_UAV] = {};
-
+    std::vector<AccessPoint>* accessPointsVector;
 
     cv::Mat conversion_mat_;
     image_transport::Subscriber sub_stereo = it_stereo.subscribe("stereo_cam/left/image_raw", 1, &SimpleGCS::ImageCallback, this);

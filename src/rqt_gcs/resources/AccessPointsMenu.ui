@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>587</width>
-    <height>505</height>
+    <width>633</width>
+    <height>584</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,8 +24,18 @@
 color: rgb(236, 236, 236);
 border-radius: 5px;</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="2" column="0">
+  <layout class="QGridLayout" name="gridLayout_2">
+   <item row="0" column="0">
+    <widget class="QLabel" name="uavAccespointsLabel">
+     <property name="text">
+      <string>Access Points</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
     <widget class="QLineEdit" name="uavNameLineEdit">
      <property name="text">
       <string>Uav 1</string>
@@ -35,37 +45,50 @@ border-radius: 5px;</string>
      </property>
     </widget>
    </item>
-   <item row="7" column="0">
-    <layout class="QVBoxLayout" name="AccessPointMenuLayout">
-     <property name="spacing">
-      <number>6</number>
+   <item row="2" column="0">
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
      </property>
-     <property name="sizeConstraint">
-      <enum>QLayout::SetDefaultConstraint</enum>
+     <property name="widgetResizable">
+      <bool>true</bool>
      </property>
-     <item>
-      <spacer name="verticalSpacer">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>40</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-    </layout>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="uavAccespointsLabel">
-     <property name="text">
-      <string>Access Points</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>615</width>
+        <height>518</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
+        <layout class="QVBoxLayout" name="AccessPointMenuLayout">
+         <property name="spacing">
+          <number>6</number>
+         </property>
+         <property name="sizeConstraint">
+          <enum>QLayout::SetDefaultConstraint</enum>
+         </property>
+         <item>
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>17</width>
+             <height>37</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+      </layout>
+      <zorder></zorder>
+     </widget>
     </widget>
    </item>
   </layout>

@@ -253,7 +253,7 @@ public:
   FlightState GetFlightState() { return UpdateFlightState(); }
   int GetDistanceToWP() { return CalculateDistance(pose_target, pose_local); }
   float GetMissionProgress();
-  std::vector<AccessPoint> GetAccessPoints() { return access_pts; }
+  std::vector<AccessPoint>* GetRefAccessPoints() { return &access_pts; }
 
 private:
   void InitialSetup();
