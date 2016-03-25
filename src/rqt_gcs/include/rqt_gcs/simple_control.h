@@ -37,9 +37,10 @@
 #define TIMEOUT 3*CHECK_FREQUENCY //3 Second timeout
 #define TRAVEL_WT 0.5
 #define SCOUT_WT 0.5
-#define THRESHOLD_XY 0.01
-#define THRESHOLD_Z 0.01
-#define THRESHOLD_YAW 0.01
+#define THRESHOLD_XY 0.05
+#define THRESHOLD_Z 0.05
+#define THRESHOLD_YAW 0.1
+#define THRESHOLD_DEPTH 0.8
 #define ALT_RTL 1
 #define BATTERY_MIN 0.30  //Minimum battery level for RTL
 #define DEF_NS "UAV"
@@ -171,7 +172,7 @@ public:
       //NOTE: setpoint_attitude/attitude is currently not supported on the APM
       flight stack. Only the px4 flight stack is supported at the moment.
 
-      @param roll   New roll value in degrees, relative to the horizontal plane
+      @param roll   New roll value in degrees, relastd::tive to the horizontal plane
       @param pitch  New pitch value in degrees, relative to the horizontal plane
       @param yaw    New yaw value in degrees, relative to the horizontal plane
   */
@@ -267,7 +268,7 @@ private:
   void VelocityCallback(const geometry_msgs::TwistStamped& msg_vel) { velocity = msg_vel; }
   void NavSatFixCallback(const sensor_msgs::NavSatFix& msg_gps) { pos_global = msg_gps; }
   void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) { pose_local = msg_pos.pose; }
-  void VrpnCallback(const geometry_msgs::PoseStamped& msg_pos) {pub_mocap.publish(msg_pos);}
+  void DepthCallback(const std_msgs::Float64& msg_depth){ object_distance = msg_depth; }
   void DetectionCallback(const sensor_msgs::Image& msg_detection)
   {
       AccessPoint new_point;
@@ -297,8 +298,7 @@ private:
                       pub_setpoint_attitude,
                       pub_angular_vel,
                       pub_linear_vel,
-                      pub_setpoint_accel,
-                      pub_mocap;
+                      pub_setpoint_accel;
   ros::Subscriber     sub_state,
                       sub_battery,
                       sub_imu,
@@ -308,6 +308,7 @@ private:
                       sub_heading,
                       sub_vel,
                       sub_vrpn,
+                      sub_depth,
                       sub_detection;
 
   //UAV State Variables
@@ -322,7 +323,8 @@ private:
                                 pose_home,
                                 pose_previous;
   std_msgs::Float64             altitude_rel,
-                                heading_deg;
+                                heading_deg,
+                                object_distance;
   std::vector<AccessPoint>      access_pts;
   Mode                          goal = idle;
   ros::Time                     last_request;
