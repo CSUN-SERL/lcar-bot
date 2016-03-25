@@ -267,7 +267,6 @@ private:
   void VelocityCallback(const geometry_msgs::TwistStamped& msg_vel) { velocity = msg_vel; }
   void NavSatFixCallback(const sensor_msgs::NavSatFix& msg_gps) { pos_global = msg_gps; }
   void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) { pose_local = msg_pos.pose; }
-  void VrpnCallback(const geometry_msgs::PoseStamped& msg_pos) {pub_mocap.publish(msg_pos);}
   void DetectionCallback(const sensor_msgs::Image& msg_detection)
   {
       AccessPoint new_point;
@@ -297,8 +296,7 @@ private:
                       pub_setpoint_attitude,
                       pub_angular_vel,
                       pub_linear_vel,
-                      pub_setpoint_accel,
-                      pub_mocap;
+                      pub_setpoint_accel;
   ros::Subscriber     sub_state,
                       sub_battery,
                       sub_imu,
