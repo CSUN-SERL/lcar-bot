@@ -5,7 +5,9 @@
 #include <ros/common.h>
 #include <rqt_gui_cpp/plugin.h>
 #include <rqt_gcs/simple_control.h>
-
+#include <rqt_gcs/PictureQuery.h>
+#include <std_srvs/Empty.h>
+#include <rqt_gcs/pictureQuestion.h>
 #include <pluginlib/class_list_macros.h>
 #include <iomanip>
 #include <stdio.h>
@@ -42,7 +44,11 @@
 
 #define NUM_UAV 5 //Total number of UAV's in the system
 
+
+
 namespace rqt_gcs{
+
+
 
   class SimpleGCS: public rqt_gui_cpp::Plugin
   {
@@ -50,7 +56,11 @@ namespace rqt_gcs{
   public:
     SimpleGCS();
     ros::Subscriber sub;
+    ros::Publisher pub;
     ros::NodeHandle nh;
+    ros::ServiceServer server;
+    rqt_gcs::PictureQuery msg;
+
     image_transport::ImageTransport it_stereo{nh};
     void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
@@ -79,6 +89,8 @@ namespace rqt_gcs{
     int cur_uav = 0;
     SimpleControl quadrotors[NUM_UAV] = {};
     std::vector<AccessPoint>* accessPointsVector;
+    bool pictureTest(rqt_gcs::pictureQuestion::Request&,
+                     rqt_gcs::pictureQuestion::Response&);
 
     cv::Mat conversion_mat_;
     image_transport::Subscriber sub_stereo = it_stereo.subscribe("stereo_cam/left/image_raw", 1, &SimpleGCS::ImageCallback, this);
@@ -93,7 +105,6 @@ namespace rqt_gcs{
     Ui::UAVConditionWidget uavCondWidgetArr[NUM_UAV];
     Ui::AccessPointsMenuWidget apmUi_;
 
-    //std::vector<Ui::AccessPointStatsWidget> accessPointsUiForms_;
 
     QWidget* widget_;
     QWidget* missionProgressWidget_;
@@ -114,6 +125,7 @@ namespace rqt_gcs{
     QString access_point_temp_data;
     QString access_point_id;
     QSignalMapper* signal_mapper;
+
 
   };
 } // namespace

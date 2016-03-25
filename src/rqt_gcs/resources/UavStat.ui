@@ -51,6 +51,15 @@ border-radius: 5px;</string>
      <property name="styleSheet">
       <string notr="true">background-color: rgb(68, 80, 113);</string>
      </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
    <item>

@@ -2,12 +2,23 @@
 
 namespace rqt_gcs {
 
+bool SimpleGCS::pictureTest(
+        rqt_gcs::pictureQuestion::Request &req,
+        rqt_gcs::pictureQuestion::Response &resp
+        ){
+
+    resp.accept = true;
+    return true;
+}
+
 SimpleGCS::SimpleGCS()
   : rqt_gui_cpp::Plugin()
   , widget_(0)
 {
   //Constructor is called first before initPlugin function
   setObjectName("LCAR Bot GCS");
+
+  // pub = nh.advertise<rqt_gcs::pictureQuery> ("rqt_gcs/picture_query",1000);
 }
 
 void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
@@ -34,7 +45,6 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
     uavListWidgetArr[i] = new QWidget();
     uavCondWidgetArr[i].setupUi(uavListWidgetArr[i]);
     uavCondWidgetArr[i].VehicleSelectButton->setText(std::to_string(i+1).c_str());
-    //uavCondWidgetArr[i].VehicleNameLine->setText(std::to_string(i).append("UAV ",0).c_str());
     uavCondWidgetArr[i].VehicleNameLine->setText(temp_data);
  }
 
@@ -104,10 +114,17 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
    accessPointsVector->push_back(new_point5);
    accessPointsVector->push_back(new_point6);
 
+   //server = nh.advertiseService("picture_Test",&SimpleGCS::pictureTest, this);
+
+
+
+   //msg.picture_id = "pictureyes";
 }
 
 //Timed update of for the GCS
 void SimpleGCS::TimedUpdate(){
+
+  //pub.publish(msg);
 
   quad_id.setNum(cur_uav+1);
   SimpleControl quad = quadrotors[cur_uav];
@@ -235,6 +252,8 @@ void SimpleGCS::ChangeFlightMode(){
 
 void SimpleGCS::RefreshAccessPointsMenu(){
 
+
+
     //retreive access points
     accessPointsVector = quadrotors[cur_uav].GetRefAccessPoints();
 
@@ -318,6 +337,7 @@ void SimpleGCS::RefreshAccessPointsMenu(){
      temp_data += quad_id;
      apmUi_.uavNameLineEdit->setText(temp_data);
      apmQWidget_->show();
+
      //test++;
 }
 
