@@ -66,6 +66,7 @@ void SimpleControl::InitialSetup()
     sub_vel        = nh.subscribe(ns + "/mavros/local_position/velocity", QUEUE_SIZE, &SimpleControl::VelocityCallback, this);
     sub_pos_global = nh.subscribe(ns + "/mavros/global_position/global", QUEUE_SIZE, &SimpleControl::NavSatFixCallback, this);
     sub_pos_local  = nh.subscribe(ns + "/mavros/local_position/pose", QUEUE_SIZE, &SimpleControl::LocalPosCallback, this);
+    sub_depth      = nh.subscribe(ns + "/object_avoidance/depth", QUEUE_SIZE, &SimpleControl::DepthCallback, this);
     sub_detection  = nh.subscribe(ns + "/object_detection/door", QUEUE_SIZE, &SimpleControl::DetectionCallback, this);
 
     //Set Home position
@@ -400,9 +401,9 @@ int SimpleControl::ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pos
 {
   int result;
 
-  if( fabs(fabs(pose2.position.x) - fabs(pose1.position.x)) <= THRESHOLD_XY  &&
-      fabs(fabs(pose2.position.y) - fabs(pose1.position.y)) <= THRESHOLD_XY  &&
-      fabs(fabs(pose2.position.z) - fabs(pose1.position.z)) <= THRESHOLD_Z   /*&&
+  if( std::abs(std::abs(pose2.position.x) - std::abs(pose1.position.x)) <= THRESHOLD_XY  &&
+      std::abs(std::abs(pose2.position.y) - std::abs(pose1.position.y)) <= THRESHOLD_XY  &&
+      std::abs(std::abs(pose2.position.z) - std::abs(pose1.position.z)) <= THRESHOLD_Z   /*&&
       abs(pose2.orientation.z - pose1.orientation.z) <= THRESHOLD_YAW*/){
     result = 0;
   }
@@ -487,10 +488,16 @@ geometry_msgs::Pose SimpleControl::DiamondShape(int index){
 
 void SimpleControl::Run()
 {
-  /*if(battery.remaining < BATTERY_MIN){
+  //Sanity Checks
+  if(object_distance.data < THRESHOLD_DEPTH){
+    //Collision Imminent! Land.
+    goal = land;
+  }
+  else if(battery.remaining < BATTERY_MIN){
     //Return to launch site if battery is starting to get low
-    goal = RTL;
-  }*/
+    goal = rtl;
+  }
+
   if(goal == travel){
     if(ComparePosition(pose_local, pose_target) == 0){
       //Vehicle is at target location => Scout Building
@@ -500,7 +507,7 @@ void SimpleControl::Run()
       goal = land;
       ROS_DEBUG_STREAM_ONCE("Scouting Building.");
     }
-    else if(fabs(fabs(pose_local.position.z) - fabs(pose_target.position.z)) <= THRESHOLD_Z){
+    else if(std::abs(std::abs(pose_local.position.z) - std::abs(pose_target.position.z)) <= THRESHOLD_Z){
       //Achieved the proper altitude => Go to target location
       this->SetLocalPosition(pose_target);
     }
@@ -533,8 +540,8 @@ void SimpleControl::Run()
       //Vehicle is at target location => Disarm
       goal = disarm;
     }
-    else if(fabs(fabs(pose_local.position.x) - fabs(pose_target.position.x)) <= THRESHOLD_XY &&
-            fabs(fabs(pose_local.position.y) - fabs(pose_target.position.y)) <= THRESHOLD_XY){
+    else if(std::abs(std::abs(pose_local.position.x) - std::abs(pose_target.position.x)) <= THRESHOLD_XY &&
+            std::abs(std::abs(pose_local.position.y) - std::abs(pose_target.position.y)) <= THRESHOLD_XY){
       this->SetLocalPosition(pose_local.position.x, pose_local.position.y, 0);
       goal = land;
     }
