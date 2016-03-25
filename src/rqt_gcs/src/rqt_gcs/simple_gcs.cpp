@@ -70,8 +70,7 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
    connect(mpUi_.scoutBuildingButton, SIGNAL(clicked()),this, SLOT(ScoutBuilding()));
    connect(mpUi_.stopMissionButton,SIGNAL(clicked()),this, SLOT(StopQuad()));
    connect(mpUi_.changeFlightModeButton,SIGNAL(clicked()),this, SLOT(ChangeFlightMode()));
-   connect(mpUi_.viewAccessPointsButton,SIGNAL(clicked()),this, SLOT(InitializeAccessPointsMenu()));
-   //connect(apmUi_.//, SIGNAL(()),this,SLOT(CloseAccessPointsMenu()));
+   connect(mpUi_.viewAccessPointsButton,SIGNAL(clicked()),this, SLOT(RefreshAccessPointsMenu()));
    connect(mpUi_.armButton, SIGNAL(clicked()),this,SLOT(ArmSelectedQuad()));
    connect(mpUi_.disarmButton, SIGNAL(clicked()),this,SLOT(DisarmSelectedQuad()));
 
@@ -88,6 +87,23 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
    update_timer = new QTimer(this);
    connect(update_timer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
    update_timer->start(100);
+
+
+   //set up access points
+   AccessPoint new_point;
+   AccessPoint new_point2;
+   AccessPoint new_point3;
+   AccessPoint new_point4;
+   AccessPoint new_point5;
+   AccessPoint new_point6;
+   accessPointsVector = quadrotors[0].GetRefAccessPoints();
+   accessPointsVector->push_back(new_point);
+   accessPointsVector->push_back(new_point2);
+   accessPointsVector->push_back(new_point3);
+   accessPointsVector->push_back(new_point4);
+   accessPointsVector->push_back(new_point5);
+   accessPointsVector->push_back(new_point6);
+
 }
 
 //Timed update of for the GCS
@@ -97,6 +113,8 @@ void SimpleGCS::TimedUpdate(){
   SimpleControl quad = quadrotors[cur_uav];
 
   temp_data = quad.GetState().mode.c_str();
+  temp_data += ":";
+  temp_data += quad.GetState().armed;
   usUi_.flightModeDisplay->setText(temp_data);
 
   temp_data.setNum(quad.GetFlightState().yaw,'f',2);
@@ -144,6 +162,8 @@ void SimpleGCS::TimedUpdate(){
   for(int i = 0; i < NUM_UAV; i++){
    temp_data.setNum(quadrotors[i].GetBatteryStatus().remaining*100);
    uavCondWidgetArr[i].VehicleBatteryLine->setText(temp_data);
+   temp_data =  quadrotors[i].GetState().mode.c_str();
+   uavCondWidgetArr[i].VehicleConditionLine->setText(temp_data);
   }
 
 }
@@ -213,28 +233,20 @@ void SimpleGCS::ChangeFlightMode(){
 	}
 }
 
-void SimpleGCS::InitializeAccessPointsMenu(){
+void SimpleGCS::RefreshAccessPointsMenu(){
 
-    AccessPoint new_point;
-     AccessPoint new_point2;
-   // new_point.SetAltitude();
+    //retreive access points
+    accessPointsVector = quadrotors[cur_uav].GetRefAccessPoints();
 
-    std::vector<AccessPoint> accessPointsVector = quadrotors[cur_uav].GetAccessPoints();
-
-   // quadrotors[cur_uav].GetAccessPoints().push_back(new_point);
-     accessPointsVector.push_back(new_point);
-      accessPointsVector.push_back(new_point2);
     //Get our new number of Access points and create widgets for each access points
+    int numOfAccessPoints = accessPointsVector->size();
 
-    //int numOfAccessPoints = 2;
-    //int numOfAccessPoints = quadrotors[cur_uav].GetAccessPoints().size();
-      int numOfAccessPoints = accessPointsVector.size();
-
+    //create widgets for access points
     QWidget* apWidgets[numOfAccessPoints];
     Ui::AccessPointStatsWidget apUiWidgets[numOfAccessPoints];
 
 
-    //clear out old list of Access points
+    //clear out old list of Access points widgets
     for(int i = 0; i < accessPointsQWidgets_.size(); i++)
     {
         delete accessPointsQWidgets_.at(i);
@@ -244,15 +256,25 @@ void SimpleGCS::InitializeAccessPointsMenu(){
      accessPointsQWidgets_.clear();
 
 
-
      //create  a new list of access points if there are any access points
      if( numOfAccessPoints != 0){
         for( int i = 0; i < numOfAccessPoints; i++){
-           // AccessPoint accessPoint = quadrotors[cur_uav].GetAccessPoints().at(i);
-              AccessPoint accessPoint = accessPointsVector.at(i);
+
+          //retrive access point
+          AccessPoint accessPoint = accessPointsVector->at(i);
+
+          //add widget to the list
             accessPointsQWidgets_.push_back(apWidgets[i]);
             accessPointsQWidgets_.at(i) = new QWidget();
+
+            //set up the ui
             apUiWidgets[i].setupUi(accessPointsQWidgets_.at(i));
+
+            //map signal to the delete button
+             signal_mapper->setMapping(apUiWidgets[i].deleteAccessPointButton,accessPointsQWidgets_.at(i));
+
+             connect(apUiWidgets[i].deleteAccessPointButton,SIGNAL(clicked()),signal_mapper, SLOT(map()));
+
 
             //access point name
             access_point_id.setNum(i+1);
@@ -280,13 +302,14 @@ void SimpleGCS::InitializeAccessPointsMenu(){
              access_point_temp_data.setNum(accessPoint.GetLocation().latitude,'f',2);
              apUiWidgets[i].latitudeLineEdit->setText(access_point_temp_data);
 
-
             //time
             access_point_temp_data.setNum(accessPoint.GetTime().toSec(),'f',6);
             apUiWidgets[i].captureTimeLineEdit->setText(access_point_temp_data);
 
             apmUi_.AccessPointMenuLayout->addWidget(accessPointsQWidgets_.at(i));
         }
+        connect(signal_mapper, SIGNAL(mapped(QWidget*)),this, SLOT(DeleteAccessPoint(QWidget*)));
+
     }
 
     // show the menu
@@ -298,10 +321,18 @@ void SimpleGCS::InitializeAccessPointsMenu(){
      //test++;
 }
 
-void SimpleGCS::RefreshAccessPoints(){
-    ROS_INFO_STREAM("Access point menu closed");
-    delete accessPointsQWidgets_.at(0);
-    accessPointsQWidgets_.pop_back();
+void SimpleGCS::DeleteAccessPoint(QWidget* w){
+   // ROS_INFO_STREAM("Access point menu closed");
+
+        int deleteIndex = apmUi_.AccessPointMenuLayout->indexOf(w);
+        //ROS_INFO_STREAM("Access point %d Deleted" << deleteIndex);
+
+       // accessPointsVector->at(deleteIndex);
+
+
+        apmUi_.AccessPointMenuLayout->removeWidget(w);
+        delete w;
+
 }
 
 void SimpleGCS::QuadSelect(int quadNumber){

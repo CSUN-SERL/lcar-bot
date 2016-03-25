@@ -7,6 +7,8 @@ int main(int argc, char **argv)
 
   ros::Rate loop_rate(10); //10Hz
 
+  quad1.ScoutBuilding(0,0,0.5);
+
   while(ros::ok())
   {
     quad1.Run();
@@ -296,10 +298,10 @@ void SimpleControl::SetLocalPosition(float x, float y, float z, float yaw = 0)
   geometry_msgs::PoseStamped position_stamped;
 
   //Update the message with the new position
-  position_stamped.pose.position.x      = x;
-  position_stamped.pose.position.y      = y;
-  position_stamped.pose.position.z      = z;
-  position_stamped.pose.orientation.z   = yaw;
+  position_stamped.pose.position.x = x;
+  position_stamped.pose.position.y = y;
+  position_stamped.pose.position.z = z;
+  quaternionTFToMsg(tf::createQuaternionFromYaw(yaw), pose_target.orientation);
 
   //Publish the message
   pub_setpoint_position.publish(position_stamped);
@@ -374,17 +376,22 @@ void SimpleControl::SetAcceleration(float x, float y, float z)
 //TODO: Fix Roll, Pitch, Yaw, and Ground Speed values
 FlightState SimpleControl::UpdateFlightState()
 {
-
-
   struct FlightState flight_state;
 
-  flight_state.roll = imu.orientation.x; //Update Roll value
-  flight_state.pitch = imu.orientation.y; //Update Pitch Value
-  flight_state.yaw = imu.orientation.z; //Update Yaw Value
-  flight_state.heading = heading_deg.data; //Update heading [degrees]
-  flight_state.altitude = altitude_rel.data; //Update Altitude [m]
-  flight_state.ground_speed = velocity.twist.linear.x; //Global Velocity X [m/s]
-  flight_state.vertical_speed = velocity.twist.linear.z; //Global Velocity vertical [m/s]
+  tf::Quaternion quaternion_tf;
+  tf::quaternionMsgToTF(imu.orientation, quaternion_tf);
+  tf::Matrix3x3 m{quaternion_tf};
+
+  double roll, pitch, yaw;
+  m.getRPY(roll, pitch, yaw);
+
+  flight_state.roll = roll;     //Update Roll value
+  flight_state.pitch = pitch;   //Update Pitch Value
+  flight_state.yaw = yaw;       //Update Yaw Value
+  flight_state.heading = heading_deg.data;  //Update heading [degrees]
+  flight_state.altitude = altitude_rel.data;//Update Altitude [m]
+  flight_state.ground_speed = velocity.twist.linear.x;  //Global Velocity X [m/s]
+  flight_state.vertical_speed = velocity.twist.linear.z;//Global Velocity vertical [m/s]
 
   return flight_state;
 }
@@ -393,15 +400,15 @@ int SimpleControl::ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pos
 {
   int result;
 
-  if( abs(pose2.position.x - pose1.position.x) <= THRESHOLD_XY  &&
-      abs(pose2.position.y - pose1.position.y) <= THRESHOLD_XY  &&
-      abs(pose2.position.z - pose1.position.z) <= THRESHOLD_Z   /*&&
+  if( fabs(fabs(pose2.position.x) - fabs(pose1.position.x)) <= THRESHOLD_XY  &&
+      fabs(fabs(pose2.position.y) - fabs(pose1.position.y)) <= THRESHOLD_XY  &&
+      fabs(fabs(pose2.position.z) - fabs(pose1.position.z)) <= THRESHOLD_Z   /*&&
       abs(pose2.orientation.z - pose1.orientation.z) <= THRESHOLD_YAW*/){
     result = 0;
   }
   else result = 1;
 
-  return 1;
+  return result;
 }
 
 int SimpleControl::CalculateDistance(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
@@ -493,7 +500,7 @@ void SimpleControl::Run()
       goal = land;
       ROS_DEBUG_STREAM_ONCE("Scouting Building.");
     }
-    else if(abs(pose_local.position.z - pose_target.position.z) <= THRESHOLD_Z){
+    else if(fabs(fabs(pose_local.position.z) - fabs(pose_target.position.z)) <= THRESHOLD_Z){
       //Achieved the proper altitude => Go to target location
       this->SetLocalPosition(pose_target);
     }
@@ -526,7 +533,8 @@ void SimpleControl::Run()
       //Vehicle is at target location => Disarm
       goal = disarm;
     }
-    else if(abs(pose_local.position.x - pose_target.position.x) <= THRESHOLD_XY && abs(pose_local.position.y - pose_target.position.y) <= THRESHOLD_XY){
+    else if(fabs(fabs(pose_local.position.x) - fabs(pose_target.position.x)) <= THRESHOLD_XY &&
+            fabs(fabs(pose_local.position.y) - fabs(pose_target.position.y)) <= THRESHOLD_XY){
       this->SetLocalPosition(pose_local.position.x, pose_local.position.y, 0);
       goal = land;
     }

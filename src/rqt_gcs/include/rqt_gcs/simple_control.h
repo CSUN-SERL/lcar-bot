@@ -37,9 +37,9 @@
 #define TIMEOUT 3*CHECK_FREQUENCY //3 Second timeout
 #define TRAVEL_WT 0.5
 #define SCOUT_WT 0.5
-#define THRESHOLD_XY 0.01
-#define THRESHOLD_Z 0.01
-#define THRESHOLD_YAW 0.01
+#define THRESHOLD_XY 0.05
+#define THRESHOLD_Z 0.05
+#define THRESHOLD_YAW 0.1
 #define ALT_RTL 1
 #define BATTERY_MIN 0.30  //Minimum battery level for RTL
 #define DEF_NS "UAV"
@@ -253,7 +253,7 @@ public:
   FlightState GetFlightState() { return UpdateFlightState(); }
   int GetDistanceToWP() { return CalculateDistance(pose_target, pose_local); }
   float GetMissionProgress();
-  std::vector<AccessPoint> GetAccessPoints() { return access_pts; }
+  std::vector<AccessPoint>* GetRefAccessPoints() { return &access_pts; }
 
 private:
   void InitialSetup();
