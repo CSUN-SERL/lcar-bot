@@ -171,7 +171,8 @@ void SimpleControl::SetMode(std::string mode)
     else ROS_ERROR_STREAM("Failed to change flight mode to " << mode << ".");
   }
   else{
-    ROS_ERROR_STREAM("Failed to call new_mode service!");
+    ROS_INFO_STREAM("Mode: " << mode);
+    ROS_ERROR_STREAM("Failed to call change flight mode service!");
   }
 }
 
@@ -379,16 +380,16 @@ FlightState SimpleControl::UpdateFlightState()
 {
   struct FlightState flight_state;
 
-  tf::Quaternion quaternion_tf;
+  /*tf::Quaternion quaternion_tf;
   tf::quaternionMsgToTF(imu.orientation, quaternion_tf);
   tf::Matrix3x3 m{quaternion_tf};
 
   double roll, pitch, yaw;
-  m.getRPY(roll, pitch, yaw);
+  m.getRPY(roll, pitch, yaw);*/
 
-  flight_state.roll = roll;     //Update Roll value
-  flight_state.pitch = pitch;   //Update Pitch Value
-  flight_state.yaw = yaw;       //Update Yaw Value
+  flight_state.roll = imu.orientation.x;     //Update Roll value
+  flight_state.pitch = imu.orientation.y;   //Update Pitch Value
+  flight_state.yaw = imu.orientation.z;       //Update Yaw Value
   flight_state.heading = heading_deg.data;  //Update heading [degrees]
   flight_state.altitude = altitude_rel.data;//Update Altitude [m]
   flight_state.ground_speed = velocity.twist.linear.x;  //Global Velocity X [m/s]
@@ -488,7 +489,7 @@ geometry_msgs::Pose SimpleControl::DiamondShape(int index){
 
 void SimpleControl::Run()
 {
-  //Sanity Checks
+  /*//Sanity Checks
   if(object_distance.data < THRESHOLD_DEPTH){
     //Collision Imminent! Land.
     goal = land;
@@ -496,7 +497,7 @@ void SimpleControl::Run()
   else if(battery.remaining < BATTERY_MIN){
     //Return to launch site if battery is starting to get low
     goal = rtl;
-  }
+  }*/
 
   if(goal == travel){
     if(ComparePosition(pose_local, pose_target) == 0){
