@@ -56,6 +56,7 @@ void SimpleControl::InitialSetup()
     pub_angular_vel       = nh.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
     pub_linear_vel        = nh.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_velocity/cmd_vel",QUEUE_SIZE);
     pub_setpoint_accel    = nh.advertise<geometry_msgs::Vector3Stamped>(ns + "/mavros/setpoint_accel/accel",QUEUE_SIZE);
+    pub_door_answer       = nh.advertise<rqt_gcs::PictureQuery>(ns + "/object_detection/door/answer",QUEUE_SIZE);
 
     //Initialze Subscribers
     sub_state      = nh.subscribe(ns + "/mavros/state", QUEUE_SIZE, &SimpleControl::StateCallback, this);
@@ -67,7 +68,8 @@ void SimpleControl::InitialSetup()
     sub_pos_global = nh.subscribe(ns + "/mavros/global_position/global", QUEUE_SIZE, &SimpleControl::NavSatFixCallback, this);
     sub_pos_local  = nh.subscribe(ns + "/mavros/local_position/pose", QUEUE_SIZE, &SimpleControl::LocalPosCallback, this);
     sub_depth      = nh.subscribe(ns + "/object_avoidance/depth", QUEUE_SIZE, &SimpleControl::DepthCallback, this);
-    sub_detection  = nh.subscribe(ns + "/object_detection/door", QUEUE_SIZE, &SimpleControl::DetectionCallback, this);
+    sub_door_query = nh.subscribe(ns + "/object_detection/door/query", QUEUE_SIZE, &SimpleControl::DoorQueryCallback, this);
+    sub_detection  = nh.subscribe(ns + "/object_detection/access_point", QUEUE_SIZE, &SimpleControl::DetectionCallback, this);
 
     //Set Home position
     pose_home.position.x = pose_home.position.y = pose_home.position.z = 0;

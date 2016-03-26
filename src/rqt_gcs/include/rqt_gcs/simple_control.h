@@ -31,6 +31,7 @@
 #include <geometry_msgs/Vector3Stamped.h>
 
 #include <rqt_gcs/access_point.h>
+#include<rqt_gcs/PictureQuery.h>
 
 #define QUEUE_SIZE 100            //Message Queue size for publishers
 #define CHECK_FREQUENCY 1         //Frequency for checking change of state
@@ -210,6 +211,35 @@ public:
   void SetAcceleration(float x, float y, float z);
 
   /**
+      Manage the UAV and ensure that it is stable
+  */
+  void Run();
+
+  /**
+      Return to launch site
+  */
+  void SetRTL() { goal = rtl; }
+
+  /**
+      Manage the UAV and ensure that it is stable
+  */
+  void SendDoorResponse(rqt_gcs::PictureQuery msg_answer) { pub_door_answer.publish(msg_answer); }
+
+  //Getter Functions
+  mavros_msgs::State GetState() { return state; }
+  mavros_msgs::BatteryStatus GetBatteryStatus() { return battery; }
+  sensor_msgs::Imu  GetImu() { return imu; }
+  FlightState GetFlightState() { return UpdateFlightState(); }
+  int GetDistanceToWP() { return CalculateDistance(pose_target, pose_local); }
+  float GetMissionProgress();
+  std::vector<AccessPoint>* GetRefAccessPoints() { return &access_pts; }
+  std::vector<rqt_gcs::PictureQuery>* GetDoorQueries() { return &queries_door; }
+
+private:
+  void InitialSetup();
+
+  //Private Class Functions
+  /**
       Compare two geometry_msgs::Point objects within a threshold value.
 
       @param point1  First point to compare
@@ -241,24 +271,6 @@ public:
   */
   geometry_msgs::Pose DiamondShape(int index);
 
-
-  void Run();
-
-
-  void SetRTL() { goal = rtl; }
-
-  //Getter Functions
-  mavros_msgs::State GetState() { return state; }
-  mavros_msgs::BatteryStatus GetBatteryStatus() { return battery; }
-  sensor_msgs::Imu  GetImu() { return imu; }
-  FlightState GetFlightState() { return UpdateFlightState(); }
-  int GetDistanceToWP() { return CalculateDistance(pose_target, pose_local); }
-  float GetMissionProgress();
-  std::vector<AccessPoint>* GetRefAccessPoints() { return &access_pts; }
-
-private:
-  void InitialSetup();
-
   //Callback Prototypes
   void StateCallback(const mavros_msgs::State& msg_state) { state = msg_state; }
   void BatteryCallback(const mavros_msgs::BatteryStatus& msg_battery) { battery = msg_battery; }
@@ -269,6 +281,7 @@ private:
   void NavSatFixCallback(const sensor_msgs::NavSatFix& msg_gps) { pos_global = msg_gps; }
   void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) { pose_local = msg_pos.pose; }
   void DepthCallback(const std_msgs::Float64& msg_depth){ object_distance = msg_depth; }
+  void DoorQueryCallback(const rqt_gcs::PictureQuery& msg_query){ queries_door.push_back(msg_query); }
   void DetectionCallback(const sensor_msgs::Image& msg_detection)
   {
       AccessPoint new_point;
@@ -298,7 +311,8 @@ private:
                       pub_setpoint_attitude,
                       pub_angular_vel,
                       pub_linear_vel,
-                      pub_setpoint_accel;
+                      pub_setpoint_accel,
+                      pub_door_answer;
   ros::Subscriber     sub_state,
                       sub_battery,
                       sub_imu,
@@ -309,6 +323,7 @@ private:
                       sub_vel,
                       sub_vrpn,
                       sub_depth,
+                      sub_door_query,
                       sub_detection;
 
   //UAV State Variables
@@ -325,9 +340,10 @@ private:
   std_msgs::Float64             altitude_rel,
                                 heading_deg,
                                 object_distance;
-  std::vector<AccessPoint>      access_pts;
   Mode                          goal = idle;
   ros::Time                     last_request;
+  std::vector<AccessPoint>      access_pts;
+  std::vector<rqt_gcs::PictureQuery> queries_door;
 };
 
 #endif
