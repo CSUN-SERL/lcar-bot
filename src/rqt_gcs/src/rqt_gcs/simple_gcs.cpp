@@ -70,8 +70,6 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
   }
 
 
-  //central_ui_.PictureMsgLayout->addWidget();
-
    //Setup mission progress widgets
    uavStatWidget_->setWindowTitle("Flight State");
    missionProgressWidget_->setWindowTitle("Mission Control");
@@ -91,16 +89,24 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
    //Setup UAV lists select functions
    signal_mapper = new QSignalMapper(this);
    signal_mapper2 = new QSignalMapper(this);
+   acceptDoorMapper =  new QSignalMapper(this);
+   denyDoorMapper = new QSignalMapper(this);
+
    for(int i = 0; i < NUM_UAV; i++){
     signal_mapper->setMapping(uavCondWidgetArr[i].VehicleSelectButton, i);
     connect(uavCondWidgetArr[i].VehicleSelectButton,SIGNAL(clicked()),signal_mapper, SLOT(map()));
    }
    connect(signal_mapper, SIGNAL(mapped(int)),this, SLOT(QuadSelect(int)));
 
+   connect(acceptDoorMapper, SIGNAL(mapped(QWidget*)),this, SLOT(AcceptDoorQuery(QWidget*)));
+   connect(denyDoorMapper, SIGNAL(mapped(QWidget*)),this, SLOT(DenyDoorQuery(QWidget*)));
+
    //Setup update timer
    update_timer = new QTimer(this);
    connect(update_timer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
-   update_timer->start(100);
+
+   //30 hz
+   update_timer->start(33);
 
 
    //set up access points
@@ -130,40 +136,15 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
 //Timed update of for the GCS
 void SimpleGCS::TimedUpdate(){
 
-/*
- for(int i = pictureMsgQWidgets_.size()-1; i >= 0; i--)
- {
-        pmUi_.verticalLayout->removeWidget(pictureMsgQWidget_.at(i));
-        delete pictureMsgQWidgets_.at(i);
-        pictureMsgQWidgets_.at(i) = NULL;
-        pictureMsgQWidgets_.pop_back();
+    timeCounter++;
 
+
+ if(timeCounter >= 30){
+     UpdateMsgQuery();
+     timeCounter = 0;
  }
- pictureMsgQWidgets_.clear();
 
 
-
- pictureQueryVector = quadrotors[cur_uav].GetDoorQueries();
-
- int numOfPictureMsg = pictureQueryVector->size();
-
-  QWidget* pmWidgets[numOfPictureMsg];
-  Ui::PictureMsgWidget pmUiWidgets[numOfPictureMsg];
-
-   for(int i = 0; i < numOfPictureMsg; i++)
-   {
-    //add widget to the list
-    pictureMsgQWidgets_.push_back(pmWidgets[i]);
-    pictureMsgQWidgets_.at(i) = new QWidget();
-
-    //set up the ui
-    pmUiWidgets[i].setupUi(pictureMsgQWidgets_.at(i));
-    central_ui_.PictureMsgLayout->addWidget(pictureMsgQWidgets_.at(i));
-    pictureMsgQWidgets_.at(i)->show();
-
-  }
-
-*/
   quad_id.setNum(cur_uav+1);
   SimpleControl quad = quadrotors[cur_uav];
 
@@ -223,11 +204,90 @@ void SimpleGCS::TimedUpdate(){
 
 }
 
-void SimpleGCS::AcceptDoorQuery(QWidget *qw){
+void SimpleGCS::UpdateMsgQuery(){
+    for(int i = pictureMsgQWidgets_.size()-1; i >= 0; i--)
+    {
+        central_ui_.PictureMsgLayout->removeWidget(pictureMsgQWidgets_.at(i));
+        delete pictureMsgQWidgets_.at(i);
+        pictureMsgQWidgets_.at(i) = NULL;
+        pictureMsgQWidgets_.pop_back();
 
+    }
+    pictureMsgQWidgets_.clear();
+
+
+    pictureQueryVector = quadrotors[cur_uav].GetDoorQueries();
+
+    int numOfPictureMsg = pictureQueryVector->size();
+
+    QWidget* pmWidgets[numOfPictureMsg];
+    Ui::PictureMsgWidget pmUiWidgets[numOfPictureMsg];
+
+    if(numOfPictureMsg != 0){
+        for(int i = 0; i < numOfPictureMsg; i++)
+        {
+            //add widget to the list
+            pictureMsgQWidgets_.push_back(pmWidgets[i]);
+            pictureMsgQWidgets_.at(i) = new QWidget();
+
+            query_msgs::Door doorQuery = pictureQueryVector->at(i);
+           pmUiWidgets[i].graphicsView;
+
+
+           // cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(doorQuery.picture);
+            //cv::Mat conversion_mat_ = cv_ptr->image;
+            //QImage image(conversion_mat_.data, conversion_mat_.cols, conversion_mat_.rows, conversion_mat_.step[0], QImage::Format_RGB888);
+            //ivUi_.image_frame->setImage(image);
+            //pmUiWidgets[i].PictureLayout->
+
+            //doorQuery.picture.
+           // QImage(doorQuery.picture.,doorQuery.picture.width,doorQuery.picture.height,QImage::Format_RGB888);
+
+            //set up the ui
+            pmUiWidgets[i].setupUi(pictureMsgQWidgets_.at(i));
+
+            //map signal
+            acceptDoorMapper->setMapping(pmUiWidgets[i].yesButton,pictureMsgQWidgets_.at(i));
+            connect(pmUiWidgets[i].yesButton,SIGNAL(clicked()),acceptDoorMapper, SLOT(map()));
+
+            denyDoorMapper->setMapping(pmUiWidgets[i].rejectButton,pictureMsgQWidgets_.at(i));
+            connect(pmUiWidgets[i].rejectButton,SIGNAL(clicked()),denyDoorMapper, SLOT(map()));
+
+            central_ui_.PictureMsgLayout->addWidget(pictureMsgQWidgets_.at(i));
+
+        }
+    }
+}
+
+void SimpleGCS::AcceptDoorQuery(QWidget *qw){
+         ROS_INFO_STREAM("Accepted");
+        int index = central_ui_.PictureMsgLayout->indexOf(qw);
+        query_msgs::Door doormsg = pictureQueryVector->at(index);
+        ROS_INFO_STREAM("door number " << index);
+        pictureQueryVector->erase(pictureQueryVector->begin()+index);
+        pictureMsgQWidgets_.erase(pictureMsgQWidgets_.begin()+index);
+
+        central_ui_.PictureMsgLayout->removeWidget(qw);
+        delete qw;
+
+        doormsg.accepted = true;
+        quadrotors[cur_uav].SendDoorResponse(doormsg);
 }
 
 void SimpleGCS::DenyDoorQuery(QWidget * qw){
+        ROS_INFO_STREAM("Denyed");
+
+        int index = central_ui_.PictureMsgLayout->indexOf(qw);
+        query_msgs::Door doormsg = pictureQueryVector->at(index);
+        ROS_INFO_STREAM("door number " << index);
+        pictureQueryVector->erase(pictureQueryVector->begin()+index);
+        pictureMsgQWidgets_.erase(pictureMsgQWidgets_.begin()+index);
+
+        central_ui_.PictureMsgLayout->removeWidget(qw);
+        delete qw;
+
+        doormsg.accepted = false;
+        quadrotors[cur_uav].SendDoorResponse(doormsg);
 
 }
 
