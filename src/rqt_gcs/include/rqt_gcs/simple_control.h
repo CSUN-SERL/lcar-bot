@@ -29,9 +29,9 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
+#include <query_msgs/Door.h>
 
 #include <rqt_gcs/access_point.h>
-#include<rqt_gcs/PictureQuery.h>
 
 #define QUEUE_SIZE 100            //Message Queue size for publishers
 #define CHECK_FREQUENCY 1         //Frequency for checking change of state
@@ -223,7 +223,7 @@ public:
   /**
       Manage the UAV and ensure that it is stable
   */
-  void SendDoorResponse(rqt_gcs::PictureQuery msg_answer) { pub_door_answer.publish(msg_answer); }
+  void SendDoorResponse(query_msgs::Door msg_answer) { pub_door_answer.publish(msg_answer); }
 
   //Getter Functions
   mavros_msgs::State GetState() { return state; }
@@ -233,7 +233,7 @@ public:
   int GetDistanceToWP() { return CalculateDistance(pose_target, pose_local); }
   float GetMissionProgress();
   std::vector<AccessPoint>* GetRefAccessPoints() { return &access_pts; }
-  std::vector<rqt_gcs::PictureQuery>* GetDoorQueries() { return &queries_door; }
+  std::vector<query_msgs::Door>* GetDoorQueries() { return &queries_door; }
 
 private:
   void InitialSetup();
@@ -281,7 +281,7 @@ private:
   void NavSatFixCallback(const sensor_msgs::NavSatFix& msg_gps) { pos_global = msg_gps; }
   void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) { pose_local = msg_pos.pose; }
   void DepthCallback(const std_msgs::Float64& msg_depth){ object_distance = msg_depth; }
-  void DoorQueryCallback(const rqt_gcs::PictureQuery& msg_query){ queries_door.push_back(msg_query); }
+  void DoorQueryCallback(const query_msgs::Door& msg_query){ queries_door.push_back(msg_query); }
   void DetectionCallback(const sensor_msgs::Image& msg_detection)
   {
       AccessPoint new_point;
@@ -343,7 +343,7 @@ private:
   Mode                          goal = idle;
   ros::Time                     last_request;
   std::vector<AccessPoint>      access_pts;
-  std::vector<rqt_gcs::PictureQuery> queries_door;
+  std::vector<query_msgs::Door> queries_door;
 };
 
 #endif

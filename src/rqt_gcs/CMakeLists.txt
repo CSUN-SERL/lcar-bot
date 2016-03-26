@@ -14,7 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
             tf
             cv_bridge
             image_transport
-            message_generation
+            query_msgs
 )
 
 find_package(Qt4 COMPONENTS QtCore QtGui QtSvg REQUIRED)
@@ -67,24 +67,12 @@ set(rqt_gcs_INCLUDE_DIRECTORIES
   ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-
-add_message_files(FILES
-    PictureQuery.msg
-)
-
-add_service_files(FILES
-    pictureQuestion.srv
-
-)
-
 catkin_python_setup()
-
-generate_messages(DEPENDENCIES std_msgs sensor_msgs)
 
 catkin_package(
   INCLUDE_DIRS ${rqt_gcs_INCLUDE_DIRECTORIES}
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS roscpp rqt_gui rqt_gui_cpp message_runtime std_msgs sensor_msgs
+  CATKIN_DEPENDS roscpp rqt_gui rqt_gui_cpp std_msgs sensor_msgs
 )
 
 include_directories(include
@@ -93,8 +81,6 @@ include_directories(include
 )
 
 add_definitions(${Qt4_DEFINITIONS})
-
-
 
 
 qt4_add_resources(rqt_gcs_RCC_SRCS ${rqt_gcs_RCCS})

@@ -56,7 +56,7 @@ void SimpleControl::InitialSetup()
     pub_angular_vel       = nh.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
     pub_linear_vel        = nh.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_velocity/cmd_vel",QUEUE_SIZE);
     pub_setpoint_accel    = nh.advertise<geometry_msgs::Vector3Stamped>(ns + "/mavros/setpoint_accel/accel",QUEUE_SIZE);
-    pub_door_answer       = nh.advertise<rqt_gcs::PictureQuery>(ns + "/object_detection/door/answer",QUEUE_SIZE);
+    pub_door_answer       = nh.advertise<query_msgs::Door>(ns + "/object_detection/door/answer",QUEUE_SIZE);
 
     //Initialze Subscribers
     sub_state      = nh.subscribe(ns + "/mavros/state", QUEUE_SIZE, &SimpleControl::StateCallback, this);
