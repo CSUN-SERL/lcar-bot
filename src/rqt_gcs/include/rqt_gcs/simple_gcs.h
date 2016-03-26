@@ -5,9 +5,8 @@
 #include <ros/common.h>
 #include <rqt_gui_cpp/plugin.h>
 #include <rqt_gcs/simple_control.h>
-#include <rqt_gcs/PictureQuery.h>
+#include <query_msgs/Door.h>
 #include <std_srvs/Empty.h>
-#include <rqt_gcs/pictureQuestion.h>
 #include <pluginlib/class_list_macros.h>
 #include <iomanip>
 #include <stdio.h>
@@ -33,6 +32,7 @@
 #include <ui_MissionConfirm.h>
 #include <ui_AccessPointsMenu.h>
 #include <ui_AccessPointStats.h>
+#include <ui_PictureMsg.h>
 
 #include <QWidget>
 #include <QLabel>
@@ -59,7 +59,7 @@ namespace rqt_gcs{
     ros::Publisher pub;
     ros::NodeHandle nh;
     ros::ServiceServer server;
-    rqt_gcs::PictureQuery msg;
+    query_msgs::Door msg;
 
     image_transport::ImageTransport it_stereo{nh};
     void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
@@ -83,14 +83,20 @@ namespace rqt_gcs{
     virtual void QuadSelect(int);
     virtual void ArmSelectedQuad();
     virtual void DisarmSelectedQuad();
+    virtual void AcceptDoorQuery(QWidget*);
+    virtual void DenyDoorQuery(QWidget*);
 
   private:
     void UpdatePFD();
     int cur_uav = 0;
     SimpleControl quadrotors[NUM_UAV] = {};
-    std::vector<AccessPoint>* accessPointsVector;
-    bool pictureTest(rqt_gcs::pictureQuestion::Request&,
-                     rqt_gcs::pictureQuestion::Response&);
+    std::vector<AccessPoint> * accessPointsVector;
+    std::vector<query_msgs::Door> * pictureQueryVector;
+    //bool procesingImageForUAV[NUM_UAV];
+    //query_msgs::Door processedImageMsgforUAV[NUM_UAV];
+
+    //bool pictureTest(rqt_gcs::pictureQuestion::Request&,
+    //                 rqt_gcs::pictureQuestion::Response&);
 
     cv::Mat conversion_mat_;
     image_transport::Subscriber sub_stereo = it_stereo.subscribe("stereo_cam/left/image_raw", 1, &SimpleGCS::ImageCallback, this);
@@ -104,6 +110,7 @@ namespace rqt_gcs{
     Ui::centralWidget central_ui_;
     Ui::UAVConditionWidget uavCondWidgetArr[NUM_UAV];
     Ui::AccessPointsMenuWidget apmUi_;
+    Ui::PictureMsgWidget pmUi_;
 
 
     QWidget* widget_;
@@ -116,6 +123,8 @@ namespace rqt_gcs{
     QWidget* apmQWidget_;
 
     std::vector<QWidget*> accessPointsQWidgets_;
+    std::vector<QWidget*> pictureMsgQWidgets_;
+
 
     QLabel* label;
     QTimer* update_timer;
@@ -125,6 +134,7 @@ namespace rqt_gcs{
     QString access_point_temp_data;
     QString access_point_id;
     QSignalMapper* signal_mapper;
+    QSignalMapper* signal_mapper2;
 
 
   };

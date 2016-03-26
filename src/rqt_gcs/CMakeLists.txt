@@ -58,6 +58,7 @@ set(rqt_gcs_UIS
   resources/UAVCondition.ui
   resources/ImageView.ui
   resources/MissionConfirm.ui
+  resources/PictureMsg.ui
 )
 
 SET(rqt_gcs_RCCS resources/qfi.qrc)

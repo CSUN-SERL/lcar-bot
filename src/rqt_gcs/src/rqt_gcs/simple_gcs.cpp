@@ -2,14 +2,14 @@
 
 namespace rqt_gcs {
 
-bool SimpleGCS::pictureTest(
-        rqt_gcs::pictureQuestion::Request &req,
-        rqt_gcs::pictureQuestion::Response &resp
-        ){
+//bool SimpleGCS::pictureTest(
+//        rqt_gcs::pictureQuestion::Request &req,
+//        rqt_gcs::pictureQuestion::Response &resp
+//        ){
 
-    resp.accept = true;
-    return true;
-}
+//    resp.accept = true;
+ //   return true;
+//}
 
 SimpleGCS::SimpleGCS()
   : rqt_gui_cpp::Plugin()
@@ -18,7 +18,7 @@ SimpleGCS::SimpleGCS()
   //Constructor is called first before initPlugin function
   setObjectName("LCAR Bot GCS");
 
-  // pub = nh.advertise<rqt_gcs::pictureQuery> ("rqt_gcs/picture_query",1000);
+  // pub = nh.advertise<query_msgs::Door> ("rqt_gcs/picture_query",1000);
 }
 
 void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
@@ -69,6 +69,9 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
       central_ui_.UAVListLayout->addWidget(uavListWidgetArr[i]);
   }
 
+
+  //central_ui_.PictureMsgLayout->addWidget();
+
    //Setup mission progress widgets
    uavStatWidget_->setWindowTitle("Flight State");
    missionProgressWidget_->setWindowTitle("Mission Control");
@@ -87,6 +90,7 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
 
    //Setup UAV lists select functions
    signal_mapper = new QSignalMapper(this);
+   signal_mapper2 = new QSignalMapper(this);
    for(int i = 0; i < NUM_UAV; i++){
     signal_mapper->setMapping(uavCondWidgetArr[i].VehicleSelectButton, i);
     connect(uavCondWidgetArr[i].VehicleSelectButton,SIGNAL(clicked()),signal_mapper, SLOT(map()));
@@ -114,24 +118,58 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
    accessPointsVector->push_back(new_point5);
    accessPointsVector->push_back(new_point6);
 
-   //server = nh.advertiseService("picture_Test",&SimpleGCS::pictureTest, this);
-
-
-
-   //msg.picture_id = "pictureyes";
+   query_msgs::Door msg;
+   query_msgs::Door msg2;
+   query_msgs::Door msg3;
+   pictureQueryVector = quadrotors[0].GetDoorQueries();
+   pictureQueryVector->push_back(msg);
+   pictureQueryVector->push_back(msg2);
+   pictureQueryVector->push_back(msg3);
 }
 
 //Timed update of for the GCS
 void SimpleGCS::TimedUpdate(){
 
-  //pub.publish(msg);
+/*
+ for(int i = pictureMsgQWidgets_.size()-1; i >= 0; i--)
+ {
+        pmUi_.verticalLayout->removeWidget(pictureMsgQWidget_.at(i));
+        delete pictureMsgQWidgets_.at(i);
+        pictureMsgQWidgets_.at(i) = NULL;
+        pictureMsgQWidgets_.pop_back();
 
+ }
+ pictureMsgQWidgets_.clear();
+
+
+
+ pictureQueryVector = quadrotors[cur_uav].GetDoorQueries();
+
+ int numOfPictureMsg = pictureQueryVector->size();
+
+  QWidget* pmWidgets[numOfPictureMsg];
+  Ui::PictureMsgWidget pmUiWidgets[numOfPictureMsg];
+
+   for(int i = 0; i < numOfPictureMsg; i++)
+   {
+    //add widget to the list
+    pictureMsgQWidgets_.push_back(pmWidgets[i]);
+    pictureMsgQWidgets_.at(i) = new QWidget();
+
+    //set up the ui
+    pmUiWidgets[i].setupUi(pictureMsgQWidgets_.at(i));
+    central_ui_.PictureMsgLayout->addWidget(pictureMsgQWidgets_.at(i));
+    pictureMsgQWidgets_.at(i)->show();
+
+  }
+
+*/
   quad_id.setNum(cur_uav+1);
   SimpleControl quad = quadrotors[cur_uav];
 
   temp_data = quad.GetState().mode.c_str();
   temp_data += ":";
-  temp_data += quad.GetState().armed;
+  temp_data += quad.GetState().armed ? "Armed" : "Disarmed";
   usUi_.flightModeDisplay->setText(temp_data);
 
   temp_data.setNum(quad.GetFlightState().yaw,'f',2);
@@ -184,6 +222,15 @@ void SimpleGCS::TimedUpdate(){
   }
 
 }
+
+void SimpleGCS::AcceptDoorQuery(QWidget *qw){
+
+}
+
+void SimpleGCS::DenyDoorQuery(QWidget * qw){
+
+}
+
 
 
 void SimpleGCS::ExecutePlay(){
@@ -252,28 +299,27 @@ void SimpleGCS::ChangeFlightMode(){
 
 void SimpleGCS::RefreshAccessPointsMenu(){
 
-
-
-    //retreive access points
-    accessPointsVector = quadrotors[cur_uav].GetRefAccessPoints();
-
-    //Get our new number of Access points and create widgets for each access points
-    int numOfAccessPoints = accessPointsVector->size();
-
-    //create widgets for access points
-    QWidget* apWidgets[numOfAccessPoints];
-    Ui::AccessPointStatsWidget apUiWidgets[numOfAccessPoints];
-
-
     //clear out old list of Access points widgets
-    for(int i = 0; i < accessPointsQWidgets_.size(); i++)
+    for(int i = accessPointsQWidgets_.size()-1; i >= 0; i--)
     {
+        apmUi_.AccessPointMenuLayout->removeWidget(accessPointsQWidgets_.at(i));
         delete accessPointsQWidgets_.at(i);
         accessPointsQWidgets_.at(i) = NULL;
+        accessPointsQWidgets_.pop_back();
 
     }
      accessPointsQWidgets_.clear();
+     disconnect(signal_mapper2, SIGNAL(mapped(QWidget*)),this, SLOT(DeleteAccessPoint(QWidget*)));
 
+     //retreive access points
+     accessPointsVector = quadrotors[cur_uav].GetRefAccessPoints();
+
+     //Get our new number of Access points and create widgets for each access points
+     int numOfAccessPoints = accessPointsVector->size();
+
+     //create widgets for access points
+     QWidget* apWidgets[numOfAccessPoints];
+     Ui::AccessPointStatsWidget apUiWidgets[numOfAccessPoints];
 
      //create  a new list of access points if there are any access points
      if( numOfAccessPoints != 0){
@@ -290,9 +336,9 @@ void SimpleGCS::RefreshAccessPointsMenu(){
             apUiWidgets[i].setupUi(accessPointsQWidgets_.at(i));
 
             //map signal to the delete button
-             signal_mapper->setMapping(apUiWidgets[i].deleteAccessPointButton,accessPointsQWidgets_.at(i));
+             signal_mapper2->setMapping(apUiWidgets[i].deleteAccessPointButton,accessPointsQWidgets_.at(i));
 
-             connect(apUiWidgets[i].deleteAccessPointButton,SIGNAL(clicked()),signal_mapper, SLOT(map()));
+             connect(apUiWidgets[i].deleteAccessPointButton,SIGNAL(clicked()),signal_mapper2, SLOT(map()));
 
 
             //access point name
@@ -327,7 +373,7 @@ void SimpleGCS::RefreshAccessPointsMenu(){
 
             apmUi_.AccessPointMenuLayout->addWidget(accessPointsQWidgets_.at(i));
         }
-        connect(signal_mapper, SIGNAL(mapped(QWidget*)),this, SLOT(DeleteAccessPoint(QWidget*)));
+        connect(signal_mapper2, SIGNAL(mapped(QWidget*)),this, SLOT(DeleteAccessPoint(QWidget*)));
 
     }
 
@@ -345,13 +391,14 @@ void SimpleGCS::DeleteAccessPoint(QWidget* w){
    // ROS_INFO_STREAM("Access point menu closed");
 
         int deleteIndex = apmUi_.AccessPointMenuLayout->indexOf(w);
-        //ROS_INFO_STREAM("Access point %d Deleted" << deleteIndex);
+        ROS_INFO_STREAM("Access point %d Deleted" << deleteIndex);
 
-       // accessPointsVector->at(deleteIndex);
-
+        accessPointsVector->erase(accessPointsVector->begin()+deleteIndex-1);
+       accessPointsQWidgets_.erase(accessPointsQWidgets_.begin()+deleteIndex-1);
 
         apmUi_.AccessPointMenuLayout->removeWidget(w);
         delete w;
+
 
 }
 
