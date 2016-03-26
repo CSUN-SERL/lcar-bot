@@ -14,12 +14,12 @@ find_package(catkin REQUIRED COMPONENTS
             tf
             cv_bridge
             image_transport
-            query_msgs
 )
 
 find_package(Qt4 COMPONENTS QtCore QtGui QtSvg REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread)
 find_package(OpenCV REQUIRED)
+find_package(query_msgs REQUIRED)
 
 include(${QT_USE_FILE})
 include(EnableCXX11)
@@ -96,6 +96,7 @@ add_executable(simple_control src/rqt_gcs/simple_control.cpp)
 add_executable(gps_publisher src/rqt_gcs/gps_publisher.cpp)
 add_executable(connection_manager src/rqt_gcs/connection_manager.cpp)
 add_executable(safe_mocap src/rqt_gcs/safe_mocap.cpp)
+
 
 add_library(${PROJECT_NAME}
             ${rqt_gcs_SRCS}

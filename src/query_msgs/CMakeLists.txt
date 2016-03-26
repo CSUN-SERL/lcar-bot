@@ -13,9 +13,4 @@ add_message_files(
 
 generate_messages(DEPENDENCIES sensor_msgs)
 
-catkin_package(
-  CATKIN_DEPENDS message_runtime sensor_msgs)
-
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  FILES_MATCHING PATTERN "*.h")
+catkin_package(CATKIN_DEPENDS message_runtime sensor_msgs)
