@@ -14,7 +14,6 @@ add_message_files(
 generate_messages(DEPENDENCIES sensor_msgs)
 
 catkin_package(
-  INCLUDE_DIRS include
   CATKIN_DEPENDS message_runtime sensor_msgs)
 
 install(DIRECTORY include/${PROJECT_NAME}/
