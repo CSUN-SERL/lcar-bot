@@ -5,6 +5,7 @@
 	<arg name="tgt_system" default="1" />
 	<arg name="tgt_component" default="1" />
 	<arg name="log_output" default="screen" />
+	<arg name="uav_id" default="1" />
 
 	<include file="$(find rqt_gcs)/launch/node_machine.launch">
 		<arg name="pluginlists_yaml" value="$(find mavros)/launch/px4_pluginlists.yaml" />
@@ -15,8 +16,17 @@
 		<arg name="tgt_component" value="$(arg tgt_component)" />
 		<arg name="log_output" value="$(arg log_output)" />
 	</include>
+
+	<include file="$(find vrpn_client_ros)/launch/sample.launch">
+		<arg name="server" value="MocapServer" />
+	</include>
+	<node pkg="rqt_gcs" type="safe_mocap" name="safe_mocap" required="true">
+			<param name="id" value="$(arg uav_id)" />
+	</node>
+
 	<!-- <node pkg="machine_vision" type="stereo_driver" name="stereo_driver" required="true"/>
-	<node pkg="machine_vision" type="object_detect" name="object_detect" required="true"/>
+	<node pkg="machine_vision" type="object_detection" name="object_detect" required="true"/>
+	<node pkg="machine_vision" type="object_avoidance" name="object_avoidance" required="true"/>
 	<param name="image_transport" type="string" value="compressed" /> -->
 
 </launch>
