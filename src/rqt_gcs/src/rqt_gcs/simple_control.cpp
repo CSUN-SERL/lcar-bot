@@ -296,7 +296,7 @@ void SimpleControl::OverrideRC(int channel, int value)
   pub_override_rc.publish(override_msg);
 }
 
-void SimpleControl::SetLocalPosition(float x, float y, float z, float yaw = 0)
+void SimpleControl::SetLocalPosition(float x, float y, float z, float yaw = -100)
 {
   //Create the message object
   geometry_msgs::PoseStamped position_stamped;
@@ -305,7 +305,12 @@ void SimpleControl::SetLocalPosition(float x, float y, float z, float yaw = 0)
   position_stamped.pose.position.x = x;
   position_stamped.pose.position.y = y;
   position_stamped.pose.position.z = z;
-  quaternionTFToMsg(tf::createQuaternionFromYaw(yaw), pose_target.orientation);
+  if(yaw == -100){ //Use current Yaw value
+      position_stamped.pose.orientation = pose_previous.orientation;
+  }
+  else{ //Use the specified Yaw value
+      quaternionTFToMsg(tf::createQuaternionFromYaw(yaw), pose_target.orientation);
+  }
 
   //Publish the message
   pub_setpoint_position.publish(position_stamped);
