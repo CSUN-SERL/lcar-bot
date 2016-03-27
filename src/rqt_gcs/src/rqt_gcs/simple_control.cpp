@@ -506,7 +506,7 @@ void SimpleControl::Run()
       //Vehicle is at target location => Scout Building
       //pose_previous = pose_local;
       //goal = scout;
-      pose_target = pose_home;
+      pose_previous = pose_local;
       goal = land;
       ROS_DEBUG_STREAM_ONCE("Scouting Building.");
     }
@@ -557,14 +557,16 @@ void SimpleControl::Run()
     else{
       this->SetLocalPosition(pose_local.position.x, pose_local.position.y, ALT_RTL);
     }
-    /*if(state.mode.compare("AUTO.RTL") != 0 && state.mode.compare("AUTO.LAND") != 0){
-      this->SetMode("AUTO.RTL");
-    }
-    */
   }
   else if(goal == land){
-    this->SetMode("AUTO.LAND");
-    goal = idle;
+      if(pose_local.position.z <= THRESHOLD_Z){
+        goal = disarm;
+        ROS_INFO_STREAM_ONCE("Landed Safely.");
+      }
+      else{
+        //Descend to the floor
+        this->SetLocalPosition(pose_previous.position.x, pose_previous.position.y, 0);
+      }
   }
   else if(goal == disarm){
     //Disarm the vehicle if it's currently armed
