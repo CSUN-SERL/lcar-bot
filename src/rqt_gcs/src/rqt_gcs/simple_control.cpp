@@ -513,10 +513,12 @@ void SimpleControl::Run()
     else if(std::abs(std::abs(pose_local.position.z) - std::abs(pose_target.position.z)) <= THRESHOLD_Z){
       //Achieved the proper altitude => Go to target location
       this->SetLocalPosition(pose_target);
+
+      pose_previous = pose_local; //Update previous position for fixing the altitude
     }
     else{
       //Ascend to the proper altitude first at the current location
-      this->SetLocalPosition(pose_local.position.x, pose_local.position.y, pose_target.position.z);
+      this->SetLocalPosition(pose_previous.position.x, pose_previous.position.y, pose_target.position.z);
     }
   }
   else if(goal == scout){
