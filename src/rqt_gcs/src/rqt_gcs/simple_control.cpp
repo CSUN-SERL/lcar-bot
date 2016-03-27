@@ -559,7 +559,7 @@ void SimpleControl::Run()
     }
   }
   else if(goal == land){
-      if(pose_local.position.z <= THRESHOLD_Z){
+      if(pose_local.position.z <= THRESHOLD_Z*3){
         goal = disarm;
         ROS_INFO_STREAM_ONCE("Landed Safely.");
       }
