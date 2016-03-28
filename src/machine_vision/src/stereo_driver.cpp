@@ -164,7 +164,6 @@ void StereoDriver::ImageCallback(uvc_frame_t *frame){
 
     ci_left->header.stamp = ci_right->header.stamp = time_stamp;
 
-
     /* Do the BGR conversion */
     retLeft = uvc_yuyv2y(frame, greyLeft);
     retRight = uvc_yuyv2uv(frame, greyRight);
