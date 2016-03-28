@@ -296,7 +296,7 @@ void SimpleControl::OverrideRC(int channel, int value)
   pub_override_rc.publish(override_msg);
 }
 
-void SimpleControl::SetLocalPosition(float x, float y, float z, float yaw = -100)
+void SimpleControl::SetLocalPosition(float x, float y, float z, float yaw = 361)
 {
   //Create the message object
   geometry_msgs::PoseStamped position_stamped;
@@ -305,11 +305,11 @@ void SimpleControl::SetLocalPosition(float x, float y, float z, float yaw = -100
   position_stamped.pose.position.x = x;
   position_stamped.pose.position.y = y;
   position_stamped.pose.position.z = z;
-  if(yaw == -100){ //Use current Yaw value
+  if(yaw == 361){ //No value passed, use current Yaw value
       position_stamped.pose.orientation = pose_previous.orientation;
   }
   else{ //Use the specified Yaw value
-      quaternionTFToMsg(tf::createQuaternionFromYaw(yaw), pose_target.orientation);
+      quaternionTFToMsg(tf::createQuaternionFromYaw(yaw*(PI/180)), position_stamped.pose.orientation);
   }
 
   //Publish the message
@@ -409,13 +409,31 @@ int SimpleControl::ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pos
 {
   int result;
 
-  if( std::abs(std::abs(pose2.position.x) - std::abs(pose1.position.x)) <= THRESHOLD_XY  &&
-      std::abs(std::abs(pose2.position.y) - std::abs(pose1.position.y)) <= THRESHOLD_XY  &&
-      std::abs(std::abs(pose2.position.z) - std::abs(pose1.position.z)) <= THRESHOLD_Z   /*&&
-      abs(pose2.orientation.z - pose1.orientation.z) <= THRESHOLD_YAW*/){
+  //Get the yaw values
+  /*double roll, pitch, yaw_1, yaw_2;
+  tf::Quaternion quaternion_tf1, quaternion_tf2;
+
+  tf::quaternionMsgToTF(pose1.orientation, quaternion_tf1);
+  tf::Matrix3x3 m1{quaternion_tf1};
+
+  tf::quaternionMsgToTF(pose2.orientation, quaternion_tf2);
+  tf::Matrix3x3 m2{quaternion_tf2};
+
+  m1.getRPY(roll, pitch, yaw_1);
+  m2.getRPY(roll, pitch, yaw_2);*/
+
+  if( std::abs(pose2.position.x - pose1.position.x) <= THRESHOLD_XY         &&
+      std::abs(pose2.position.y - pose1.position.y) <= THRESHOLD_XY         &&
+      std::abs(pose2.position.z - pose1.position.z) <= THRESHOLD_Z          /*&&
+      std::abs(std::abs(pose2.orientation.z) - std::abs(pose1.orientation.z)) <= THRESHOLD_YAW  &&
+      std::abs(std::abs(pose2.orientation.w) - std::abs(pose1.orientation.w)) <= THRESHOLD_YAW*/)
+  {
     result = 0;
   }
   else result = 1;
+
+  /*ROS_INFO_STREAM("Z: " << std::abs(pose2.orientation.z - pose1.orientation.z));
+  ROS_INFO_STREAM("W: " << std::abs(pose2.orientation.w - pose1.orientation.w));*/
 
   return result;
 }
@@ -453,7 +471,7 @@ float SimpleControl::GetMissionProgress()
 
 geometry_msgs::Pose SimpleControl::CircleShape(int angle){
 		/** @todo Give possibility to user define amplitude of movement (circle radius)*/
-		double r = 5.0f;	// 5 mete;rs radius
+        double r = 5.0f;	// 5 meters radius
 
         geometry_msgs::Pose new_pose;
         tf::pointEigenToMsg(Eigen::Vector3d(r * (cos(angles::from_degrees(angle))),
@@ -467,52 +485,52 @@ geometry_msgs::Pose SimpleControl::CircleShape(int angle){
 
 geometry_msgs::Pose SimpleControl::DiamondShape(int index){
 
-  double r = 5.0f;
+  double r = 0.2f;
   geometry_msgs::Pose mission[4] = { };
 
   ROS_INFO_STREAM("Traveling to Index " << index);
   mission[0].position.x     = r;
   mission[0].position.y     = 0;
-  mission[0].position.z     = 4;
-  //mission[0].orientation.z  = 180;
+  mission[0].position.z     = 0.5;
+  quaternionTFToMsg(tf::createQuaternionFromYaw(180*(PI/180)), mission[0].orientation);
 
   mission[1].position.x     = 0;
   mission[1].position.y     = r;
-  mission[1].position.z     = 4;
-  //mission[1].orientation.z  = 270;
+  mission[1].position.z     = 0.5;
+  quaternionTFToMsg(tf::createQuaternionFromYaw(270*(PI/180)), mission[1].orientation);
 
   mission[2].position.x     = -r;
   mission[2].position.y     = 0;
-  mission[2].position.z     = 4;
-  //mission[2].orientation.z  = 0;
+  mission[2].position.z     = 0.5;
+  quaternionTFToMsg(tf::createQuaternionFromYaw(0*(PI/180)), mission[2].orientation);
 
   mission[3].position.x     = 0;
   mission[3].position.y     = -r;
-  mission[3].position.z     = 4;
-  //mission[3].orientation.z  = 90;
+  mission[3].position.z     = 0.5;
+  quaternionTFToMsg(tf::createQuaternionFromYaw(90*(PI/180)), mission[3].orientation);
 
   return mission[index];
 }
 
 void SimpleControl::Run()
 {
-  /*//Sanity Checks
-  if(object_distance.data < THRESHOLD_DEPTH){
-    //Collision Imminent! Land.
+  //Sanity Checks
+  if(battery.remaining < BATTERY_MIN){
+    //Land if battery is starting to get low
     goal = land;
   }
-  else if(battery.remaining < BATTERY_MIN){
-    //Return to launch site if battery is starting to get low
-    goal = rtl;
+  /*else if(object_distance.data < THRESHOLD_DEPTH){
+    //Collision Imminent! Land.
+    goal = land;
   }*/
 
   if(goal == travel){
     if(ComparePosition(pose_local, pose_target) == 0){
       //Vehicle is at target location => Scout Building
-      //pose_previous = pose_local;
-      //goal = scout;
       pose_previous = pose_local;
-      goal = land;
+      goal = scout;
+      /*pose_previous = pose_local;
+      goal = land;*/
       ROS_DEBUG_STREAM_ONCE("Scouting Building.");
     }
     else if(std::abs(std::abs(pose_local.position.z) - std::abs(pose_target.position.z)) <= THRESHOLD_Z){
@@ -527,12 +545,12 @@ void SimpleControl::Run()
     }
   }
   else if(goal == scout){
-    //TODO: Fix Scout Functionality. Temporary Circle Path Test
     static int rev_count = 0;
     static int cur_point = 0;
+
     pose_target = this->DiamondShape(cur_point);
-	  //tf::pointEigenToMsg(this->CircleShape(theta), pos_target); //Update Target Pos
-      this->SetLocalPosition(pose_target);
+    this->SetLocalPosition(pose_target);
+
     goal = travel;
     cur_point++;
 
@@ -542,7 +560,9 @@ void SimpleControl::Run()
       //goal = RTL;
       ROS_INFO_STREAM("Circled Building" << rev_count << "times.");
       rev_count++;
-      cur_point = 1;
+
+      if(rev_count > 2) goal = land;
+      else cur_point = 0;
     }
   }
   else if(goal == rtl){

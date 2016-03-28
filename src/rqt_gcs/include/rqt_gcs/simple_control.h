@@ -33,17 +33,18 @@
 
 #include <rqt_gcs/access_point.h>
 
+#define PI 3.14159265
 #define QUEUE_SIZE 100            //Message Queue size for publishers
 #define CHECK_FREQUENCY 1         //Frequency for checking change of state
 #define TIMEOUT 3*CHECK_FREQUENCY //3 Second timeout
 #define TRAVEL_WT 0.5
 #define SCOUT_WT 0.5
-#define THRESHOLD_XY 0.05
-#define THRESHOLD_Z 0.05
-#define THRESHOLD_YAW 0.1
+#define THRESHOLD_XY 0.08
+#define THRESHOLD_Z 0.08
+#define THRESHOLD_YAW 0.5
 #define THRESHOLD_DEPTH 0.8
 #define ALT_RTL 1
-#define BATTERY_MIN 0.30  //Minimum battery level for RTL
+#define BATTERY_MIN 0.10  //Minimum battery level for RTL
 #define DEF_NS "UAV"
 
 //Enumerators
@@ -156,7 +157,7 @@ public:
       @param x      New x position
       @param y      New y position
       @param z      New z position
-      @param yaw    New yaw value
+      @param yaw    New yaw value in degrees
   */
   void SetLocalPosition(float x, float y, float z, float yaw);
 
