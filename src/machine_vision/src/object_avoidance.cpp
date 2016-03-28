@@ -6,7 +6,7 @@
 #include <stereo_msgs/DisparityImage.h>
 #include <sensor_msgs/image_encodings.h>
 #include <cv_bridge/cv_bridge.h>
-#include <std_msgs/Int32.h>
+#include <std_msgs/Float64.h>
 
 double min_distance_;
 double fill_;
@@ -29,22 +29,23 @@ void disparityCallback(const stereo_msgs::DisparityImageConstPtr& disparity_msg)
     int img_size = dmat.rows * dmat.cols;
     double threshold = fill_ * img_size; 
     
-    std_msgs::Int32 prox;
+    std_msgs::Float64 prox;
     prox.data = 0;
+    int prox_count = 0;
     
     for (int row = 0; row < dmat.rows; ++row) {
       const float* d = dmat[row];
       for (int col = 0; col < dmat.cols; ++col) {
           float z_depth = focal_length * baseline / d[col];
           if(z_depth > 0 && z_depth < min_distance_){
-              prox.data++;
+              prox_count++;
               z_depth_total += z_depth;
           }  
       }
     }
-    if(prox.data > threshold){
-        float avg = z_depth_total / prox.data;
-        ROS_ERROR_STREAM("ERROR land! " << prox.data << "  |  " << avg);
+    if(prox_count > threshold){
+        prox.data = z_depth_total / prox_count;        
+        ROS_ERROR_STREAM("ERROR land! " << prox_count << "  |  " << prox.data);
         pub_.publish(prox);
     }
     
@@ -75,7 +76,7 @@ int main (int argc, char **argv)
                   );
   
   ros::Subscriber sub = nh.subscribe(topic, 5, disparityCallback);
-  pub_ = nh.advertise<std_msgs::Int32>("/stereo_cam/proximity", 1);
+  pub_ = nh.advertise<std_msgs::Float64>("/stereo_cam/proximity", 1);
   
   ros::spin(); 
 }
