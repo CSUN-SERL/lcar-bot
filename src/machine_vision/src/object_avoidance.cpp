@@ -16,21 +16,19 @@ ros::Publisher pub_;
 namespace enc = sensor_msgs::image_encodings;
 
 void disparityCallback(const stereo_msgs::DisparityImageConstPtr& disparity_msg)
-{
-    ros::Time time_stamp = ros::Time::now();
-    
-    float min_disparity = disparity_msg->min_disparity;
-    float max_disparity = disparity_msg->max_disparity;
-    
+{    
     assert(disparity_msg->image.encoding == enc::TYPE_32FC1);
     const cv::Mat_<float> dmat(disparity_msg->image.height, disparity_msg->image.width, // convert to cv::mat for analysis
                                (float*)&disparity_msg->image.data[0], disparity_msg->image.step);
-    float z_vec = 0;
+    
+    float min_disparity = disparity_msg->min_disparity;
+    float max_disparity = disparity_msg->max_disparity;
+    float z_depth_total = 0;
     float baseline = disparity_msg->T;
     float focal_length = disparity_msg->f;
-    
     int img_size = dmat.rows * dmat.cols;
     double threshold = fill_ * img_size; 
+    
     std_msgs::Int32 prox;
     prox.data = 0;
     
@@ -40,12 +38,12 @@ void disparityCallback(const stereo_msgs::DisparityImageConstPtr& disparity_msg)
           float z_depth = focal_length * baseline / d[col];
           if(z_depth > 0 && z_depth < min_distance_){
               prox.data++;
-              z_vec += z_depth;
+              z_depth_total += z_depth;
           }  
       }
     }
     if(prox.data > threshold){
-        float avg = z_vec / prox.data;
+        float avg = z_depth_total / prox.data;
         ROS_ERROR_STREAM("ERROR land! " << prox.data << "  |  " << avg);
         pub_.publish(prox);
     }
