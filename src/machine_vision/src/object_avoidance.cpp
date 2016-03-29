@@ -60,7 +60,7 @@ int main (int argc, char **argv)
   std::string topic;
   bool paramSet = ros::param::get("~topic", topic);
   if(!paramSet)
-      topic = "/stereo_cam/disparity";
+      topic = "stereo_cam/disparity";
   
   paramSet = ros::param::get("~fill", fill_);
   if(!paramSet)
@@ -76,7 +76,7 @@ int main (int argc, char **argv)
                   );
   
   ros::Subscriber sub = nh.subscribe(topic, 5, disparityCallback);
-  pub_ = nh.advertise<std_msgs::Float64>("/stereo_cam/proximity", 1);
+  pub_ = nh.advertise<std_msgs::Float64>("stereo_cam/proximity", 1);
   
   ros::spin(); 
 }

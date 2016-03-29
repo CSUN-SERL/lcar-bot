@@ -25,27 +25,27 @@ using namespace cv::ml;
 //image_transport::CameraPublisher pub_right_;
 ros::Publisher pub_mat_;
 
-Ptr<SVM> svm;
-vector< float > hog_detector;
-HOGDescriptor hog; //(Size( 90, 160 ), Size(16, 16), Size(8, 8), Size(8, 8), 9)
+Ptr<SVM> svm_;
+vector< float > hog_detector_;
+HOGDescriptor hog_; //(Size( 90, 160 ), Size(16, 16), Size(8, 8), Size(8, 8), 9)
 
 //cv::Mat src;
-vector<Mat> trainingdata;
-const Size & img_size = Size(128, 256);
+vector<Mat> training_data_;
+const Size & img_size_ = Size(128, 256);
 
-int frame_id;
+int frame_id_;
 double avg;
 
 /////////////////////////////////////////////////////////////////////////////
 void HogFeatureExtraction(Mat ImgMat) {
     HOGDescriptor d;
-    d.winSize = img_size;
+    d.winSize = img_size_;
     vector< Point > location;
     vector< float > descriptors;
     d.compute(ImgMat, descriptors, Size(8, 8), Size(0, 0), location);
     Mat hog_features = Mat(descriptors).clone();
     if (!hog_features.empty()){
-        trainingdata.push_back(hog_features.reshape(1,1));
+        training_data_.push_back(hog_features.reshape(1,1));
     }
 }
 
@@ -73,7 +73,7 @@ void ConvertToMl(const std::vector< cv::Mat > & train_samples, cv::Mat& trainDat
 void DrawLocations(cv::Mat & img, const std::vector< Rect > & found, const vector<double> weights, const Scalar & color) {
        std::vector< Rect >::const_iterator loc = found.begin(); // Rect for detectMultiscale(), Point for detect()
        std::vector< Rect >::const_iterator end = found.end();   // same as above
-       ROS_INFO_STREAM(weights.size());
+       //ROS_INFO_STREAM(weights.size());
 
        for (int i = 0; loc != end && i < weights.size(); ++loc) {
            //cout << weights[i] << endl;
@@ -88,15 +88,15 @@ void ObjectCategorize(cv::Mat image) {
         vector <double> weights;
         vector <Rect> detected_objects;
         vector <Rect> door_objects;
-        hog.detectMultiScale(
+        hog_.detectMultiScale(
                 image,
                 detected_objects,
                 weights
-                //,0         // hit threshold
-                //,Size(0,0) // step size
-                //,Size(0,0) // padding
-                //,1.05       // scale factor
-                //,2       // final threshold
+                ,0         // hit threshold
+                ,Size(0,0) // step size
+                ,Size(0,0) // padding
+                ,1.05       // scale factor
+                ,2       // final threshold
                 ,true // use mean shift grouping?
                 );
         for (int i = 0; i < detected_objects.size(); i++) {
@@ -104,15 +104,14 @@ void ObjectCategorize(cv::Mat image) {
             Rect windows(obj.x, obj.y, obj.width, obj.height);
             Mat Roi = image(windows);
             Mat extract, res, train_data;
-            resize(Roi, extract, img_size);
+            resize(Roi, extract, img_size_);
             HogFeatureExtraction(extract);
-            ConvertToMl(trainingdata, train_data);
-            trainingdata.clear();
-            svm->predict(train_data, res, 4);
+            ConvertToMl(training_data_, train_data);
+            training_data_.clear();
+            svm_->predict(train_data, res, 4);
             for (int j = 0; j < res.rows; j++) {
                 if (res.at<float>(j, 0) == 1) {
                     door_objects.push_back(obj);
-                    
                 }
             }
 //            res.release();
@@ -120,8 +119,8 @@ void ObjectCategorize(cv::Mat image) {
 //            extract.release();
         }
         DrawLocations(image, door_objects, weights, Scalar(0, 255, 0));
-//        imshow("view", image);
-//        waitKey(10);
+        imshow("view", image);
+        waitKey(1);
         sensor_msgs::ImagePtr door_msg = cv_bridge::CvImage(std_msgs::Header(),
                                                    "mono8", image).toImageMsg();
         door_msg->header.stamp = ros::Time::now();
@@ -167,7 +166,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
     ROS_ERROR("Error in image subscriber callback: %s", e.what());
   }
 
-  frame_id++;
+  frame_id_++;
 }
 
 //extract svm weights and store in a float vector
@@ -196,23 +195,17 @@ int main (int argc, char** argv){
   cv::startWindowThread();
   image_transport::ImageTransport it(nh);
 
-  std::string topic;
-  if(argc >= 2)
-      topic = argv[1];
-  else
-      topic = "mono_cam/image_raw";
-
   string svmPath = ros::package::getPath("machine_vision");
-  svm = StatModel::load<SVM>( svmPath + "/LinearHOG.xml" );
+  svm_ = StatModel::load<SVM>( svmPath + "/LinearHOG.xml" );
 
-  GetSvmDetector(svm, hog_detector);
+  GetSvmDetector(svm_, hog_detector_);
 
-  hog.winSize = Size(128, 256);
-  hog.setSVMDetector(hog_detector);
+  hog_.winSize = Size(128, 256);
+  hog_.setSVMDetector(hog_detector_);
 
   pub_mat_ = nh.advertise<sensor_msgs::Image>("detected_objects", 1);
-
-
+  
+  std::string topic = "stereo_cam/left/image_rect";
   image_transport::Subscriber sub = it.subscribe(topic, 1, imageCallback);
 
   ROS_INFO_STREAM("subscribed to topic : " << topic);
