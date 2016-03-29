@@ -25,6 +25,7 @@
 #include <sensor_msgs/NavSatFix.h>
 #include <sensor_msgs/Image.h>
 #include <std_msgs/Float64.h>
+#include <nav_msgs/Path.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
@@ -135,11 +136,10 @@ public:
   /**
       Executes proper instructions for running the Scout Building play
 
-      @param x X coordinate of the local position of the building
-      @param y Y coordinate of the local position of the building
-      @param z The height at which the UAV should arrive at the building
+      @param target_point geometry_msgs::Pose building location
+
   */
-  void ScoutBuilding(float x, float y, float z);
+  void ScoutBuilding(geometry_msgs::Pose target_point);
 
   /**
       Send a list of waypoints (mission) to the UAV.
@@ -274,7 +274,7 @@ private:
 
       @param index The current point number the quad is traveling to.
   */
-  geometry_msgs::Pose DiamondShape(int index);
+  geometry_msgs::Pose DiamondShape(query_msgs::Target target_point);
 
   //Callback Prototypes
   void StateCallback(const mavros_msgs::State& msg_state) { state = msg_state; }

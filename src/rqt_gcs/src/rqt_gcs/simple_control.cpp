@@ -7,7 +7,7 @@ int main(int argc, char **argv)
 
   ros::Rate loop_rate(10); //10Hz
 
-  quad1.ScoutBuilding(0,0,0.5);
+  //quad1.ScoutBuilding(0,0,0.5);
 
   while(ros::ok())
   {
@@ -223,14 +223,11 @@ std::string SimpleControl::GetLocation()
   return std::to_string(lat) + "," + std::to_string(lon);
 }
 
-void SimpleControl::ScoutBuilding(float x, float y, float z)
+void SimpleControl::ScoutBuilding(geometry_msgs::Pose target_point)
 {
   this->EnableOffboard();
   //Update the target location
-  pose_target.position.x = x;
-  pose_target.position.y = y;
-  pose_target.position.z = z;
-
+  pose_target = target_point;
   pose_previous = pose_local;
   goal = travel;
   ROS_INFO_STREAM("Traveling to target location.");
@@ -483,31 +480,37 @@ geometry_msgs::Pose SimpleControl::CircleShape(int angle){
         return new_pose;
 }
 
-geometry_msgs::Pose SimpleControl::DiamondShape(int index){
+geometry_msgs::Pose SimpleControl::DiamondShape(query_msgs::Target target_point){
 
-  double r = 0.2f;
-  geometry_msgs::Pose mission[4] = { };
+  //double r = 0.2f;
+  //geometry_msgs::Pose mission[4] = { };
 
+  nav_msgs::Path mission;
   ROS_INFO_STREAM("Traveling to Index " << index);
-  mission[0].position.x     = r;
-  mission[0].position.y     = 0;
-  mission[0].position.z     = 0.5;
-  quaternionTFToMsg(tf::createQuaternionFromYaw(180*(PI/180)), mission[0].orientation);
+  geometry_msgs::Pose temp_pose;
+  temp_pose.position.x     += target_point.radius;
+  temp_pose.position.y     = target_point.target_point.position.y;
+  temp_pose.position.z     = target_point.target_point.position.z;
+  quaternionTFToMsg(tf::createQuaternionFromYaw(180*(PI/180)), temp_pose.orientation);
+  mission.poses.push_back(temp_pose);
 
-  mission[1].position.x     = 0;
-  mission[1].position.y     = r;
-  mission[1].position.z     = 0.5;
-  quaternionTFToMsg(tf::createQuaternionFromYaw(270*(PI/180)), mission[1].orientation);
+  temp_pose.position.x     = target_point.target_point.position.x;
+  temp_pose.position.y     += target_point.radius;
+  temp_pose.position.z     = target_point.target_point.position.z;
+  quaternionTFToMsg(tf::createQuaternionFromYaw(270*(PI/180)), temp_pose.orientation);
+  mission.poses.push_back(temp_pose);
 
-  mission[2].position.x     = -r;
-  mission[2].position.y     = 0;
-  mission[2].position.z     = 0.5;
-  quaternionTFToMsg(tf::createQuaternionFromYaw(0*(PI/180)), mission[2].orientation);
+  temp_pose.position.x     -= target_point.radius;
+  temp_pose.position.y     = target_point.target_point.position.y;
+  temp_pose.position.z     = target_point.target_point.position.z;
+  quaternionTFToMsg(tf::createQuaternionFromYaw(0*(PI/180)), temp_pose.orientation);
+  mission.poses.push_back(temp_pose);
 
-  mission[3].position.x     = 0;
-  mission[3].position.y     = -r;
-  mission[3].position.z     = 0.5;
-  quaternionTFToMsg(tf::createQuaternionFromYaw(90*(PI/180)), mission[3].orientation);
+  temp_pose.position.x     = target_point.target_point.position.x;
+  temp_pose.position.y     -= target_point.radius;
+  temp_pose.position.z     = target_point.target_point.position.z;
+  quaternionTFToMsg(tf::createQuaternionFromYaw(90*(PI/180)), temp_pose.orientation);
+  mission.poses.push_back(temp_pose);
 
   return mission[index];
 }

@@ -300,7 +300,8 @@ void SimpleGCS::CancelPlay(){
 void SimpleGCS::ScoutBuilding(){
 	if(mpUi_.buildingsComboBox->currentIndex() == 0){
 		ROS_INFO_STREAM("Scouting Building 1");
-            quadrotors[cur_uav].ScoutBuilding(0,0,0.5);
+            //geometry_msgs::Pose mission = GetMission("takeoff.txt");
+            quadrotors[cur_uav].ScoutBuilding(GetMission("takeoff.txt"));
         }
         else if(mpUi_.buildingsComboBox->currentIndex() == 1){
 		ROS_INFO_STREAM("Scouting Building 2");
@@ -518,6 +519,27 @@ void SimpleGCS::UpdatePFD()
 
   pfd_ui.widgetPFD->update();
 }
+
+query_msgs::Target SimpleGCS::GetMission(std::string fileName){
+
+  float pos_x,pos_y,pos_z,radius;
+  query_msgs::Target building;
+  std::ifstream fileIn(fileName);
+  fileIn >> pos_x;
+  fileIn >> pos_y;
+  fileIn >> pos_z;
+  fileIn >> radius;
+  //fileIn >> yaw;
+
+  building.geometry_msgs::pose.position.x = pos_x;
+  building.Pose.position.y = pos_y;
+  building.Pose.position.z = pos_z;
+  building.radius = radius;
+  //building.orientation.w = yaw;
+
+  return building;
+}
+
 
 void SimpleGCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
