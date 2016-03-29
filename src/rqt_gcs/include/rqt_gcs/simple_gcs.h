@@ -91,13 +91,14 @@ namespace rqt_gcs{
     void UpdateMsgQuery();
     int cur_uav = 0;
     int timeCounter = 0;
+    sensor_msgs::ImageConstPtr imagePtr;
     SimpleControl quadrotors[NUM_UAV] = {};
     std::vector<AccessPoint> * accessPointsVector;
     std::vector<query_msgs::Door> * pictureQueryVector;
 
 
     cv::Mat conversion_mat_;
-    image_transport::Subscriber sub_stereo = it_stereo.subscribe("stereo_cam/left/image_raw", 1, &SimpleGCS::ImageCallback, this);
+    image_transport::Subscriber sub_stereo = it_stereo.subscribe("mono_cam/image_raw", 1, &SimpleGCS::ImageCallback, this);
 
     Ui::SimpleGCSWidget ui_;
     Ui::MissionProgressWidget mpUi_;
