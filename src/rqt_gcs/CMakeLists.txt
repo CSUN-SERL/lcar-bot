@@ -14,12 +14,12 @@ find_package(catkin REQUIRED COMPONENTS
             tf
             cv_bridge
             image_transport
+            query_msgs
 )
 
 find_package(Qt4 COMPONENTS QtCore QtGui QtSvg REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread)
 find_package(OpenCV REQUIRED)
-find_package(query_msgs REQUIRED)
 
 include(${QT_USE_FILE})
 include(EnableCXX11)

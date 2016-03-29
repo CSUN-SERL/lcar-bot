@@ -17,12 +17,7 @@
 		<arg name="log_output" value="$(arg log_output)" />
 	</include>
 
-	<include file="$(find vrpn_client_ros)/launch/sample.launch">
-		<arg name="server" value="MocapServer" />
-	</include>
-	<node pkg="rqt_gcs" type="safe_mocap" name="safe_mocap" required="true">
-			<param name="id" value="$(arg uav_id)" />
-	</node>
+	<node pkg="rqt_gcs" type="safe_mocap" name="safe_mocap" required="true"/>
 
 	<!-- <node pkg="machine_vision" type="stereo_driver" name="stereo_driver" required="true"/>
 	<node pkg="machine_vision" type="object_detection" name="object_detect" required="true"/>

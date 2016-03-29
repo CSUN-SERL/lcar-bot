@@ -23,19 +23,13 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "safe_mocap");
 
   ros::NodeHandle nh;
-  ros::NodeHandle private_nh("~"); //Private NodeHandle for parameters
 
   ros::Rate loop_rate(120); //120Hz
 
-  int id = 1;
-
-  bool ok = private_nh.getParam("id", id);
-  if(!ok) ROS_ERROR_STREAM("Couldn't read the id parameter!");
-
-  std::string ns = DEF_NS + std::to_string(id); //UAV Namespace
-  pub_mocap = nh.advertise<geometry_msgs::PoseStamped>(ns + "/mavros/mocap/pose",QUEUE_SIZE);
-  pub_violation = nh.advertise<geometry_msgs::Vector3>(ns + "/mocap/violation",QUEUE_SIZE);
-  sub_vrpn  = nh.subscribe("vrpn_client_node/" + ns + "/pose", QUEUE_SIZE, VrpnCallback);
+  std::string ns = ros::this_node::getNamespace(); //UAV Namespace
+  pub_mocap = nh.advertise<geometry_msgs::PoseStamped>("mavros/mocap/pose",QUEUE_SIZE);
+  pub_violation = nh.advertise<geometry_msgs::Vector3>("mocap/violation",QUEUE_SIZE);
+  sub_vrpn  = nh.subscribe("/vrpn_client_node/" + ns + "/pose", QUEUE_SIZE, VrpnCallback);
 
   while(ros::ok())
   {
