@@ -23,19 +23,18 @@ using namespace cv;
 using namespace cv::ml;
 
 //image_transport::CameraPublisher pub_right_;
-image_transport::Publisher pub_mat_;
+ros::Publisher pub_mat_;
 
 Ptr<SVM> svm;
 vector< float > hog_detector;
 HOGDescriptor hog; //(Size( 90, 160 ), Size(16, 16), Size(8, 8), Size(8, 8), 9)
 
-cv::Mat src;
+//cv::Mat src;
 vector<Mat> trainingdata;
 const Size & img_size = Size(128, 256);
 
 int frame_id;
 double avg;
-
 
 /////////////////////////////////////////////////////////////////////////////
 void HogFeatureExtraction(Mat ImgMat) {
@@ -88,20 +87,21 @@ void ObjectCategorize(cv::Mat image) {
     if (!image.empty()) {
         vector <double> weights;
         vector <Rect> detected_objects;
-        vector< Rect > door_objects;
+        vector <Rect> door_objects;
         hog.detectMultiScale(
                 image,
                 detected_objects,
-                weights,
+                weights
                 //,0         // hit threshold
                 //,Size(0,0) // step size
                 //,Size(0,0) // padding
                 //,1.05       // scale factor
                 //,2       // final threshold
-                true // use mean shift grouping?
+                ,true // use mean shift grouping?
                 );
         for (int i = 0; i < detected_objects.size(); i++) {
-            Rect windows(detected_objects.at(i).x, detected_objects.at(i).y, detected_objects.at(i).width, detected_objects.at(i).height);
+            Rect obj = detected_objects.at(i);
+            Rect windows(obj.x, obj.y, obj.width, obj.height);
             Mat Roi = image(windows);
             Mat extract, res, train_data;
             resize(Roi, extract, img_size);
@@ -111,52 +111,56 @@ void ObjectCategorize(cv::Mat image) {
             svm->predict(train_data, res, 4);
             for (int j = 0; j < res.rows; j++) {
                 if (res.at<float>(j, 0) == 1) {
-                    door_objects.push_back(detected_objects.at(i));
+                    door_objects.push_back(obj);
+                    
                 }
             }
-            res.release();
-            train_data.release();
-            extract.release();
+//            res.release();
+//            train_data.release();
+//            extract.release();
         }
         DrawLocations(image, door_objects, weights, Scalar(0, 255, 0));
-        imshow("view", image);
-        waitKey(10);
-
+//        imshow("view", image);
+//        waitKey(10);
+        sensor_msgs::ImagePtr door_msg = cv_bridge::CvImage(std_msgs::Header(),
+                                                   "mono8", image).toImageMsg();
+        door_msg->header.stamp = ros::Time::now();
+        pub_mat_.publish(door_msg);
     }
 
 }
 
-void ImageShow(){
-   if(!src.empty()){
-    imshow("view", src);
-    cv::waitKey(1);
-   }
-}
+//void ImageShow(){
+//   if(!src.empty()){
+//    imshow("view", src);
+//    cv::waitKey(1);
+//   }
+//}
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
   {
     cv::Mat image;
-    if(frame_id % 1 == 0){
-        src.release();
+//    if(frame_id % 1 == 0){
+        //src.release();
         image = cv_bridge::toCvCopy(msg, "mono8")->image;
-        src = image;
+        //src = image;
         ObjectCategorize(image);
 
-        double t = (double)cvGetTickCount();
-        t = cvGetTickCount() - t;
-        t = t / ((double)cvGetTickFrequency()*1000);
-        avg += t;
-        if(frame_id %10 == 0 ){
-           ROS_INFO_STREAM( "detection time = " << avg / frame_id);
-        }
+//        double t = (double)cvGetTickCount();
+//        t = cvGetTickCount() - t;
+//        t = t / ((double)cvGetTickFrequency()*1000);
+//        avg += t;
+//        if(frame_id %10 == 0 ){
+//           ROS_INFO_STREAM( "detection time = " << avg / frame_id);
+//        }
 
-        pub_mat_.publish(cv_bridge::CvImage(std_msgs::Header(),
-                                                "mono8", image).toImageMsg());
-    }
-    else
-        image = cv_bridge::toCvShare(msg, "mono8")->image;
+//        pub_mat_.publish(cv_bridge::CvImage(std_msgs::Header(),
+//                                                "mono8", image).toImageMsg());
+//    }
+//    else
+//        image = cv_bridge::toCvShare(msg, "mono8")->image;
   }
   catch (cv_bridge::Exception& e)
   {
@@ -206,7 +210,7 @@ int main (int argc, char** argv){
   hog.winSize = Size(128, 256);
   hog.setSVMDetector(hog_detector);
 
-  pub_mat_ = it.advertise("detected_objects", 1);
+  pub_mat_ = nh.advertise<sensor_msgs::Image>("detected_objects", 1);
 
 
   image_transport::Subscriber sub = it.subscribe(topic, 1, imageCallback);
