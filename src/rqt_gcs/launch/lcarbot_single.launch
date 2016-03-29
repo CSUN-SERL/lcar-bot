@@ -10,6 +10,10 @@
 
     <include file="$(find rqt_gcs)/launch/jetson.launch">
       <arg name="tgt_system" value="2" />
+      <arg name="uav_id" value="1" />
     </include>
   </group>
+  <include file="$(find vrpn_client_ros)/launch/sample.launch">
+		<arg name="server" value="MocapServer" />
+	</include>
 </launch>

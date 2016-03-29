@@ -2,9 +2,11 @@
 #define rqt_gcs__SimpleGCS_H
 
 #include <ros/ros.h>
+#include <ros/common.h>
 #include <rqt_gui_cpp/plugin.h>
 #include <rqt_gcs/simple_control.h>
-
+#include <query_msgs/Door.h>
+#include <std_srvs/Empty.h>
 #include <pluginlib/class_list_macros.h>
 #include <iomanip>
 #include <stdio.h>
@@ -30,6 +32,7 @@
 #include <ui_MissionConfirm.h>
 #include <ui_AccessPointsMenu.h>
 #include <ui_AccessPointStats.h>
+#include <ui_PictureMsg.h>
 
 #include <QWidget>
 #include <QLabel>
@@ -41,16 +44,23 @@
 
 #define NUM_UAV 5 //Total number of UAV's in the system
 
+
+
 namespace rqt_gcs{
+
+
 
   class SimpleGCS: public rqt_gui_cpp::Plugin
   {
   Q_OBJECT
   public:
     SimpleGCS();
-
     ros::Subscriber sub;
+    ros::Publisher pub;
     ros::NodeHandle nh;
+    ros::ServiceServer server;
+    query_msgs::Door msg;
+
     image_transport::ImageTransport it_stereo{nh};
     void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
@@ -60,6 +70,7 @@ namespace rqt_gcs{
     virtual void saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const;
     virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings);
 
+
   protected slots:
     virtual void TimedUpdate();
     virtual void ExecutePlay();
@@ -67,16 +78,26 @@ namespace rqt_gcs{
     virtual void ScoutBuilding();
     virtual void StopQuad();
     virtual void ChangeFlightMode();
-    virtual void OpenAccessPointsMenu();
-
+    virtual void RefreshAccessPointsMenu();
+    virtual void DeleteAccessPoint(QWidget*);
     virtual void QuadSelect(int);
     virtual void ArmSelectedQuad();
     virtual void DisarmSelectedQuad();
+    virtual void AcceptDoorQuery(QWidget*);
+    virtual void DenyDoorQuery(QWidget*);
 
   private:
     void UpdatePFD();
     int cur_uav = 0;
     SimpleControl quadrotors[NUM_UAV] = {};
+    std::vector<AccessPoint> * accessPointsVector;
+    std::vector<query_msgs::Door> * pictureQueryVector;
+    //bool procesingImageForUAV[NUM_UAV];
+    //query_msgs::Door processedImageMsgforUAV[NUM_UAV];
+
+    //bool pictureTest(rqt_gcs::pictureQuestion::Request&,
+    //                 rqt_gcs::pictureQuestion::Response&);
+
     cv::Mat conversion_mat_;
     image_transport::Subscriber sub_stereo = it_stereo.subscribe("stereo_cam/left/image_raw", 1, &SimpleGCS::ImageCallback, this);
 
@@ -89,7 +110,8 @@ namespace rqt_gcs{
     Ui::centralWidget central_ui_;
     Ui::UAVConditionWidget uavCondWidgetArr[NUM_UAV];
     Ui::AccessPointsMenuWidget apmUi_;
-    Ui::AccessPointStatsWidget apsUi_;
+    Ui::PictureMsgWidget pmUi_;
+
 
     QWidget* widget_;
     QWidget* missionProgressWidget_;
@@ -99,15 +121,21 @@ namespace rqt_gcs{
     QWidget* uavListWidgetArr[NUM_UAV];
     QWidget* PFDQWidget;
     QWidget* apmQWidget_;
-    QWidget* apsQWidget_;
- 
+
+    std::vector<QWidget*> accessPointsQWidgets_;
+    std::vector<QWidget*> pictureMsgQWidgets_;
+
 
     QLabel* label;
     QTimer* update_timer;
 
     QString temp_data;
     QString quad_id;
+    QString access_point_temp_data;
+    QString access_point_id;
     QSignalMapper* signal_mapper;
+    QSignalMapper* signal_mapper2;
+
 
   };
 } // namespace

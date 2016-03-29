@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>953</width>
-    <height>477</height>
+    <width>1189</width>
+    <height>534</height>
    </rect>
   </property>
   <property name="baseSize">
@@ -23,7 +23,7 @@
    <string notr="true">color: rgb(240, 240, 240);
 background-color: rgb(48, 57, 80);</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
@@ -89,6 +89,19 @@ background-color: rgb(48, 57, 80);</string>
        </item>
       </layout>
      </widget>
+     <widget class="QFrame" name="frame_5">
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
+        <layout class="QVBoxLayout" name="PictureMsgLayout"/>
+       </item>
+      </layout>
+     </widget>
      <widget class="QFrame" name="frame_3">
       <property name="minimumSize">
        <size>
@@ -132,6 +145,22 @@ background-color: rgb(48, 57, 80);</string>
             </size>
            </property>
           </spacer>
+         </item>
+         <item>
+          <widget class="QFrame" name="frame_4">
+           <property name="minimumSize">
+            <size>
+             <width>100</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>

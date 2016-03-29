@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
             tf
             cv_bridge
             image_transport
+            query_msgs
 )
 
 find_package(Qt4 COMPONENTS QtCore QtGui QtSvg REQUIRED)
@@ -57,6 +58,7 @@ set(rqt_gcs_UIS
   resources/UAVCondition.ui
   resources/ImageView.ui
   resources/MissionConfirm.ui
+  resources/PictureMsg.ui
 )
 
 SET(rqt_gcs_RCCS resources/qfi.qrc)
@@ -66,10 +68,12 @@ set(rqt_gcs_INCLUDE_DIRECTORIES
   ${CMAKE_CURRENT_BINARY_DIR}
 )
 
+catkin_python_setup()
+
 catkin_package(
   INCLUDE_DIRS ${rqt_gcs_INCLUDE_DIRECTORIES}
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS roscpp rqt_gui rqt_gui_cpp
+  CATKIN_DEPENDS roscpp rqt_gui rqt_gui_cpp std_msgs sensor_msgs
 )
 
 include_directories(include
@@ -79,8 +83,6 @@ include_directories(include
 
 add_definitions(${Qt4_DEFINITIONS})
 
-
-catkin_python_setup()
 
 qt4_add_resources(rqt_gcs_RCC_SRCS ${rqt_gcs_RCCS})
 qt4_wrap_cpp(rqt_gcs_MOCS ${rqt_gcs_HDRS})
@@ -94,6 +96,8 @@ include_directories(${rqt_gcs_INCLUDE_DIRECTORIES}
 add_executable(simple_control src/rqt_gcs/simple_control.cpp)
 add_executable(gps_publisher src/rqt_gcs/gps_publisher.cpp)
 add_executable(connection_manager src/rqt_gcs/connection_manager.cpp)
+add_executable(safe_mocap src/rqt_gcs/safe_mocap.cpp)
+
 
 add_library(${PROJECT_NAME}
             ${rqt_gcs_SRCS}
@@ -105,6 +109,7 @@ add_library(${PROJECT_NAME}
 target_link_libraries(simple_control ${catkin_LIBRARIES})
 target_link_libraries(gps_publisher ${catkin_LIBRARIES})
 target_link_libraries(connection_manager ${catkin_LIBRARIES})
+target_link_libraries(safe_mocap ${catkin_LIBRARIES})
 target_link_libraries(  ${PROJECT_NAME}
                         ${catkin_LIBRARIES}
                         ${QT_QTCORE_LIBRARY}

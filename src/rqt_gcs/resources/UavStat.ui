@@ -41,51 +41,24 @@ border-radius: 5px;</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
-    <widget class="QLabel" name="flightModeDisplay">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
+    <widget class="QLineEdit" name="flightModeDisplay">
      <property name="minimumSize">
       <size>
        <width>0</width>
        <height>35</height>
       </size>
      </property>
-     <property name="maximumSize">
-      <size>
-       <width>800</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="font">
-      <font>
-       <family>Ubuntu</family>
-       <pointsize>12</pointsize>
-      </font>
-     </property>
      <property name="styleSheet">
       <string notr="true">background-color: rgb(68, 80, 113);</string>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
-     </property>
-     <property name="lineWidth">
-      <number>1</number>
-     </property>
-     <property name="midLineWidth">
-      <number>0</number>
      </property>
      <property name="text">
       <string/>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
      </property>
     </widget>
    </item>

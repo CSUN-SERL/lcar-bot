@@ -2,7 +2,7 @@ var longitude = 2;
 var latitude  = 2;
 var num =2;
 var listeners =[];
-var total = 101;
+var total = 99;
 var sections = 10;
 var done = false;
 var ChoosenOne;
@@ -62,7 +62,7 @@ mapholder.style.width = '100%';
 
 
 var myOptions = {
-  center:latlon,zoom:10,
+  center:latlon,zoom:2,
   mapTypeId:google.maps.MapTypeId.SATELLITE,
   mapTypeControl:true,
   navigationControlOptions:{style:google.maps.NavigationControlStyle.SMALL}
@@ -129,7 +129,7 @@ if(longitude != 0 && latitude != 0 && $('input[name=uav]').length <= num )  {
 
 
 if( done == false){
-  if(list-1 == 0 && ( squadCreation != 1 || squadCreation !=0) && $('input[name=uav]').length < num){
+  if(list-1 == 0 ){
     //console.log("squadcreationg at option list-1: " + squadCreation);
     $('#Alpha').append($('<option>', {
      value:team[list-1] + (squadCreation  ),
@@ -210,7 +210,7 @@ la = new google.maps.LatLng(latitude,
   }
   else {
     //add new image
-    //if(num > 10){
+
       image[num] = {
         url: 'images/uavIcon' + (list -1 ) + '.png',
         scaledSize: new google.maps.Size(60,60)
@@ -254,7 +254,7 @@ la = new google.maps.LatLng(latitude,
       console.log("UAV: " + theChoosenOne);
     } else {
       if(parseInt(datNum == 8)){
-        
+
         theChoosenOne =  parseInt(checked + 1).toString() + 0 ;
         console.log("UAV else: " + theChoosenOne);
       }else{

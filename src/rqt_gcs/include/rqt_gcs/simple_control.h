@@ -29,19 +29,22 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
+#include <query_msgs/Door.h>
 
 #include <rqt_gcs/access_point.h>
 
+#define PI 3.14159265
 #define QUEUE_SIZE 100            //Message Queue size for publishers
 #define CHECK_FREQUENCY 1         //Frequency for checking change of state
 #define TIMEOUT 3*CHECK_FREQUENCY //3 Second timeout
 #define TRAVEL_WT 0.5
 #define SCOUT_WT 0.5
-#define THRESHOLD_XY 0.01
-#define THRESHOLD_Z 0.01
-#define THRESHOLD_YAW 0.01
+#define THRESHOLD_XY 0.08
+#define THRESHOLD_Z 0.08
+#define THRESHOLD_YAW 0.5
+#define THRESHOLD_DEPTH 0.8
 #define ALT_RTL 1
-#define BATTERY_MIN 0.30  //Minimum battery level for RTL
+#define BATTERY_MIN 0.10  //Minimum battery level for RTL
 #define DEF_NS "UAV"
 
 //Enumerators
@@ -154,7 +157,7 @@ public:
       @param x      New x position
       @param y      New y position
       @param z      New z position
-      @param yaw    New yaw value
+      @param yaw    New yaw value in degrees
   */
   void SetLocalPosition(float x, float y, float z, float yaw);
 
@@ -171,7 +174,7 @@ public:
       //NOTE: setpoint_attitude/attitude is currently not supported on the APM
       flight stack. Only the px4 flight stack is supported at the moment.
 
-      @param roll   New roll value in degrees, relative to the horizontal plane
+      @param roll   New roll value in degrees, relastd::tive to the horizontal plane
       @param pitch  New pitch value in degrees, relative to the horizontal plane
       @param yaw    New yaw value in degrees, relative to the horizontal plane
   */
@@ -209,6 +212,35 @@ public:
   void SetAcceleration(float x, float y, float z);
 
   /**
+      Manage the UAV and ensure that it is stable
+  */
+  void Run();
+
+  /**
+      Return to launch site
+  */
+  void SetRTL() { goal = rtl; }
+
+  /**
+      Manage the UAV and ensure that it is stable
+  */
+  void SendDoorResponse(query_msgs::Door msg_answer) { pub_door_answer.publish(msg_answer); }
+
+  //Getter Functions
+  mavros_msgs::State GetState() { return state; }
+  mavros_msgs::BatteryStatus GetBatteryStatus() { return battery; }
+  sensor_msgs::Imu  GetImu() { return imu; }
+  FlightState GetFlightState() { return UpdateFlightState(); }
+  int GetDistanceToWP() { return CalculateDistance(pose_target, pose_local); }
+  float GetMissionProgress();
+  std::vector<AccessPoint>* GetRefAccessPoints() { return &access_pts; }
+  std::vector<query_msgs::Door>* GetDoorQueries() { return &queries_door; }
+
+private:
+  void InitialSetup();
+
+  //Private Class Functions
+  /**
       Compare two geometry_msgs::Point objects within a threshold value.
 
       @param point1  First point to compare
@@ -240,24 +272,6 @@ public:
   */
   geometry_msgs::Pose DiamondShape(int index);
 
-
-  void Run();
-
-
-  void SetRTL() { goal = rtl; }
-
-  //Getter Functions
-  mavros_msgs::State GetState() { return state; }
-  mavros_msgs::BatteryStatus GetBatteryStatus() { return battery; }
-  sensor_msgs::Imu  GetImu() { return imu; }
-  FlightState GetFlightState() { return UpdateFlightState(); }
-  int GetDistanceToWP() { return CalculateDistance(pose_target, pose_local); }
-  float GetMissionProgress();
-  std::vector<AccessPoint> GetAccessPoints() { return access_pts; }
-
-private:
-  void InitialSetup();
-
   //Callback Prototypes
   void StateCallback(const mavros_msgs::State& msg_state) { state = msg_state; }
   void BatteryCallback(const mavros_msgs::BatteryStatus& msg_battery) { battery = msg_battery; }
@@ -267,7 +281,8 @@ private:
   void VelocityCallback(const geometry_msgs::TwistStamped& msg_vel) { velocity = msg_vel; }
   void NavSatFixCallback(const sensor_msgs::NavSatFix& msg_gps) { pos_global = msg_gps; }
   void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) { pose_local = msg_pos.pose; }
-  void VrpnCallback(const geometry_msgs::PoseStamped& msg_pos) {pub_mocap.publish(msg_pos);}
+  void DepthCallback(const std_msgs::Float64& msg_depth){ object_distance = msg_depth; }
+  void DoorQueryCallback(const query_msgs::Door& msg_query){ queries_door.push_back(msg_query); }
   void DetectionCallback(const sensor_msgs::Image& msg_detection)
   {
       AccessPoint new_point;
@@ -298,7 +313,7 @@ private:
                       pub_angular_vel,
                       pub_linear_vel,
                       pub_setpoint_accel,
-                      pub_mocap;
+                      pub_door_answer;
   ros::Subscriber     sub_state,
                       sub_battery,
                       sub_imu,
@@ -308,6 +323,8 @@ private:
                       sub_heading,
                       sub_vel,
                       sub_vrpn,
+                      sub_depth,
+                      sub_door_query,
                       sub_detection;
 
   //UAV State Variables
@@ -322,10 +339,12 @@ private:
                                 pose_home,
                                 pose_previous;
   std_msgs::Float64             altitude_rel,
-                                heading_deg;
-  std::vector<AccessPoint>      access_pts;
+                                heading_deg,
+                                object_distance;
   Mode                          goal = idle;
   ros::Time                     last_request;
+  std::vector<AccessPoint>      access_pts;
+  std::vector<query_msgs::Door> queries_door;
 };
 
 #endif

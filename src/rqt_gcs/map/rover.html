@@ -13,7 +13,7 @@
      <form onsubmit="start();" action="#">
       Enter start and end addresses.<br />
       <input type="text" size="80" maxlength="200" id="startpoint" value="34.24203265889959, -118.52938055992126" /><br />
-      <input type="text" size="80" maxlength="200" id="endpoint" value="34.239647368535515,-118.52839887142181" />
+      <input type="text" size="80" maxlength="200" id="endpoint" value="34.239647368535515,-118.52539887142181" />
 
 
 
@@ -21,9 +21,9 @@
      <input type="submit" value="Start" class = "startB" />
       </form>
   </center>
-    <div id="map" style="width: 95%; height: 780px; margin: auto;"></div>
+    <div id="map" style="width: 95%; height: 880px; margin: auto;"></div>
     <div id="step">&nbsp;</div>
-    <div id="distance">Miles: 0.00</div>
+  <!--  <div id="distance">Miles: 0.00</div> -->
 
     <script type="text/javascript">
     //<![CDATA[
@@ -49,24 +49,24 @@
       function animate(d) {
         if (d>eol) {
           document.getElementById("step").innerHTML = "<b>Trip completed<\/b>";
-          document.getElementById("distance").innerHTML =  "Miles: "+(d/1609.344).toFixed(2);
+          //document.getElementById("distance").innerHTML =  "Miles: "+(d/1609.344).toFixed(2);
           return;
         }
         var p = poly.GetPointAtDistance(d);
-        if (k++>=180/step) {
+        if (k++>=40/step) {
           map.panTo(p);
           k=0;
         }
         marker.setPoint(p);
-        document.getElementById("distance").innerHTML =  "Miles: "+(d/1609.344).toFixed(2)+speed;
+        //document.getElementById("distance").innerHTML =  "Miles: "+(d/1609.344).toFixed(2)+speed;
         if (stepnum+1 < dirn.getRoute(0).getNumSteps()) {
           if (dirn.getRoute(0).getStep(stepnum).getPolylineIndex() < poly.GetIndexAtDistance(d)) {
             stepnum++;
             var steptext = dirn.getRoute(0).getStep(stepnum).getDescriptionHtml();
-            document.getElementById("step").innerHTML = "<b>Next:<\/b> "+steptext;
+            //document.getElementById("step").innerHTML = "<b>Next:<\/b> "+steptext;
             //dirn.getRoute(0).getStep(stepnum-1).getDistance().meters;
             //dirn.getRoute(0).getStep(stepnum-1).getDuration().seconds;
-            var stepdist = 1
+            var stepdist = 5
             var steptime = 1
             var stepspeed = ((stepdist/steptime) * 2.24).toFixed(0);
             step = stepspeed/2.5;
@@ -74,7 +74,7 @@
           }
         } else {
           if (dirn.getRoute(0).getStep(stepnum).getPolylineIndex() < poly.GetIndexAtDistance(d)) {
-            document.getElementById("step").innerHTML = "<b>Next: Arrive at your destination<\/b>";
+            //document.getElementById("step").innerHTML = "<b>Next: Arrive at your destination<\/b>";
           }
         }
         setTimeout("animate("+(d+step)+")", tick);
@@ -90,7 +90,7 @@
         marker = new GMarker(poly.getVertex(0),{icon:car});
         map.addOverlay(marker);
         var steptext = dirn.getRoute(0).getStep(stepnum).getDescriptionHtml();
-        document.getElementById("step").innerHTML = steptext;
+        //document.getElementById("step").innerHTML = steptext;
         setTimeout("animate(0)",2000);  // Allow time for the initial map display
       });
 

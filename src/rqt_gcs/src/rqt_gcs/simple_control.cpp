@@ -7,6 +7,8 @@ int main(int argc, char **argv)
 
   ros::Rate loop_rate(10); //10Hz
 
+  quad1.ScoutBuilding(0,0,0.5);
+
   while(ros::ok())
   {
     quad1.Run();
@@ -54,7 +56,7 @@ void SimpleControl::InitialSetup()
     pub_angular_vel       = nh.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
     pub_linear_vel        = nh.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_velocity/cmd_vel",QUEUE_SIZE);
     pub_setpoint_accel    = nh.advertise<geometry_msgs::Vector3Stamped>(ns + "/mavros/setpoint_accel/accel",QUEUE_SIZE);
-    pub_mocap             = nh.advertise<geometry_msgs::PoseStamped>(ns + "/mavros/mocap/pose",QUEUE_SIZE);
+    pub_door_answer       = nh.advertise<query_msgs::Door>(ns + "/object_detection/door/answer",QUEUE_SIZE);
 
     //Initialze Subscribers
     sub_state      = nh.subscribe(ns + "/mavros/state", QUEUE_SIZE, &SimpleControl::StateCallback, this);
@@ -65,8 +67,9 @@ void SimpleControl::InitialSetup()
     sub_vel        = nh.subscribe(ns + "/mavros/local_position/velocity", QUEUE_SIZE, &SimpleControl::VelocityCallback, this);
     sub_pos_global = nh.subscribe(ns + "/mavros/global_position/global", QUEUE_SIZE, &SimpleControl::NavSatFixCallback, this);
     sub_pos_local  = nh.subscribe(ns + "/mavros/local_position/pose", QUEUE_SIZE, &SimpleControl::LocalPosCallback, this);
-    sub_vrpn       = nh.subscribe("vrpn_client_node/" + ns + "/pose", QUEUE_SIZE, &SimpleControl::VrpnCallback, this);
-    sub_detection  = nh.subscribe(ns + "/object_detection/door", QUEUE_SIZE, &SimpleControl::DetectionCallback, this);
+    sub_depth      = nh.subscribe(ns + "/object_avoidance/depth", QUEUE_SIZE, &SimpleControl::DepthCallback, this);
+    sub_door_query = nh.subscribe(ns + "/object_detection/door/query", QUEUE_SIZE, &SimpleControl::DoorQueryCallback, this);
+    sub_detection  = nh.subscribe(ns + "/object_detection/access_point", QUEUE_SIZE, &SimpleControl::DetectionCallback, this);
 
     //Set Home position
     pose_home.position.x = pose_home.position.y = pose_home.position.z = 0;
@@ -170,7 +173,8 @@ void SimpleControl::SetMode(std::string mode)
     else ROS_ERROR_STREAM("Failed to change flight mode to " << mode << ".");
   }
   else{
-    ROS_ERROR_STREAM("Failed to call new_mode service!");
+    ROS_INFO_STREAM("Mode: " << mode);
+    ROS_ERROR_STREAM("Failed to call change flight mode service!");
   }
 }
 
@@ -292,16 +296,21 @@ void SimpleControl::OverrideRC(int channel, int value)
   pub_override_rc.publish(override_msg);
 }
 
-void SimpleControl::SetLocalPosition(float x, float y, float z, float yaw = 0)
+void SimpleControl::SetLocalPosition(float x, float y, float z, float yaw = 361)
 {
   //Create the message object
   geometry_msgs::PoseStamped position_stamped;
 
   //Update the message with the new position
-  position_stamped.pose.position.x      = x;
-  position_stamped.pose.position.y      = y;
-  position_stamped.pose.position.z      = z;
-  position_stamped.pose.orientation.z   = yaw;
+  position_stamped.pose.position.x = x;
+  position_stamped.pose.position.y = y;
+  position_stamped.pose.position.z = z;
+  if(yaw == 361){ //No value passed, use current Yaw value
+      position_stamped.pose.orientation = pose_previous.orientation;
+  }
+  else{ //Use the specified Yaw value
+      quaternionTFToMsg(tf::createQuaternionFromYaw(yaw*(PI/180)), position_stamped.pose.orientation);
+  }
 
   //Publish the message
   pub_setpoint_position.publish(position_stamped);
@@ -376,17 +385,22 @@ void SimpleControl::SetAcceleration(float x, float y, float z)
 //TODO: Fix Roll, Pitch, Yaw, and Ground Speed values
 FlightState SimpleControl::UpdateFlightState()
 {
-
-
   struct FlightState flight_state;
 
-  flight_state.roll = imu.orientation.x; //Update Roll value
-  flight_state.pitch = imu.orientation.y; //Update Pitch Value
-  flight_state.yaw = imu.orientation.z; //Update Yaw Value
-  flight_state.heading = heading_deg.data; //Update heading [degrees]
-  flight_state.altitude = altitude_rel.data; //Update Altitude [m]
-  flight_state.ground_speed = velocity.twist.linear.x; //Global Velocity X [m/s]
-  flight_state.vertical_speed = velocity.twist.linear.z; //Global Velocity vertical [m/s]
+  /*tf::Quaternion quaternion_tf;
+  tf::quaternionMsgToTF(imu.orientation, quaternion_tf);
+  tf::Matrix3x3 m{quaternion_tf};
+
+  double roll, pitch, yaw;
+  m.getRPY(roll, pitch, yaw);*/
+
+  flight_state.roll = imu.orientation.x;     //Update Roll value
+  flight_state.pitch = imu.orientation.y;   //Update Pitch Value
+  flight_state.yaw = imu.orientation.z;       //Update Yaw Value
+  flight_state.heading = heading_deg.data;  //Update heading [degrees]
+  flight_state.altitude = altitude_rel.data;//Update Altitude [m]
+  flight_state.ground_speed = velocity.twist.linear.x;  //Global Velocity X [m/s]
+  flight_state.vertical_speed = velocity.twist.linear.z;//Global Velocity vertical [m/s]
 
   return flight_state;
 }
@@ -395,15 +409,33 @@ int SimpleControl::ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pos
 {
   int result;
 
-  if( abs(pose2.position.x - pose1.position.x) <= THRESHOLD_XY  &&
-      abs(pose2.position.y - pose1.position.y) <= THRESHOLD_XY  &&
-      abs(pose2.position.z - pose1.position.z) <= THRESHOLD_Z   /*&&
-      abs(pose2.orientation.z - pose1.orientation.z) <= THRESHOLD_YAW*/){
+  //Get the yaw values
+  /*double roll, pitch, yaw_1, yaw_2;
+  tf::Quaternion quaternion_tf1, quaternion_tf2;
+
+  tf::quaternionMsgToTF(pose1.orientation, quaternion_tf1);
+  tf::Matrix3x3 m1{quaternion_tf1};
+
+  tf::quaternionMsgToTF(pose2.orientation, quaternion_tf2);
+  tf::Matrix3x3 m2{quaternion_tf2};
+
+  m1.getRPY(roll, pitch, yaw_1);
+  m2.getRPY(roll, pitch, yaw_2);*/
+
+  if( std::abs(pose2.position.x - pose1.position.x) <= THRESHOLD_XY         &&
+      std::abs(pose2.position.y - pose1.position.y) <= THRESHOLD_XY         &&
+      std::abs(pose2.position.z - pose1.position.z) <= THRESHOLD_Z          /*&&
+      std::abs(std::abs(pose2.orientation.z) - std::abs(pose1.orientation.z)) <= THRESHOLD_YAW  &&
+      std::abs(std::abs(pose2.orientation.w) - std::abs(pose1.orientation.w)) <= THRESHOLD_YAW*/)
+  {
     result = 0;
   }
   else result = 1;
 
-  return 1;
+  /*ROS_INFO_STREAM("Z: " << std::abs(pose2.orientation.z - pose1.orientation.z));
+  ROS_INFO_STREAM("W: " << std::abs(pose2.orientation.w - pose1.orientation.w));*/
+
+  return result;
 }
 
 int SimpleControl::CalculateDistance(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
@@ -439,7 +471,7 @@ float SimpleControl::GetMissionProgress()
 
 geometry_msgs::Pose SimpleControl::CircleShape(int angle){
 		/** @todo Give possibility to user define amplitude of movement (circle radius)*/
-		double r = 5.0f;	// 5 mete;rs radius
+        double r = 5.0f;	// 5 meters radius
 
         geometry_msgs::Pose new_pose;
         tf::pointEigenToMsg(Eigen::Vector3d(r * (cos(angles::from_degrees(angle))),
@@ -453,64 +485,72 @@ geometry_msgs::Pose SimpleControl::CircleShape(int angle){
 
 geometry_msgs::Pose SimpleControl::DiamondShape(int index){
 
-  double r = 5.0f;
+  double r = 0.2f;
   geometry_msgs::Pose mission[4] = { };
 
   ROS_INFO_STREAM("Traveling to Index " << index);
   mission[0].position.x     = r;
   mission[0].position.y     = 0;
-  mission[0].position.z     = 4;
-  //mission[0].orientation.z  = 180;
+  mission[0].position.z     = 0.5;
+  quaternionTFToMsg(tf::createQuaternionFromYaw(180*(PI/180)), mission[0].orientation);
 
   mission[1].position.x     = 0;
   mission[1].position.y     = r;
-  mission[1].position.z     = 4;
-  //mission[1].orientation.z  = 270;
+  mission[1].position.z     = 0.5;
+  quaternionTFToMsg(tf::createQuaternionFromYaw(270*(PI/180)), mission[1].orientation);
 
   mission[2].position.x     = -r;
   mission[2].position.y     = 0;
-  mission[2].position.z     = 4;
-  //mission[2].orientation.z  = 0;
+  mission[2].position.z     = 0.5;
+  quaternionTFToMsg(tf::createQuaternionFromYaw(0*(PI/180)), mission[2].orientation);
 
   mission[3].position.x     = 0;
   mission[3].position.y     = -r;
-  mission[3].position.z     = 4;
-  //mission[3].orientation.z  = 90;
+  mission[3].position.z     = 0.5;
+  quaternionTFToMsg(tf::createQuaternionFromYaw(90*(PI/180)), mission[3].orientation);
 
   return mission[index];
 }
 
 void SimpleControl::Run()
 {
-  /*if(battery.remaining < BATTERY_MIN){
-    //Return to launch site if battery is starting to get low
-    goal = RTL;
+  //Sanity Checks
+  if(battery.remaining < BATTERY_MIN){
+    //Land if battery is starting to get low
+    goal = land;
+  }
+  /*else if(object_distance.data < THRESHOLD_DEPTH){
+    //Collision Imminent! Land.
+    goal = land;
   }*/
+
   if(goal == travel){
     if(ComparePosition(pose_local, pose_target) == 0){
       //Vehicle is at target location => Scout Building
-      //pose_previous = pose_local;
-      //goal = scout;
-      pose_target = pose_home;
-      goal = land;
+      pose_previous = pose_local;
+      goal = scout;
+      /*pose_previous = pose_local;
+      goal = land;*/
       ROS_DEBUG_STREAM_ONCE("Scouting Building.");
     }
-    else if(abs(pose_local.position.z - pose_target.position.z) <= THRESHOLD_Z){
+    else if(std::abs(std::abs(pose_local.position.z) - std::abs(pose_target.position.z)) <= THRESHOLD_Z){
       //Achieved the proper altitude => Go to target location
       this->SetLocalPosition(pose_target);
+
+      pose_previous = pose_local; //Update previous position for fixing the altitude
     }
     else{
       //Ascend to the proper altitude first at the current location
-      this->SetLocalPosition(pose_local.position.x, pose_local.position.y, pose_target.position.z);
+      this->SetLocalPosition(pose_previous.position.x, pose_previous.position.y, pose_target.position.z);
     }
   }
   else if(goal == scout){
-    //TODO: Fix Scout Functionality. Temporary Circle Path Test
     static int rev_count = 0;
     static int cur_point = 0;
+
     pose_target = this->DiamondShape(cur_point);
-	  //tf::pointEigenToMsg(this->CircleShape(theta), pos_target); //Update Target Pos
-      this->SetLocalPosition(pose_target);
+    this->SetLocalPosition(pose_target);
+
     goal = travel;
     cur_point++;
 
@@ -520,7 +560,9 @@ void SimpleControl::Run()
       //goal = RTL;
       ROS_INFO_STREAM("Circled Building" << rev_count << "times.");
       rev_count++;
-      cur_point = 1;
+
+      if(rev_count > 2) goal = land;
+      else cur_point = 0;
     }
   }
   else if(goal == rtl){
@@ -528,7 +570,8 @@ void SimpleControl::Run()
       //Vehicle is at target location => Disarm
       goal = disarm;
     }
-    else if(abs(pose_local.position.x - pose_target.position.x) <= THRESHOLD_XY && abs(pose_local.position.y - pose_target.position.y) <= THRESHOLD_XY){
+    else if(std::abs(std::abs(pose_local.position.x) - std::abs(pose_target.position.x)) <= THRESHOLD_XY &&
+            std::abs(std::abs(pose_local.position.y) - std::abs(pose_target.position.y)) <= THRESHOLD_XY){
       this->SetLocalPosition(pose_local.position.x, pose_local.position.y, 0);
       goal = land;
     }
@@ -539,14 +582,16 @@ void SimpleControl::Run()
     else{
       this->SetLocalPosition(pose_local.position.x, pose_local.position.y, ALT_RTL);
     }
-    /*if(state.mode.compare("AUTO.RTL") != 0 && state.mode.compare("AUTO.LAND") != 0){
-      this->SetMode("AUTO.RTL");
-    }
-    */
   }
   else if(goal == land){
-    this->SetMode("AUTO.LAND");
-    goal = idle;
+      if(pose_local.position.z <= THRESHOLD_Z*3){
+        goal = disarm;
+        ROS_INFO_STREAM_ONCE("Landed Safely.");
+      }
+      else{
+        //Descend to the floor
+        this->SetLocalPosition(pose_previous.position.x, pose_previous.position.y, 0);
+      }
   }
   else if(goal == disarm){
     //Disarm the vehicle if it's currently armed
