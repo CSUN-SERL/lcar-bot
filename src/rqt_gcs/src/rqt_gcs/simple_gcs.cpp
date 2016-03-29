@@ -2,14 +2,6 @@
 
 namespace rqt_gcs {
 
-//bool SimpleGCS::pictureTest(
-//        rqt_gcs::pictureQuestion::Request &req,
-//        rqt_gcs::pictureQuestion::Response &resp
-//        ){
-
-//    resp.accept = true;
- //   return true;
-//}
 
 SimpleGCS::SimpleGCS()
   : rqt_gui_cpp::Plugin()
@@ -17,8 +9,6 @@ SimpleGCS::SimpleGCS()
 {
   //Constructor is called first before initPlugin function
   setObjectName("LCAR Bot GCS");
-
-  // pub = nh.advertise<query_msgs::Door> ("rqt_gcs/picture_query",1000);
 }
 
 void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
@@ -70,8 +60,6 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
   }
 
 
-  //central_ui_.PictureMsgLayout->addWidget();
-
    //Setup mission progress widgets
    uavStatWidget_->setWindowTitle("Flight State");
    missionProgressWidget_->setWindowTitle("Mission Control");
@@ -91,16 +79,24 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
    //Setup UAV lists select functions
    signal_mapper = new QSignalMapper(this);
    signal_mapper2 = new QSignalMapper(this);
+   acceptDoorMapper =  new QSignalMapper(this);
+   denyDoorMapper = new QSignalMapper(this);
+
    for(int i = 0; i < NUM_UAV; i++){
     signal_mapper->setMapping(uavCondWidgetArr[i].VehicleSelectButton, i);
     connect(uavCondWidgetArr[i].VehicleSelectButton,SIGNAL(clicked()),signal_mapper, SLOT(map()));
    }
    connect(signal_mapper, SIGNAL(mapped(int)),this, SLOT(QuadSelect(int)));
 
+   connect(acceptDoorMapper, SIGNAL(mapped(QWidget*)),this, SLOT(AcceptDoorQuery(QWidget*)));
+   connect(denyDoorMapper, SIGNAL(mapped(QWidget*)),this, SLOT(DenyDoorQuery(QWidget*)));
+
    //Setup update timer
    update_timer = new QTimer(this);
    connect(update_timer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
-   update_timer->start(100);
+
+   //30 hz
+   update_timer->start(33);
 
 
    //set up access points
@@ -130,40 +126,15 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
 //Timed update of for the GCS
 void SimpleGCS::TimedUpdate(){
 
-/*
- for(int i = pictureMsgQWidgets_.size()-1; i >= 0; i--)
- {
-        pmUi_.verticalLayout->removeWidget(pictureMsgQWidget_.at(i));
-        delete pictureMsgQWidgets_.at(i);
-        pictureMsgQWidgets_.at(i) = NULL;
-        pictureMsgQWidgets_.pop_back();
+    timeCounter++;
 
+
+ if(timeCounter >= 30){
+     UpdateMsgQuery();
+     timeCounter = 0;
  }
- pictureMsgQWidgets_.clear();
 
 
-
- pictureQueryVector = quadrotors[cur_uav].GetDoorQueries();
-
- int numOfPictureMsg = pictureQueryVector->size();
-
-  QWidget* pmWidgets[numOfPictureMsg];
-  Ui::PictureMsgWidget pmUiWidgets[numOfPictureMsg];
-
-   for(int i = 0; i < numOfPictureMsg; i++)
-   {
-    //add widget to the list
-    pictureMsgQWidgets_.push_back(pmWidgets[i]);
-    pictureMsgQWidgets_.at(i) = new QWidget();
-
-    //set up the ui
-    pmUiWidgets[i].setupUi(pictureMsgQWidgets_.at(i));
-    central_ui_.PictureMsgLayout->addWidget(pictureMsgQWidgets_.at(i));
-    pictureMsgQWidgets_.at(i)->show();
-
-  }
-
-*/
   quad_id.setNum(cur_uav+1);
   SimpleControl quad = quadrotors[cur_uav];
 
@@ -223,11 +194,86 @@ void SimpleGCS::TimedUpdate(){
 
 }
 
-void SimpleGCS::AcceptDoorQuery(QWidget *qw){
+void SimpleGCS::UpdateMsgQuery(){
+    for(int i = pictureMsgQWidgets_.size()-1; i >= 0; i--)
+    {
+        central_ui_.PictureMsgLayout->removeWidget(pictureMsgQWidgets_.at(i));
+        delete pictureMsgQWidgets_.at(i);
+        pictureMsgQWidgets_.at(i) = NULL;
+        pictureMsgQWidgets_.pop_back();
 
+    }
+    pictureMsgQWidgets_.clear();
+
+
+    pictureQueryVector = quadrotors[cur_uav].GetDoorQueries();
+
+    int numOfPictureMsg = pictureQueryVector->size();
+
+       ROS_INFO_STREAM(" number of msgs " << numOfPictureMsg);
+
+    QWidget* pmWidgets[numOfPictureMsg];
+    Ui::PictureMsgWidget pmUiWidgets[numOfPictureMsg];
+
+    if(numOfPictureMsg != 0){
+        for(int i = 0; i < numOfPictureMsg; i++)
+        {
+            //add widget to the list
+            pictureMsgQWidgets_.push_back(pmWidgets[i]);
+            pictureMsgQWidgets_.at(i) = new QWidget();
+
+            query_msgs::Door doorQuery = pictureQueryVector->at(i);
+
+
+            QImage image(doorQuery.picture.data.data(),doorQuery.picture.width, doorQuery.picture.height,doorQuery.picture.step, QImage::Format_RGB888);
+
+          //  pmUiWidgets[i].image_frame->setImage(image);
+            //pmUiWidgets[i].graphicsView->
+
+            //set up the ui
+            pmUiWidgets[i].setupUi(pictureMsgQWidgets_.at(i));
+
+            //map signal
+            acceptDoorMapper->setMapping(pmUiWidgets[i].yesButton,pictureMsgQWidgets_.at(i));
+            connect(pmUiWidgets[i].yesButton,SIGNAL(clicked()),acceptDoorMapper, SLOT(map()));
+//
+            denyDoorMapper->setMapping(pmUiWidgets[i].rejectButton,pictureMsgQWidgets_.at(i));
+            connect(pmUiWidgets[i].rejectButton,SIGNAL(clicked()),denyDoorMapper, SLOT(map()));
+
+            central_ui_.PictureMsgLayout->addWidget(pictureMsgQWidgets_.at(i));
+        }
+    }
+}
+
+void SimpleGCS::AcceptDoorQuery(QWidget *qw){
+         ROS_INFO_STREAM("Accepted");
+        int index = central_ui_.PictureMsgLayout->indexOf(qw);
+        query_msgs::Door doormsg = pictureQueryVector->at(index);
+        ROS_INFO_STREAM("door number " << index);
+        pictureQueryVector->erase(pictureQueryVector->begin()+index);
+        pictureMsgQWidgets_.erase(pictureMsgQWidgets_.begin()+index);
+
+        central_ui_.PictureMsgLayout->removeWidget(qw);
+        delete qw;
+
+        doormsg.accepted = true;
+        quadrotors[cur_uav].SendDoorResponse(doormsg);
 }
 
 void SimpleGCS::DenyDoorQuery(QWidget * qw){
+        ROS_INFO_STREAM("Denyed");
+
+        int index = central_ui_.PictureMsgLayout->indexOf(qw);
+        query_msgs::Door doormsg = pictureQueryVector->at(index);
+        ROS_INFO_STREAM("door number " << index);
+        pictureQueryVector->erase(pictureQueryVector->begin()+index);
+        pictureMsgQWidgets_.erase(pictureMsgQWidgets_.begin()+index);
+
+        central_ui_.PictureMsgLayout->removeWidget(qw);
+        delete qw;
+
+        doormsg.accepted = false;
+        quadrotors[cur_uav].SendDoorResponse(doormsg);
 
 }
 
@@ -320,6 +366,8 @@ void SimpleGCS::RefreshAccessPointsMenu(){
      //create widgets for access points
      QWidget* apWidgets[numOfAccessPoints];
      Ui::AccessPointStatsWidget apUiWidgets[numOfAccessPoints];
+     QWidget* imageWidget = new QWidget();
+     Ui::ImageViewWidget imageUiWidget;
 
      //create  a new list of access points if there are any access points
      if( numOfAccessPoints != 0){
@@ -327,14 +375,26 @@ void SimpleGCS::RefreshAccessPointsMenu(){
 
           //retrive access point
           AccessPoint accessPoint = accessPointsVector->at(i);
+          sensor_msgs::ImageConstPtr acImage = accessPointsVector->at(i).GetImage();
+
+//
+         // cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(imagePtr);
+         // conversion_mat_ = cv_ptr->image;
+         // QImage image(conversion_mat_.data, conversion_mat_.cols, conversion_mat_.rows, conversion_mat_.step[0], QImage::Format_RGB888);
+          //QImage image(acImage->data,acImage->width, acImage->height,acImage->step, QImage::Format_RGB888);
+
+          // image.color(QColor::black());
 
           //add widget to the list
             accessPointsQWidgets_.push_back(apWidgets[i]);
             accessPointsQWidgets_.at(i) = new QWidget();
 
             //set up the ui
+            imageUiWidget.setupUi(imageWidget);
             apUiWidgets[i].setupUi(accessPointsQWidgets_.at(i));
 
+
+            //apUiWidgets[i].
             //map signal to the delete button
              signal_mapper2->setMapping(apUiWidgets[i].deleteAccessPointButton,accessPointsQWidgets_.at(i));
 
@@ -356,8 +416,11 @@ void SimpleGCS::RefreshAccessPointsMenu(){
              apUiWidgets[i].compassHeadingLineEdit->setText(access_point_temp_data);
 
              //image
-             //accessPoint.GetImage().
-             // apUiWidgets[i].
+             // imageUiWidget.image_frame->setImage(image);
+              //ivUi_.image_frame->setImage(image);
+
+              apUiWidgets[i].PictureLayout->addWidget(imageWidget);
+
 
              //location longitude
              access_point_temp_data.setNum(accessPoint.GetLocation().longitude,'f',2);
@@ -458,6 +521,9 @@ void SimpleGCS::UpdatePFD()
 
 void SimpleGCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
+    ROS_INFO_STREAM("Getting Picture");
+
+    imagePtr = msg;
   try
   {
     cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(msg);

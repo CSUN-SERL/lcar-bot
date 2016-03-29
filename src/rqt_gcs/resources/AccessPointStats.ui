@@ -223,7 +223,7 @@ color: rgb(240, 240, 240);
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="0" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_2"/>
+       <layout class="QHBoxLayout" name="PictureLayout"/>
       </item>
      </layout>
     </widget>

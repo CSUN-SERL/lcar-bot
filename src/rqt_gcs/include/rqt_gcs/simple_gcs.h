@@ -88,18 +88,17 @@ namespace rqt_gcs{
 
   private:
     void UpdatePFD();
+    void UpdateMsgQuery();
     int cur_uav = 0;
+    int timeCounter = 0;
+    sensor_msgs::ImageConstPtr imagePtr;
     SimpleControl quadrotors[NUM_UAV] = {};
     std::vector<AccessPoint> * accessPointsVector;
     std::vector<query_msgs::Door> * pictureQueryVector;
-    //bool procesingImageForUAV[NUM_UAV];
-    //query_msgs::Door processedImageMsgforUAV[NUM_UAV];
 
-    //bool pictureTest(rqt_gcs::pictureQuestion::Request&,
-    //                 rqt_gcs::pictureQuestion::Response&);
 
     cv::Mat conversion_mat_;
-    image_transport::Subscriber sub_stereo = it_stereo.subscribe("stereo_cam/left/image_raw", 1, &SimpleGCS::ImageCallback, this);
+    image_transport::Subscriber sub_stereo = it_stereo.subscribe("mono_cam/image_raw", 1, &SimpleGCS::ImageCallback, this);
 
     Ui::SimpleGCSWidget ui_;
     Ui::MissionProgressWidget mpUi_;
@@ -111,7 +110,6 @@ namespace rqt_gcs{
     Ui::UAVConditionWidget uavCondWidgetArr[NUM_UAV];
     Ui::AccessPointsMenuWidget apmUi_;
     Ui::PictureMsgWidget pmUi_;
-
 
     QWidget* widget_;
     QWidget* missionProgressWidget_;
@@ -135,8 +133,8 @@ namespace rqt_gcs{
     QString access_point_id;
     QSignalMapper* signal_mapper;
     QSignalMapper* signal_mapper2;
-
-
+    QSignalMapper* acceptDoorMapper;
+    QSignalMapper* denyDoorMapper;
   };
 } // namespace
 #endif // my_namespace__my_plugin_H

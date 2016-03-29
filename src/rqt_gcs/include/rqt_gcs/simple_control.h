@@ -32,6 +32,10 @@
 #include <query_msgs/Door.h>
 
 #include <rqt_gcs/access_point.h>
+//tempo
+#include <image_transport/image_transport.h>
+#include "opencv2/highgui.hpp"
+#include <cv_bridge/cv_bridge.h>
 
 #define PI 3.14159265
 #define QUEUE_SIZE 100            //Message Queue size for publishers
@@ -283,7 +287,7 @@ private:
   void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) { pose_local = msg_pos.pose; }
   void DepthCallback(const std_msgs::Float64& msg_depth){ object_distance = msg_depth; }
   void DoorQueryCallback(const query_msgs::Door& msg_query){ queries_door.push_back(msg_query); }
-  void DetectionCallback(const sensor_msgs::Image& msg_detection)
+  void DetectionCallback(const sensor_msgs::ImageConstPtr& msg_detection)
   {
       AccessPoint new_point;
 
@@ -293,7 +297,7 @@ private:
       new_point.SetHeading(heading_deg);
       new_point.SetLocation(pos_global);
       new_point.SetType(AccessPoint::door);
-
+      ROS_INFO_STREAM("Access point added");
       access_pts.push_back(new_point);
   }
 
