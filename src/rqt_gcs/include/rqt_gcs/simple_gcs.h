@@ -6,6 +6,7 @@
 #include <rqt_gui_cpp/plugin.h>
 #include <rqt_gcs/simple_control.h>
 #include <query_msgs/Door.h>
+#include <query_msgs/Target.h>
 #include <std_srvs/Empty.h>
 #include <pluginlib/class_list_macros.h>
 #include <iomanip>
@@ -13,6 +14,7 @@
 #include <stdlib.h>
 #include <string>
 #include <vector>
+#include <fstream>
 
 #include <image_transport/image_transport.h>
 #include "opencv2/highgui.hpp"
@@ -91,6 +93,7 @@ namespace rqt_gcs{
     void UpdateMsgQuery();
     int cur_uav = 0;
     int timeCounter = 0;
+    query_msgs::Target GetMission(std::string fileName);
     sensor_msgs::ImageConstPtr imagePtr;
     SimpleControl quadrotors[NUM_UAV] = {};
     std::vector<AccessPoint> * accessPointsVector;
