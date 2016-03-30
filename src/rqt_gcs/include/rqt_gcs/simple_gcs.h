@@ -42,7 +42,7 @@
 #include <QMainWindow>
 #include <QSignalMapper>
 
-#define NUM_UAV 5 //Total number of UAV's in the system
+#define NUM_UAV 2 //Total number of UAV's in the system
 
 
 
@@ -94,8 +94,8 @@ namespace rqt_gcs{
     sensor_msgs::ImageConstPtr imagePtr;
     SimpleControl quadrotors[NUM_UAV] = {};
     std::vector<AccessPoint> * accessPointsVector;
-    std::vector<query_msgs::Door> * pictureQueryVector;
-
+    //std::vector<query_msgs::Door> * pictureQueryVector;
+    std::vector<sensor_msgs::Image> * pictureQueryVector;
 
     cv::Mat conversion_mat_;
     image_transport::Subscriber sub_stereo = it_stereo.subscribe("mono_cam/image_raw", 1, &SimpleGCS::ImageCallback, this);

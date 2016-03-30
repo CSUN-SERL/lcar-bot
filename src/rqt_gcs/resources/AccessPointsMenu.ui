@@ -22,7 +22,7 @@
   <property name="styleSheet">
    <string notr="true">background-color: rgb(39, 47, 66);
 color: rgb(236, 236, 236);
-border-radius: 5px;</string>
+/*border-radius: 5px;*/</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
@@ -58,8 +58,8 @@ border-radius: 5px;</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>615</width>
-        <height>518</height>
+        <width>613</width>
+        <height>508</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout">

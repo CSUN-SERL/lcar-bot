@@ -19,7 +19,7 @@
   <property name="styleSheet">
    <string notr="true">background-color: rgb(39, 47, 66);
 color: rgb(236, 236, 236);
-border-radius: 5px;</string>
+/*border-radius: 5px;*/</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="1">
