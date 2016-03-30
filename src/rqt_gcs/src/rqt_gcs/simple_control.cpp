@@ -223,11 +223,12 @@ std::string SimpleControl::GetLocation()
   return std::to_string(lat) + "," + std::to_string(lon);
 }
 
-void SimpleControl::ScoutBuilding(geometry_msgs::Pose target_point)
+void SimpleControl::ScoutBuilding(query_msgs::Target msg_target)
 {
   this->EnableOffboard();
   //Update the target location
-  pose_target = target_point;
+  path_mission = DiamondShape(msg_target);
+  pose_target = path_mission.poses.at(0).pose;
   pose_previous = pose_local;
   goal = travel;
   ROS_INFO_STREAM("Traveling to target location.");
@@ -302,7 +303,7 @@ void SimpleControl::SetLocalPosition(float x, float y, float z, float yaw = 361)
   position_stamped.pose.position.x = x;
   position_stamped.pose.position.y = y;
   position_stamped.pose.position.z = z;
-  if(yaw == 361){ //No value passed, use current Yaw value
+  if(yaw == 361){ //Default or invalid value passed, use current Yaw value
       position_stamped.pose.orientation = pose_previous.orientation;
   }
   else{ //Use the specified Yaw value
@@ -480,39 +481,41 @@ geometry_msgs::Pose SimpleControl::CircleShape(int angle){
         return new_pose;
 }
 
-geometry_msgs::Pose SimpleControl::DiamondShape(query_msgs::Target target_point){
-
-  //double r = 0.2f;
-  //geometry_msgs::Pose mission[4] = { };
-
+nav_msgs::Path SimpleControl::DiamondShape(query_msgs::Target target_point)
+{
   nav_msgs::Path mission;
-  ROS_INFO_STREAM("Traveling to Index " << index);
-  geometry_msgs::Pose temp_pose;
-  temp_pose.position.x     += target_point.radius;
-  temp_pose.position.y     = target_point.target_point.position.y;
-  temp_pose.position.z     = target_point.target_point.position.z;
-  quaternionTFToMsg(tf::createQuaternionFromYaw(180*(PI/180)), temp_pose.orientation);
-  mission.poses.push_back(temp_pose);
+  geometry_msgs::PoseStamped pose_stamped;
+  geometry_msgs::Pose pose;
 
-  temp_pose.position.x     = target_point.target_point.position.x;
-  temp_pose.position.y     += target_point.radius;
-  temp_pose.position.z     = target_point.target_point.position.z;
-  quaternionTFToMsg(tf::createQuaternionFromYaw(270*(PI/180)), temp_pose.orientation);
-  mission.poses.push_back(temp_pose);
+  pose.position.x     += target_point.radius;
+  pose.position.y     = target_point.target_point.position.y;
+  pose.position.z     = target_point.target_point.position.z;
+  quaternionTFToMsg(tf::createQuaternionFromYaw(180*(PI/180)), pose.orientation);
+  pose_stamped.pose = pose;
+  mission.poses.push_back(pose_stamped);
 
-  temp_pose.position.x     -= target_point.radius;
-  temp_pose.position.y     = target_point.target_point.position.y;
-  temp_pose.position.z     = target_point.target_point.position.z;
-  quaternionTFToMsg(tf::createQuaternionFromYaw(0*(PI/180)), temp_pose.orientation);
-  mission.poses.push_back(temp_pose);
+  pose.position.x     = target_point.target_point.position.x;
+  pose.position.y     += target_point.radius;
+  pose.position.z     = target_point.target_point.position.z;
+  quaternionTFToMsg(tf::createQuaternionFromYaw(270*(PI/180)), pose.orientation);
+  pose_stamped.pose = pose;
+  mission.poses.push_back(pose_stamped);
 
-  temp_pose.position.x     = target_point.target_point.position.x;
-  temp_pose.position.y     -= target_point.radius;
-  temp_pose.position.z     = target_point.target_point.position.z;
-  quaternionTFToMsg(tf::createQuaternionFromYaw(90*(PI/180)), temp_pose.orientation);
-  mission.poses.push_back(temp_pose);
+  pose.position.x     -= target_point.radius;
+  pose.position.y     = target_point.target_point.position.y;
+  pose.position.z     = target_point.target_point.position.z;
+  quaternionTFToMsg(tf::createQuaternionFromYaw(0*(PI/180)), pose.orientation);
+  pose_stamped.pose = pose;
+  mission.poses.push_back(pose_stamped);
 
-  return mission[index];
+  pose.position.x     = target_point.target_point.position.x;
+  pose.position.y     -= target_point.radius;
+  pose.position.z     = target_point.target_point.position.z;
+  quaternionTFToMsg(tf::createQuaternionFromYaw(90*(PI/180)), pose.orientation);
+  pose_stamped.pose = pose;
+  mission.poses.push_back(pose_stamped);
+
+  return mission;
 }
 
 void SimpleControl::Run()
@@ -532,8 +535,6 @@ void SimpleControl::Run()
       //Vehicle is at target location => Scout Building
       pose_previous = pose_local;
       goal = scout;
-      /*pose_previous = pose_local;
-      goal = land;*/
       ROS_DEBUG_STREAM_ONCE("Scouting Building.");
     }
     else if(std::abs(std::abs(pose_local.position.z) - std::abs(pose_target.position.z)) <= THRESHOLD_Z){
@@ -551,16 +552,13 @@ void SimpleControl::Run()
     static int rev_count = 0;
     static int cur_point = 0;
 
-    pose_target = this->DiamondShape(cur_point);
+    //Travel to the next waypoint
+    pose_target = path_mission.poses.at(cur_point).pose;
     this->SetLocalPosition(pose_target);
-
     goal = travel;
     cur_point++;
 
-    if (cur_point > 3){
-      //ROS_INFO_STREAM("Home Target: " << pos_home);
-      //pos_target = pos_home;
-      //goal = RTL;
+    if (cur_point > path_mission.poses.size()-1){ //
       ROS_INFO_STREAM("Circled Building" << rev_count << "times.");
       rev_count++;
 

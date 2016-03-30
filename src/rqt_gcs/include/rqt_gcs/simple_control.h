@@ -31,6 +31,7 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
 #include <query_msgs/Door.h>
+#include <query_msgs/Target.h>
 
 #include <rqt_gcs/access_point.h>
 //tempo
@@ -139,7 +140,7 @@ public:
       @param target_point geometry_msgs::Pose building location
 
   */
-  void ScoutBuilding(geometry_msgs::Pose target_point);
+  void ScoutBuilding(query_msgs::Target msg_target);
 
   /**
       Send a list of waypoints (mission) to the UAV.
@@ -274,7 +275,7 @@ private:
 
       @param index The current point number the quad is traveling to.
   */
-  geometry_msgs::Pose DiamondShape(query_msgs::Target target_point);
+  nav_msgs::Path DiamondShape(query_msgs::Target target_point);
 
   //Callback Prototypes
   void StateCallback(const mavros_msgs::State& msg_state) { state = msg_state; }
@@ -342,6 +343,7 @@ private:
                                 pose_target,
                                 pose_home,
                                 pose_previous;
+  nav_msgs::Path                path_mission;
   std_msgs::Float64             altitude_rel,
                                 heading_deg,
                                 object_distance;
