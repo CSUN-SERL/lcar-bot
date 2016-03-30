@@ -14,39 +14,40 @@
 #include <cv_bridge/cv_bridge.h>
 #include <ros/package.h>
 
-
 #include <iostream>
 #include <thread>
+#include <query_msgs/Door.h>
 
 using namespace std;
 using namespace cv;
 using namespace cv::ml;
 
 //image_transport::CameraPublisher pub_right_;
-image_transport::Publisher pub_mat_;
+ros::Publisher pub_mat_;
+ros::Publisher pub_query_;
 
-Ptr<SVM> svm;
-vector< float > hog_detector;
-HOGDescriptor hog; //(Size( 90, 160 ), Size(16, 16), Size(8, 8), Size(8, 8), 9)
+Ptr<SVM> svm_;
+vector< float > hog_detector_;
+HOGDescriptor hog_; //(Size( 90, 160 ), Size(16, 16), Size(8, 8), Size(8, 8), 9)
 
-cv::Mat src;
-vector<Mat> trainingdata;
-const Size & img_size = Size(128, 256);
+//cv::Mat src;
+vector< Mat > training_data_;
+vector< cv::Mat > img_array_;
+const Size & img_size_ = Size(128, 256);
 
-int frame_id;
-double avg;
-
+int door_count = 0;
+int img_iterator = 0;
 
 /////////////////////////////////////////////////////////////////////////////
 void HogFeatureExtraction(Mat ImgMat) {
     HOGDescriptor d;
-    d.winSize = img_size;
+    d.winSize = img_size_;
     vector< Point > location;
     vector< float > descriptors;
     d.compute(ImgMat, descriptors, Size(8, 8), Size(0, 0), location);
     Mat hog_features = Mat(descriptors).clone();
     if (!hog_features.empty()){
-        trainingdata.push_back(hog_features.reshape(1,1));
+        training_data_.push_back(hog_features.reshape(1,1));
     }
 }
 
@@ -74,96 +75,83 @@ void ConvertToMl(const std::vector< cv::Mat > & train_samples, cv::Mat& trainDat
 void DrawLocations(cv::Mat & img, const std::vector< Rect > & found, const vector<double> weights, const Scalar & color) {
        std::vector< Rect >::const_iterator loc = found.begin(); // Rect for detectMultiscale(), Point for detect()
        std::vector< Rect >::const_iterator end = found.end();   // same as above
-       ROS_INFO_STREAM(weights.size());
 
-       for (int i = 0; loc != end && i < weights.size(); ++loc) {
-           //cout << weights[i] << endl;
-           //if(weights[i] > 0.8)
-//               rectangle(img, *loc, *loc, color, 2); //Point implementation used with hog.detect
-               rectangle(img, *loc, color, 2); //Rect implementation used with hog.detectMultiScale
-    }
+       for (int i = 0; loc != end; ++loc) {
+               //Rect implementation used with hog.detectMultiScale
+               rectangle(img, *loc, color, 2); 
+        }
 }
 
 void ObjectCategorize(cv::Mat image) {
     if (!image.empty()) {
         vector <double> weights;
         vector <Rect> detected_objects;
-        vector< Rect > door_objects;
-        hog.detectMultiScale(
+        vector <Rect> door_objects;
+        vector <double> door_weights;
+        hog_.detectMultiScale(
                 image,
-                detected_objects,
-                weights,
-                //,0         // hit threshold
-                //,Size(0,0) // step size
-                //,Size(0,0) // padding
-                //,1.05       // scale factor
-                //,2       // final threshold
-                true // use mean shift grouping?
+                detected_objects
+                ,weights
+                ,0.8         // hit threshold
+                ,Size(8,8) // step size
+                ,Size(8,8) // padding
+                ,1.1       // scale factor
+                ,2       // final threshold
+                ,false // use mean shift grouping?
                 );
+        
         for (int i = 0; i < detected_objects.size(); i++) {
-            Rect windows(detected_objects.at(i).x, detected_objects.at(i).y, detected_objects.at(i).width, detected_objects.at(i).height);
+            Rect obj = detected_objects.at(i);
+            Rect windows(obj.x, obj.y, obj.width, obj.height);
             Mat Roi = image(windows);
             Mat extract, res, train_data;
-            resize(Roi, extract, img_size);
+            resize(Roi, extract, img_size_);
             HogFeatureExtraction(extract);
-            ConvertToMl(trainingdata, train_data);
-            trainingdata.clear();
-            svm->predict(train_data, res, 4);
+            ConvertToMl(training_data_, train_data);
+            training_data_.clear();
+            svm_->predict(train_data, res, 4);
             for (int j = 0; j < res.rows; j++) {
                 if (res.at<float>(j, 0) == 1) {
-                    door_objects.push_back(detected_objects.at(i));
+                    door_objects.push_back(obj);
+                    door_weights.push_back(weights[j]);
                 }
             }
-            res.release();
-            train_data.release();
-            extract.release();
         }
-        DrawLocations(image, door_objects, weights, Scalar(0, 255, 0));
-        imshow("view", image);
-        waitKey(10);
-
+        
+        DrawLocations(image, door_objects, door_weights, Scalar(0, 255, 0));
+        //imshow("view", image);
+        //waitKey(1);
+        if(door_objects.size() > 0){
+            door_count++;
+            sensor_msgs::ImagePtr door_img = cv_bridge::CvImage(std_msgs::Header()
+                                                       ,"mono8", image).toImageMsg();
+            door_img->header.stamp = ros::Time::now();
+            pub_mat_.publish(door_img);
+            
+            if(door_count % 5 == 0){
+                //publish query message
+                query_msgs::Door door_query;
+                door_query.accepted = false;
+                door_query.picture = *door_img;
+                pub_query_.publish(door_query);                
+            }
+        }
+        
     }
-
-}
-
-void ImageShow(){
-   if(!src.empty()){
-    imshow("view", src);
-    cv::waitKey(1);
-   }
 }
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
   {
-    cv::Mat image;
-    if(frame_id % 1 == 0){
-        src.release();
-        image = cv_bridge::toCvCopy(msg, "mono8")->image;
-        src = image;
+    cv::Mat image = cv_bridge::toCvCopy(msg, "mono8")->image;
         ObjectCategorize(image);
-
-        double t = (double)cvGetTickCount();
-        t = cvGetTickCount() - t;
-        t = t / ((double)cvGetTickFrequency()*1000);
-        avg += t;
-        if(frame_id %10 == 0 ){
-           ROS_INFO_STREAM( "detection time = " << avg / frame_id);
-        }
-
-        pub_mat_.publish(cv_bridge::CvImage(std_msgs::Header(),
-                                                "mono8", image).toImageMsg());
-    }
-    else
-        image = cv_bridge::toCvShare(msg, "mono8")->image;
   }
   catch (cv_bridge::Exception& e)
   {
     ROS_ERROR("Error in image subscriber callback: %s", e.what());
   }
-
-  frame_id++;
+  
 }
 
 //extract svm weights and store in a float vector
@@ -182,37 +170,31 @@ void GetSvmDetector(const Ptr<SVM>& svm, vector< float > & hog_detector) {
     hog_detector[sv.cols] = (float) -rho;
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////
 int main (int argc, char** argv){
   ros::init(argc, argv, "object_detection", ros::init_options::AnonymousName);
 
   ros::NodeHandle nh;
-  cv::namedWindow("view");
-  cv::startWindowThread();
+  //cv::namedWindow("view");
+  //cv::startWindowThread();
   image_transport::ImageTransport it(nh);
 
-  std::string topic;
-  if(argc >= 2)
-      topic = argv[1];
-  else
-      topic = "mono_cam/image_raw";
-
   string svmPath = ros::package::getPath("machine_vision");
-  svm = StatModel::load<SVM>( svmPath + "/LinearHOG.xml" );
+  svm_ = StatModel::load<SVM>( svmPath + "/LinearHOG.xml" );
 
-  GetSvmDetector(svm, hog_detector);
+  GetSvmDetector(svm_, hog_detector_);
 
-  hog.winSize = Size(128, 256);
-  hog.setSVMDetector(hog_detector);
+  hog_.winSize = Size(128, 256);
+  hog_.setSVMDetector(hog_detector_);
 
-  pub_mat_ = it.advertise("detected_objects", 1);
-
-
+  pub_mat_ = nh.advertise<sensor_msgs::Image>("object_detection/access_point/door", 1);
+  pub_query_ = nh.advertise<query_msgs::Door>("object_detection/door/query", 1);
+  
+  std::string topic = "stereo_cam/left/image_rect";
   image_transport::Subscriber sub = it.subscribe(topic, 1, imageCallback);
 
   ROS_INFO_STREAM("subscribed to topic : " << topic);
   ros::spin();
 
-  cv::destroyWindow("view");
+  //cv::destroyWindow("view");
 }

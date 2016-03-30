@@ -375,7 +375,7 @@ void SimpleGCS::RefreshAccessPointsMenu(){
 
           //retrive access point
           AccessPoint accessPoint = accessPointsVector->at(i);
-          sensor_msgs::ImageConstPtr acImage = accessPointsVector->at(i).GetImage();
+          sensor_msgs::Image acImage = accessPointsVector->at(i).GetImage();
 
 //
          // cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(imagePtr);

@@ -16,7 +16,6 @@ StereoDriver::StereoDriver(
     open_(false),
     stereo_image_id_(0)
 {
-
     cinfo_left_.loadCameraInfo("package://machine_vision/calibrations/left.yaml");
     cinfo_right_.loadCameraInfo("package://machine_vision/calibrations/right.yaml");
 
@@ -164,7 +163,6 @@ void StereoDriver::ImageCallback(uvc_frame_t *frame){
     ros::Time time_stamp = ros::Time::now();
 
     ci_left->header.stamp = ci_right->header.stamp = time_stamp;
-
 
     /* Do the BGR conversion */
     retLeft = uvc_yuyv2y(frame, greyLeft);

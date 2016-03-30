@@ -1,3 +1,4 @@
+
 # Required CMake Version
 cmake_minimum_required(VERSION 2.8.3)
 
@@ -12,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   camera_info_manager
+  stereo_msgs
 )
 
 find_package(OpenCV REQUIRED)
@@ -24,7 +26,7 @@ catkin_package()
 
 # Specify locations of header files
 include_directories(include
-  ${catkin_INCLdUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
   ${libuvc_INCLUDE_DIRS}
 )
@@ -33,13 +35,11 @@ include_directories(include
 add_executable(camera_publisher src/ros_camera_publisher.cpp)
 add_executable(camera_subscriber src/ros_camera_subscriber.cpp)
 add_executable(stereo_publisher src/stereo_cam_pub.cpp)
-#<<<<<<< HEAD
-# add_executable(stereo_driver src/ros_camera_driver.cpp src/camera_driver_main.cpp)
-#=======
+
 add_executable(stereo_driver src/stereo_driver.cpp src/stereo_driver_main.cpp)
 add_executable(object_detection src/object_detect.cpp)
+add_executable(object_avoidance src/object_avoidance.cpp)
 
-#>>>>>>> 4bac26099c102b8ebb1d5427c8ad0a88dce04c73
 
 #Specify libraries against which to link
 target_link_libraries(camera_publisher
@@ -68,4 +68,9 @@ target_link_libraries(object_detection
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${libuvc_LIBRARIES}
+)
+
+target_link_libraries(object_avoidance
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
 )

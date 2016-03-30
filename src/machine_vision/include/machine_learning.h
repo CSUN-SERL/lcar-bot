@@ -1,6 +1,11 @@
 #ifndef MACHINE_LEARNING_H
 #define	MACHINE_LEARNING_H
 
+#include <ros/ros.h>
+#include <stdlib.h>
+#include <cv_bridge/cv_bridge.h>
+#include <image_transport/image_transport.h>
+
 #include <sys/dir.h>
 #include <sys/types.h>
 #include <stdio.h>
@@ -25,6 +30,8 @@ using namespace cv::ml;
 
 class MachineLearning
 {
+
+
 public:
     MachineLearning();
     ~MachineLearning();
@@ -97,7 +104,7 @@ public:
      @param train_samples
      @param trainData
      */
-    void ConvertToMl(const std::vector< cv::Mat > & train_samples, cv::Mat& trainData);
+    void ConvertToMl(const std::vector< cv::Mat* > & train_samples, cv::Mat& trainData);
     /*
      Allow user to choose what type of kernel they want to use for SVM training.
 
