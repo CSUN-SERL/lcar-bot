@@ -552,12 +552,10 @@ query_msgs::Target SimpleGCS::GetMission(std::string fileName){
 
 void SimpleGCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
-    //ROS_INFO_STREAM("Getting Picture");
-
     imagePtr = msg;
   try
   {
-    cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(msg);
+    cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(msg, "rgb8");
     conversion_mat_ = cv_ptr->image;
     QImage image(conversion_mat_.data, conversion_mat_.cols, conversion_mat_.rows, conversion_mat_.step[0], QImage::Format_RGB888);
     ivUi_.image_frame->setImage(image);
