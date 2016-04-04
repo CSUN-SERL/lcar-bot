@@ -433,7 +433,8 @@ int SimpleControl::ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pos
   /*ROS_INFO_STREAM("Z: " << std::abs(pose2.orientation.z - pose1.orientation.z));
   ROS_INFO_STREAM("W: " << std::abs(pose2.orientation.w - pose1.orientation.w));*/
 
-  return result;
+  return 1;
+  //return result;
 }
 
 int SimpleControl::CalculateDistance(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
@@ -562,7 +563,11 @@ void SimpleControl::Run()
       ROS_INFO_STREAM("Circled Building" << rev_count << "times.");
       rev_count++;
 
-      if(rev_count > 2) goal = land;
+      if(rev_count > 2) {
+          goal = land;
+          rev_count = 0;
+          cur_point = 0;
+      }
       else cur_point = 0;
     }
   }
