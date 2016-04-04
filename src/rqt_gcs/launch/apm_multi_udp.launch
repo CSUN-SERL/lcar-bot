@@ -2,33 +2,33 @@
 	<!-- vim: set ft=xml noet : -->
 	<!-- example launch script for APM based FCU's -->
 
-	<include file="$(find rqt_gcs)/launch/node_UAV.launch">
+	<include file="$(find rqt_gcs)/launch/node_apm.launch">
 		<arg name="fcu_url" value="udp://localhost:14580@" />
 		<arg name="tgt_system" value="1" />
 		<arg name="namespace" value="UAV1" />
 	</include>
 
-	<include file="$(find rqt_gcs)/launch/node_UAV.launch">
+	<include file="$(find rqt_gcs)/launch/node_apm.launch">
 		<arg name="fcu_url" value="udp://localhost:14590@" />
-		<arg name="tgt_system" value="2" />
+		<arg name="tgt_system" value="1" />
 		<arg name="namespace" value="UAV2" />
 	</include>
 
-	<include file="$(find rqt_gcs)/launch/node_UAV.launch">
+	<include file="$(find rqt_gcs)/launch/node_apm.launch">
 		<arg name="fcu_url" value="udp://localhost:15110@" />
-		<arg name="tgt_system" value="3" />
+		<arg name="tgt_system" value="1" />
 		<arg name="namespace" value="UAV3" />
 	</include>
 
-	<include file="$(find rqt_gcs)/launch/node_UAV.launch">
+	<include file="$(find rqt_gcs)/launch/node_apm.launch">
 		<arg name="fcu_url" value="udp://localhost:15120@" />
-		<arg name="tgt_system" value="4" />
+		<arg name="tgt_system" value="1" />
 		<arg name="namespace" value="UAV4" />
 	</include>
 
-	<include file="$(find rqt_gcs)/launch/node_UAV.launch">
+	<include file="$(find rqt_gcs)/launch/node_apm.launch">
 		<arg name="fcu_url" value="udp://localhost:15130@" />
-		<arg name="tgt_system" value="5" />
+		<arg name="tgt_system" value="1" />
 		<arg name="namespace" value="UAV5" />
 	</include>
 
