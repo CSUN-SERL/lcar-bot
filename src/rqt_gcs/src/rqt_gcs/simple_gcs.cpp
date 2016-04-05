@@ -234,11 +234,11 @@ void SimpleGCS::UpdateMsgQuery(){
             imgWidget[i] = new QWidget();
 
             //retrieve Query msg for door image
-            //query_msgs::Door doorQuery = pictureQueryVector->at(i);
-             sensor_msgs::Image pmImage = pictureQueryVector->at(i);
-           // QImage image(doorQuery.picture.data.data(),doorQuery.picture.width, doorQuery.picture.height,doorQuery.picture.step, QImage::Format_RGB888);
+            query_msgs::Door doorQuery = pictureQueryVector->at(i);
+             //sensor_msgs::Image pmImage = pictureQueryVector->at(i);
+            QImage image(doorQuery.picture.data.data(),doorQuery.picture.width, doorQuery.picture.height,doorQuery.picture.step, QImage::Format_RGB888);
 
-             QImage image(pmImage.data.data(),pmImage.width, pmImage.height,pmImage.step, QImage::Format_RGB888);
+           //  QImage image(pmImage.data.data(),pmImage.width, pmImage.height,pmImage.step, QImage::Format_RGB888);
 
             //set up the ui
             pmUiWidgets[i].setupUi(pictureMsgQWidgets_.at(i));
@@ -266,8 +266,8 @@ void SimpleGCS::UpdateMsgQuery(){
 void SimpleGCS::AcceptDoorQuery(QWidget *qw){
         // ROS_INFO_STREAM("Accepted");
         int index = central_ui_.PictureMsgLayout->indexOf(qw);
-       // query_msgs::Door doormsg = pictureQueryVector->at(index);
-        sensor_msgs::Image immsg = pictureQueryVector->at(index);
+        query_msgs::Door doormsg = pictureQueryVector->at(index);
+       // sensor_msgs::Image immsg = pictureQueryVector->at(index);
        // ROS_INFO_STREAM("door number " << index);
         pictureQueryVector->erase(pictureQueryVector->begin()+index);
         pictureMsgQWidgets_.erase(pictureMsgQWidgets_.begin()+index);
@@ -283,8 +283,8 @@ void SimpleGCS::DenyDoorQuery(QWidget * qw){
        // ROS_INFO_STREAM("Denyed");
 
         int index = central_ui_.PictureMsgLayout->indexOf(qw);
-       // query_msgs::Door doormsg = pictureQueryVector->at(index);
-        sensor_msgs::Image imgmsg = pictureQueryVector->at(index);
+        query_msgs::Door doormsg = pictureQueryVector->at(index);
+       // sensor_msgs::Image imgmsg = pictureQueryVector->at(index);
       //  ROS_INFO_STREAM("door number " << index);
         pictureQueryVector->erase(pictureQueryVector->begin()+index);
         pictureMsgQWidgets_.erase(pictureMsgQWidgets_.begin()+index);

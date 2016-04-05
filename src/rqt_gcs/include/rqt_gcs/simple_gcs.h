@@ -97,8 +97,8 @@ namespace rqt_gcs{
     sensor_msgs::ImageConstPtr imagePtr;
     SimpleControl quadrotors[NUM_UAV] = {};
     std::vector<AccessPoint> * accessPointsVector;
-    //std::vector<query_msgs::Door> * pictureQueryVector;
-    std::vector<sensor_msgs::Image> * pictureQueryVector;
+    std::vector<query_msgs::Door> * pictureQueryVector;
+    //std::vector<sensor_msgs::Image> * pictureQueryVector;
 
     cv::Mat conversion_mat_;
     image_transport::Subscriber sub_stereo = it_stereo.subscribe("/UAV1/stereo_cam/left/image_raw", 1, &SimpleGCS::ImageCallback, this);
