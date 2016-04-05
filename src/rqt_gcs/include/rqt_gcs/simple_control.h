@@ -48,7 +48,7 @@
 #define THRESHOLD_XY 0.08
 #define THRESHOLD_Z 0.08
 #define THRESHOLD_YAW 0.5
-#define THRESHOLD_DEPTH 0.8
+#define THRESHOLD_DEPTH 2
 #define ALT_RTL 1
 #define BATTERY_MIN 0.10  //Minimum battery level for RTL
 #define DEF_NS "UAV"

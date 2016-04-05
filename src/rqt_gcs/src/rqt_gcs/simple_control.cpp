@@ -526,10 +526,10 @@ void SimpleControl::Run()
     //Land if battery is starting to get low
     goal = land;
   }
-  /*else if(object_distance.data < THRESHOLD_DEPTH){
+  else if(object_distance.data < THRESHOLD_DEPTH){
     //Collision Imminent! Land.
     goal = land;
-  }*/
+  }
 
   if(goal == travel){
     if(ComparePosition(pose_local, pose_target) == 0){
