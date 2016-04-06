@@ -16,7 +16,10 @@ ros::Publisher pub_;
 namespace enc = sensor_msgs::image_encodings;
 
 void disparityCallback(const stereo_msgs::DisparityImageConstPtr& disparity_msg)
-{    
+{   
+    ros::Rate loop_rate (10); // hz
+    loop_rate.sleep();         
+    
     assert(disparity_msg->image.encoding == enc::TYPE_32FC1);
     const cv::Mat_<float> dmat(disparity_msg->image.height, disparity_msg->image.width, // convert to cv::mat for analysis
                                (float*)&disparity_msg->image.data[0], disparity_msg->image.step);
@@ -43,11 +46,11 @@ void disparityCallback(const stereo_msgs::DisparityImageConstPtr& disparity_msg)
           }  
       }
     }
-    if(prox_count > threshold){
+    //if(prox_count > threshold){
         prox.data = z_depth_total / prox_count;        
         ROS_ERROR_STREAM("ERROR land! " << prox_count << "  |  " << prox.data);
         pub_.publish(prox);
-    }
+    //}
     
 }
 
