@@ -34,10 +34,6 @@
 #include <query_msgs/Target.h>
 
 #include <rqt_gcs/access_point.h>
-//tempo
-#include <image_transport/image_transport.h>
-#include "opencv2/highgui.hpp"
-#include <cv_bridge/cv_bridge.h>
 
 #define PI 3.14159265
 #define QUEUE_SIZE 100            //Message Queue size for publishers
@@ -56,11 +52,13 @@
 //Enumerators
 enum Mode{
     travel,
+    hold_pose,
     scout,
     rtl,
     land,
     disarm,
-    idle
+    idle,
+    null
 };
 
 //Structs
@@ -239,8 +237,8 @@ public:
   int GetDistanceToWP() { return CalculateDistance(pose_target, pose_local); }
   float GetMissionProgress();
   std::vector<AccessPoint>* GetRefAccessPoints() { return &access_pts; }
-  //std::vector<query_msgs::Door>* GetDoorQueries() { return &queries_door; }
-    std::vector<sensor_msgs::Image>* GetDoorQueries() { return &queries_door; }
+  std::vector<query_msgs::Door>* GetDoorQueries() { return &queries_door; }
+
 private:
   void InitialSetup();
 
@@ -286,9 +284,8 @@ private:
   void VelocityCallback(const geometry_msgs::TwistStamped& msg_vel) { velocity = msg_vel; }
   void NavSatFixCallback(const sensor_msgs::NavSatFix& msg_gps) { pos_global = msg_gps; }
   void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) { pose_local = msg_pos.pose; }
-  void DepthCallback(const std_msgs::Float64& msg_depth){ object_distance = msg_depth; }
- // void DoorQueryCallback(const query_msgs::Door& msg_query){ queries_door.push_back(msg_query); }
-  void DoorQueryCallback(const sensor_msgs::Image& msg_query){ ROS_INFO_STREAM("GETTING PICTURTE");queries_door.push_back(msg_query); }
+  void DepthCallback(const std_msgs::Float64& msg_depth){ object_distance = msg_depth;}
+  void DoorQueryCallback(const query_msgs::Door& msg_query){ queries_door.push_back(msg_query); }
   void DetectionCallback(const sensor_msgs::ImageConstPtr& msg_detection)
   {
       AccessPoint new_point;
@@ -348,11 +345,12 @@ private:
   std_msgs::Float64             altitude_rel,
                                 heading_deg,
                                 object_distance;
-  Mode                          goal = idle;
+  Mode                          goal = idle,
+                                goal_prev = null;
   ros::Time                     last_request;
   std::vector<AccessPoint>      access_pts;
-//std::vector<query_msgs::Door> queries_door;
-  std::vector<sensor_msgs::Image> queries_door;
+  std::vector<query_msgs::Door> queries_door;
+  bool                          collision = false;
 };
 
 #endif

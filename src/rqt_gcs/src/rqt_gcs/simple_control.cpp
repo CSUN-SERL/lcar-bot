@@ -7,7 +7,14 @@ int main(int argc, char **argv)
 
   ros::Rate loop_rate(10); //10Hz
 
-  //quad1.ScoutBuilding(0,0,0.5);
+  query_msgs::Target target_pt;
+  target_pt.target_point.position.x = 0;
+  target_pt.target_point.position.y = 0;
+  target_pt.target_point.position.z = 2;
+  target_pt.radius = 2;
+
+  quad1.Arm(true);
+  quad1.ScoutBuilding(target_pt);
 
   while(ros::ok())
   {
@@ -73,6 +80,8 @@ void SimpleControl::InitialSetup()
 
     //Set Home position
     pose_home.position.x = pose_home.position.y = pose_home.position.z = 0;
+
+    object_distance.data = 100;
 }
 
 void SimpleControl::Arm(bool value)
@@ -84,6 +93,7 @@ void SimpleControl::Arm(bool value)
       //Call the service
 
     if(pose_local.position.z > 1 && !value){
+      ROS_ERROR_STREAM("Cannot disarm in air! Landing.");
       this->SetMode("AUTO.LAND");
     }
     else if(sc_arm.call(arm)){
@@ -433,8 +443,7 @@ int SimpleControl::ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pos
   /*ROS_INFO_STREAM("Z: " << std::abs(pose2.orientation.z - pose1.orientation.z));
   ROS_INFO_STREAM("W: " << std::abs(pose2.orientation.w - pose1.orientation.w));*/
 
-  return 1;
-  //return result;
+  return result;
 }
 
 int SimpleControl::CalculateDistance(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
@@ -522,14 +531,25 @@ nav_msgs::Path SimpleControl::DiamondShape(query_msgs::Target target_point)
 void SimpleControl::Run()
 {
   //Sanity Checks
-  if(battery.remaining < BATTERY_MIN){
+  /*if(battery.remaining < BATTERY_MIN){
     //Land if battery is starting to get low
     goal = land;
-  }
-  else if(object_distance.data < THRESHOLD_DEPTH){
-    //Collision Imminent! Land.
-    goal = land;
-  }
+  }*/
+
+     if(object_distance.data < THRESHOLD_DEPTH){
+         //Collision Imminent! Land.
+         ROS_ERROR_STREAM_DELAYED_THROTTLE(5, "Collision Imminent!");
+         if(goal != hold_pose){
+             pose_previous = pose_local;
+             goal_prev = goal;
+             goal = hold_pose;
+         }
+         collision = true;
+     }
+     else if(goal_prev != null && collision){
+         goal = goal_prev;
+         collision = false;
+     }
 
   if(goal == travel){
     if(ComparePosition(pose_local, pose_target) == 0){
@@ -548,6 +568,9 @@ void SimpleControl::Run()
       //Ascend to the proper altitude first at the current location
       this->SetLocalPosition(pose_previous.position.x, pose_previous.position.y, pose_target.position.z);
     }
+  }
+  else if(goal == hold_pose){
+      this->SetLocalPosition(pose_previous);
   }
   else if(goal == scout){
     static int rev_count = 0;
