@@ -121,7 +121,9 @@ function update() {
     console.log(checked);
     if(checked != 'free' && checked != undefined) {
       //if its not free roam, then center map to an UAV
-      //also start updating every UAV
+      //also start updating every UAV=======
+
+
       map.setCenter(marker[checked].getPosition());
       focus =true; //only the current UAV should be updated
     }
