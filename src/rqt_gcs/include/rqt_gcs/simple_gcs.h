@@ -94,7 +94,6 @@ namespace rqt_gcs{
     int cur_uav = 0;
     int timeCounter = 0;
     query_msgs::Target GetMission(std::string fileName);
-    sensor_msgs::ImageConstPtr imagePtr;
     SimpleControl quadrotors[NUM_UAV] = {};
     std::vector<AccessPoint> * accessPointsVector;
     std::vector<query_msgs::Door> * pictureQueryVector;

@@ -2,26 +2,26 @@
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "simple_control");
-  SimpleControl quad1{1};
+    ros::init(argc, argv, "simple_control");
+    SimpleControl quad1{1};
 
-  ros::Rate loop_rate(10); //10Hz
+    ros::Rate loop_rate(10); //10Hz
 
-  query_msgs::Target target_pt;
-  target_pt.target_point.position.x = 0;
-  target_pt.target_point.position.y = 0;
-  target_pt.target_point.position.z = 2;
-  target_pt.radius = 2;
+    query_msgs::Target target_pt;
+    target_pt.target_point.position.x = 0;
+    target_pt.target_point.position.y = 0;
+    target_pt.target_point.position.z = 2;
+    target_pt.radius = 2;
 
-  quad1.Arm(true);
-  quad1.ScoutBuilding(target_pt);
+    quad1.Arm(true);
+    quad1.ScoutBuilding(target_pt);
 
-  while(ros::ok())
-  {
-    quad1.Run();
-    ros::spinOnce();
-    loop_rate.sleep();
-  }
+    while(ros::ok())
+    {
+        quad1.Run();
+        ros::spinOnce();
+        loop_rate.sleep();
+    }
 
 }
 
@@ -42,7 +42,7 @@ SimpleControl::SimpleControl(int uav_id)  //Class constructor
 
 SimpleControl::~SimpleControl(void)
 {
-  //Class destructor
+    //Class destructor
 }
 
 void SimpleControl::InitialSetup()
@@ -86,339 +86,339 @@ void SimpleControl::InitialSetup()
 
 void SimpleControl::Arm(bool value)
 {
-  if(state.armed != value){ //Only change to new state if it's different
-    //Create a message for arming/disarming
-    mavros_msgs::CommandBool arm;
-    arm.request.value = value;
-      //Call the service
+    if(state.armed != value){ //Only change to new state if it's different
+        //Create a message for arming/disarming
+        mavros_msgs::CommandBool arm;
+        arm.request.value = value;
+        //Call the service
 
-    if(pose_local.position.z > 1 && !value){
-      ROS_ERROR_STREAM("Cannot disarm in air! Landing.");
-      this->SetMode("AUTO.LAND");
-    }
-    else if(sc_arm.call(arm)){
-      if(arm.response.success == 1){
-
-        bool timeout = false;
-        int count = 0;
-        ros::Rate check_frequency(CHECK_FREQUENCY);
-
-        //Wait for the FCU to arm/disarm
-        while((bool)state.armed != value && !timeout){
-          check_frequency.sleep();
-          ros::spinOnce();
-          count++;
-          if(count >= TIMEOUT) timeout = true;
+        if(pose_local.position.z > 1 && !value){
+            ROS_ERROR_STREAM("Cannot disarm in air! Landing.");
+            this->SetMode("AUTO.LAND");
         }
+        else if(sc_arm.call(arm)){
+            if(arm.response.success == 1){
 
-        //Print proper message to console
-        if(timeout){
-          if(value) ROS_WARN_STREAM("Arm operation timed out.");
-          else ROS_WARN_STREAM("Disarm operation timed out.");
+                bool timeout = false;
+                int count = 0;
+                ros::Rate check_frequency(CHECK_FREQUENCY);
+
+                //Wait for the FCU to arm/disarm
+                while((bool)state.armed != value && !timeout){
+                    check_frequency.sleep();
+                    ros::spinOnce();
+                    count++;
+                    if(count >= TIMEOUT) timeout = true;
+                }
+
+                //Print proper message to console
+                if(timeout){
+                    if(value) ROS_WARN_STREAM("Arm operation timed out.");
+                    else ROS_WARN_STREAM("Disarm operation timed out.");
+                }
+                else{
+                    if(state.armed) ROS_INFO_STREAM("**ARMED**");
+                    else ROS_INFO_STREAM("**DISARMED**");
+                }
+            }
+            else{
+                if(value) ROS_ERROR_STREAM("Failed to Arm!");
+                else ROS_ERROR_STREAM("Failed to Disarm!");
+            }
         }
         else{
-          if(state.armed) ROS_INFO_STREAM("**ARMED**");
-          else ROS_INFO_STREAM("**DISARMED**");
+            ROS_ERROR_STREAM("Failed to call arm service!");
         }
-      }
-      else{
-        if(value) ROS_ERROR_STREAM("Failed to Arm!");
-        else ROS_ERROR_STREAM("Failed to Disarm!");
-      }
     }
-    else{
-      ROS_ERROR_STREAM("Failed to call arm service!");
-    }
-  }
 }
 
 void SimpleControl::Takeoff(int altitude)
 {
-  //Ensure the UAV is in Guided mode and armed
-  bool armed = (bool)state.armed;
-  std::string mode = state.mode;
+    //Ensure the UAV is in Guided mode and armed
+    bool armed = (bool)state.armed;
+    std::string mode = state.mode;
 
-  if(mode.compare("GUIDED") != 0) this->SetMode("Guided");
-  if(!armed) this->Arm(true);
+    if(mode.compare("GUIDED") != 0) this->SetMode("Guided");
+    if(!armed) this->Arm(true);
 
-  //Create a message for landing
-  mavros_msgs::CommandTOL takeoff;
-  takeoff.request.altitude = altitude;
-;
-  //Call the service
-  if(sc_takeoff.call(takeoff)){
-    if(takeoff.response.success == 1) ROS_INFO_STREAM("Takeoff Initiated.");
-    else ROS_ERROR_STREAM("Failed to initiate takeoff.");
-  }
-  else{
-    ROS_ERROR_STREAM("Failed to call takeoff service!");
-  }
+    //Create a message for landing
+    mavros_msgs::CommandTOL takeoff;
+    takeoff.request.altitude = altitude;
+    ;
+    //Call the service
+    if(sc_takeoff.call(takeoff)){
+        if(takeoff.response.success == 1) ROS_INFO_STREAM("Takeoff Initiated.");
+        else ROS_ERROR_STREAM("Failed to initiate takeoff.");
+    }
+    else{
+        ROS_ERROR_STREAM("Failed to call takeoff service!");
+    }
 }
 
 void SimpleControl::Land()
 {
-  //Create a message for landing
-  mavros_msgs::CommandTOL land;
+    //Create a message for landing
+    mavros_msgs::CommandTOL land;
 
-  //Call the service
-  if(sc_land.call(land)){
-    if(land.response.success == 1) ROS_INFO_STREAM("Land Initiated.");
-    else ROS_ERROR_STREAM("Failed to initiate land.");
-  }
-  else{
-    ROS_ERROR_STREAM("Failed to call land service!");
-  }
+    //Call the service
+    if(sc_land.call(land)){
+        if(land.response.success == 1) ROS_INFO_STREAM("Land Initiated.");
+        else ROS_ERROR_STREAM("Failed to initiate land.");
+    }
+    else{
+        ROS_ERROR_STREAM("Failed to call land service!");
+    }
 }
 
 void SimpleControl::SetMode(std::string mode)
 {
-  //Create a message for changing flight mode
-  mavros_msgs::SetMode new_mode;
-  new_mode.request.base_mode = 0;
-  new_mode.request.custom_mode = mode; //custom_mode expects a char*
+    //Create a message for changing flight mode
+    mavros_msgs::SetMode new_mode;
+    new_mode.request.base_mode = 0;
+    new_mode.request.custom_mode = mode; //custom_mode expects a char*
 
-  //Call the service
-  if(sc_mode.call(new_mode)){
-    if(new_mode.response.success == 1) ROS_INFO_STREAM("Mode changed to " << mode << ".");
-    else ROS_ERROR_STREAM("Failed to change flight mode to " << mode << ".");
-  }
-  else{
-    ROS_INFO_STREAM("Mode: " << mode);
-    ROS_ERROR_STREAM("Failed to call change flight mode service!");
-  }
+    //Call the service
+    if(sc_mode.call(new_mode)){
+        if(new_mode.response.success == 1) ROS_INFO_STREAM("Mode changed to " << mode << ".");
+        else ROS_ERROR_STREAM("Failed to change flight mode to " << mode << ".");
+    }
+    else{
+        ROS_INFO_STREAM("Mode: " << mode);
+        ROS_ERROR_STREAM("Failed to call change flight mode service!");
+    }
 }
 
 void SimpleControl::EnableOffboard()
 {
-  mavros_msgs::SetMode offb_set_mode;
-  offb_set_mode.request.custom_mode = "OFFBOARD";
+    mavros_msgs::SetMode offb_set_mode;
+    offb_set_mode.request.custom_mode = "OFFBOARD";
 
-  geometry_msgs::PoseStamped pose;
-  pose.pose.position.x = pose_local.position.x;
-  pose.pose.position.y = pose_local.position.y;
-  pose.pose.position.z = pose_local.position.z;
+    geometry_msgs::PoseStamped pose;
+    pose.pose.position.x = pose_local.position.x;
+    pose.pose.position.y = pose_local.position.y;
+    pose.pose.position.z = pose_local.position.z;
 
-  mavros_msgs::CommandBool arm_cmd;
-  arm_cmd.request.value = true;
+    mavros_msgs::CommandBool arm_cmd;
+    arm_cmd.request.value = true;
 
-  if( state.mode != "OFFBOARD" && (ros::Time::now() - last_request > ros::Duration(5.0))){
+    if( state.mode != "OFFBOARD" && (ros::Time::now() - last_request > ros::Duration(5.0))){
 
-      ros::Rate loop_rate(50); //50Hz
-      //send a few setpoints before starting
-      for(int i = 10; ros::ok() && i > 0; --i){
-          pub_setpoint_position.publish(pose);
-          ros::spinOnce();
-          loop_rate.sleep();
-      }
+        ros::Rate loop_rate(50); //50Hz
+        //send a few setpoints before starting
+        for(int i = 10; ros::ok() && i > 0; --i){
+            pub_setpoint_position.publish(pose);
+            ros::spinOnce();
+            loop_rate.sleep();
+        }
 
-      if( sc_mode.call(offb_set_mode) && offb_set_mode.response.success){
-          ROS_INFO("Offboard enabled");
-      }
-      last_request = ros::Time::now();
-  } else {
-      if( !state.armed && (ros::Time::now() - last_request > ros::Duration(5.0))){
-          if( sc_arm.call(arm_cmd) && arm_cmd.response.success){
-              ROS_INFO("Vehicle armed");
-          }
-          last_request = ros::Time::now();
-      }
-  }
+        if( sc_mode.call(offb_set_mode) && offb_set_mode.response.success){
+            ROS_INFO("Offboard enabled");
+        }
+        last_request = ros::Time::now();
+    } else {
+        if( !state.armed && (ros::Time::now() - last_request > ros::Duration(5.0))){
+            if( sc_arm.call(arm_cmd) && arm_cmd.response.success){
+                ROS_INFO("Vehicle armed");
+            }
+            last_request = ros::Time::now();
+        }
+    }
 }
 
 std::string SimpleControl::GetLocation()
 {
-  float lat = pos_global.latitude;
-  float lon = pos_global.longitude;
+    float lat = pos_global.latitude;
+    float lon = pos_global.longitude;
 
-  return std::to_string(lat) + "," + std::to_string(lon);
+    return std::to_string(lat) + "," + std::to_string(lon);
 }
 
 void SimpleControl::ScoutBuilding(query_msgs::Target msg_target)
 {
-  this->EnableOffboard();
-  //Update the target location
-  path_mission = DiamondShape(msg_target);
-  pose_target = path_mission.poses.at(0).pose;
-  pose_previous = pose_local;
-  goal = travel;
-  ROS_INFO_STREAM("Traveling to target location.");
+    this->EnableOffboard();
+    //Update the target location
+    path_mission = DiamondShape(msg_target);
+    pose_target = path_mission.poses.at(0).pose;
+    pose_previous = pose_local;
+    goal = travel;
+    ROS_INFO_STREAM("Traveling to target location.");
 }
 
 void SimpleControl::SendMission(std::string mission_file)
 {
-  //Create a message for storing the the waypoint
-  mavros_msgs::WaypointPush msg_mission;
+    //Create a message for storing the the waypoint
+    mavros_msgs::WaypointPush msg_mission;
 
-  //TODO: Add ability to create waypoints from a text file.
-  mavros_msgs::Waypoint wp1;
-  wp1.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL;
-  wp1.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
-  wp1.is_current   = false;
-  wp1.autocontinue = true;
-  wp1.x_lat        = -35.3632621765;
-  wp1.y_long       = 149.165237427;
-  wp1.z_alt        = 585;
+    //TODO: Add ability to create waypoints from a text file.
+    mavros_msgs::Waypoint wp1;
+    wp1.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL;
+    wp1.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
+    wp1.is_current   = false;
+    wp1.autocontinue = true;
+    wp1.x_lat        = -35.3632621765;
+    wp1.y_long       = 149.165237427;
+    wp1.z_alt        = 585;
 
-  mavros_msgs::Waypoint wp2;
-  wp2.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT;
-  wp2.command      = mavros_msgs::CommandCode::NAV_TAKEOFF;
-  wp2.is_current   = false;
-  wp2.autocontinue = true;
-  wp2.x_lat        = -35.3628807068;
-  wp2.y_long       = 149.165222168;
-  wp2.z_alt        = 20;
+    mavros_msgs::Waypoint wp2;
+    wp2.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT;
+    wp2.command      = mavros_msgs::CommandCode::NAV_TAKEOFF;
+    wp2.is_current   = false;
+    wp2.autocontinue = true;
+    wp2.x_lat        = -35.3628807068;
+    wp2.y_long       = 149.165222168;
+    wp2.z_alt        = 20;
 
-  mavros_msgs::Waypoint wp3;
-  wp3.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT;
-  wp3.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
-  wp3.is_current   = false;
-  wp3.autocontinue = true;
-  wp3.x_lat        = -35.3646507263;
-  wp3.y_long       = 149.163497925;
-  wp3.z_alt        = 0;
+    mavros_msgs::Waypoint wp3;
+    wp3.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT;
+    wp3.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
+    wp3.is_current   = false;
+    wp3.autocontinue = true;
+    wp3.x_lat        = -35.3646507263;
+    wp3.y_long       = 149.163497925;
+    wp3.z_alt        = 0;
 
-  //Update the message with the new waypoint
-  //NOTE: waypoints is a Vector object
-  msg_mission.request.waypoints.push_back(wp1);
-  msg_mission.request.waypoints.push_back(wp2);
-  msg_mission.request.waypoints.push_back(wp3);
+    //Update the message with the new waypoint
+    //NOTE: waypoints is a Vector object
+    msg_mission.request.waypoints.push_back(wp1);
+    msg_mission.request.waypoints.push_back(wp2);
+    msg_mission.request.waypoints.push_back(wp3);
 
-  //Call the service
-  if(sc_mission.call(msg_mission)){
-    ROS_INFO_STREAM("Response from service: " << msg_mission.response);
-  }
-  else{
-    ROS_ERROR_STREAM("Failed to call msg_mission service!");
-  }
+    //Call the service
+    if(sc_mission.call(msg_mission)){
+        ROS_INFO_STREAM("Response from service: " << msg_mission.response);
+    }
+    else{
+        ROS_ERROR_STREAM("Failed to call msg_mission service!");
+    }
 }
 
 void SimpleControl::OverrideRC(int channel, int value)
 {
-  //Create the message object
-  mavros_msgs::OverrideRCIn override_msg;
+    //Create the message object
+    mavros_msgs::OverrideRCIn override_msg;
 
-  // Update the message with the new RC value
-  override_msg.channels[channel-1] = value;
+    // Update the message with the new RC value
+    override_msg.channels[channel-1] = value;
 
-  //Publish the message
-  pub_override_rc.publish(override_msg);
+    //Publish the message
+    pub_override_rc.publish(override_msg);
 }
 
 void SimpleControl::SetLocalPosition(float x, float y, float z, float yaw = 361)
 {
-  //Create the message object
-  geometry_msgs::PoseStamped position_stamped;
+    //Create the message object
+    geometry_msgs::PoseStamped position_stamped;
 
-  //Update the message with the new position
-  position_stamped.pose.position.x = x;
-  position_stamped.pose.position.y = y;
-  position_stamped.pose.position.z = z;
-  if(yaw == 361){ //Default or invalid value passed, use current Yaw value
-      position_stamped.pose.orientation = pose_previous.orientation;
-  }
-  else{ //Use the specified Yaw value
-      quaternionTFToMsg(tf::createQuaternionFromYaw(yaw*(PI/180)), position_stamped.pose.orientation);
-  }
+    //Update the message with the new position
+    position_stamped.pose.position.x = x;
+    position_stamped.pose.position.y = y;
+    position_stamped.pose.position.z = z;
+    if(yaw == 361){ //Default or invalid value passed, use current Yaw value
+        position_stamped.pose.orientation = pose_previous.orientation;
+    }
+    else{ //Use the specified Yaw value
+        quaternionTFToMsg(tf::createQuaternionFromYaw(yaw*(PI/180)), position_stamped.pose.orientation);
+    }
 
-  //Publish the message
-  pub_setpoint_position.publish(position_stamped);
+    //Publish the message
+    pub_setpoint_position.publish(position_stamped);
 }
 
 void SimpleControl::SetLocalPosition(geometry_msgs::Pose new_pose)
 {
-  //Create the message object
-  geometry_msgs::PoseStamped position_stamped;
+    //Create the message object
+    geometry_msgs::PoseStamped position_stamped;
 
-  //Update the message with the new position
-  position_stamped.pose = new_pose;
+    //Update the message with the new position
+    position_stamped.pose = new_pose;
 
-  //Publish the message
-  pub_setpoint_position.publish(position_stamped);
+    //Publish the message
+    pub_setpoint_position.publish(position_stamped);
 }
 
 void SimpleControl::SetAttitude(float roll, float pitch, float yaw)
 {
-  //Create the message to be published
-  geometry_msgs::PoseStamped msg_pose;
+    //Create the message to be published
+    geometry_msgs::PoseStamped msg_pose;
 
-  //Construct a Quaternion from Fixed angles and update pose
-  tf::Quaternion q = tf::createQuaternionFromRPY(roll, pitch, yaw);
-  quaternionTFToMsg(q, msg_pose.pose.orientation);
+    //Construct a Quaternion from Fixed angles and update pose
+    tf::Quaternion q = tf::createQuaternionFromRPY(roll, pitch, yaw);
+    quaternionTFToMsg(q, msg_pose.pose.orientation);
 
-  //Publish the message
-  pub_setpoint_attitude.publish(msg_pose);
+    //Publish the message
+    pub_setpoint_attitude.publish(msg_pose);
 }
 
 void SimpleControl::SetAngularVelocity(float roll_vel, float pitch_vel, float yaw_vel)
 {
-  //Create the message object
-  geometry_msgs::TwistStamped msg_angular_vel;
+    //Create the message object
+    geometry_msgs::TwistStamped msg_angular_vel;
 
-  //Update the message with the new angular velocity
-  geometry_msgs::Twist velocity;
-  velocity.angular.x = roll_vel;
-  velocity.angular.y = pitch_vel;
-  velocity.angular.z = yaw_vel;
-  msg_angular_vel.twist = velocity;
+    //Update the message with the new angular velocity
+    geometry_msgs::Twist velocity;
+    velocity.angular.x = roll_vel;
+    velocity.angular.y = pitch_vel;
+    velocity.angular.z = yaw_vel;
+    msg_angular_vel.twist = velocity;
 
-  //Publish the message
-  pub_angular_vel.publish(msg_angular_vel);
+    //Publish the message
+    pub_angular_vel.publish(msg_angular_vel);
 }
 
 void SimpleControl::SetLinearVelocity(float x, float y, float z)
 {
-  geometry_msgs::TwistStamped msg_linear_vel;
+    geometry_msgs::TwistStamped msg_linear_vel;
 
-  msg_linear_vel.twist.linear.x = x;
-  msg_linear_vel.twist.linear.y = y;
-  msg_linear_vel.twist.linear.z = z;
+    msg_linear_vel.twist.linear.x = x;
+    msg_linear_vel.twist.linear.y = y;
+    msg_linear_vel.twist.linear.z = z;
 
-  pub_linear_vel.publish(msg_linear_vel);
+    pub_linear_vel.publish(msg_linear_vel);
 }
 
 void SimpleControl::SetAcceleration(float x, float y, float z)
 {
-  //Create the message object
-  geometry_msgs::Vector3Stamped msg_accel;
+    //Create the message object
+    geometry_msgs::Vector3Stamped msg_accel;
 
-  //Update the message with the new acceleration
-  msg_accel.vector.x = x;
-  msg_accel.vector.y = y;
-  msg_accel.vector.z = z;
+    //Update the message with the new acceleration
+    msg_accel.vector.x = x;
+    msg_accel.vector.y = y;
+    msg_accel.vector.z = z;
 
-  //Publish the message
-  pub_setpoint_accel.publish(msg_accel);
+    //Publish the message
+    pub_setpoint_accel.publish(msg_accel);
 }
 
 //TODO: Fix Roll, Pitch, Yaw, and Ground Speed values
 FlightState SimpleControl::UpdateFlightState()
 {
-  struct FlightState flight_state;
+    struct FlightState flight_state;
 
-  /*tf::Quaternion quaternion_tf;
+    /*tf::Quaternion quaternion_tf;
   tf::quaternionMsgToTF(imu.orientation, quaternion_tf);
   tf::Matrix3x3 m{quaternion_tf};
 
   double roll, pitch, yaw;
   m.getRPY(roll, pitch, yaw);*/
 
-  flight_state.roll = imu.orientation.x;     //Update Roll value
-  flight_state.pitch = imu.orientation.y;   //Update Pitch Value
-  flight_state.yaw = imu.orientation.z;       //Update Yaw Value
-  flight_state.heading = heading_deg.data;  //Update heading [degrees]
-  flight_state.altitude = altitude_rel.data;//Update Altitude [m]
-  flight_state.ground_speed = velocity.twist.linear.x;  //Global Velocity X [m/s]
-  flight_state.vertical_speed = velocity.twist.linear.z;//Global Velocity vertical [m/s]
+    flight_state.roll = imu.orientation.x;     //Update Roll value
+    flight_state.pitch = imu.orientation.y;   //Update Pitch Value
+    flight_state.yaw = imu.orientation.z;       //Update Yaw Value
+    flight_state.heading = heading_deg.data;  //Update heading [degrees]
+    flight_state.altitude = altitude_rel.data;//Update Altitude [m]
+    flight_state.ground_speed = velocity.twist.linear.x;  //Global Velocity X [m/s]
+    flight_state.vertical_speed = velocity.twist.linear.z;//Global Velocity vertical [m/s]
 
-  return flight_state;
+    return flight_state;
 }
 
 int SimpleControl::ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
 {
-  int result;
+    int result;
 
-  //Get the yaw values
-  /*double roll, pitch, yaw_1, yaw_2;
+    //Get the yaw values
+    /*double roll, pitch, yaw_1, yaw_2;
   tf::Quaternion quaternion_tf1, quaternion_tf2;
 
   tf::quaternionMsgToTF(pose1.orientation, quaternion_tf1);
@@ -430,204 +430,202 @@ int SimpleControl::ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pos
   m1.getRPY(roll, pitch, yaw_1);
   m2.getRPY(roll, pitch, yaw_2);*/
 
-  if( std::abs(pose2.position.x - pose1.position.x) <= THRESHOLD_XY         &&
-      std::abs(pose2.position.y - pose1.position.y) <= THRESHOLD_XY         &&
-      std::abs(pose2.position.z - pose1.position.z) <= THRESHOLD_Z          /*&&
-      std::abs(std::abs(pose2.orientation.z) - std::abs(pose1.orientation.z)) <= THRESHOLD_YAW  &&
-      std::abs(std::abs(pose2.orientation.w) - std::abs(pose1.orientation.w)) <= THRESHOLD_YAW*/)
-  {
-    result = 0;
-  }
-  else result = 1;
+    if( std::abs(pose2.position.x - pose1.position.x)           <= THRESHOLD_XY  &&
+            std::abs(pose2.position.y - pose1.position.y)       <= THRESHOLD_XY  &&
+            std::abs(pose2.position.z - pose1.position.z)       <= THRESHOLD_Z   /*&&
+            std::abs(pose2.orientation.z - pose1.orientation.z) <= THRESHOLD_YAW &&
+            std::abs(pose2.orientation.w - pose1.orientation.w) <= THRESHOLD_YAW*/)
+    {
+        result = 0;
+    }
+    else result = 1;
 
-  /*ROS_INFO_STREAM("Z: " << std::abs(pose2.orientation.z - pose1.orientation.z));
-  ROS_INFO_STREAM("W: " << std::abs(pose2.orientation.w - pose1.orientation.w));*/
-
-  return result;
+    return result;
 }
 
 int SimpleControl::CalculateDistance(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
 {
-  float dist_x = pose2.position.x - pose1.position.x;
-  float dist_y = pose2.position.y - pose1.position.y;
-  float dist_z = pose2.position.z - pose1.position.z;
-  return sqrt((dist_x * dist_x) + (dist_y * dist_y) + (dist_z * dist_z));
+    float dist_x = pose2.position.x - pose1.position.x;
+    float dist_y = pose2.position.y - pose1.position.y;
+    float dist_z = pose2.position.z - pose1.position.z;
+    return sqrt((dist_x * dist_x) + (dist_y * dist_y) + (dist_z * dist_z));
 }
 
 float SimpleControl::GetMissionProgress()
 {
-  float progress  = 0;
+    float progress  = 0;
 
-  if(goal == travel){
-    float distance_remaining  = CalculateDistance(pose_target,pose_local);
-    float distance_total      = CalculateDistance(pose_target,pose_home);
-    float distance_completion = distance_remaining/distance_total;
-    progress =  TRAVEL_WT*(1 - distance_completion);
-  }
-  else if(goal == scout){
-    progress = TRAVEL_WT/*+ building revolution completion*/;
-  }
-  else if(goal == rtl || goal == land){ //RTL or Land
-    float distance_remaining  = CalculateDistance(pose_target,pose_local);
-    float distance_total      = CalculateDistance(pose_target,pose_previous);
-    float distance_completion = distance_remaining/distance_total;
-    progress = 1 - distance_completion;
-  }
+    if(goal == travel){
+        float distance_remaining  = CalculateDistance(pose_target,pose_local);
+        float distance_total      = CalculateDistance(pose_target,pose_home);
+        float distance_completion = distance_remaining/distance_total;
+        progress =  TRAVEL_WT*(1 - distance_completion);
+    }
+    else if(goal == scout){
+        progress = TRAVEL_WT/*+ building revolution completion*/;
+    }
+    else if(goal == rtl || goal == land){ //RTL or Land
+        float distance_remaining  = CalculateDistance(pose_target,pose_local);
+        float distance_total      = CalculateDistance(pose_target,pose_previous);
+        float distance_completion = distance_remaining/distance_total;
+        progress = 1 - distance_completion;
+    }
 
-  return progress;
+    return progress;
 }
 
 geometry_msgs::Pose SimpleControl::CircleShape(int angle){
-		/** @todo Give possibility to user define amplitude of movement (circle radius)*/
-        double r = 5.0f;	// 5 meters radius
+    /** @todo Give possibility to user define amplitude of movement (circle radius)*/
+    double r = 5.0f;	// 5 meters radius
 
-        geometry_msgs::Pose new_pose;
-        tf::pointEigenToMsg(Eigen::Vector3d(r * (cos(angles::from_degrees(angle))),
-                                            r * (sin(angles::from_degrees(angle))),
-                                            pose_previous.position.z),
-                                            new_pose.position);
-        new_pose.orientation.z = sin(angles::from_degrees(angle));
+    geometry_msgs::Pose new_pose;
+    tf::pointEigenToMsg(Eigen::Vector3d(r * (cos(angles::from_degrees(angle))),
+                                        r * (sin(angles::from_degrees(angle))),
+                                        pose_previous.position.z),
+                        new_pose.position);
+    new_pose.orientation.z = sin(angles::from_degrees(angle));
 
-        return new_pose;
+    return new_pose;
 }
 
 nav_msgs::Path SimpleControl::DiamondShape(query_msgs::Target target_point)
 {
-  nav_msgs::Path mission;
-  geometry_msgs::PoseStamped pose_stamped;
-  geometry_msgs::Pose pose;
+    nav_msgs::Path mission;
+    geometry_msgs::PoseStamped pose_stamped;
+    geometry_msgs::Pose pose;
 
-  pose.position.x     += target_point.radius;
-  pose.position.y     = target_point.target_point.position.y;
-  pose.position.z     = target_point.target_point.position.z;
-  quaternionTFToMsg(tf::createQuaternionFromYaw(180*(PI/180)), pose.orientation);
-  pose_stamped.pose = pose;
-  mission.poses.push_back(pose_stamped);
+    pose.position.x    += target_point.radius;
+    pose.position.y     = target_point.target_point.position.y;
+    pose.position.z     = target_point.target_point.position.z;
+    quaternionTFToMsg(tf::createQuaternionFromYaw(180*(PI/180)), pose.orientation);
+    pose_stamped.pose = pose;
+    mission.poses.push_back(pose_stamped);
 
-  pose.position.x     = target_point.target_point.position.x;
-  pose.position.y     += target_point.radius;
-  pose.position.z     = target_point.target_point.position.z;
-  quaternionTFToMsg(tf::createQuaternionFromYaw(270*(PI/180)), pose.orientation);
-  pose_stamped.pose = pose;
-  mission.poses.push_back(pose_stamped);
+    pose.position.x     = target_point.target_point.position.x;
+    pose.position.y    += target_point.radius;
+    pose.position.z     = target_point.target_point.position.z;
+    quaternionTFToMsg(tf::createQuaternionFromYaw(270*(PI/180)), pose.orientation);
+    pose_stamped.pose = pose;
+    mission.poses.push_back(pose_stamped);
 
-  pose.position.x     -= target_point.radius;
-  pose.position.y     = target_point.target_point.position.y;
-  pose.position.z     = target_point.target_point.position.z;
-  quaternionTFToMsg(tf::createQuaternionFromYaw(0*(PI/180)), pose.orientation);
-  pose_stamped.pose = pose;
-  mission.poses.push_back(pose_stamped);
+    pose.position.x    -= target_point.radius;
+    pose.position.y     = target_point.target_point.position.y;
+    pose.position.z     = target_point.target_point.position.z;
+    quaternionTFToMsg(tf::createQuaternionFromYaw(0*(PI/180)), pose.orientation);
+    pose_stamped.pose = pose;
+    mission.poses.push_back(pose_stamped);
 
-  pose.position.x     = target_point.target_point.position.x;
-  pose.position.y     -= target_point.radius;
-  pose.position.z     = target_point.target_point.position.z;
-  quaternionTFToMsg(tf::createQuaternionFromYaw(90*(PI/180)), pose.orientation);
-  pose_stamped.pose = pose;
-  mission.poses.push_back(pose_stamped);
+    pose.position.x     = target_point.target_point.position.x;
+    pose.position.y    -= target_point.radius;
+    pose.position.z     = target_point.target_point.position.z;
+    quaternionTFToMsg(tf::createQuaternionFromYaw(90*(PI/180)), pose.orientation);
 
-  return mission;
+    pose_stamped.pose = pose;
+    mission.poses.push_back(pose_stamped);
+
+    return mission;
 }
 
 void SimpleControl::Run()
 {
-  //Sanity Checks
-  /*if(battery.remaining < BATTERY_MIN){
-    //Land if battery is starting to get low
-    goal = land;
-  }*/
+    /*//Sanity Checks
+    if(battery.remaining < BATTERY_MIN){
+        //Land if battery is starting to get low
+        goal = land;
+    }*/
 
-     if(object_distance.data < THRESHOLD_DEPTH){
-         //Collision Imminent! Land.
-         ROS_ERROR_STREAM_DELAYED_THROTTLE(5, "Collision Imminent!");
-         if(goal != hold_pose){
-             pose_previous = pose_local;
-             goal_prev = goal;
-             goal = hold_pose;
-         }
-         collision = true;
-     }
-     else if(goal_prev != null && collision){
-         goal = goal_prev;
-         collision = false;
-     }
+    if(object_distance.data < THRESHOLD_DEPTH){
+        //Collision Imminent! Land.
+        ROS_ERROR_STREAM_DELAYED_THROTTLE(5, "Collision Imminent!");
+        if(goal != hold_pose){
+            pose_previous = pose_local;
+            goal_prev = goal;
+            goal = hold_pose;
+        }
+        collision = true;
+    }
+    else if(goal_prev != null && collision){
+        goal = goal_prev;
+        collision = false;
+    }
 
-  if(goal == travel){
-    if(ComparePosition(pose_local, pose_target) == 0){
-      //Vehicle is at target location => Scout Building
-      pose_previous = pose_local;
-      goal = scout;
-      ROS_DEBUG_STREAM_ONCE("Scouting Building.");
-    }
-    else if(std::abs(std::abs(pose_local.position.z) - std::abs(pose_target.position.z)) <= THRESHOLD_Z){
-      //Achieved the proper altitude => Go to target location
-      this->SetLocalPosition(pose_target);
+    if(goal == travel){
+        if(ComparePosition(pose_local, pose_target) == 0){
+            //Vehicle is at target location => Scout Building
+            pose_previous = pose_local;
+            goal = scout;
+            ROS_DEBUG_STREAM_ONCE("Scouting Building.");
+        }
+        else if(std::abs(std::abs(pose_local.position.z) - std::abs(pose_target.position.z)) <= THRESHOLD_Z){
+            //Achieved the proper altitude => Go to target location
+            this->SetLocalPosition(pose_target);
 
-      pose_previous = pose_local; //Update previous position for fixing the altitude
+            pose_previous = pose_local; //Update previous position for fixing the altitude
+        }
+        else{
+            //Ascend to the proper altitude first at the current location
+            this->SetLocalPosition(pose_previous.position.x, pose_previous.position.y, pose_target.position.z);
+        }
     }
-    else{
-      //Ascend to the proper altitude first at the current location
-      this->SetLocalPosition(pose_previous.position.x, pose_previous.position.y, pose_target.position.z);
+    else if(goal == hold_pose){
+        this->SetLocalPosition(pose_previous);
     }
-  }
-  else if(goal == hold_pose){
-      this->SetLocalPosition(pose_previous);
-  }
-  else if(goal == scout){
-    static int rev_count = 0;
-    static int cur_point = 0;
+    else if(goal == scout){
+        static int rev_count = 0;
+        static int cur_point = 0;
 
-    //Travel to the next waypoint
-    pose_target = path_mission.poses.at(cur_point).pose;
-    this->SetLocalPosition(pose_target);
-    goal = travel;
-    cur_point++;
+        //Travel to the next waypoint
+        pose_target = path_mission.poses.at(cur_point).pose;
+        this->SetLocalPosition(pose_target);
+        goal = travel;
+        cur_point++;
 
-    if (cur_point > path_mission.poses.size()-1){ //
-      ROS_INFO_STREAM("Circled Building" << rev_count << "times.");
-      rev_count++;
+        if (cur_point > path_mission.poses.size()-1){ //
+            ROS_INFO_STREAM("Circled Building" << rev_count << "times.");
+            rev_count++;
 
-      if(rev_count > 2) {
-          goal = land;
-          rev_count = 0;
-          cur_point = 0;
-      }
-      else cur_point = 0;
+            if(rev_count > 2) {
+                goal = land;
+                rev_count = 0;
+                cur_point = 0;
+            }
+            else cur_point = 0;
+        }
     }
-  }
-  else if(goal == rtl){
-    if(ComparePosition(pose_local, pose_target) == 0){
-      //Vehicle is at target location => Disarm
-      goal = disarm;
+    else if(goal == rtl){
+        if(ComparePosition(pose_local, pose_target) == 0){
+            //Vehicle is at target location => Disarm
+            goal = disarm;
+        }
+        else if(std::abs(std::abs(pose_local.position.x) - std::abs(pose_target.position.x)) <= THRESHOLD_XY &&
+                std::abs(std::abs(pose_local.position.y) - std::abs(pose_target.position.y)) <= THRESHOLD_XY){
+            this->SetLocalPosition(pose_local.position.x, pose_local.position.y, 0);
+            goal = land;
+        }
+        else if(abs(pose_local.position.z - ALT_RTL) <= THRESHOLD_Z){
+            //Achieved the proper altitude => Go to target location
+            this->SetLocalPosition(pose_target.position.x, pose_target.position.y, ALT_RTL);
+        }
+        else{
+            this->SetLocalPosition(pose_local.position.x, pose_local.position.y, ALT_RTL);
+        }
     }
-    else if(std::abs(std::abs(pose_local.position.x) - std::abs(pose_target.position.x)) <= THRESHOLD_XY &&
-            std::abs(std::abs(pose_local.position.y) - std::abs(pose_target.position.y)) <= THRESHOLD_XY){
-      this->SetLocalPosition(pose_local.position.x, pose_local.position.y, 0);
-      goal = land;
+    else if(goal == land){
+        if(pose_local.position.z <= THRESHOLD_Z*3){
+            goal = disarm;
+            ROS_INFO_STREAM_ONCE("Landed Safely.");
+        }
+        else{
+            //Descend to the floor
+            this->SetLocalPosition(pose_previous.position.x, pose_previous.position.y, 0);
+        }
     }
-    else if(abs(pose_local.position.z - ALT_RTL) <= THRESHOLD_Z){
-      //Achieved the proper altitude => Go to target location
-      this->SetLocalPosition(pose_target.position.x, pose_target.position.y, ALT_RTL);
+    else if(goal == disarm){
+        //Disarm the vehicle if it's currently armed
+        if(state.armed) this->Arm(false);
+        goal = idle;
     }
-    else{
-      this->SetLocalPosition(pose_local.position.x, pose_local.position.y, ALT_RTL);
+    else if(goal == idle){
+        //Wait for the goal to change
     }
-  }
-  else if(goal == land){
-      if(pose_local.position.z <= THRESHOLD_Z*3){
-        goal = disarm;
-        ROS_INFO_STREAM_ONCE("Landed Safely.");
-      }
-      else{
-        //Descend to the floor
-        this->SetLocalPosition(pose_previous.position.x, pose_previous.position.y, 0);
-      }
-  }
-  else if(goal == disarm){
-    //Disarm the vehicle if it's currently armed
-    if(state.armed) this->Arm(false);
-    goal = idle;
-  }
-  else if(goal == idle){
-    //Wait for the goal to change
-  }
 }
