@@ -48,7 +48,7 @@ void disparityCallback(const stereo_msgs::DisparityImageConstPtr& disparity_msg)
     }
     //if(prox_count > threshold){
         prox.data = z_depth_total / prox_count;        
-        ROS_ERROR_STREAM("ERROR land! " << prox_count << "  |  " << prox.data);
+        //ROS_ERROR_STREAM("ERROR land! " << prox_count << "  |  " << prox.data);
         pub_.publish(prox);
     //}
     
