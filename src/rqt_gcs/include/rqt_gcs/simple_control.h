@@ -41,8 +41,8 @@
 #define TIMEOUT 3*CHECK_FREQUENCY //3 Second timeout
 #define TRAVEL_WT 0.5
 #define SCOUT_WT 0.5
-#define THRESHOLD_XY 0.08*10
-#define THRESHOLD_Z 0.08*10
+#define THRESHOLD_XY 0.08
+#define THRESHOLD_Z 0.08
 #define THRESHOLD_YAW 0.1
 #define THRESHOLD_DEPTH 2
 #define ALT_RTL 2
