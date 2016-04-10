@@ -191,8 +191,6 @@ void SimpleGCS::UpdateMsgQuery(){
 
     int numOfPictureMsg = pictureQueryVector->size();
 
-    ROS_INFO_STREAM(" number of msgs " << numOfPictureMsg);
-
     QWidget* pmWidgets[numOfPictureMsg];
     Ui::PictureMsgWidget pmUiWidgets[numOfPictureMsg];
     QWidget* imgWidget[numOfPictureMsg];
@@ -298,6 +296,10 @@ void SimpleGCS::ExecutePlay(){
 
 void SimpleGCS::CancelPlay(){
 
+    for(int i = 0; i < NUM_UAV; i++){
+        quadrotors[i].SetRTL();
+    }
+
 }
 
 
@@ -310,7 +312,7 @@ void SimpleGCS::ScoutBuilding(){
 }
 
 void SimpleGCS::StopQuad(){
-    quadrotors[cur_uav].SetMode("AUTO.RTL");
+    quadrotors[cur_uav].SetRTL();
 }
 
 void SimpleGCS::ChangeFlightMode(){
@@ -319,26 +321,32 @@ void SimpleGCS::ChangeFlightMode(){
         quadrotors[cur_uav].SetMode("STABILIZED");
     }
     else if(mpUi_.flightModeComboBox->currentIndex() == 1){
-        ROS_INFO_STREAM("Quadrotor RTL");
-        quadrotors[cur_uav].SetMode("AUTO.RTL");
-    }
-    else if(mpUi_.flightModeComboBox->currentIndex() == 2){
         ROS_INFO_STREAM("Quadrotor Loiter");
         quadrotors[cur_uav].SetMode("AUTO.LOITER");
     }
-    else if(mpUi_.flightModeComboBox->currentIndex() == 3){
+    else if(mpUi_.flightModeComboBox->currentIndex() == 2){
         ROS_INFO_STREAM("Quadrotor Land");
         quadrotors[cur_uav].SetMode("AUTO.LAND");
     }
-    else if(mpUi_.flightModeComboBox->currentIndex() == 4){
-        ROS_INFO_STREAM("Quadrotor alt hold");
+    else if(mpUi_.flightModeComboBox->currentIndex() == 3){
+        ROS_INFO_STREAM("Altitude Hold");
         quadrotors[cur_uav].SetMode("ALTCTL");
     }
+    else if(mpUi_.flightModeComboBox->currentIndex() == 4){
+        ROS_INFO_STREAM("Position Hold");
+        quadrotors[cur_uav].SetMode("POSCTL");
+    }
     else if(mpUi_.flightModeComboBox->currentIndex() == 5){
-
+        ROS_INFO_STREAM("Quadrotor Return-To-Launch");
+        quadrotors[cur_uav].SetRTL();
     }
     else if(mpUi_.flightModeComboBox->currentIndex() == 6){
-
+        ROS_INFO_STREAM("Quadrotor Auto");
+        quadrotors[cur_uav].SetMode("AUTO");
+    }
+    else if(mpUi_.flightModeComboBox->currentIndex() == 7){
+        ROS_INFO_STREAM("Quadrotor Offboard");
+        quadrotors[cur_uav].SetMode("OFFBOARD");
     }
 }
 

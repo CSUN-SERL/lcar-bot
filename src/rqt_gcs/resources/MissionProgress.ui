@@ -609,11 +609,6 @@ background-color: rgb(159, 171, 198);
           </item>
           <item>
            <property name="text">
-            <string comment="Flight">Return-to-Launch</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
             <string comment="Flight">Loiter</string>
            </property>
           </item>
@@ -624,12 +619,17 @@ background-color: rgb(159, 171, 198);
           </item>
           <item>
            <property name="text">
-            <string>Travel</string>
+            <string>Altitude Hold</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>Alt Hold</string>
+            <string>Position Hold</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string comment="Flight">Return-to-Launch</string>
            </property>
           </item>
           <item>
@@ -639,52 +639,7 @@ background-color: rgb(159, 171, 198);
           </item>
           <item>
            <property name="text">
-            <string>Acro</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Sport</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Drift</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Guided</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Circle</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>PosHold</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Brake</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Follow Me</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Simple</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Super Simple</string>
+            <string>Offboard</string>
            </property>
           </item>
          </widget>
