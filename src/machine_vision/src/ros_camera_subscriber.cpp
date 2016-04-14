@@ -9,7 +9,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
   {
-    cv::imshow(topic_, cv_bridge::toCvShare(msg,"rgb8")->image);
+    cv::imshow(topic_, cv_bridge::toCvShare(msg,"bgr8")->image);
     cv::waitKey(1);
   }
   catch (cv_bridge::Exception& e)
@@ -24,7 +24,7 @@ int main(int argc, char **argv)
   ros::NodeHandle nh;
   image_transport::ImageTransport it(nh);
 
-  
+
   bool paramSet = ros::param::get("~topic", topic_);
 
   if(!paramSet){
@@ -34,11 +34,10 @@ int main(int argc, char **argv)
 
   cv::namedWindow(topic_, CV_WINDOW_KEEPRATIO);
   cv::startWindowThread();
-  
+
   image_transport::Subscriber sub = it.subscribe(topic_, 5, imageCallback);
   ROS_INFO_STREAM("subscribed to topic: " << topic_);
-  
+
   ros::spin();
   cv::destroyWindow(topic_);
 }
-   

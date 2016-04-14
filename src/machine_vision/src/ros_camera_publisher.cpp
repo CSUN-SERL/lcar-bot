@@ -29,7 +29,7 @@ int main(int argc, char** argv)
   }
   image_transport::Publisher pub = it.advertise(topic, 1);
   ROS_INFO_STREAM("publishing on topic: " << topic);
-  
+
   int video_source;
   paramSet = ros::param::get("~video_id", video_source);
   if(!paramSet){
@@ -51,7 +51,7 @@ int main(int argc, char** argv)
         cap >> frame;
     // Check if grabbed frame is actually full with some content
         if(!frame.empty()) {
-            msg = cv_bridge::CvImage(std_msgs::Header(), "rgb8", frame).toImageMsg();
+            msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
             pub.publish(msg);
             numFrames++;
         }
