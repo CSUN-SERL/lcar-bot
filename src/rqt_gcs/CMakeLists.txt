@@ -108,6 +108,8 @@ add_library(${PROJECT_NAME}
             ${rqt_gcs_UIS_H}
             ${rqt_gcs_RCC_SRCS})
 
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+
 #Specify libraries against which to link
 target_link_libraries(simple_control ${catkin_LIBRARIES})
 target_link_libraries(gps_publisher ${catkin_LIBRARIES})
