@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(rqt_gcs)
 
 find_package(catkin REQUIRED COMPONENTS
+            query_msgs
             geometry_msgs
             mavros
             mavros_msgs
@@ -14,7 +15,6 @@ find_package(catkin REQUIRED COMPONENTS
             tf
             cv_bridge
             image_transport
-            query_msgs
 )
 
 find_package(Qt4 COMPONENTS QtCore QtGui QtSvg REQUIRED)
@@ -99,6 +99,8 @@ add_executable(gps_demo src/rqt_gcs/gps_demo.cpp)
 add_executable(connection_manager src/rqt_gcs/connection_manager.cpp)
 add_executable(safe_mocap src/rqt_gcs/safe_mocap.cpp)
 
+add_dependencies(simple_control ${catkin_EXPORTED_TARGETS})
+add_dependencies(gps_demo ${catkin_EXPORTED_TARGETS})
 
 add_library(${PROJECT_NAME}
             ${rqt_gcs_SRCS}

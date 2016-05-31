@@ -41,6 +41,7 @@ add_executable(stereo_driver src/stereo_driver.cpp src/stereo_driver_main.cpp)
 add_executable(object_detection src/object_detect.cpp)
 add_executable(object_avoidance src/object_avoidance.cpp)
 
+add_dependencies(object_detection ${catkin_EXPORTED_TARGETS})
 
 #Specify libraries against which to link
 target_link_libraries(camera_publisher
