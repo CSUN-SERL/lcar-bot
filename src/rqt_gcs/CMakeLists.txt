@@ -29,7 +29,7 @@ find_package(OpenCV REQUIRED)
 include_directories(${Qt5Core_INCLUDE_DIRS} 
                     ${Qt5Gui_INCLUDE_DIRS} 
                     ${Qt5Svg_INCLUDE_DIRS}
-                    #$Qt5Widget_
+#                    $Qt5Widget_INCLUDE_DIRS
 )
 include(EnableCXX11)
 include(MavrosMavlink)
@@ -127,9 +127,10 @@ target_link_libraries(connection_manager ${catkin_LIBRARIES})
 target_link_libraries(safe_mocap ${catkin_LIBRARIES})
 target_link_libraries(  ${PROJECT_NAME}
                         ${catkin_LIBRARIES}
-                        ${QT5Core_LIBRARIES}
+                        ${Qt5Core_LIBRARIES}
                         ${Qt5Gui_LIBRARIES}
-                        ${QT5Svg_LIBRARIES}
+                        ${Qt5Svg_LIBRARIES}
+#                        ${Qt}
                         ${OpenCV_LIBRARIES}
 )
 
