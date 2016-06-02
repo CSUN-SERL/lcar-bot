@@ -16,12 +16,21 @@ find_package(catkin REQUIRED COMPONENTS
             cv_bridge
             image_transport
 )
+#stupid qt5
+find_package(Qt5Core REQUIRED)
+find_package(Qt5Gui REQUIRED)
+find_package(Qt5Svg REQUIRED)
+#find_package(Qt5Widget REQUIRED)
 
-find_package(Qt4 COMPONENTS QtCore QtGui QtSvg REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread)
 find_package(OpenCV REQUIRED)
 
-include(${QT_USE_FILE})
+#stupid qt5
+include_directories(${Qt5Core_INCLUDE_DIRS} 
+                    ${Qt5Gui_INCLUDE_DIRS} 
+                    ${Qt5Svg_INCLUDE_DIRS}
+                    #$Qt5Widget_
+)
 include(EnableCXX11)
 include(MavrosMavlink)
 
@@ -77,16 +86,16 @@ catkin_package(
 )
 
 include_directories(include
-	${Qt4_INCLUDE_DIRS}
+	${Qt5_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS}
 )
 
-add_definitions(${Qt4_DEFINITIONS})
+add_definitions(${Qt5_DEFINITIONS})
 
 
-qt4_add_resources(rqt_gcs_RCC_SRCS ${rqt_gcs_RCCS})
-qt4_wrap_cpp(rqt_gcs_MOCS ${rqt_gcs_HDRS})
-qt4_wrap_ui(rqt_gcs_UIS_H ${rqt_gcs_UIS})
+qt5_add_resources(rqt_gcs_RCC_SRCS ${rqt_gcs_RCCS})
+qt5_wrap_cpp(rqt_gcs_MOCS ${rqt_gcs_HDRS})
+qt5_wrap_ui(rqt_gcs_UIS_H ${rqt_gcs_UIS})
 
 include_directories(${rqt_gcs_INCLUDE_DIRECTORIES}
                     ${Boost_INCLUDE_DIRS}
@@ -118,9 +127,9 @@ target_link_libraries(connection_manager ${catkin_LIBRARIES})
 target_link_libraries(safe_mocap ${catkin_LIBRARIES})
 target_link_libraries(  ${PROJECT_NAME}
                         ${catkin_LIBRARIES}
-                        ${QT_QTCORE_LIBRARY}
-                        ${QT_QTGUI_LIBRARY}
-                        ${QT_QTSVG_LIBRARY}
+                        ${QT5Core_LIBRARIES}
+                        ${Qt5Gui_LIBRARIES}
+                        ${QT5Svg_LIBRARIES}
                         ${OpenCV_LIBRARIES}
 )
 
