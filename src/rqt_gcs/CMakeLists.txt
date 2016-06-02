@@ -26,8 +26,8 @@ find_package(Boost REQUIRED COMPONENTS thread)
 find_package(OpenCV REQUIRED)
 
 #stupid qt5
-include_directories(${Qt5Core_INCLUDE_DIRS} 
-                    ${Qt5Gui_INCLUDE_DIRS} 
+include_directories(${Qt5Core_INCLUDE_DIRS}
+                    ${Qt5Gui_INCLUDE_DIRS}
                     ${Qt5Svg_INCLUDE_DIRS}
 #                   ${Qt5Widget_INCLUDE_DIRS}
 )

@@ -4,3 +4,5 @@
 *.log
 *CMakeLists.txt.user*
 /nbproject
+/logs
+.catkin_tools

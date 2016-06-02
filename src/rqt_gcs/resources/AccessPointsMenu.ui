@@ -87,7 +87,6 @@ color: rgb(236, 236, 236);
         </layout>
        </item>
       </layout>
-      <zorder></zorder>
      </widget>
     </widget>
    </item>

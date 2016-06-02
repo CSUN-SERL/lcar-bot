@@ -230,7 +230,6 @@ color: rgb(240, 240, 240);
    </item>
   </layout>
   <zorder>line</zorder>
-  <zorder>horizontalSpacer</zorder>
   <zorder>frame</zorder>
  </widget>
  <resources/>
