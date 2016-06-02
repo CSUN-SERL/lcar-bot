@@ -29,7 +29,7 @@ find_package(OpenCV REQUIRED)
 include_directories(${Qt5Core_INCLUDE_DIRS} 
                     ${Qt5Gui_INCLUDE_DIRS} 
                     ${Qt5Svg_INCLUDE_DIRS}
-#                    $Qt5Widget_INCLUDE_DIRS
+#                   ${Qt5Widget_INCLUDE_DIRS}
 )
 include(EnableCXX11)
 include(MavrosMavlink)
