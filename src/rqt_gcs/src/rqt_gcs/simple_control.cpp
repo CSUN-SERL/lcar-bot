@@ -305,7 +305,7 @@ void SimpleControl::OverrideRC(int channel, int value)
     pub_override_rc.publish(override_msg);
 }
 
-void SimpleControl::SetLocalPosition(float x, float y, float z, float yaw = 361)
+void SimpleControl::SetLocalPosition(float x, float y, float z, float yaw)
 {
     //Create the message object
     geometry_msgs::PoseStamped position_stamped;

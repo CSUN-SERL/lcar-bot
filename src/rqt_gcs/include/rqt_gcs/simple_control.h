@@ -162,7 +162,7 @@ public:
       @param z      New z position
       @param yaw    New yaw value in degrees
     */
-    void SetLocalPosition(float x, float y, float z, float yaw);
+    void SetLocalPosition(float x, float y, float z, float yaw = 361);
 
     /**
       Send a new position command to the UAV.
