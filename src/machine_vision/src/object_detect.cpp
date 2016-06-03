@@ -179,7 +179,7 @@ int main (int argc, char** argv){
   //cv::startWindowThread();
   image_transport::ImageTransport it(nh);
 
-  string svmPath = ros::package::getPath("machine_vision");
+  std::string svmPath = ros::package::getPath("machine_vision");
   svm_ = StatModel::load<SVM>( svmPath + "/LinearHOG.xml" );
 
   GetSvmDetector(svm_, hog_detector_);
