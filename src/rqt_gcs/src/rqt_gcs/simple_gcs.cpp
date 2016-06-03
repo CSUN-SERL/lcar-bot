@@ -382,9 +382,9 @@ void SimpleGCS::RefreshAccessPointsMenu(){
 
             //retrive access point
             AccessPoint accessPoint = accessPointsVector->at(i);
-            sensor_msgs::Image acImage = accessPointsVector->at(i).GetImage();
+            sensor_msgs::Image acImage = accessPoint.GetImage();
 
-            QImage image(acImage.data.data(),acImage.width, acImage.height,acImage.step, QImage::Format_RGB888);
+            QImage image(acImage.data.data(), acImage.width, acImage.height,acImage.step, QImage::Format_RGB888);
 
             //add widget to the list
             accessPointsQWidgets_.push_back(apWidgets[i]);

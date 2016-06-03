@@ -190,10 +190,15 @@ int main (int argc, char** argv){
   pub_mat_ = nh.advertise<sensor_msgs::Image>("object_detection/access_point/door", 1);
   pub_query_ = nh.advertise<query_msgs::Door>("object_detection/door/query", 1);
   
+  std::string ns = ros::this_node::getNamespace();
   std::string topic = "stereo_cam/left/image_rect";
-  image_transport::Subscriber sub = it.subscribe(topic, 1, imageCallback);
-
-  ROS_INFO_STREAM("subscribed to topic : " << topic);
+  std::string full_topic = (ns.size() > 1)? ns.substr(1) + "/" + topic : topic;
+  
+  image_transport::Subscriber sub = it.subscribe(full_topic, 1, imageCallback);
+  
+  ROS_INFO_STREAM("node: " << ros::this_node::getName() << 
+                  " is subscribed to topic: " << full_topic);
+  
   ros::spin();
 
   //cv::destroyWindow("view");
