@@ -83,16 +83,18 @@ void SimpleControl::InitialSetup()
     quaternionTFToMsg(tf::createQuaternionFromYaw(0), pose_home.orientation);
 
     object_distance.data = 100;
+    battery.remaining = -1;
 }
 
 void SimpleControl::Arm(bool value)
 {
     if(state.armed != value){ //Only change to new state if it's different
+
         //Create a message for arming/disarming
         mavros_msgs::CommandBool arm;
         arm.request.value = value;
-        //Call the service
 
+        //Call the service
         if(pose_local.position.z > 1 && !value){
             ROS_ERROR_STREAM("Cannot disarm in air! Landing.");
             this->SetMode("AUTO.LAND");
@@ -145,7 +147,7 @@ void SimpleControl::Takeoff(int altitude)
     //Create a message for landing
     mavros_msgs::CommandTOL takeoff;
     takeoff.request.altitude = altitude;
-    ;
+
     //Call the service
     if(sc_takeoff.call(takeoff)){
         if(takeoff.response.success == 1) ROS_INFO_STREAM("Takeoff Initiated.");
@@ -543,7 +545,7 @@ nav_msgs::Path SimpleControl::DiamondShape(query_msgs::Target target_point)
 void SimpleControl::Run()
 {
     //Sanity Checks
-    if(battery.remaining < BATTERY_MIN){
+    if(battery.remaining < BATTERY_MIN && battery.remaining != -1){
         //Land if battery is starting to get low
         goal = land;
     }

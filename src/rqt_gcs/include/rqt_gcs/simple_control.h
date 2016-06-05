@@ -1,15 +1,15 @@
 #ifndef SIMPLE_CONTROL
 #define SIMPLE_CONTROL
 
-#include <ros/ros.h>
-#include <termios.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <vector>
 #include <tf/tf.h>
-#include <tf/transform_datatypes.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ros/ros.h>
+#include <termios.h>
 #include <angles/angles.h>
+#include <tf/transform_datatypes.h>
 #include <eigen_conversions/eigen_msg.h>
 
 #include <mavros_msgs/CommandBool.h>
@@ -295,7 +295,6 @@ private:
         new_point.SetHeading(heading_deg);
         new_point.SetLocation(pos_global);
         new_point.SetType(AccessPoint::door);
-        // ROS_INFO_STREAM("Access point added");
         access_pts.push_back(new_point);
     }
 
