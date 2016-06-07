@@ -36,6 +36,7 @@ include_directories(include
 add_executable(camera_publisher src/ros_camera_publisher.cpp)
 add_executable(camera_subscriber src/ros_camera_subscriber.cpp)
 add_executable(stereo_publisher src/stereo_cam_pub.cpp)
+add_executable(disparity_view src/disparity_view.cpp)
 
 add_executable(stereo_driver src/stereo_driver.cpp src/stereo_driver_main.cpp)
 add_executable(object_detection src/object_detect.cpp)
@@ -76,3 +77,9 @@ target_link_libraries(object_avoidance
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
 )
+
+target_link_libraries(disparity_view
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+)
+

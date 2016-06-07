@@ -1,6 +1,6 @@
 image_width: 640
 image_height: 480
-camera_name: stereo_cam/left
+camera_name: li_stereo_left
 camera_matrix:
   rows: 3
   cols: 3
