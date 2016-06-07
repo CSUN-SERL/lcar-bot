@@ -2,35 +2,32 @@ cmake_minimum_required(VERSION 2.8.3)
 project(rqt_gcs)
 
 find_package(catkin REQUIRED COMPONENTS
-            query_msgs
-            geometry_msgs
-            mavros
-            mavros_msgs
-            roscpp
-            rqt_gui
-            rqt_gui_cpp
-            roslib
-            sensor_msgs
-            std_msgs
             tf
+            mavros     
+            roscpp
+            roslib
+            rqt_gui
+            std_msgs
             cv_bridge
+            query_msgs
+            mavros_msgs
+            sensor_msgs
+            rqt_gui_cpp
+            geometry_msgs
             image_transport
 )
-#stupid qt5
+
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5Svg REQUIRED)
-#find_package(Qt5Widget REQUIRED)
-
 find_package(Boost REQUIRED COMPONENTS thread)
 find_package(OpenCV REQUIRED)
 
-#stupid qt5
 include_directories(${Qt5Core_INCLUDE_DIRS}
                     ${Qt5Gui_INCLUDE_DIRS}
                     ${Qt5Svg_INCLUDE_DIRS}
-#                   ${Qt5Widget_INCLUDE_DIRS}
 )
+
 include(EnableCXX11)
 include(MavrosMavlink)
 
@@ -70,10 +67,9 @@ set(rqt_gcs_UIS
   resources/PictureMsg.ui
 )
 
-SET(rqt_gcs_RCCS resources/qfi.qrc)
+set(rqt_gcs_RCCS resources/qfi.qrc)
 
-set(rqt_gcs_INCLUDE_DIRECTORIES
-  include
+set(rqt_gcs_INCLUDE_DIRECTORIES include
   ${CMAKE_CURRENT_BINARY_DIR}
 )
 
@@ -92,7 +88,6 @@ include_directories(include
 
 add_definitions(${Qt5_DEFINITIONS})
 
-
 qt5_add_resources(rqt_gcs_RCC_SRCS ${rqt_gcs_RCCS})
 qt5_wrap_cpp(rqt_gcs_MOCS ${rqt_gcs_HDRS})
 qt5_wrap_ui(rqt_gcs_UIS_H ${rqt_gcs_UIS})
@@ -108,15 +103,14 @@ add_executable(gps_demo src/rqt_gcs/gps_demo.cpp)
 add_executable(connection_manager src/rqt_gcs/connection_manager.cpp)
 add_executable(safe_mocap src/rqt_gcs/safe_mocap.cpp)
 
-add_dependencies(simple_control ${catkin_EXPORTED_TARGETS})
-add_dependencies(gps_demo ${catkin_EXPORTED_TARGETS})
-
 add_library(${PROJECT_NAME}
             ${rqt_gcs_SRCS}
             ${rqt_gcs_MOCS}
             ${rqt_gcs_UIS_H}
             ${rqt_gcs_RCC_SRCS})
 
+add_dependencies(simple_control ${catkin_EXPORTED_TARGETS})
+add_dependencies(gps_demo ${catkin_EXPORTED_TARGETS})
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
 #Specify libraries against which to link
@@ -130,7 +124,6 @@ target_link_libraries(  ${PROJECT_NAME}
                         ${Qt5Core_LIBRARIES}
                         ${Qt5Gui_LIBRARIES}
                         ${Qt5Svg_LIBRARIES}
-#                        ${Qt}
                         ${OpenCV_LIBRARIES}
 )
 
