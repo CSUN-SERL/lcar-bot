@@ -23,11 +23,12 @@ roscore &
 sleep 1s #give roscore time to launch fully (including launching rosmaster and rosout under different processes)
 
 rqt &
-if [ $(lsusb | grep 'Leopard Imaging' | wc -c) -eq 0 ]; then
+if [ $(lsusb | grep 'ID 2a0b:00f5' | wc -c) -eq 0 ]; then
   wait # stereo camera not plugged in but the previous process already launched in the background. If we dont wait, we will exit prematurely
 else   # these all depend on the stereo camera being plugged in 
   ROS_NAMESPACE=/UAV1/stereo_cam rosrun stereo_image_proc stereo_image_proc &
-  ROS_NAMESPACE=/UAV1 rosrun machine_vision stereo_driver &
-  ROS_NAMESPACE=/UAV1 rosrun machine_vision object_detection &
+  ROS_NAMESPACE=/UAV1            rosrun machine_vision stereo_driver &
+  ROS_NAMESPACE=/UAV1            rosrun machine_vision object_detection &
+
   rosrun machine_vision disparity_view _topic:=/UAV1/stereo_cam/disparity
 fi 
