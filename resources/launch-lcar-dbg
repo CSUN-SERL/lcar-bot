@@ -24,7 +24,7 @@ sleep 1s #give roscore time to launch fully (including launching rosmaster and r
 
 rqt &
 if [ $(lsusb | grep 'Leopard Imaging' | wc -c) -eq 0 ]; then
-  wait # stereo_camera not plugged in but the previous process has to be run in background or else the script exits prematurely, so we wait
+  wait # stereo camera not plugged in but the previous process already launched in the background. If we dont wait, we will exit prematurely
 else   # these all depend on the stereo camera being plugged in 
   ROS_NAMESPACE=/UAV1/stereo_cam rosrun stereo_image_proc stereo_image_proc &
   ROS_NAMESPACE=/UAV1 rosrun machine_vision stereo_driver &
