@@ -25,5 +25,5 @@ sleep 1s #give roscore time to launch fully (including launching rosmaster and r
 rqt -s rqt_gcs &
 ROS_NAMESPACE=/UAV1/stereo_cam rosrun stereo_image_proc stereo_image_proc &
 ROS_NAMESPACE=/UAV1 rosrun machine_vision stereo_driver &
-ROS_NAMESPACE=/UAV1 rosrun machine_vision object_detection 
-#rosrun machine_vision disparity_view _topic:=/UAV1/stereo_cam/disparity
+ROS_NAMESPACE=/UAV1 rosrun machine_vision object_detection & 
+rosrun machine_vision disparity_view _topic:=/UAV1/stereo_cam/disparity

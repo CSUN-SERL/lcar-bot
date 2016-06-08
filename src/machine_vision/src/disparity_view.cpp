@@ -312,9 +312,9 @@ int main (int argc, char **argv)
   
   ROS_INFO_STREAM ("topic: " << topic );
   
-  ros::Subscriber sub = nh.subscribe(topic, 5, disparityCallback);
+  ros::Subscriber sub = nh.subscribe(topic, 10, disparityCallback);
   
-  cv::namedWindow(topic, cv::WINDOW_AUTOSIZE);
+  cv::namedWindow(topic, cv::WINDOW_KEEPRATIO);
   cv::startWindowThread();
   
   ros::spin(); 
