@@ -122,6 +122,7 @@ namespace rqt_gcs{
     QWidget* uavListWidgetArr[NUM_UAV];
     QWidget* PFDQWidget;
     QWidget* apmQWidget_;
+    
     QWidget* settings_widget_;
 
     std::vector<QWidget*> accessPointsQWidgets_;

@@ -95,7 +95,8 @@ QPushButton{
 	padding-bottom:2px;*/
 	padding:5px;
 	padding-top:4px;
-	padding-bottom:5px
+	padding-bottom:5px;
+    margin:3px
 }
 </string>
   </property>
@@ -503,6 +504,9 @@ color: rgb(240, 240, 240);</string>
        <property name="text">
         <string>Apply</string>
        </property>
+       <property name="checkable">
+        <bool>false</bool>
+       </property>
       </widget>
      </item>
      <item>
@@ -521,10 +525,15 @@ color: rgb(240, 240, 240);</string>
        </property>
        <property name="styleSheet">
         <string notr="true">background-color: rgb(161, 20, 40);
-color: rgb(240, 240, 240);</string>
+color: rgb(240, 240, 240);
+
+</string>
        </property>
        <property name="text">
         <string>Cancel</string>
+       </property>
+       <property name="checkable">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
