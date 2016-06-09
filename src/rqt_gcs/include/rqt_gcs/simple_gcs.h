@@ -88,6 +88,7 @@ namespace rqt_gcs{
     virtual void DisarmSelectedQuad();
     virtual void AcceptDoorQuery(QWidget*);
     virtual void DenyDoorQuery(QWidget*);
+    virtual void SettingsButtonClicked();
 
   private:
     void UpdatePFD();
@@ -122,7 +123,6 @@ namespace rqt_gcs{
     QWidget* uavListWidgetArr[NUM_UAV];
     QWidget* PFDQWidget;
     QWidget* apmQWidget_;
-    
     QWidget* settings_widget_;
 
     std::vector<QWidget*> accessPointsQWidgets_;

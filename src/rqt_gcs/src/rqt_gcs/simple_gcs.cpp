@@ -23,8 +23,6 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
     imageViewWidget_       = new QWidget();
     PFDQWidget             = new QWidget();
     apmQWidget_            = new QWidget();
-    settings_widget_       = new SettingsWidget();
-    settings_widget_->setVisible(true);
     
 
 
@@ -62,7 +60,10 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
         central_ui_.UAVListLayout->addWidget(uavListWidgetArr[i]);
     }
 
-
+    
+    //connect settings button to settings widget
+    connect(central_ui_.settingsButton, SIGNAL(clicked()), this, SLOT(SettingsButtonClicked()));
+    
     //Setup mission progress widgets
     uavStatWidget_->setWindowTitle("Flight State");
     missionProgressWidget_->setWindowTitle("Mission Control");
@@ -77,8 +78,7 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
     connect(mpUi_.viewAccessPointsButton,SIGNAL(clicked()),this, SLOT(RefreshAccessPointsMenu()));
     connect(mpUi_.armButton, SIGNAL(clicked()),this,SLOT(ArmSelectedQuad()));
     connect(mpUi_.disarmButton, SIGNAL(clicked()),this,SLOT(DisarmSelectedQuad()));
-
-
+    
     //Setup UAV lists select functions
     signal_mapper = new QSignalMapper(this);
     signal_mapper2 = new QSignalMapper(this);
@@ -558,6 +558,23 @@ void SimpleGCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
     catch (cv_bridge::Exception& e)
     {
         ROS_ERROR("Error in image subsrcriber: %s", e.what());
+    }
+}
+
+void SimpleGCS::SettingsButtonClicked()
+{
+    if(settings_widget_ == nullptr)
+    {
+        settings_widget_ = new SettingsWidget();
+        int x_center = (widget_->width()/2) - (settings_widget_->width()/2);
+        int y_center = (widget_->height()/2) - (settings_widget_->height()/2);
+        settings_widget_->move(x_center, y_center);
+        settings_widget_->setVisible(true);
+    }
+    else
+    {
+        settings_widget_->showNormal();
+        settings_widget_->activateWindow();
     }
 }
 
