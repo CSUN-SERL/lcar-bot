@@ -139,6 +139,12 @@ background-color: rgb(48, 57, 80);</string>
          </item>
          <item>
           <widget class="QScrollArea" name="scrollArea">
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="lineWidth">
+            <number>1</number>
+           </property>
            <property name="widgetResizable">
             <bool>true</bool>
            </property>
@@ -147,8 +153,8 @@ background-color: rgb(48, 57, 80);</string>
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>226</width>
-              <height>464</height>
+              <width>242</width>
+              <height>466</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_3">
@@ -188,6 +194,9 @@ background-color: rgb(48, 57, 80);</string>
        </property>
        <item>
         <widget class="QScrollArea" name="scrollArea_2">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
          <property name="widgetResizable">
           <bool>true</bool>
          </property>
@@ -196,8 +205,8 @@ background-color: rgb(48, 57, 80);</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>181</width>
-            <height>494</height>
+            <width>169</width>
+            <height>496</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_4">

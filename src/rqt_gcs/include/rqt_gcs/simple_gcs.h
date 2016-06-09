@@ -123,7 +123,6 @@ namespace rqt_gcs{
     QWidget* PFDQWidget;
     QWidget* apmQWidget_;
     QWidget* settings_widget_;
-    //SettingsWidget* settings_widget_;
 
     std::vector<QWidget*> accessPointsQWidgets_;
     std::vector<QWidget*> pictureMsgQWidgets_;
