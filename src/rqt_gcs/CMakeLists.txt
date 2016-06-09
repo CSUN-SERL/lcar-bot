@@ -20,12 +20,14 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5Svg REQUIRED)
+#find_package(Qt5Widgets REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread)
 find_package(OpenCV REQUIRED)
 
 include_directories(${Qt5Core_INCLUDE_DIRS}
                     ${Qt5Gui_INCLUDE_DIRS}
                     ${Qt5Svg_INCLUDE_DIRS}
+                    #${Qt5Widgets_INCLUDE_DIRS}
 )
 
 include(EnableCXX11)
@@ -34,6 +36,7 @@ include(MavrosMavlink)
 set(rqt_gcs_SRCS
   src/rqt_gcs/simple_gcs.cpp
   src/rqt_gcs/simple_control.cpp
+  src/rqt_gcs/settings_widget.cpp
   src/FIS/qfi_PFD.cpp
   src/FIW/LayoutSquare.cpp
   src/FIW/WidgetPFD.cpp
@@ -42,6 +45,7 @@ set(rqt_gcs_SRCS
 
 set(rqt_gcs_HDRS
   include/rqt_gcs/simple_gcs.h
+  include/rqt_gcs/settings_widget.h
   include/FIS/qfi_PFD.h
   include/FIW/LayoutSquare.h
   include/FIW/WidgetPFD.h
@@ -65,6 +69,7 @@ set(rqt_gcs_UIS
   resources/ImageView.ui
   resources/MissionConfirm.ui
   resources/PictureMsg.ui
+  resources/SettingsWidget.ui
 )
 
 set(rqt_gcs_RCCS resources/qfi.qrc)
@@ -124,6 +129,7 @@ target_link_libraries(  ${PROJECT_NAME}
                         ${Qt5Core_LIBRARIES}
                         ${Qt5Gui_LIBRARIES}
                         ${Qt5Svg_LIBRARIES}
+                        #${Qt5Widgets_LIBRARIES}
                         ${OpenCV_LIBRARIES}
 )
 

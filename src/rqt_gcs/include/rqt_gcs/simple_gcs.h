@@ -5,6 +5,7 @@
 #include <ros/common.h>
 #include <rqt_gui_cpp/plugin.h>
 #include <rqt_gcs/simple_control.h>
+#include <rqt_gcs/settings_widget.h>
 #include <query_msgs/Door.h>
 #include <query_msgs/Target.h>
 #include <std_srvs/Empty.h>
@@ -121,6 +122,8 @@ namespace rqt_gcs{
     QWidget* uavListWidgetArr[NUM_UAV];
     QWidget* PFDQWidget;
     QWidget* apmQWidget_;
+    QWidget* settings_widget_;
+    //SettingsWidget* settings_widget_;
 
     std::vector<QWidget*> accessPointsQWidgets_;
     std::vector<QWidget*> pictureMsgQWidgets_;
@@ -138,5 +141,5 @@ namespace rqt_gcs{
     QSignalMapper* acceptDoorMapper;
     QSignalMapper* denyDoorMapper;
   };
-} // namespace
+} // name space
 #endif // my_namespace__my_plugin_H

@@ -23,6 +23,9 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
     imageViewWidget_       = new QWidget();
     PFDQWidget             = new QWidget();
     apmQWidget_            = new QWidget();
+    settings_widget_       = new SettingsWidget();
+    settings_widget_->setVisible(true);
+    
 
 
     //For each of the Uav condition widgets

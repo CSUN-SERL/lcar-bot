@@ -23,6 +23,7 @@ roscore &
 sleep 1s #give roscore time to launch fully (including launching rosmaster and rosout under different processes)
 
 rqt &
+
 if [ $(lsusb | grep 'ID 2a0b:00f5' | wc -c) -eq 0 ]; then
   wait # stereo camera not plugged in but the previous process already launched in the background. If we dont wait, we will exit prematurely
 else   # these all depend on the stereo camera being plugged in 

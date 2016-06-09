@@ -1,11 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /* 
- * File:   SettingsWidget.h
+ * File:   settings_widget.h
  * Author: serl
  *
  * Created on June 7, 2016, 3:40 PM
@@ -16,6 +10,9 @@
 
 #include "ui_SettingsWidget.h"
 
+namespace rqt_gcs
+{
+
 class SettingsWidget : public QWidget {
     Q_OBJECT
 public:
@@ -25,4 +22,5 @@ private:
     Ui::SettingsWidget widget;
 };
 
+} // end name space
 #endif /* _SETTINGSWIDGET_H */

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>settings_widget</class>
- <widget class="QWidget" name="settings_widget">
+ <class>SettingsWidget</class>
+ <widget class="QWidget" name="SettingsWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>900</width>
-    <height>760</height>
+    <width>460</width>
+    <height>590</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -25,6 +25,80 @@
   <property name="windowTitle">
    <string>Settings</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget{
+	background-color:rgb(48,57,80);
+	color:rgb(240,240,240);
+}
+
+QTabWidget::pane { /* The tab widget frame */
+    border-top: 1px solid #C2C7CB;
+}
+
+QTabWidget::tab-bar {
+    left: 5px; /* move to the right by 5px */
+}
+
+/* Style the tab using the tab sub-control. Note that
+    it reads QTabBar _not_ QTabWidget */
+QTabBar::tab {
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,
+                                stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);
+    border: 1px solid #C4C4C3;
+    background-color: rgb(48, 57, 80);
+    border-bottom-color: #C2C7CB; /* same as the pane color */
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    min-width: 8ex;
+    padding: 5px;
+}
+
+QTabBar::tab:selected {
+    border-color: #9B9B9B;
+    border-bottom-color: #C2C7CB; /* same as pane color */
+}
+
+QTabBar::tab:!selected {
+    margin-top: 2px; /* make non-selected tabs look smaller */
+}
+
+/* make use of negative margins for overlapping tabs */
+QTabBar::tab:selected {
+    /* expand/overlap to the left and right by 4px */
+    margin-left: -4px;
+    margin-right: -4px;
+}
+
+QTabBar::tab:first:selected {
+    margin-left: 0; /* the first selected tab has nothing to overlap with on the left */
+}
+
+QTabBar::tab:last:selected {
+    margin-right: 0; /* the last selected tab has nothing to overlap with on the right */
+}
+
+QTabBar::tab:only-one {
+    margin: 0; /* if there is only one tab, we don't want overlapping margins */
+}
+
+QTextEdit{
+	background-color:rgb(255,255,255);
+	color:rgb(0,0,0);
+}
+
+QPushButton{
+	border-radius: 5px;
+	/*padding-left: 4px;
+	padding-right:4px;
+	padding-top:2px;
+	padding-bottom:2px;*/
+	padding:5px;
+	padding-top:4px;
+	padding-bottom:5px
+}
+</string>
+  </property>
   <layout class="QVBoxLayout" name="vehicle_gcs_group">
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -33,6 +107,9 @@
      </property>
      <item>
       <widget class="QTabWidget" name="tab_widget">
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
        <property name="currentIndex">
         <number>0</number>
        </property>
@@ -40,286 +117,341 @@
         <attribute name="title">
          <string>General</string>
         </attribute>
-        <widget class="QLabel" name="connection_lbl">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>80</y>
-           <width>141</width>
-           <height>20</height>
-          </rect>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>13</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Connection Drop</string>
-         </property>
-        </widget>
-        <widget class="QGroupBox" name="vehicle_gcs_box">
-         <property name="geometry">
-          <rect>
-           <x>30</x>
-           <y>110</y>
-           <width>281</width>
-           <height>80</height>
-          </rect>
-         </property>
-         <property name="font">
-          <font>
-           <weight>50</weight>
-           <bold>false</bold>
-           <kerning>true</kerning>
-          </font>
-         </property>
-         <property name="title">
-          <string/>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
-         </property>
-         <property name="checkable">
-          <bool>false</bool>
-         </property>
-         <widget class="QRadioButton" name="nominal_btn">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>20</y>
-            <width>117</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Nominal</string>
-          </property>
-         </widget>
-         <widget class="QRadioButton" name="marginal_btn">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>40</y>
-            <width>117</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Marginal</string>
-          </property>
-         </widget>
-         <widget class="QRadioButton" name="poor_btn">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>60</y>
-            <width>117</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Poor</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="vehicle_gcs_lbl">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>141</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Vehicle/GCS Link</string>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QGroupBox" name="frequency_box">
-         <property name="geometry">
-          <rect>
-           <x>30</x>
-           <y>200</y>
-           <width>281</width>
-           <height>111</height>
-          </rect>
-         </property>
-         <property name="title">
-          <string>Frequency</string>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
-         <widget class="QRadioButton" name="interval_btn">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>20</y>
-            <width>131</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Interval:  every</string>
-          </property>
-         </widget>
-         <widget class="QRadioButton" name="random_btn">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>40</y>
-            <width>91</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Random</string>
-          </property>
-         </widget>
-         <widget class="QCheckBox" name="length_check_box">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>70</y>
-            <width>131</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Specify Length:</string>
-          </property>
-         </widget>
-         <widget class="QTextEdit" name="interval_text_box">
-          <property name="geometry">
-           <rect>
-            <x>130</x>
-            <y>21</y>
-            <width>41</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>30</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>11</pointsize>
-           </font>
-          </property>
-          <property name="verticalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-         </widget>
-         <widget class="QLabel" name="interval_mins_lbl">
-          <property name="geometry">
-           <rect>
-            <x>180</x>
-            <y>20</y>
-            <width>61</width>
-            <height>21</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>minutes</string>
-          </property>
-         </widget>
-         <widget class="QTextEdit" name="textEdit">
-          <property name="geometry">
-           <rect>
-            <x>130</x>
-            <y>70</y>
-            <width>41</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="verticalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-         </widget>
-         <widget class="QLabel" name="length_mins_lbl">
-          <property name="geometry">
-           <rect>
-            <x>180</x>
-            <y>70</y>
-            <width>67</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>minutes</string>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QGroupBox" name="groupBox">
+        <widget class="QGroupBox" name="ml_learningbox">
          <property name="geometry">
           <rect>
            <x>10</x>
            <y>0</y>
-           <width>301</width>
-           <height>80</height>
+           <width>321</width>
+           <height>91</height>
           </rect>
          </property>
          <property name="font">
           <font>
-           <pointsize>13</pointsize>
+           <pointsize>-1</pointsize>
+           <weight>75</weight>
+           <bold>true</bold>
           </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QGroupBox
+{
+    font-size: 18px;
+    font-weight: bold;
+}</string>
          </property>
          <property name="title">
           <string>Machine Learning</string>
          </property>
-         <widget class="QRadioButton" name="online_btn">
+         <widget class="QWidget" name="verticalLayoutWidget_2">
           <property name="geometry">
            <rect>
             <x>20</x>
-            <y>20</y>
-            <width>117</width>
-            <height>22</height>
+            <y>30</y>
+            <width>131</width>
+            <height>51</height>
            </rect>
           </property>
-          <property name="font">
-           <font>
-            <pointsize>11</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Online</string>
-          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_4">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QRadioButton" name="online_btn">
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
+             <property name="text">
+              <string>Online</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="offline_btn">
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Offline</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
-         <widget class="QRadioButton" name="offline_btn">
+        </widget>
+        <widget class="QGroupBox" name="connection_box">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>90</y>
+           <width>321</width>
+           <height>271</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>-1</pointsize>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QGroupBox
+{
+    font-size: 18px;
+    font-weight: bold;
+}</string>
+         </property>
+         <property name="title">
+          <string>Connection Drop</string>
+         </property>
+         <widget class="QGroupBox" name="vehicle_gcs_box">
           <property name="geometry">
            <rect>
-            <x>20</x>
-            <y>40</y>
-            <width>117</width>
-            <height>22</height>
+            <x>10</x>
+            <y>30</y>
+            <width>271</width>
+            <height>101</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <pointsize>11</pointsize>
+            <pointsize>-1</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
            </font>
           </property>
-          <property name="text">
-           <string>Offline</string>
+          <property name="styleSheet">
+           <string notr="true">QGroupBox
+{
+    font-size: 14px;
+}</string>
           </property>
+          <property name="title">
+           <string>Vehicle/GCS Link</string>
+          </property>
+          <property name="flat">
+           <bool>false</bool>
+          </property>
+          <property name="checkable">
+           <bool>false</bool>
+          </property>
+          <widget class="QWidget" name="verticalLayoutWidget">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>20</y>
+             <width>161</width>
+             <height>71</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+            <item>
+             <widget class="QRadioButton" name="nominal_btn">
+              <property name="text">
+               <string>Nominal</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="marginal_btn">
+              <property name="text">
+               <string>Marginal</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="poor_btn">
+              <property name="text">
+               <string>Poor</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+         <widget class="QGroupBox" name="frequency_box">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>130</y>
+            <width>271</width>
+            <height>131</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>-1</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QGroupBox
+{
+    font-size: 14px;
+}</string>
+          </property>
+          <property name="title">
+           <string>Frequency</string>
+          </property>
+          <property name="checkable">
+           <bool>false</bool>
+          </property>
+          <widget class="QWidget" name="verticalLayoutWidget_3">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>20</y>
+             <width>140</width>
+             <height>62</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_7">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QRadioButton" name="interval_btn">
+              <property name="text">
+               <string>Interval:  every</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="random_btn">
+              <property name="text">
+               <string>Random</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QTextEdit" name="interval_text_box">
+           <property name="geometry">
+            <rect>
+             <x>150</x>
+             <y>30</y>
+             <width>40</width>
+             <height>20</height>
+            </rect>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true"/>
+           </property>
+           <property name="verticalScrollBarPolicy">
+            <enum>Qt::ScrollBarAlwaysOff</enum>
+           </property>
+           <property name="horizontalScrollBarPolicy">
+            <enum>Qt::ScrollBarAlwaysOff</enum>
+           </property>
+          </widget>
+          <widget class="QLabel" name="interval_mins_lbl">
+           <property name="geometry">
+            <rect>
+             <x>200</x>
+             <y>30</y>
+             <width>60</width>
+             <height>20</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>minutes</string>
+           </property>
+          </widget>
+          <widget class="QWidget" name="horizontalLayoutWidget">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>91</y>
+             <width>244</width>
+             <height>31</height>
+            </rect>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QCheckBox" name="length_check_box">
+              <property name="maximumSize">
+               <size>
+                <width>130</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Specify length:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QTextEdit" name="textEdit">
+              <property name="minimumSize">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+              <property name="verticalScrollBarPolicy">
+               <enum>Qt::ScrollBarAlwaysOff</enum>
+              </property>
+              <property name="horizontalScrollBarPolicy">
+               <enum>Qt::ScrollBarAlwaysOff</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="length_mins_lbl">
+              <property name="maximumSize">
+               <size>
+                <width>60</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>minutes</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
          </widget>
         </widget>
        </widget>
@@ -364,6 +496,10 @@
          <height>16777215</height>
         </size>
        </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(64, 89, 145);
+color: rgb(240, 240, 240);</string>
+       </property>
        <property name="text">
         <string>Apply</string>
        </property>
@@ -382,6 +518,10 @@
        </property>
        <property name="autoFillBackground">
         <bool>false</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(161, 20, 40);
+color: rgb(240, 240, 240);</string>
        </property>
        <property name="text">
         <string>Cancel</string>
