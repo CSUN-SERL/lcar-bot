@@ -414,7 +414,7 @@ QPushButton{
              </widget>
             </item>
             <item>
-             <widget class="QTextEdit" name="textEdit">
+             <widget class="QTextEdit" name="length_text_edit">
               <property name="minimumSize">
                <size>
                 <width>40</width>

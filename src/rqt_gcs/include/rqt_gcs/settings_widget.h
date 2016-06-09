@@ -9,6 +9,7 @@
 #define _SETTINGSWIDGET_H
 
 #include "ui_SettingsWidget.h"
+#include <QtCore/QSettings>
 
 namespace rqt_gcs
 {
@@ -16,10 +17,19 @@ namespace rqt_gcs
 class SettingsWidget : public QWidget {
     Q_OBJECT
 public:
-    SettingsWidget();
+    SettingsWidget(QSettings* settings);
     virtual ~SettingsWidget();
 private:
-    Ui::SettingsWidget widget;
+    Ui::SettingsWidget widget_;
+    QSettings *settings_;
+    
+private slots:
+    void applySettings();
+    void cancel();
+    void toggleFrequencyGroup();
+    void toggleIntervalTextBox();
+    void toggleLengthTextBox();
+    
 };
 
 } // end name space

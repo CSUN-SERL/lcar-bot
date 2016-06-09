@@ -24,6 +24,8 @@ void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
     PFDQWidget             = new QWidget();
     apmQWidget_            = new QWidget();
     
+    settings_ = new QSettings("SERL", "LCAR_Bot");
+    
 
 
     //For each of the Uav condition widgets
@@ -565,7 +567,7 @@ void SimpleGCS::SettingsButtonClicked()
 {
     if(settings_widget_ == nullptr)
     {
-        settings_widget_ = new SettingsWidget();
+        settings_widget_ = new SettingsWidget(settings_);
         int x_center = (widget_->width()/2) - (settings_widget_->width()/2);
         int y_center = (widget_->height()/2) - (settings_widget_->height()/2);
         settings_widget_->move(x_center, y_center);

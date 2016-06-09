@@ -140,6 +140,8 @@ namespace rqt_gcs{
     QSignalMapper* signal_mapper2;
     QSignalMapper* acceptDoorMapper;
     QSignalMapper* denyDoorMapper;
+    
+    QSettings *settings_;
   };
 } // name space
 #endif // my_namespace__my_plugin_H
