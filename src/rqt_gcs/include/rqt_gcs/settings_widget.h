@@ -23,12 +23,16 @@ private:
     Ui::SettingsWidget widget_;
     QSettings *settings_;
     
+signals:
+    void destroyed();
+    
 private slots:
     void applySettings();
     void cancel();
     void toggleFrequencyGroup();
     void toggleIntervalTextBox();
     void toggleLengthTextBox();
+    
     
 };
 
