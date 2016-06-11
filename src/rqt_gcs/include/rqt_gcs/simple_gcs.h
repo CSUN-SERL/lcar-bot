@@ -89,6 +89,7 @@ namespace rqt_gcs{
     virtual void AcceptDoorQuery(QWidget*);
     virtual void DenyDoorQuery(QWidget*);
     virtual void SettingsButtonClicked();
+    virtual void KillSettingsWidget();
 
   private:
     void UpdatePFD();

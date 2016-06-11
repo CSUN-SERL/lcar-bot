@@ -490,7 +490,7 @@ QPushButton{
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="cancel_btn">
+      <widget class="QPushButton" name="apply_btn">
        <property name="maximumSize">
         <size>
          <width>100</width>
@@ -510,7 +510,7 @@ color: rgb(240, 240, 240);</string>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="apply_btn">
+      <widget class="QPushButton" name="cancel_btn">
        <property name="maximumSize">
         <size>
          <width>100</width>
