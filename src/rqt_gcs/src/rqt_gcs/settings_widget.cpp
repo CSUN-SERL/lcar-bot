@@ -200,7 +200,7 @@ namespace rqt_gcs
             //already guaranteed that the input is valid above
             if(!interval_text.isEmpty())
                 settings_->setValue(conn_freq + "/interval_text", interval);
-            else
+            else if(settings_->contains(conn_freq + "/interval_text"))
                settings_->remove(conn_freq + "/interval_text");
             
             bool length_specified = widget_.length_check_box->isChecked();
@@ -209,7 +209,7 @@ namespace rqt_gcs
             //already guaranteed that the input is valid above
             if(!length_text.isEmpty())
                 settings_->setValue(conn_freq + "/length_text", length);
-            else
+            else if(settings_->contains(conn_freq + "/length_text"))
                 settings_->remove(conn_freq + "/length_text");
         }
         
