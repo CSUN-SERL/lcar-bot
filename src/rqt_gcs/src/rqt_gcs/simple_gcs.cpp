@@ -501,7 +501,8 @@ namespace rqt_gcs
     void SimpleGCS::QuadSelect(int quadNumber)
     {
         cur_uav = quadNumber;
-        sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(quadNumber + 1) + "/stereo_cam/left/image_raw", 1, &SimpleGCS::ImageCallback, this);
+        sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(quadNumber + 1) + "/stereo_cam/left/image_raw", 
+                                         1, &SimpleGCS::ImageCallback, this);
     }
 
     void SimpleGCS::ArmSelectedQuad()
@@ -594,6 +595,7 @@ namespace rqt_gcs
             settings_widget_ = new SettingsWidget(settings_);
             int x_center = (widget_->width() / 2) - (settings_widget_->width() / 2);
             int y_center = (widget_->height() / 2) - (settings_widget_->height() / 2);
+            
             settings_widget_->move(x_center, y_center);
             settings_widget_->setVisible(true);
             

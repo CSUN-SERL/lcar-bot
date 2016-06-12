@@ -51,7 +51,7 @@ namespace rqt_gcs
                 this, SLOT(toggleLengthTextBox()));
 
 
-        setGeneralTabDefaults();
+        readGeneralTabSettings();
 
         //TODO
         //setObjectDetectionTabDefaults();
@@ -59,11 +59,11 @@ namespace rqt_gcs
 
     SettingsWidget::~SettingsWidget()
     {
-        // don't delete this because main GUI needs it.
+        // don't delete this because SimpleGCS needs it. just derefence it.
         settings_ = nullptr;
     }
 
-    void SettingsWidget::setGeneralTabDefaults()
+    void SettingsWidget::readGeneralTabSettings()
     {
         settings_->beginGroup("general_tab");
 
@@ -75,7 +75,7 @@ namespace rqt_gcs
 
 
         QString vehicle_link = settings_->value("connection_drop/vehicle_gcs_link",
-                                                "nominal").toString();
+                                                "marginal").toString();
         if(vehicle_link == "nominal")
             widget_.nominal_btn->setChecked(true);
         else if(vehicle_link == "marginal")
@@ -87,16 +87,16 @@ namespace rqt_gcs
         if(widget_.nominal_btn->isChecked())
             widget_.frequency_box->setEnabled(false);
 
-        
+
         QString conn_freq = "connection_drop/frequency";
 
         QString frequency = settings_->value(conn_freq, "random").toString();
         if(frequency == "interval")
         {
             widget_.interval_btn->setChecked(true);
-            int interval_text = settings_->value(conn_freq + "/interval_text", -1).toInt();
-            if(interval_text != -1)
-                widget_.interval_text_box->setText(QString::number(interval_text));
+            QVariant interval = settings_->value(conn_freq + "/interval_text");
+            if(!interval.isNull())
+                widget_.interval_text_box->setText(interval.toString());
 
             widget_.interval_text_box->setEnabled(true);
         }
@@ -110,9 +110,9 @@ namespace rqt_gcs
                                                  false).toBool();
         if(length_specified)
         {
-            int length_text = settings_->value(conn_freq + "/length_text", -1).toInt();
-            if(length_text != -1)
-                widget_.length_text_box->setText(QString::number(length_text));
+            QVariant length = settings_->value(conn_freq + "/length_text");
+            if(!length.isNull())
+                widget_.length_text_box->setText(length.toString());
 
              widget_.length_check_box->setChecked(true);
         }
@@ -125,9 +125,11 @@ namespace rqt_gcs
         settings_->endGroup();
     }
 
-    bool SettingsWidget::applyGeneralTabSettings()
+    bool SettingsWidget::writeGeneralTabSettings()
     {
-        //assure that text inputs arent enabled and empty
+        //assure that text inputs are either enabled and not empty, or not enabled.
+        //write settins only if the are disabled or are enabled and have valid input.
+        //the settings dialogue stay open if these checks fail.
         QString interval_text = widget_.interval_text_box->text();
         QString length_text = widget_.length_text_box->text();
         if(widget_.interval_text_box->isEnabled() && interval_text.isEmpty())
@@ -142,22 +144,24 @@ namespace rqt_gcs
         }
         
         bool ok;
-        int interval, length;
+        float interval, length;
         if(!interval_text.isEmpty())
         {
-            interval = interval_text.toInt(&ok);
-            if(!ok)
+            interval = interval_text.toFloat(&ok);
+            if(!ok || interval < 0)
             {
-                std::cout << "entered invalid interval" << std::endl;
+                std::cout << "entered invalid interval: " << interval_text.toStdString() 
+                    << std::endl;
                 return false;
             }
         }
         if(!length_text.isEmpty())
         {   
-            length = length_text.toInt(&ok);
-            if(!ok)
+            length = length_text.toFloat(&ok);
+            if(!ok || length < 0)
             {
-                std::cout << "entered invalid length" << std::endl;
+                std::cout << "entered invalid length: " << length_text.toStdString() 
+                    << std::endl;
                 return false;
             }
         }
@@ -197,27 +201,25 @@ namespace rqt_gcs
             if(!frequency.isNull())
                 settings_->setValue(conn_freq, frequency);
 
-            //already guaranteed that the input is valid above
-            if(!interval_text.isEmpty())
-                settings_->setValue(conn_freq + "/interval_text", interval);
-            else if(settings_->contains(conn_freq + "/interval_text"))
-               settings_->remove(conn_freq + "/interval_text");
-            
-            bool length_specified = widget_.length_check_box->isChecked();
-            settings_->setValue(conn_freq + "/length_box_checked", length_specified);
+            if(interval_text.isEmpty())
+                settings_->remove(conn_freq + "/interval_text");
+            else //already guaranteed that the input is valid above
+                settings_->setValue(conn_freq + "/interval_text", interval_text);
+               
+            settings_->setValue(conn_freq + "/length_box_checked", 
+                                widget_.length_check_box->isChecked());
 
-            //already guaranteed that the input is valid above
-            if(!length_text.isEmpty())
-                settings_->setValue(conn_freq + "/length_text", length);
-            else if(settings_->contains(conn_freq + "/length_text"))
+            if(length_text.isEmpty()) 
                 settings_->remove(conn_freq + "/length_text");
+            else //already guaranteed that the input is valid above
+                settings_->setValue(conn_freq + "/length_text", length_text);
         }
         
         settings_->endGroup(); //general_tab
         return true;
     }
 
-    bool SettingsWidget::applyObjectDetectionSettings()
+    bool SettingsWidget::writeObjectDetectionSettings()
     {
         settings_->beginGroup("object_detection_tab");
         //TODO
@@ -225,7 +227,7 @@ namespace rqt_gcs
         return false;
     }
 
-    void SettingsWidget::setObjectDetectionTabDefaults()
+    void SettingsWidget::readObjectDetectionTabSettings()
     {
         settings_->beginGroup("object_detection_tab");
         //TODO
@@ -241,8 +243,8 @@ namespace rqt_gcs
             return;
         }
 
-        if(applyGeneralTabSettings()
-            /*&& applyObjectDetectionSettings() */) // TODO
+        if(writeGeneralTabSettings()
+            /*&& writeObjectDetectionTabSettings() */) // TODO
             emit dismissMe();
     }
 
@@ -257,6 +259,7 @@ namespace rqt_gcs
         {
             widget_.interval_text_box->setText("");
             widget_.length_text_box->setText("");
+            widget_.length_check_box->setChecked(false);
             widget_.frequency_box->setEnabled(false);
         }
         else

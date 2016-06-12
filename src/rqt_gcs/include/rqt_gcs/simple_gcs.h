@@ -104,7 +104,8 @@ namespace rqt_gcs{
     //std::vector<sensor_msgs::Image> * pictureQueryVector;
 
     cv::Mat conversion_mat_;
-    image_transport::Subscriber sub_stereo = it_stereo.subscribe("/UAV1/stereo_cam/left/image_raw", 1, &SimpleGCS::ImageCallback, this);
+    image_transport::Subscriber sub_stereo = it_stereo.subscribe("/UAV1/stereo_cam/left/image_rect", 
+                                                                 1, &SimpleGCS::ImageCallback, this);
 
     Ui::SimpleGCSWidget ui_;
     Ui::MissionProgressWidget mpUi_;

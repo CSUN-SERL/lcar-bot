@@ -25,11 +25,11 @@ namespace rqt_gcs
         Ui::SettingsWidget widget_;
         QSettings *settings_;
 
-        void setGeneralTabDefaults();
-        void setObjectDetectionTabDefaults();
+        void readGeneralTabSettings();
+        void readObjectDetectionTabSettings();
 
-        bool applyGeneralTabSettings();
-        bool applyObjectDetectionSettings();
+        bool writeGeneralTabSettings();
+        bool writeObjectDetectionSettings();
 
     signals:
         void dismissMe();
