@@ -241,13 +241,9 @@ namespace rqt_gcs
             return;
         }
 
-        if(applyGeneralTabSettings())
-
-        //still TODO
-        //applyObjectDetectionSettings();
-
-        emit dismissMe();
-
+        if(applyGeneralTabSettings()
+            /*&& applyObjectDetectionSettings() */) // TODO
+            emit dismissMe();
     }
 
     void SettingsWidget::cancelClicked()
