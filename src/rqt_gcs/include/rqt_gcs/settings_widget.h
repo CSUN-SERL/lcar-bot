@@ -19,20 +19,24 @@ namespace rqt_gcs
         Q_OBJECT
     public:
         SettingsWidget(QSettings* settings);
-        virtual ~SettingsWidget();    
-        
+        virtual ~SettingsWidget();
+
     private:
         Ui::SettingsWidget widget_;
         QSettings *settings_;
-        
+
+        void setGeneralTabDefaults();
+        void setObjectDetectionTabDefaults();
+
+        bool applyGeneralTabSettings();
+        bool applyObjectDetectionSettings();
+
+    signals:
         void dismissMe();
-        //void nullMe();
 
     private slots:
-        void applySettings();
-        void applyGeneralSettings();
-        void applyObjectDetectionSettings();
-        void cancel();
+        void applyClicked();
+        void cancelClicked();
         void toggleFrequencyGroup();
         void toggleIntervalTextBox();
         void toggleLengthTextBox();

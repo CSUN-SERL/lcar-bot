@@ -16,31 +16,27 @@ namespace rqt_gcs
         // access standalone command line arguments
         QStringList argv = context.argv();
 
-        widget_ = new QWidget();
+        widget_                = new QWidget();
         missionProgressWidget_ = new QWidget();
-        uavQuestionWidget_ = new QWidget();
-        uavStatWidget_ = new QWidget();
-        imageViewWidget_ = new QWidget();
-        PFDQWidget = new QWidget();
-        apmQWidget_ = new QWidget();
+        uavQuestionWidget_     = new QWidget();
+        uavStatWidget_         = new QWidget();
+        imageViewWidget_       = new QWidget();
+        PFDQWidget             = new QWidget();
+        apmQWidget_            = new QWidget();
 
         settings_ = new QSettings("SERL", "LCAR_Bot");
 
-
         //For each of the Uav condition widgets
         //we set up the ui of the uavcondition widget(name, selection num)
-        for(int i = 0; i < NUM_UAV; i++)
-        {
-
+        for(int i = 0; i < NUM_UAV; i++){
             temp_data = "UAV ";
-            quad_id.setNum(i + 1);
+            quad_id.setNum(i+1);
             temp_data += quad_id;
             uavListWidgetArr[i] = new QWidget();
             uavCondWidgetArr[i].setupUi(uavListWidgetArr[i]);
-            uavCondWidgetArr[i].VehicleSelectButton->setText(std::to_string(i + 1).c_str());
+            uavCondWidgetArr[i].VehicleSelectButton->setText(std::to_string(i+1).c_str());
             uavCondWidgetArr[i].VehicleNameLine->setText(temp_data);
         }
-
 
         //Setup the UI objects with the widgets
         central_ui_.setupUi(widget_);
@@ -66,10 +62,7 @@ namespace rqt_gcs
 
         //connect settings button to settings widget
         connect(central_ui_.settingsButton, SIGNAL(clicked()), 
-                this, SLOT(SettingsButtonClicked()));
-        
-//        connect(settings_widget_, SIGNAL(dismissMe()), 
-//                this, SLOT(KillSettingsWidget()));
+                this, SLOT(SettingsClicked()));
 
         //Setup mission progress widgets
         uavStatWidget_->setWindowTitle("Flight State");
@@ -578,6 +571,7 @@ namespace rqt_gcs
         return building;
     }
 
+
     void SimpleGCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
     {
         try
@@ -593,7 +587,7 @@ namespace rqt_gcs
         }
     }
 
-    void SimpleGCS::SettingsButtonClicked()
+    void SimpleGCS::SettingsClicked()
     {
         if(settings_widget_ == nullptr)
         {
@@ -602,6 +596,9 @@ namespace rqt_gcs
             int y_center = (widget_->height() / 2) - (settings_widget_->height() / 2);
             settings_widget_->move(x_center, y_center);
             settings_widget_->setVisible(true);
+            
+            connect(settings_widget_, SIGNAL(dismissMe()),
+                    this, SLOT(DestroySettingsWidget()));
         }
         else
         {
@@ -610,14 +607,12 @@ namespace rqt_gcs
         }
 
     }
-    
-//    void SimpleGCS::KillSettingsWidget()
-//    {
-//        std::cout << "clicked apply or cancel" << std::endl;
-//        settings_widget_->setVisible(false);
-//        //delete settings_widget_;
-//        //settings_widget_ = nullptr;
-//    }
+
+    void SimpleGCS::DestroySettingsWidget()
+    {
+        delete settings_widget_;
+        settings_widget_ = nullptr;
+    }
 
 } // namespace
 PLUGINLIB_DECLARE_CLASS(rqt_gcs, SimpleGCS, rqt_gcs::SimpleGCS, rqt_gui_cpp::Plugin)

@@ -82,7 +82,7 @@ QTabBar::tab:only-one {
     margin: 0; /* if there is only one tab, we don't want overlapping margins */
 }
 
-QTextEdit{
+QLineEdit{
 	background-color:rgb(255,255,255);
 	color:rgb(0,0,0);
 }
@@ -341,42 +341,6 @@ QPushButton{
             </item>
            </layout>
           </widget>
-          <widget class="QTextEdit" name="interval_text_box">
-           <property name="geometry">
-            <rect>
-             <x>150</x>
-             <y>30</y>
-             <width>40</width>
-             <height>20</height>
-            </rect>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>11</pointsize>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <property name="verticalScrollBarPolicy">
-            <enum>Qt::ScrollBarAlwaysOff</enum>
-           </property>
-           <property name="horizontalScrollBarPolicy">
-            <enum>Qt::ScrollBarAlwaysOff</enum>
-           </property>
-          </widget>
           <widget class="QLabel" name="interval_mins_lbl">
            <property name="geometry">
             <rect>
@@ -395,7 +359,7 @@ QPushButton{
             <rect>
              <x>10</x>
              <y>91</y>
-             <width>244</width>
+             <width>258</width>
              <height>31</height>
             </rect>
            </property>
@@ -414,27 +378,15 @@ QPushButton{
              </widget>
             </item>
             <item>
-             <widget class="QTextEdit" name="length_text_edit">
-              <property name="minimumSize">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
+             <widget class="QLineEdit" name="length_text_box">
               <property name="maximumSize">
                <size>
-                <width>40</width>
-                <height>20</height>
+                <width>45</width>
+                <height>25</height>
                </size>
               </property>
-              <property name="styleSheet">
-               <string notr="true"/>
-              </property>
-              <property name="verticalScrollBarPolicy">
-               <enum>Qt::ScrollBarAlwaysOff</enum>
-              </property>
-              <property name="horizontalScrollBarPolicy">
-               <enum>Qt::ScrollBarAlwaysOff</enum>
+              <property name="clearButtonEnabled">
+               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -452,6 +404,22 @@ QPushButton{
              </widget>
             </item>
            </layout>
+          </widget>
+          <widget class="QLineEdit" name="interval_text_box">
+           <property name="geometry">
+            <rect>
+             <x>150</x>
+             <y>30</y>
+             <width>45</width>
+             <height>25</height>
+            </rect>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>45</width>
+             <height>25</height>
+            </size>
+           </property>
           </widget>
          </widget>
         </widget>
