@@ -51,7 +51,7 @@ namespace rqt_gcs
                 this, SLOT(toggleLengthTextBox()));
 
 
-        readGeneralTabSettings();
+        readGeneralSettings();
 
         //TODO
         //setObjectDetectionTabDefaults();
@@ -63,23 +63,16 @@ namespace rqt_gcs
         settings_ = nullptr;
     }
 
-    void SettingsWidget::readGeneralTabSettings()
+    void SettingsWidget::readGeneralSettings()
     {
         settings_->beginGroup("general_tab");
 
         QString ml = settings_->value("machine_learning", "online").toString();
         if(ml == "online")
-        {
             widget_.online_btn->setChecked(true);
-            emit showUavQueriesMenu(true);
-        }
         else
-        {
-            widget_.offline_btn->setChecked(true);
-            emit showUavQueriesMenu(false);
-        }
-
-
+            widget_.offline_btn->setChecked(true);      
+        
         QString vehicle_link = settings_->value("connection_drop/vehicle_gcs_link",
                                                 "marginal").toString();
         if(vehicle_link == "nominal")
@@ -131,9 +124,80 @@ namespace rqt_gcs
         settings_->endGroup();
     }
 
-    bool SettingsWidget::writeGeneralTabSettings()
+    void SettingsWidget::writeGeneralSettings()
     {
-        //assure that text inputs are either enabled and not empty, or not enabled.
+        settings_->beginGroup("general_tab");
+        
+        QString ml;
+        if(widget_.online_btn->isChecked())
+            ml = "online";  
+        else
+            ml = "offline";
+        
+        settings_->setValue("machine_learning", ml);
+
+        
+        QString conn = "connection_drop";
+
+        QString vehicle_link;
+        if(widget_.nominal_btn->isChecked())
+            vehicle_link = "nominal";
+        else if(widget_.marginal_btn->isChecked())
+            vehicle_link = "marginal";
+        else
+            vehicle_link = "poor";
+        
+        settings_->setValue(conn + "/vehicle_gcs_link", vehicle_link);
+        
+        QString conn_freq = "connection_drop/frequency";
+        if(vehicle_link != "nominal") // write frequency settings to config
+        {   
+            QString frequency;
+            if(widget_.interval_btn->isChecked())
+                frequency = "interval";
+            else
+                frequency = "random";
+            settings_->setValue(conn_freq, frequency);
+
+            QString interval_text = widget_.interval_text_box->text();
+            if(interval_text.isEmpty())
+                settings_->remove(conn_freq + "/interval_text");
+            else //already guaranteed that the input is valid
+                settings_->setValue(conn_freq + "/interval_text", interval_text);
+               
+            settings_->setValue(conn_freq + "/length_box_checked", 
+                                widget_.length_check_box->isChecked());
+
+            QString length_text = widget_.length_text_box->text();
+            if(length_text.isEmpty()) 
+                settings_->remove(conn_freq + "/length_text");
+            else //already guaranteed that the input is valid
+                settings_->setValue(conn_freq + "/length_text", length_text);
+        }
+        else // remove all frequency related settings from config
+            settings_->remove(conn_freq);
+        
+        settings_->endGroup(); //general_tab
+    }
+
+    bool SettingsWidget::writeObjectDetectionSettings()
+    {
+        settings_->beginGroup("object_detection_tab");
+        //TODO
+        settings_->endGroup();
+        return false;
+    }
+
+    void SettingsWidget::readObjectDetectionSettings()
+    {
+        settings_->beginGroup("object_detection_tab");
+        //TODO
+        settings_->endGroup();
+    }
+
+    bool SettingsWidget::validateGeneralSettings()
+    {
+                //assure that text inputs are either enabled and not empty, or not enabled.
         //write settins only if the are disabled or are enabled and have valid input.
         //the settings dialogue stay open if these checks fail.
         QString interval_text = widget_.interval_text_box->text();
@@ -145,111 +209,41 @@ namespace rqt_gcs
                 std::cout << "tried to apply settings with interval radio button checked but no interval specified\n";
                 return false;
             }
-            if(widget_.length_text_box->isEnabled() && length_text.isEmpty())
-            {
-                std::cout << "tried to apply settings with length checkbox checked but no length specified\n";
-                return false;
-            }
-
+            
             bool ok;
             if(!interval_text.isEmpty())
             {
                 float interval = interval_text.toFloat(&ok);
-                if(!ok || interval < 0)
+                if(!ok || interval <= 0)
                 {
                     std::cout << "entered invalid interval: " << interval_text.toStdString() 
                         << std::endl;
                     return false;
                 }
             }
+            
+            if(widget_.length_text_box->isEnabled() && length_text.isEmpty())
+            {
+                std::cout << "tried to apply settings with length checkbox checked but no length specified\n";
+                return false;
+            }
+
             if(!length_text.isEmpty())
             {   
                 float length = length_text.toFloat(&ok);
-                if(!ok || length < 0)
+                if(!ok || length <= 0)
                 {
                     std::cout << "entered invalid length: " << length_text.toStdString() 
                         << std::endl;
                     return false;
                 }
             }
-        }
-
-
-        settings_->beginGroup("general_tab");
-
-        QString ml;
-        if(widget_.online_btn->isChecked())
-        {
-            ml = "online";
-            emit showUavQueriesMenu(true);
-        }
-        else if(widget_.offline_btn->isChecked())
-        {
-            ml = "offline";
-            emit showUavQueriesMenu(false);
-        }
-        if(!ml.isNull())
-            settings_->setValue("machine_learning", ml);
-
-        QString conn = "connection_drop";
-
-        QString vehicle_link;
-        if(widget_.nominal_btn->isChecked())
-            vehicle_link = "nominal";
-        else if(widget_.marginal_btn->isChecked())
-            vehicle_link = "marginal";
-        else if(widget_.poor_btn->isChecked())
-            vehicle_link = "poor";
+        } // end if nominal button not checked
         
-        if(!vehicle_link.isNull())
-            settings_->setValue(conn + "/vehicle_gcs_link", vehicle_link);
-        
-        QString conn_freq = "connection_drop/frequency";
-        if(vehicle_link != "nominal")
-        {
-            QString frequency;
-            if(widget_.interval_btn->isChecked())
-                frequency = "interval";
-            else if(widget_.random_btn->isChecked())
-                frequency = "random";
-            if(!frequency.isNull())
-                settings_->setValue(conn_freq, frequency);
-
-            if(interval_text.isEmpty())
-                settings_->remove(conn_freq + "/interval_text");
-            else //already guaranteed that the input is valid above
-                settings_->setValue(conn_freq + "/interval_text", interval_text);
-               
-            settings_->setValue(conn_freq + "/length_box_checked", 
-                                widget_.length_check_box->isChecked());
-
-            if(length_text.isEmpty()) 
-                settings_->remove(conn_freq + "/length_text");
-            else //already guaranteed that the input is valid above
-                settings_->setValue(conn_freq + "/length_text", length_text);
-        }
-        else
-            settings_->remove(conn_freq);
-        
-        settings_->endGroup(); //general_tab
         return true;
     }
 
-    bool SettingsWidget::writeObjectDetectionSettings()
-    {
-        settings_->beginGroup("object_detection_tab");
-        //TODO
-        settings_->endGroup();
-        return false;
-    }
-
-    void SettingsWidget::readObjectDetectionTabSettings()
-    {
-        settings_->beginGroup("object_detection_tab");
-        //TODO
-        settings_->endGroup();
-    }
-
+    
     void SettingsWidget::applyClicked()
     {
         if(settings_ == nullptr)
@@ -259,9 +253,17 @@ namespace rqt_gcs
             return;
         }
 
-        if(writeGeneralTabSettings()
-            /*&& writeObjectDetectionTabSettings() */) // TODO
-            emit dismissMe();
+        if(!validateGeneralSettings()
+         /*&& !validateObjectDetectionTabSettings()*/) // TODO
+            return;
+        
+        writeGeneralSettings();
+        
+        //TODO
+        //writeObjectDetectionTabSettings();
+        
+        emit showUavQueriesMenu(widget_.online_btn->isChecked());
+        emit dismissMe();
     }
 
     void SettingsWidget::cancelClicked()
@@ -310,5 +312,5 @@ namespace rqt_gcs
                 << (widget_.length_check_box->isChecked() ? "enabled" : "disabled")
                 << std::endl;
     }
-
+    
 }// end name space

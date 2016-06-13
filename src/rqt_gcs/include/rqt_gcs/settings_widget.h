@@ -25,11 +25,13 @@ namespace rqt_gcs
         Ui::SettingsWidget widget_;
         QSettings *settings_;
 
-        void readGeneralTabSettings();
-        void readObjectDetectionTabSettings();
-
-        bool writeGeneralTabSettings();
+        void readGeneralSettings();
+        void readObjectDetectionSettings();
+        
+        void writeGeneralSettings();
         bool writeObjectDetectionSettings();
+        
+        bool validateGeneralSettings();
 
     signals:
         void dismissMe();
