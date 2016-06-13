@@ -92,7 +92,7 @@ background-color: rgb(48, 57, 80);</string>
        </item>
       </layout>
      </widget>
-     <widget class="QFrame" name="frame_5">
+     <widget class="QFrame" name="uavQueriesFame">
       <property name="minimumSize">
        <size>
         <width>150</width>

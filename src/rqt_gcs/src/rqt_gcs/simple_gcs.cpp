@@ -23,9 +23,7 @@ namespace rqt_gcs
         imageViewWidget_       = new QWidget();
         PFDQWidget             = new QWidget();
         apmQWidget_            = new QWidget();
-
-        settings_ = new QSettings("SERL", "LCAR_Bot");
-
+        
         //For each of the Uav condition widgets
         //we set up the ui of the uavcondition widget(name, selection num)
         for(int i = 0; i < NUM_UAV; i++){
@@ -105,6 +103,8 @@ namespace rqt_gcs
 
         //set up access points
         accessPointsVector = quadrotors[0].GetRefAccessPoints();
+        
+        initializeSettings();
     }
 
     //Timed update of for the GCS
@@ -528,7 +528,7 @@ namespace rqt_gcs
         // TODO restore intrinsic configuration, usually using:
         // v = instance_settings.value(k)
     }
-
+    
     /*bool hasConfiguration() const
     {
       return true;
@@ -588,32 +588,55 @@ namespace rqt_gcs
         }
     }
 
+    // SettingsWidget and QSettings related stuff
+    
+    void SimpleGCS::initializeSettings()
+    {
+        //initialize settings and uav queries display 
+        settings_ = new QSettings("SERL", "LCAR_Bot");
+        
+        settings_->beginGroup("general_tab");
+        if(settings_->value("machine_learning","online").toString() == "online")
+            central_ui_.uavQueriesFame->setVisible(true);
+        else
+            central_ui_.uavQueriesFame->setVisible(false);
+        settings_->endGroup();
+    }
+
+    
     void SimpleGCS::SettingsClicked()
     {
         if(settings_widget_ == nullptr)
         {
             settings_widget_ = new SettingsWidget(settings_);
-            int x_center = (widget_->width() / 2) - (settings_widget_->width() / 2);
-            int y_center = (widget_->height() / 2) - (settings_widget_->height() / 2);
+            int x = (widget_->width() / 2) - (settings_widget_->width() / 2);
+            int y = (widget_->height() / 2) - (settings_widget_->height() / 2);
             
-            settings_widget_->move(x_center, y_center);
+            settings_widget_->move(x, y);
             settings_widget_->setVisible(true);
             
             connect(settings_widget_, SIGNAL(dismissMe()),
                     this, SLOT(DestroySettingsWidget()));
+            
+            connect(settings_widget_, SIGNAL(showAccessPoints(bool)), 
+                    this, SLOT(ShowAccessPointsMenu(bool)));
         }
         else
         {
             settings_widget_->showNormal();
             settings_widget_->activateWindow();
         }
-
     }
 
     void SimpleGCS::DestroySettingsWidget()
     {
         delete settings_widget_;
         settings_widget_ = nullptr;
+    }
+    
+    void SimpleGCS::ShowAccessPointsMenu(bool visible)
+    {
+        central_ui_.uavQueriesFame->setVisible(visible);
     }
 
 } // namespace

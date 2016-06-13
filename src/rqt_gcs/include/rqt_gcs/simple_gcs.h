@@ -67,12 +67,13 @@ namespace rqt_gcs{
     image_transport::ImageTransport it_stereo{nh};
     void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
-
+    void initializeSettings();
+    
     virtual void initPlugin(qt_gui_cpp::PluginContext& context);
     virtual void shutdownPlugin();
     virtual void saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const;
     virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings);
-
+    
 
   protected slots:
     virtual void TimedUpdate();
@@ -90,7 +91,7 @@ namespace rqt_gcs{
     virtual void DenyDoorQuery(QWidget*);
     virtual void SettingsClicked();
     virtual void DestroySettingsWidget();
-
+    virtual void ShowAccessPointsMenu(bool);
 
   private:
     void UpdatePFD();

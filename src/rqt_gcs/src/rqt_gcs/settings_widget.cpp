@@ -69,9 +69,15 @@ namespace rqt_gcs
 
         QString ml = settings_->value("machine_learning", "online").toString();
         if(ml == "online")
+        {
             widget_.online_btn->setChecked(true);
+            emit showAccessPoints(true);
+        }
         else
+        {
             widget_.offline_btn->setChecked(true);
+            emit showAccessPoints(false);
+        }
 
 
         QString vehicle_link = settings_->value("connection_drop/vehicle_gcs_link",
@@ -144,10 +150,9 @@ namespace rqt_gcs
         }
         
         bool ok;
-        float interval, length;
         if(!interval_text.isEmpty())
         {
-            interval = interval_text.toFloat(&ok);
+            float interval = interval_text.toFloat(&ok);
             if(!ok || interval < 0)
             {
                 std::cout << "entered invalid interval: " << interval_text.toStdString() 
@@ -157,7 +162,7 @@ namespace rqt_gcs
         }
         if(!length_text.isEmpty())
         {   
-            length = length_text.toFloat(&ok);
+            float length = length_text.toFloat(&ok);
             if(!ok || length < 0)
             {
                 std::cout << "entered invalid length: " << length_text.toStdString() 
@@ -171,9 +176,15 @@ namespace rqt_gcs
 
         QString ml;
         if(widget_.online_btn->isChecked())
+        {
             ml = "online";
+            emit showAccessPoints(true);
+        }
         else if(widget_.offline_btn->isChecked())
+        {
             ml = "offline";
+            emit showAccessPoints(false);
+        }
         if(!ml.isNull())
             settings_->setValue("machine_learning", ml);
 

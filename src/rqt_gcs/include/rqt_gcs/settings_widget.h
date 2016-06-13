@@ -33,6 +33,7 @@ namespace rqt_gcs
 
     signals:
         void dismissMe();
+        void showAccessPoints(bool visible);
 
     private slots:
         void applyClicked();
