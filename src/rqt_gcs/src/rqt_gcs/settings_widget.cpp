@@ -180,28 +180,30 @@ namespace rqt_gcs
         settings_->endGroup(); //general_tab
     }
 
-    bool SettingsWidget::writeObjectDetectionSettings()
-    {
-        settings_->beginGroup("object_detection_tab");
-        //TODO
-        settings_->endGroup();
-        return false;
-    }
+//    void SettingsWidget::writeObjectDetectionSettings()
+//    {
+//        settings_->beginGroup("object_detection_tab");
+//        //TODO
+//        settings_->endGroup();
+//        return false;
+//    }
 
-    void SettingsWidget::readObjectDetectionSettings()
-    {
-        settings_->beginGroup("object_detection_tab");
-        //TODO
-        settings_->endGroup();
-    }
+//    void SettingsWidget::readObjectDetectionSettings()
+//    {
+//        settings_->beginGroup("object_detection_tab");
+//        //TODO
+//        settings_->endGroup();
+//    }
 
     bool SettingsWidget::validateGeneralSettings()
     {
-                //assure that text inputs are either enabled and not empty, or not enabled.
+        //assure that text inputs are either enabled and not empty, or not enabled.
         //write settins only if the are disabled or are enabled and have valid input.
         //the settings dialogue stay open if these checks fail.
+        
         QString interval_text = widget_.interval_text_box->text();
         QString length_text = widget_.length_text_box->text();
+        
         if(!widget_.nominal_btn->isChecked())
         {
             if(widget_.interval_text_box->isEnabled() && interval_text.isEmpty())
@@ -243,6 +245,7 @@ namespace rqt_gcs
         return true;
     }
 
+    //bool SettingsWidget::validateObjectDetectionSettings() { }
     
     void SettingsWidget::applyClicked()
     {

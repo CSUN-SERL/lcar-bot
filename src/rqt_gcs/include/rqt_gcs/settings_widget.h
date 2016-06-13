@@ -26,12 +26,13 @@ namespace rqt_gcs
         QSettings *settings_;
 
         void readGeneralSettings();
-        void readObjectDetectionSettings();
+        //void readObjectDetectionSettings();
         
         void writeGeneralSettings();
-        bool writeObjectDetectionSettings();
+        //void writeObjectDetectionSettings();
         
         bool validateGeneralSettings();
+        //bool validateObjectDetectionSettings();
 
     signals:
         void dismissMe();
