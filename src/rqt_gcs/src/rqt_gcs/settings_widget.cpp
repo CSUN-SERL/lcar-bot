@@ -71,12 +71,12 @@ namespace rqt_gcs
         if(ml == "online")
         {
             widget_.online_btn->setChecked(true);
-            emit showAccessPoints(true);
+            emit showUavQueriesMenu(true);
         }
         else
         {
             widget_.offline_btn->setChecked(true);
-            emit showAccessPoints(false);
+            emit showUavQueriesMenu(false);
         }
 
 
@@ -138,52 +138,55 @@ namespace rqt_gcs
         //the settings dialogue stay open if these checks fail.
         QString interval_text = widget_.interval_text_box->text();
         QString length_text = widget_.length_text_box->text();
-        if(widget_.interval_text_box->isEnabled() && interval_text.isEmpty())
+        if(!widget_.nominal_btn->isChecked())
         {
-            std::cout << "tried to apply settings with interval radio button checked but no interval specified\n";
-            return false;
-        }
-        if(widget_.length_text_box->isEnabled() && length_text.isEmpty())
-        {
-            std::cout << "tried to apply settings with length checkbox checked but no length specified\n";
-            return false;
-        }
-        
-        bool ok;
-        if(!interval_text.isEmpty())
-        {
-            float interval = interval_text.toFloat(&ok);
-            if(!ok || interval < 0)
+            if(widget_.interval_text_box->isEnabled() && interval_text.isEmpty())
             {
-                std::cout << "entered invalid interval: " << interval_text.toStdString() 
-                    << std::endl;
+                std::cout << "tried to apply settings with interval radio button checked but no interval specified\n";
                 return false;
             }
-        }
-        if(!length_text.isEmpty())
-        {   
-            float length = length_text.toFloat(&ok);
-            if(!ok || length < 0)
+            if(widget_.length_text_box->isEnabled() && length_text.isEmpty())
             {
-                std::cout << "entered invalid length: " << length_text.toStdString() 
-                    << std::endl;
+                std::cout << "tried to apply settings with length checkbox checked but no length specified\n";
                 return false;
+            }
+
+            bool ok;
+            if(!interval_text.isEmpty())
+            {
+                float interval = interval_text.toFloat(&ok);
+                if(!ok || interval < 0)
+                {
+                    std::cout << "entered invalid interval: " << interval_text.toStdString() 
+                        << std::endl;
+                    return false;
+                }
+            }
+            if(!length_text.isEmpty())
+            {   
+                float length = length_text.toFloat(&ok);
+                if(!ok || length < 0)
+                {
+                    std::cout << "entered invalid length: " << length_text.toStdString() 
+                        << std::endl;
+                    return false;
+                }
             }
         }
 
-        
+
         settings_->beginGroup("general_tab");
 
         QString ml;
         if(widget_.online_btn->isChecked())
         {
             ml = "online";
-            emit showAccessPoints(true);
+            emit showUavQueriesMenu(true);
         }
         else if(widget_.offline_btn->isChecked())
         {
             ml = "offline";
-            emit showAccessPoints(false);
+            emit showUavQueriesMenu(false);
         }
         if(!ml.isNull())
             settings_->setValue("machine_learning", ml);
@@ -201,9 +204,9 @@ namespace rqt_gcs
         if(!vehicle_link.isNull())
             settings_->setValue(conn + "/vehicle_gcs_link", vehicle_link);
         
+        QString conn_freq = "connection_drop/frequency";
         if(vehicle_link != "nominal")
         {
-            QString conn_freq = "connection_drop/frequency";
             QString frequency;
             if(widget_.interval_btn->isChecked())
                 frequency = "interval";
@@ -225,6 +228,8 @@ namespace rqt_gcs
             else //already guaranteed that the input is valid above
                 settings_->setValue(conn_freq + "/length_text", length_text);
         }
+        else
+            settings_->remove(conn_freq);
         
         settings_->endGroup(); //general_tab
         return true;
@@ -267,12 +272,7 @@ namespace rqt_gcs
     void SettingsWidget::toggleFrequencyGroup()
     {
         if(widget_.nominal_btn->isChecked())
-        {
-            widget_.interval_text_box->setText("");
-            widget_.length_text_box->setText("");
-            widget_.length_check_box->setChecked(false);
             widget_.frequency_box->setEnabled(false);
-        }
         else
             widget_.frequency_box->setEnabled(true);
 

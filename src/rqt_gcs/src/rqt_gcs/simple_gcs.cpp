@@ -1,4 +1,5 @@
 #include <rqt_gcs/simple_gcs.h>
+#include <QDesktopWidget>
 
 namespace rqt_gcs
 {
@@ -609,17 +610,18 @@ namespace rqt_gcs
         if(settings_widget_ == nullptr)
         {
             settings_widget_ = new SettingsWidget(settings_);
+            
+            QRect window = widget_->window()->geometry();
             int x = (widget_->width() / 2) - (settings_widget_->width() / 2);
             int y = (widget_->height() / 2) - (settings_widget_->height() / 2);
-            
-            settings_widget_->move(x, y);
+            settings_widget_->move(window.x() + x, window.y() + y);
             settings_widget_->setVisible(true);
             
             connect(settings_widget_, SIGNAL(dismissMe()),
                     this, SLOT(DestroySettingsWidget()));
             
-            connect(settings_widget_, SIGNAL(showAccessPoints(bool)), 
-                    this, SLOT(ShowAccessPointsMenu(bool)));
+            connect(settings_widget_, SIGNAL(showUavQueriesMenu(bool)), 
+                    this, SLOT(ShowUavQueriesMenu(bool)));
         }
         else
         {
@@ -634,7 +636,7 @@ namespace rqt_gcs
         settings_widget_ = nullptr;
     }
     
-    void SimpleGCS::ShowAccessPointsMenu(bool visible)
+    void SimpleGCS::ShowUavQueriesMenu(bool visible)
     {
         central_ui_.uavQueriesFame->setVisible(visible);
     }

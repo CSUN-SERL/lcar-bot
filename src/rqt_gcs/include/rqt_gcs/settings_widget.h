@@ -33,7 +33,7 @@ namespace rqt_gcs
 
     signals:
         void dismissMe();
-        void showAccessPoints(bool visible);
+        void showUavQueriesMenu(bool);
 
     private slots:
         void applyClicked();

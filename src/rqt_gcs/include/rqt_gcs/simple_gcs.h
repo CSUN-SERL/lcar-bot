@@ -91,7 +91,7 @@ namespace rqt_gcs{
     virtual void DenyDoorQuery(QWidget*);
     virtual void SettingsClicked();
     virtual void DestroySettingsWidget();
-    virtual void ShowAccessPointsMenu(bool);
+    virtual void ShowUavQueriesMenu(bool);
 
   private:
     void UpdatePFD();
