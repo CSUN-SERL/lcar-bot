@@ -7,20 +7,20 @@ trap "" SIGTSTP
 
 function ctrl_c(){
     exec 2>.tmp     # redirect stderr output to .tmp
+#
+#    pkill rosmaster # kill rosmaster explicitly
+#
+#    sleep 1s        # give it time to output to terminal (avoids hang at the end)
 
-    pkill rosmaster # kill rosmaster explicitly
-
-    sleep 1s        # give it time to output to terminal (avoids hang at the end)
-
-    pkill rosout    # kill rosout explicitly
+#    pkill rosout    # kill rosout explicitly
     pkill -P $$     # kill all processes started by this script (see below)
     rm -f .tmp      # delete stderr output
 }
 
 
-roscore &
-
-sleep 1s #give roscore time to launch fully (including launching rosmaster and rosout under different processes)
+#roscore &
+#
+#sleep 1s #give roscore time to launch fully (including launching rosmaster and rosout under different processes)
 
 rqt -v &
 

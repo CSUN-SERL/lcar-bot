@@ -78,18 +78,19 @@ void DrawLocations(cv::Mat & img, const std::vector< Rect > & found, const vecto
 
        for (int i = 0; loc != end; ++loc) {
                //Rect implementation used with hog.detectMultiScale
+           ROS_WARN_STREAM("weights: " << weights.at(i));
                rectangle(img, *loc, color, 2); 
         }
 }
 
-void ObjectCategorize(cv::Mat image) {
-    if (!image.empty()) {
+void ObjectCategorize(cv::Mat gray_image, cv::Mat color_image) {
+    if (!gray_image.empty()) {
         vector <double> weights;
         vector <Rect> detected_objects;
         vector <Rect> door_objects;
         vector <double> door_weights;
         hog_.detectMultiScale(
-                image,
+                gray_image,
                 detected_objects
                 ,weights
                 ,0.8         // hit threshold
@@ -103,7 +104,7 @@ void ObjectCategorize(cv::Mat image) {
         for (int i = 0; i < detected_objects.size(); i++) {
             Rect obj = detected_objects.at(i);
             Rect windows(obj.x, obj.y, obj.width, obj.height);
-            Mat Roi = image(windows);
+            Mat Roi = gray_image(windows);
             Mat extract, res, train_data;
             resize(Roi, extract, img_size_);
             HogFeatureExtraction(extract);
@@ -118,13 +119,13 @@ void ObjectCategorize(cv::Mat image) {
             }
         }
         
-        DrawLocations(image, door_objects, door_weights, Scalar(0, 255, 0));
+        DrawLocations(color_image, door_objects, door_weights, Scalar(0, 255, 0));
         //imshow("view", image);
         //waitKey(1);
         if(door_objects.size() > 0){
             door_count++;
             sensor_msgs::ImagePtr door_img = cv_bridge::CvImage(std_msgs::Header()
-                                                       ,"mono8", image).toImageMsg();
+                                                       ,"rgb8", color_image).toImageMsg();
             door_img->header.stamp = ros::Time::now();
             pub_mat_.publish(door_img);
             
@@ -144,8 +145,9 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
   {
-    cv::Mat image = cv_bridge::toCvCopy(msg, "mono8")->image;
-        ObjectCategorize(image);
+    cv::Mat gray_image = cv_bridge::toCvShare(msg, "mono8")->image;
+    cv::Mat color_image = cv_bridge::toCvCopy(msg, "rgb8")->image;
+    ObjectCategorize(gray_image, color_image);
   }
   catch (cv_bridge::Exception& e)
   {

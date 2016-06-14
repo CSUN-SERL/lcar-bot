@@ -9,7 +9,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
   {
-    cv::imshow(topic_, cv_bridge::toCvShare(msg,"bgr8")->image);
+    cv::imshow(topic_, cv_bridge::toCvShare(msg)->image);
     cv::waitKey(1);
   }
   catch (cv_bridge::Exception& e)

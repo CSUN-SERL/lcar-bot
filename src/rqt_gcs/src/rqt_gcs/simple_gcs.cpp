@@ -7,6 +7,7 @@ namespace rqt_gcs
     SimpleGCS::SimpleGCS()
     : rqt_gui_cpp::Plugin()
     , widget_(0)
+    , settings_widget_(nullptr)
     {
         //Constructor is called first before initPlugin function
         setObjectName("LCAR Bot GCS");
@@ -57,11 +58,6 @@ namespace rqt_gcs
         {
             central_ui_.UAVListLayout->addWidget(uavListWidgetArr[i]);
         }
-
-
-        //connect settings button to settings widget
-        connect(central_ui_.settingsButton, SIGNAL(clicked()), 
-                this, SLOT(SettingsClicked()));
 
         //Setup mission progress widgets
         uavStatWidget_->setWindowTitle("Flight State");
@@ -208,43 +204,45 @@ namespace rqt_gcs
         Ui::ImageViewWidget imgUiWidget[numOfPictureMsg];
 
 
-        if(numOfPictureMsg != 0)
+        for(int i = 0; i < numOfPictureMsg; i++)
         {
-            for(int i = 0; i < numOfPictureMsg; i++)
-            {
-                //add widget to the list
-                pictureMsgQWidgets_.push_back(pmWidgets[i]);
-                pictureMsgQWidgets_.at(i) = new QWidget();
-                imgWidget[i] = new QWidget();
+            //add widget to the list
+            pictureMsgQWidgets_.push_back(pmWidgets[i]);
+            pictureMsgQWidgets_.at(i) = new QWidget();
+            imgWidget[i] = new QWidget();
 
-                //retrieve Query msg for door image
-                query_msgs::Door doorQuery = pictureQueryVector->at(i);
-                //sensor_msgs::Image pmImage = pictureQueryVector->at(i);
-                QImage image(doorQuery.picture.data.data(), doorQuery.picture.width, doorQuery.picture.height, doorQuery.picture.step, QImage::Format_RGB888);
+            //retrieve Query msg for door image
+            query_msgs::Door doorQuery = pictureQueryVector->at(i);
 
-                //  QImage image(pmImage.data.data(),pmImage.width, pmImage.height,pmImage.step, QImage::Format_RGB888);
+            QImage image(doorQuery.picture.data.data(), doorQuery.picture.width, 
+                         doorQuery.picture.height, doorQuery.picture.step, 
+                         QImage::Format_RGB888);
 
-                //set up the ui
-                pmUiWidgets[i].setupUi(pictureMsgQWidgets_.at(i));
-                imgUiWidget[i].setupUi(imgWidget[i]);
+            //set up the ui
+            pmUiWidgets[i].setupUi(pictureMsgQWidgets_.at(i));
+            imgUiWidget[i].setupUi(imgWidget[i]);
 
-                //set image to the image widget
-                imgUiWidget[i].image_frame->setImage(image);
+            //set image to the image widget
+            imgUiWidget[i].image_frame->setImage(image);
 
-                // add the image widget to the Layout
-                pmUiWidgets[i].PictureLayout->addWidget(imgWidget[i]);
+            // add the image widget to the Layout
+            pmUiWidgets[i].PictureLayout->addWidget(imgWidget[i]);
 
-                //map signal for yes button
-                acceptDoorMapper->setMapping(pmUiWidgets[i].yesButton, pictureMsgQWidgets_.at(i));
-                connect(pmUiWidgets[i].yesButton, SIGNAL(clicked()), acceptDoorMapper, SLOT(map()));
+            //map signal for yes button
+            acceptDoorMapper->setMapping(pmUiWidgets[i].yesButton, 
+                                         pictureMsgQWidgets_.at(i));
+            connect(pmUiWidgets[i].yesButton, SIGNAL(clicked()), 
+                    acceptDoorMapper, SLOT(map()));
 
-                //map signal for yes button
-                denyDoorMapper->setMapping(pmUiWidgets[i].rejectButton, pictureMsgQWidgets_.at(i));
-                connect(pmUiWidgets[i].rejectButton, SIGNAL(clicked()), denyDoorMapper, SLOT(map()));
+            //map signal for yes button
+            denyDoorMapper->setMapping(pmUiWidgets[i].rejectButton, 
+                                       pictureMsgQWidgets_.at(i));
+            connect(pmUiWidgets[i].rejectButton, SIGNAL(clicked()), 
+                    denyDoorMapper, SLOT(map()));
 
-                central_ui_.PictureMsgLayout->addWidget(pictureMsgQWidgets_.at(i));
-            }
+            central_ui_.PictureMsgLayout->addWidget(pictureMsgQWidgets_.at(i));
         }
+        
     }
 
     void SimpleGCS::AcceptDoorQuery(QWidget *qw)
@@ -391,7 +389,8 @@ namespace rqt_gcs
 
         }
         accessPointsQWidgets_.clear();
-        disconnect(signal_mapper2, SIGNAL(mapped(QWidget*)), this, SLOT(DeleteAccessPoint(QWidget*)));
+        disconnect(signal_mapper2, SIGNAL(mapped(QWidget*)), 
+                   this, SLOT(DeleteAccessPoint(QWidget*)));
 
         //retreive access points
         accessPointsVector = quadrotors[cur_uav].GetRefAccessPoints();
@@ -415,7 +414,8 @@ namespace rqt_gcs
                 AccessPoint accessPoint = accessPointsVector->at(i);
                 sensor_msgs::Image acImage = accessPoint.GetImage();
 
-                QImage image(acImage.data.data(), acImage.width, acImage.height, acImage.step, QImage::Format_RGB888);
+                QImage image(acImage.data.data(), acImage.width, acImage.height, 
+                             acImage.step, QImage::Format_RGB888);
 
                 //add widget to the list
                 accessPointsQWidgets_.push_back(apWidgets[i]);
@@ -429,9 +429,11 @@ namespace rqt_gcs
 
                 //apUiWidgets[i].
                 //map signal to the delete button
-                signal_mapper2->setMapping(apUiWidgets[i].deleteAccessPointButton, accessPointsQWidgets_.at(i));
+                signal_mapper2->setMapping(apUiWidgets[i].deleteAccessPointButton, 
+                                           accessPointsQWidgets_.at(i));
 
-                connect(apUiWidgets[i].deleteAccessPointButton, SIGNAL(clicked()), signal_mapper2, SLOT(map()));
+                connect(apUiWidgets[i].deleteAccessPointButton, SIGNAL(clicked()), 
+                        signal_mapper2, SLOT(map()));
 
 
                 //access point name
@@ -469,7 +471,8 @@ namespace rqt_gcs
 
                 apmUi_.AccessPointMenuLayout->addWidget(accessPointsQWidgets_.at(i));
             }
-            connect(signal_mapper2, SIGNAL(mapped(QWidget*)), this, SLOT(DeleteAccessPoint(QWidget*)));
+            connect(signal_mapper2, SIGNAL(mapped(QWidget*)), 
+                    this, SLOT(DeleteAccessPoint(QWidget*)));
 
         }
 
@@ -578,9 +581,10 @@ namespace rqt_gcs
     {
         try
         {
-            cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(msg, "rgb8");
+            cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(msg, "bgr8");
             conversion_mat_ = cv_ptr->image;
-            QImage image(conversion_mat_.data, conversion_mat_.cols, conversion_mat_.rows, conversion_mat_.step[0], QImage::Format_RGB888);
+            QImage image(conversion_mat_.data, conversion_mat_.cols, conversion_mat_.rows, 
+                         conversion_mat_.step[0], QImage::Format_RGB888);
             ivUi_.image_frame->setImage(image);
         }
         catch(cv_bridge::Exception& e)
@@ -602,11 +606,15 @@ namespace rqt_gcs
         else
             central_ui_.uavQueriesFame->setVisible(false);
         settings_->endGroup();
+        
+        //connect settings button to settings widget
+        connect(central_ui_.settingsButton, SIGNAL(clicked()), 
+                this, SLOT(SettingsClicked()));
     }
 
     
     void SimpleGCS::SettingsClicked()
-    {
+    {   
         if(settings_widget_ == nullptr)
         {
             settings_widget_ = new SettingsWidget(settings_);
@@ -639,6 +647,7 @@ namespace rqt_gcs
     void SimpleGCS::ShowUavQueriesMenu(bool visible)
     {
         central_ui_.uavQueriesFame->setVisible(visible);
+        central_ui_.uavQueriesFame->setEnabled(visible);
     }
 
 } // namespace

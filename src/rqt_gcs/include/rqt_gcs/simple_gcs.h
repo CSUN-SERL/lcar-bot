@@ -90,12 +90,14 @@ namespace rqt_gcs{
     virtual void AcceptDoorQuery(QWidget*);
     virtual void DenyDoorQuery(QWidget*);
     virtual void SettingsClicked();
+    
+    //SETTINGS RELATED
     virtual void DestroySettingsWidget();
     virtual void ShowUavQueriesMenu(bool);
 
   private:
     void UpdatePFD();
-    void UpdateMsgQuery();
+        void UpdateMsgQuery();
     int cur_uav = 0;
     int timeCounter = 0;
     query_msgs::Target GetMission(std::string fileName);

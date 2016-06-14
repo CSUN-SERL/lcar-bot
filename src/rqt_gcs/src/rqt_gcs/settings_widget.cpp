@@ -84,7 +84,7 @@ namespace rqt_gcs
 
          //dont forget to disable the frequency box if nominal button is checked.
         if(widget_.nominal_btn->isChecked())
-            widget_.frequency_box->setEnabled(false);
+            widget_.frequency_groupbox->setEnabled(false);
 
 
         QString conn_freq = "connection_drop/frequency";
@@ -158,21 +158,25 @@ namespace rqt_gcs
             else
                 frequency = "random";
             settings_->setValue(conn_freq, frequency);
-
-            QString interval_text = widget_.interval_text_box->text();
-            if(interval_text.isEmpty())
-                settings_->remove(conn_freq + "/interval_text");
-            else //already guaranteed that the input is valid
+            
+            if(frequency == "interval")
+            {   //already guaranteed text is valid in validateGeneralSettings()
+                QString interval_text = widget_.interval_text_box->text();
                 settings_->setValue(conn_freq + "/interval_text", interval_text);
+            }
+            else
+                settings_->remove(conn_freq + "/interval_text");
                
-            settings_->setValue(conn_freq + "/length_box_checked", 
-                                widget_.length_check_box->isChecked());
+            bool length_specified = widget_.length_check_box->isChecked();
+            settings_->setValue(conn_freq + "/length_box_checked", length_specified);
 
-            QString length_text = widget_.length_text_box->text();
-            if(length_text.isEmpty()) 
-                settings_->remove(conn_freq + "/length_text");
-            else //already guaranteed that the input is valid
+            if(length_specified)
+            {   //already guaranteed text is valid in validateGeneralSettings()
+                QString length_text = widget_.length_text_box->text();
                 settings_->setValue(conn_freq + "/length_text", length_text);
+            }
+            else
+                settings_->remove(conn_freq + "/length_text");
         }
         else // remove all frequency related settings from config
             settings_->remove(conn_freq);
@@ -200,12 +204,11 @@ namespace rqt_gcs
         //assure that text inputs are either enabled and not empty, or not enabled.
         //write settins only if the are disabled or are enabled and have valid input.
         //the settings dialogue stay open if these checks fail.
-        
-        QString interval_text = widget_.interval_text_box->text();
-        QString length_text = widget_.length_text_box->text();
-        
-        if(!widget_.nominal_btn->isChecked())
+        if(widget_.frequency_groupbox->isEnabled())
         {
+            QString interval_text = widget_.interval_text_box->text();
+            QString length_text = widget_.length_text_box->text();
+        
             if(widget_.interval_text_box->isEnabled() && interval_text.isEmpty())
             {
                 std::cout << "tried to apply settings with interval radio button checked but no interval specified\n";
@@ -277,9 +280,9 @@ namespace rqt_gcs
     void SettingsWidget::toggleFrequencyGroup()
     {
         if(widget_.nominal_btn->isChecked())
-            widget_.frequency_box->setEnabled(false);
+            widget_.frequency_groupbox->setEnabled(false);
         else
-            widget_.frequency_box->setEnabled(true);
+            widget_.frequency_groupbox->setEnabled(true);
 
         std::cout << "frequency group "
                 << (widget_.nominal_btn->isChecked() ? "disabled" : "enabled")
@@ -291,10 +294,7 @@ namespace rqt_gcs
         if(widget_.interval_btn->isChecked())
             widget_.interval_text_box->setEnabled(true);
         else
-        {
-            widget_.interval_text_box->setText("");
             widget_.interval_text_box->setEnabled(false);
-        }
 
         std::cout << "interval text box "
                 << (widget_.interval_btn->isChecked() ? "enabled" : "disabled")
@@ -306,10 +306,7 @@ namespace rqt_gcs
         if(widget_.length_check_box->isChecked())
             widget_.length_text_box->setEnabled(true);
         else
-        {
-            widget_.length_text_box->setText("");
             widget_.length_text_box->setEnabled(false);
-        }
 
         std::cout << "length text box "
                 << (widget_.length_check_box->isChecked() ? "enabled" : "disabled")
