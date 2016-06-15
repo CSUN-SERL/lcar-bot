@@ -71,7 +71,9 @@ namespace rqt_gcs
         if(ml == "online")
             widget_.online_btn->setChecked(true);
         else
-            widget_.offline_btn->setChecked(true);      
+            widget_.offline_btn->setChecked(true); 
+        
+        ml_state_ = ml;
         
         QString vehicle_link = settings_->value("connection_drop/vehicle_gcs_link",
                                                 "marginal").toString();
@@ -134,6 +136,7 @@ namespace rqt_gcs
         else
             ml = "offline";
         
+        ml_state_ = ml;
         settings_->setValue("machine_learning", ml);
 
         
@@ -258,7 +261,9 @@ namespace rqt_gcs
                     << std::endl;
             return;
         }
-
+        
+        QString ml_state_previous = ml_state_;
+        
         if(!validateGeneralSettings()
          /*&& !validateObjectDetectionTabSettings()*/) // TODO
             return;
@@ -267,8 +272,9 @@ namespace rqt_gcs
         
         //TODO
         //writeObjectDetectionTabSettings();
-        
-        emit showUavQueriesMenu(widget_.online_btn->isChecked());
+        if(ml_state_ != ml_state_previous)
+            emit toggleMachineLearningMode(widget_.online_btn->isChecked());
+    
         emit dismissMe();
     }
 

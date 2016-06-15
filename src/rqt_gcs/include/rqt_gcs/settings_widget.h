@@ -24,7 +24,8 @@ namespace rqt_gcs
     private:
         Ui::SettingsWidget widget_;
         QSettings *settings_;
-
+        QString ml_state_;
+        
         void readGeneralSettings();
         //void readObjectDetectionSettings();
         
@@ -36,7 +37,7 @@ namespace rqt_gcs
 
     signals:
         void dismissMe();
-        void showUavQueriesMenu(bool);
+        void toggleMachineLearningMode(bool);
 
     private slots:
         void applyClicked();

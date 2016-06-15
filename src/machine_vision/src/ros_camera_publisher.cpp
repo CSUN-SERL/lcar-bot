@@ -14,7 +14,7 @@ using namespace std;
 int main(int argc, char** argv)
 {
 
-  ros::init(argc, argv, "cam", ros::init_options::AnonymousName);
+  ros::init(argc, argv, "camera_publisher", ros::init_options::AnonymousName);
   ros::NodeHandle nh;
   image_transport::ImageTransport it(nh);
 
@@ -28,7 +28,8 @@ int main(int argc, char** argv)
       return 1;
   }
   image_transport::Publisher pub = it.advertise(topic, 1);
-  ROS_INFO_STREAM("publishing on topic: " << topic);
+  ROS_INFO_STREAM("node: " << ros::this_node::getName()  
+                    << " publishing on topic: " << topic);
 
   int video_source;
   paramSet = ros::param::get("~video_id", video_source);

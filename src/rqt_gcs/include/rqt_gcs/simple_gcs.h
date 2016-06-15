@@ -93,7 +93,7 @@ namespace rqt_gcs{
     
     //SETTINGS RELATED
     virtual void DestroySettingsWidget();
-    virtual void ShowUavQueriesMenu(bool);
+    virtual void toggleMachineLearningMode(bool);
 
   private:
     void UpdatePFD();
@@ -104,8 +104,8 @@ namespace rqt_gcs{
     SimpleControl quadrotors[NUM_UAV] = {};
     std::vector<AccessPoint> * accessPointsVector;
     std::vector<lcar_msgs::Door> * pictureQueryVector;
-    //std::vector<sensor_msgs::Image> * pictureQueryVector;
 
+   
     cv::Mat conversion_mat_;
     image_transport::Subscriber sub_stereo = it_stereo.subscribe("/UAV1/stereo_cam/left/image_rect", 
                                                                  1, &SimpleGCS::ImageCallback, this);
@@ -137,6 +137,7 @@ namespace rqt_gcs{
 
     QLabel* label;
     QTimer* update_timer;
+    QMutex query_lock;
 
     QString temp_data;
     QString quad_id;

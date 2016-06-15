@@ -183,10 +183,8 @@ namespace rqt_gcs
 
     void SimpleGCS::UpdateMsgQuery()
     {
-        if(!central_ui_.uavQueriesFame->isEnabled()){
-            
+        if(!central_ui_.uavQueriesFame->isEnabled())
             return;
-        }
         
         for(int i = pictureMsgQWidgets_.size() - 1; i >= 0; i--)
         {
@@ -197,25 +195,23 @@ namespace rqt_gcs
 
         }
         pictureMsgQWidgets_.clear();
-        
-        if(!central_ui_.uavQueriesFame->isEnabled())
-            return;
 
         pictureQueryVector = quadrotors[cur_uav].GetDoorQueries();
 
-        int numOfPictureMsg = pictureQueryVector->size();
+        int new_queries = pictureQueryVector->size();
 
-        QWidget * pmWidgets[numOfPictureMsg];
-        Ui::PictureMsgWidget pmUiWidgets[numOfPictureMsg];
-        QWidget * imgWidget[numOfPictureMsg];
-        Ui::ImageViewWidget imgUiWidget[numOfPictureMsg];
+        QWidget * pmWidgets[new_queries];
+        Ui::PictureMsgWidget pmUiWidgets[new_queries];
+        QWidget * imgWidget[new_queries];
+        Ui::ImageViewWidget imgUiWidget[new_queries];
 
 
-        for(int i = 0; i < numOfPictureMsg; i++)
+        for(int i = 0; i < new_queries; i++)
         {
             //add widget to the list
             pictureMsgQWidgets_.push_back(pmWidgets[i]);
-            pictureMsgQWidgets_.at(i) = new QWidget();
+            int size = pictureMsgQWidgets_.size();
+            pictureMsgQWidgets_.at(size - 1) = new QWidget();
             imgWidget[i] = new QWidget();
 
             //retrieve Query msg for door image
@@ -511,7 +507,7 @@ namespace rqt_gcs
     void SimpleGCS::QuadSelect(int quadNumber)
     {
         cur_uav = quadNumber;
-        sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(quadNumber + 1) + "/stereo_cam/left/image_raw", 
+        sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(quadNumber + 1) + "/stereo_cam/left/image_rect", 
                                          1, &SimpleGCS::ImageCallback, this);
     }
 
@@ -609,9 +605,9 @@ namespace rqt_gcs
         
         settings_->beginGroup("general_tab");
         if(settings_->value("machine_learning","online").toString() == "online")
-            central_ui_.uavQueriesFame->setVisible(true);
+            toggleMachineLearningMode(true);
         else
-            central_ui_.uavQueriesFame->setVisible(false);
+            toggleMachineLearningMode(false);
         settings_->endGroup();
         
         //connect settings button to settings widget
@@ -635,8 +631,8 @@ namespace rqt_gcs
             connect(settings_widget_, SIGNAL(dismissMe()),
                     this, SLOT(DestroySettingsWidget()));
             
-            connect(settings_widget_, SIGNAL(showUavQueriesMenu(bool)), 
-                    this, SLOT(ShowUavQueriesMenu(bool)));
+            connect(settings_widget_, SIGNAL(toggleMachineLearningMode(bool)), 
+                    this, SLOT(toggleMachineLearningMode(bool)));
         }
         else
         {
@@ -651,10 +647,13 @@ namespace rqt_gcs
         settings_widget_ = nullptr;
     }
     
-    void SimpleGCS::ShowUavQueriesMenu(bool visible)
+    void SimpleGCS::toggleMachineLearningMode(bool online)
     {
-        central_ui_.uavQueriesFame->setVisible(visible);
-        central_ui_.uavQueriesFame->setEnabled(visible);
+        central_ui_.uavQueriesFame->setVisible(online);
+        central_ui_.uavQueriesFame->setEnabled(online);
+        
+        for(int i = 0; i < NUM_UAV; i++)
+            quadrotors[i].setOnlineMode(online);
     }
 
 } // namespace

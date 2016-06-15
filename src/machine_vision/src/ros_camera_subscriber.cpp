@@ -36,7 +36,8 @@ int main(int argc, char **argv)
   cv::startWindowThread();
 
   image_transport::Subscriber sub = it.subscribe(topic_, 5, imageCallback);
-  ROS_INFO_STREAM("subscribed to topic: " << topic_);
+  ROS_INFO_STREAM("node: " << ros::this_node::getName()
+                  << " subscribed to topic: " << topic_);
 
   ros::spin();
   cv::destroyWindow(topic_);

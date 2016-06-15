@@ -76,7 +76,16 @@ public:
     SimpleControl();
     SimpleControl(int uav_id);
     ~SimpleControl();
-
+    
+    /**
+     * set online mode on or off
+     * 
+     * @param online: pass true for online, false for offline
+     */
+    bool setOnlineMode(bool online)
+    {
+       online_mode = online;
+    }
     /**
       Arm or disarm the UAV.
 
@@ -299,7 +308,7 @@ private:
         new_point.SetType(AccessPoint::door);
         access_pts.push_back(new_point);
         
-        if(msg_detection->query){
+        if(online_mode && msg_detection->query){
             queries_door.push_back(*msg_detection);
         }
         
@@ -354,8 +363,10 @@ private:
                                     goal_prev = null;
     ros::Time                       last_request;
     std::vector<AccessPoint>        access_pts;
-    std::vector<lcar_msgs::Door>   queries_door;
+    std::vector<lcar_msgs::Door>    queries_door;
     bool                            collision = false;
+    bool                            online_mode = true;
+    
 };
 
 #endif
