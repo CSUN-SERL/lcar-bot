@@ -14,7 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   camera_info_manager
   stereo_msgs
-  query_msgs
+  lcar_msgs
 )
 
 find_package(OpenCV REQUIRED)

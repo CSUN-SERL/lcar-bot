@@ -133,15 +133,13 @@ void StereoDriver::ImageCallback(uvc_frame_t *frame){
 
     uvc_frame_t *greyLeft;
     uvc_frame_t *greyRight;
-    uvc_frame_t *frameRGB;
+    
     uvc_error_t retLeft;
     uvc_error_t retRight;
-    uvc_error_t retRGB;
 
     /* We'll convert the image from YUV/JPEG to gray8, so allocate space */
     greyLeft = uvc_allocate_frame(frame->width * frame->height);
     greyRight = uvc_allocate_frame(frame->width * frame->height);
-    frameRGB = uvc_allocate_frame(frame->width * frame->height);
 
     if (!greyLeft) {
       printf("unable to allocate grey left frame!");
@@ -150,10 +148,6 @@ void StereoDriver::ImageCallback(uvc_frame_t *frame){
     if (!greyRight) {
       printf("unable to allocate grey right frame!");
       return;
-    }
-    if(!frameRGB){
-        printf("unable to allocate RGB frame!");
-        return;
     }
 
     sensor_msgs::CameraInfoPtr ci_left(new sensor_msgs::CameraInfo(cinfo_left_.getCameraInfo()));
@@ -167,7 +161,6 @@ void StereoDriver::ImageCallback(uvc_frame_t *frame){
     /* Do the BGR conversion */
     retLeft = uvc_yuyv2y(frame, greyLeft);
     retRight = uvc_yuyv2uv(frame, greyRight);
-    retRGB = uvc_yuyv2rgb(frame, frameRGB);
 
     if (retLeft) {
       uvc_perror(retLeft, "uvc_yuyv2y");
@@ -182,16 +175,9 @@ void StereoDriver::ImageCallback(uvc_frame_t *frame){
       printf("Error with yuyv to uv conversion");
       return;
     }
-    if (retRGB) {
-      uvc_perror(retRGB, "uvc_yuyv2rgb");
-      uvc_free_frame(frameRGB);
-      printf("Error with yuyv to rgb conversion");
-      return;
-    }
 
     cv::Mat left (greyLeft->height, greyLeft->width, CV_8UC1, greyLeft->data);
-    cv::Mat right (greyRight->height, greyRight->width, CV_8UC1, greyRight->data);
-    cv::Mat RGB (frameRGB->height, frameRGB->width, CV_8UC3, frameRGB->data);
+    cv::Mat right (greyRight->height, greyRight->width, CV_8UC1, greyRight->data);;
 
     if(!left.empty() && !right.empty()){
         sensor_msgs::ImagePtr msg_left = cv_bridge::CvImage(std_msgs::Header(),
@@ -210,17 +196,8 @@ void StereoDriver::ImageCallback(uvc_frame_t *frame){
         stereo_image_id_++;
     }
 
-    ///*
-    if(!RGB.empty()){
-        sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(),
-                                                  "bgr8", RGB).toImageMsg();
-        pub_rgb_.publish(msg);
-    }
-    //*/
-
     uvc_free_frame(greyLeft);
     uvc_free_frame(greyRight);
-    uvc_free_frame(frameRGB);
 }
 
 void StereoDriver::ImageCallbackAdapter(uvc_frame_t *frame, void *ptr){

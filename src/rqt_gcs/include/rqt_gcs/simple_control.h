@@ -30,8 +30,8 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
-#include <query_msgs/Door.h>
-#include <query_msgs/Target.h>
+#include <lcar_msgs/Door.h>
+#include <lcar_msgs/Target.h>
 
 #include <rqt_gcs/access_point.h>
 
@@ -123,7 +123,7 @@ public:
       @param alt Altitude
     */
     void SetWayPoint(double lat, double lon, int alt);
-
+    
     /**
       Overloaded function for SetWayPoint(double lat, double lon, int alt) that
       accepts a string parameter as the coordinate.
@@ -138,7 +138,7 @@ public:
       @param target_point query_msgs::Target building location
 
     */
-    void ScoutBuilding(query_msgs::Target msg_target);
+    void ScoutBuilding(lcar_msgs::Target msg_target);
 
     /**
       Send a list of waypoints (mission) to the UAV.
@@ -227,8 +227,9 @@ public:
     /**
       Manage the UAV and ensure that it is stable
     */
-    void SendDoorResponse(query_msgs::Door msg_answer) { pub_door_answer.publish(msg_answer); }
+    void SendDoorResponse(lcar_msgs::Door msg_answer) { pub_door_answer.publish(msg_answer); }
 
+    
     //Getter Functions
     mavros_msgs::State GetState() { return state; }
     mavros_msgs::BatteryStatus GetBatteryStatus() { return battery; }
@@ -237,7 +238,7 @@ public:
     int GetDistanceToWP() { return CalculateDistance(pose_target, pose_local); }
     float GetMissionProgress();
     std::vector<AccessPoint>* GetRefAccessPoints() { return &access_pts; }
-    std::vector<query_msgs::Door>* GetDoorQueries() { return &queries_door; }
+    std::vector<lcar_msgs::Door>* GetDoorQueries() { return &queries_door; }
 
 private:
     void InitialSetup();
@@ -265,14 +266,14 @@ private:
 
       @param target_point   Center point for target building path generation
     */
-    nav_msgs::Path CircleShape(query_msgs::Target target_point);
+    nav_msgs::Path CircleShape(lcar_msgs::Target target_point);
 
     /**
       Manage the UAV and ensure that it completes the mission
 
       @param index The current point number the quad is traveling to.
     */
-    nav_msgs::Path DiamondShape(query_msgs::Target target_point);
+    nav_msgs::Path DiamondShape(lcar_msgs::Target target_point);
 
     //Callback Prototypes
     void StateCallback(const mavros_msgs::State& msg_state) { state = msg_state; }
@@ -284,18 +285,24 @@ private:
     void NavSatFixCallback(const sensor_msgs::NavSatFix& msg_gps) { pos_global = msg_gps; }
     void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) { pose_local = msg_pos.pose; }
     void DepthCallback(const std_msgs::Float64& msg_depth){ object_distance = msg_depth;}
-    void DoorQueryCallback(const query_msgs::Door& msg_query){ queries_door.push_back(msg_query); }
-    void DetectionCallback(const sensor_msgs::ImageConstPtr& msg_detection)
+    //void DoorQueryCallback(const lcar_msgs::Door& msg_query){ queries_door.push_back(msg_query); }
+    void DetectionCallback(const lcar_msgs::DoorPtr& msg_detection)
     {
         AccessPoint new_point;
 
         new_point.SetTime(ros::Time::now());
-        new_point.SetImage(msg_detection);
+        sensor_msgs::Image framed_picture = (sensor_msgs::Image)msg_detection->framed_picture;
+        new_point.SetImage(framed_picture);
         new_point.SetAltitude(altitude_rel);
         new_point.SetHeading(heading_deg);
         new_point.SetLocation(pos_global);
         new_point.SetType(AccessPoint::door);
         access_pts.push_back(new_point);
+        
+        if(msg_detection->query){
+            queries_door.push_back(*msg_detection);
+        }
+        
     }
 
     //For returning Flight State Data to GCS
@@ -347,7 +354,7 @@ private:
                                     goal_prev = null;
     ros::Time                       last_request;
     std::vector<AccessPoint>        access_pts;
-    std::vector<query_msgs::Door>   queries_door;
+    std::vector<lcar_msgs::Door>   queries_door;
     bool                            collision = false;
 };
 

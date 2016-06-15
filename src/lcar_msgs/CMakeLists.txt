@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(query_msgs)
+project(lcar_msgs)
 
 find_package(catkin REQUIRED COMPONENTS message_generation
                                         sensor_msgs

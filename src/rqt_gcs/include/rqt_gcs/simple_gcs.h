@@ -6,8 +6,8 @@
 #include <rqt_gui_cpp/plugin.h>
 #include <rqt_gcs/simple_control.h>
 #include <rqt_gcs/settings_widget.h>
-#include <query_msgs/Door.h>
-#include <query_msgs/Target.h>
+#include <lcar_msgs/Door.h>
+#include <lcar_msgs/Target.h>
 #include <std_srvs/Empty.h>
 #include <pluginlib/class_list_macros.h>
 #include <iomanip>
@@ -62,7 +62,7 @@ namespace rqt_gcs{
     ros::Publisher pub;
     ros::NodeHandle nh;
     ros::ServiceServer server;
-    query_msgs::Door msg;
+    lcar_msgs::Door msg;
 
     image_transport::ImageTransport it_stereo{nh};
     void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
@@ -100,10 +100,10 @@ namespace rqt_gcs{
         void UpdateMsgQuery();
     int cur_uav = 0;
     int timeCounter = 0;
-    query_msgs::Target GetMission(std::string fileName);
+    lcar_msgs::Target GetMission(std::string fileName);
     SimpleControl quadrotors[NUM_UAV] = {};
     std::vector<AccessPoint> * accessPointsVector;
-    std::vector<query_msgs::Door> * pictureQueryVector;
+    std::vector<lcar_msgs::Door> * pictureQueryVector;
     //std::vector<sensor_msgs::Image> * pictureQueryVector;
 
     cv::Mat conversion_mat_;

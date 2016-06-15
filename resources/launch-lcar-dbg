@@ -22,14 +22,16 @@ function ctrl_c(){
 #
 #sleep 1s #give roscore time to launch fully (including launching rosmaster and rosout under different processes)
 
-rqt -v &
+#rqt &
 
-if [ $(lsusb | grep 'ID 2a0b:00f5' | wc -c) -eq 0 ]; then
-  wait # stereo camera not plugged in but the previous process already launched in the background. If we dont wait, we will exit prematurely
-else   # these all depend on the stereo camera being plugged in 
-  ROS_NAMESPACE=/UAV1/stereo_cam rosrun stereo_image_proc stereo_image_proc &
-  ROS_NAMESPACE=/UAV1            rosrun machine_vision stereo_driver &
-  ROS_NAMESPACE=/UAV1            rosrun machine_vision object_detection &
-
-  rosrun machine_vision disparity_view _topic:=/UAV1/stereo_cam/disparity
+if [ $(lsusb | grep 'ID 2a0b:00f5' | wc -c) -ne 0 ]; then
+    ROS_NAMESPACE=/UAV1            rosrun machine_vision stereo_driver &
+    ROS_NAMESPACE=/UAV1/stereo_cam rosrun stereo_image_proc stereo_image_proc &
+    ROS_NAMESPACE=/UAV1            rosrun machine_vision object_detection &
+    rosrun machine_vision disparity_view _topic:=/UAV1/stereo_cam/disparity
+elif [ $(ls /dev/video* | wc -c) -ne 0 ]; then
+    rosrun machine_vision camera_publisher _topic:=/UAV1/stereo_cam/left/image_rect &
+    ROS_NAMESPACE=/UAV1 rosrun machine_vision object_detection
+#else
+    #wait
 fi 

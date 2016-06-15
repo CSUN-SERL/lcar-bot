@@ -9,7 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
             rqt_gui
             std_msgs
             cv_bridge
-            query_msgs
+            lcar_msgs
             mavros_msgs
             sensor_msgs
             rqt_gui_cpp

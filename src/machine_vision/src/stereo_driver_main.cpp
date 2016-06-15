@@ -12,7 +12,7 @@ int main(int argc, char **argv){
     std::string calib_file_right = "right.yaml";
     if(argc >= 3){
         calib_file_left = argv[2];
-        calib_file_left = argv [3];
+        calib_file_right = argv[3];
     }
 
     int vendor_id  = strtol("0x2a0b", NULL, 0); // leopard imaging vendor id

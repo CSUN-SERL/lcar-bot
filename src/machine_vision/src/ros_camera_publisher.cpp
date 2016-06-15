@@ -51,6 +51,7 @@ int main(int argc, char** argv)
         cap >> frame;
     // Check if grabbed frame is actually full with some content
         if(!frame.empty()) {
+            //don't change my color space! (rgb8)
             msg = cv_bridge::CvImage(std_msgs::Header(), "rgb8", frame).toImageMsg();
             pub.publish(msg);
             numFrames++;

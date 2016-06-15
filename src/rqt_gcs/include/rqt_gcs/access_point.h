@@ -22,7 +22,7 @@ public:
 
     //Setter Functions
     void SetTime(ros::Time t){ capture_time = t; }
-    void SetImage(sensor_msgs::ImageConstPtr img){ image = *img; }
+    void SetImage(sensor_msgs::Image img){ image = img; }
     void SetLocation(sensor_msgs::NavSatFix coord){ capture_location = coord; }
     void SetHeading(std_msgs::Float64 heading){ compass_heading = heading; }
     void SetAltitude(std_msgs::Float64 altitude){ this->altitude = altitude; }

@@ -183,6 +183,11 @@ namespace rqt_gcs
 
     void SimpleGCS::UpdateMsgQuery()
     {
+        if(!central_ui_.uavQueriesFame->isEnabled()){
+            
+            return;
+        }
+        
         for(int i = pictureMsgQWidgets_.size() - 1; i >= 0; i--)
         {
             central_ui_.PictureMsgLayout->removeWidget(pictureMsgQWidgets_.at(i));
@@ -192,7 +197,9 @@ namespace rqt_gcs
 
         }
         pictureMsgQWidgets_.clear();
-
+        
+        if(!central_ui_.uavQueriesFame->isEnabled())
+            return;
 
         pictureQueryVector = quadrotors[cur_uav].GetDoorQueries();
 
@@ -212,10 +219,10 @@ namespace rqt_gcs
             imgWidget[i] = new QWidget();
 
             //retrieve Query msg for door image
-            query_msgs::Door doorQuery = pictureQueryVector->at(i);
+            lcar_msgs::Door doorQuery = pictureQueryVector->at(i);
 
-            QImage image(doorQuery.picture.data.data(), doorQuery.picture.width, 
-                         doorQuery.picture.height, doorQuery.picture.step, 
+            QImage image(doorQuery.framed_picture.data.data(), doorQuery.framed_picture.width, 
+                         doorQuery.framed_picture.height, doorQuery.framed_picture.step, 
                          QImage::Format_RGB888);
 
             //set up the ui
@@ -242,14 +249,13 @@ namespace rqt_gcs
 
             central_ui_.PictureMsgLayout->addWidget(pictureMsgQWidgets_.at(i));
         }
-        
     }
 
     void SimpleGCS::AcceptDoorQuery(QWidget *qw)
     {
         // ROS_INFO_STREAM("Accepted");
         int index = central_ui_.PictureMsgLayout->indexOf(qw);
-        query_msgs::Door doormsg = pictureQueryVector->at(index);
+        lcar_msgs::Door doormsg = pictureQueryVector->at(index);
         // sensor_msgs::Image immsg = pictureQueryVector->at(index);
         // ROS_INFO_STREAM("door number " << index);
         pictureQueryVector->erase(pictureQueryVector->begin() + index);
@@ -267,7 +273,7 @@ namespace rqt_gcs
         // ROS_INFO_STREAM("Denyed");
 
         int index = central_ui_.PictureMsgLayout->indexOf(qw);
-        query_msgs::Door doormsg = pictureQueryVector->at(index);
+        lcar_msgs::Door doormsg = pictureQueryVector->at(index);
         // sensor_msgs::Image imgmsg = pictureQueryVector->at(index);
         //  ROS_INFO_STREAM("door number " << index);
         pictureQueryVector->erase(pictureQueryVector->begin() + index);
@@ -555,11 +561,11 @@ namespace rqt_gcs
         pfd_ui.widgetPFD->update();
     }
 
-    query_msgs::Target SimpleGCS::GetMission(std::string fileName)
+    lcar_msgs::Target SimpleGCS::GetMission(std::string fileName)
     {
 
         float pos_x, pos_y, pos_z, radius;
-        query_msgs::Target building;
+        lcar_msgs::Target building;
         std::ifstream fileIn(fileName);
         fileIn >> pos_x;
         fileIn >> pos_y;
@@ -581,6 +587,7 @@ namespace rqt_gcs
     {
         try
         {
+            //don't change my colorspace! (bgr8)
             cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(msg, "bgr8");
             conversion_mat_ = cv_ptr->image;
             QImage image(conversion_mat_.data, conversion_mat_.cols, conversion_mat_.rows, 

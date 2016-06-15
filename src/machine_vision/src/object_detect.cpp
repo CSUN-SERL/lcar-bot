@@ -16,13 +16,12 @@
 
 #include <iostream>
 #include <thread>
-#include <query_msgs/Door.h>
+#include <lcar_msgs/Door.h>
 
 using namespace std;
 using namespace cv;
 using namespace cv::ml;
 
-//image_transport::CameraPublisher pub_right_;
 ros::Publisher pub_mat_;
 ros::Publisher pub_query_;
 
@@ -78,12 +77,11 @@ void DrawLocations(cv::Mat & img, const std::vector< Rect > & found, const vecto
 
        for (int i = 0; loc != end; ++loc) {
                //Rect implementation used with hog.detectMultiScale
-           ROS_WARN_STREAM("weights: " << weights.at(i));
                rectangle(img, *loc, color, 2); 
         }
 }
 
-void ObjectCategorize(cv::Mat gray_image, cv::Mat color_image) {
+void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image) {
     if (!gray_image.empty()) {
         vector <double> weights;
         vector <Rect> detected_objects;
@@ -119,25 +117,30 @@ void ObjectCategorize(cv::Mat gray_image, cv::Mat color_image) {
             }
         }
         
-        DrawLocations(color_image, door_objects, door_weights, Scalar(0, 255, 0));
+        cv::Mat framed_image = color_image.clone();
+        DrawLocations(framed_image, door_objects, door_weights, Scalar(0, 255, 0));
         //imshow("view", image);
         //waitKey(1);
         if(door_objects.size() > 0){
             door_count++;
             sensor_msgs::ImagePtr door_img = cv_bridge::CvImage(std_msgs::Header()
-                                                       ,"rgb8", color_image).toImageMsg();
-            door_img->header.stamp = ros::Time::now();
-            pub_mat_.publish(door_img);
+                                                       ,"bgr8", color_image).toImageMsg();
+            sensor_msgs::ImagePtr framed_img = cv_bridge::CvImage(std_msgs::Header()
+                                                       ,"bgr8", framed_image).toImageMsg();
+            door_img->header.stamp = framed_img->header.stamp = ros::Time::now();
+            //pub_mat_.publish(framed_img);
             
+            //publish query message
+            lcar_msgs::Door door_query;
+            door_query.accepted = false;
+            door_query.framed_picture = *framed_img;
+            door_query.original_picture = *door_img;
             if(door_count % 5 == 0){
-                //publish query message
-                query_msgs::Door door_query;
-                door_query.accepted = false;
-                door_query.picture = *door_img;
-                pub_query_.publish(door_query);                
+                door_query.query = true;
             }
+
+            pub_query_.publish(door_query);                
         }
-        
     }
 }
 
@@ -146,7 +149,8 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
   try
   {
     cv::Mat gray_image = cv_bridge::toCvShare(msg, "mono8")->image;
-    cv::Mat color_image = cv_bridge::toCvCopy(msg, "rgb8")->image;
+    //don't change my colorspace! (bgr8))
+    cv::Mat color_image = cv_bridge::toCvCopy(msg, "bgr8")->image;
     ObjectCategorize(gray_image, color_image);
   }
   catch (cv_bridge::Exception& e)
@@ -189,8 +193,8 @@ int main (int argc, char** argv){
   hog_.winSize = Size(128, 256);
   hog_.setSVMDetector(hog_detector_);
 
-  pub_mat_ = nh.advertise<sensor_msgs::Image>("object_detection/access_point/door", 1);
-  pub_query_ = nh.advertise<query_msgs::Door>("object_detection/door/query", 1);
+  //pub_mat_ = nh.advertise<sensor_msgs::Image>("object_detection/access_point/door", 1);
+  pub_query_ = nh.advertise<lcar_msgs::Door>("object_detection/access_point/door", 1);
   
   std::string ns = ros::this_node::getNamespace();
   std::string topic = "stereo_cam/left/image_rect";

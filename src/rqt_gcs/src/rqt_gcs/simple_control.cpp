@@ -7,7 +7,7 @@ int main(int argc, char **argv)
 
     ros::Rate loop_rate(10); //10Hz
 
-    query_msgs::Target target_pt;
+    lcar_msgs::Target target_pt;
     target_pt.target_point.position.x = 0;
     target_pt.target_point.position.y = 0;
     target_pt.target_point.position.z = 2;
@@ -63,7 +63,7 @@ void SimpleControl::InitialSetup()
     pub_angular_vel       = nh.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
     pub_linear_vel        = nh.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_velocity/cmd_vel",QUEUE_SIZE);
     pub_setpoint_accel    = nh.advertise<geometry_msgs::Vector3Stamped>(ns + "/mavros/setpoint_accel/accel",QUEUE_SIZE);
-    pub_door_answer       = nh.advertise<query_msgs::Door>(ns + "/object_detection/door/answer",QUEUE_SIZE);
+    pub_door_answer       = nh.advertise<lcar_msgs::Door>(ns + "/object_detection/door/answer",QUEUE_SIZE);
 
     //Initialze Subscribers
     sub_state      = nh.subscribe(ns + "/mavros/state", QUEUE_SIZE, &SimpleControl::StateCallback, this);
@@ -75,8 +75,8 @@ void SimpleControl::InitialSetup()
     sub_pos_global = nh.subscribe(ns + "/mavros/global_position/global", QUEUE_SIZE, &SimpleControl::NavSatFixCallback, this);
     sub_pos_local  = nh.subscribe(ns + "/mavros/local_position/pose", QUEUE_SIZE, &SimpleControl::LocalPosCallback, this);
     sub_depth      = nh.subscribe(ns + "/object_avoidance/depth", QUEUE_SIZE, &SimpleControl::DepthCallback, this);
-    sub_door_query = nh.subscribe(ns + "/object_detection/door/query", QUEUE_SIZE, &SimpleControl::DoorQueryCallback, this);
-    sub_detection  = nh.subscribe(ns + "/object_detection/access_point", QUEUE_SIZE, &SimpleControl::DetectionCallback, this);
+    //sub_door_query = nh.subscribe(ns + "/object_detection/door/query", QUEUE_SIZE, &SimpleControl::DoorQueryCallback, this);
+    sub_detection  = nh.subscribe(ns + "/object_detection/access_point/door", QUEUE_SIZE, &SimpleControl::DetectionCallback, this);
 
     //Set Home position
     pose_home.position.x = pose_home.position.y = pose_home.position.z = 0;
@@ -236,7 +236,7 @@ std::string SimpleControl::GetLocation()
     return std::to_string(lat) + "," + std::to_string(lon);
 }
 
-void SimpleControl::ScoutBuilding(query_msgs::Target msg_target)
+void SimpleControl::ScoutBuilding(lcar_msgs::Target msg_target)
 {
     this->EnableOffboard();
     //Update the target location
@@ -475,7 +475,7 @@ float SimpleControl::GetMissionProgress()
     return progress;
 }
 
-nav_msgs::Path SimpleControl::CircleShape(query_msgs::Target target_point){
+nav_msgs::Path SimpleControl::CircleShape(lcar_msgs::Target target_point){
     geometry_msgs::PoseStamped pose_new_stamped;
     geometry_msgs::Pose pose_new;
     geometry_msgs::Point point_center = target_point.target_point.position;
@@ -504,7 +504,7 @@ nav_msgs::Path SimpleControl::CircleShape(query_msgs::Target target_point){
     return mission;
 }
 
-nav_msgs::Path SimpleControl::DiamondShape(query_msgs::Target target_point)
+nav_msgs::Path SimpleControl::DiamondShape(lcar_msgs::Target target_point)
 {
     nav_msgs::Path mission;
     geometry_msgs::PoseStamped pose_stamped;
