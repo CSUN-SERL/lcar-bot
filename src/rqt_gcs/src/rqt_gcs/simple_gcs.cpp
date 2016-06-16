@@ -509,6 +509,7 @@ namespace rqt_gcs
         cur_uav = quadNumber;
         sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(quadNumber + 1) + "/stereo_cam/left/image_rect", 
                                          1, &SimpleGCS::ImageCallback, this);
+        UpdateMsgQuery();
     }
 
     void SimpleGCS::ArmSelectedQuad()
