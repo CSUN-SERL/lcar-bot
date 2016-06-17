@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <boost/filesystem/operations.hpp>
 
 namespace rqt_gcs
 {
@@ -252,23 +253,11 @@ namespace rqt_gcs
 
     void SimpleGCS::AcceptDoorQuery(QWidget *qw)
     {
-        // ROS_INFO_STREAM("Accepted");
         int index = central_ui_.PictureMsgLayout->indexOf(qw);
-        lcar_msgs::DoorPtr doormsg = pictureQueryVector->at(index);
+        lcar_msgs::DoorPtr door = pictureQueryVector->at(index);
         
-        doormsg->accepted = true;
-        cv::Mat image = cv_bridge::toCvCopy((sensor_msgs::Image)doormsg->original_picture)->image;
-        
-        std::string file = "img_" + std::to_string(quadrotors[cur_uav].rejected_images) + ".jpg";
-        std::string path = images_path_.toStdString();
-        path += "/uav_" + std::to_string(cur_uav) + "/door/accepted";
-        struct stat st;
-        if(stat(&path[0], &st) == -1)
-            mkdir(&path[0], 0700);
-        
-        quadrotors[cur_uav].accepted_images++;
-        
-        cv::imwrite(path + "/" + file, image);
+        saveImage(true, AccessPoint::door,
+            cv_bridge::toCvCopy((sensor_msgs::Image)door->original_picture, "rgb8")->image);
         
         // ROS_INFO_STREAM("door number " << index);
         pictureQueryVector->erase(pictureQueryVector->begin() + index);
@@ -276,35 +265,19 @@ namespace rqt_gcs
 
         central_ui_.PictureMsgLayout->removeWidget(qw);
         delete qw;
-
+        
+         door->accepted = true;
         //quadrotors[cur_uav].SendDoorResponse(doormsg);
     }
-
+    
     void SimpleGCS::DenyDoorQuery(QWidget * qw)
     {
-        // ROS_INFO_STREAM("Denyed");
-
         int index = central_ui_.PictureMsgLayout->indexOf(qw);
-        lcar_msgs::DoorPtr doormsg = pictureQueryVector->at(index);
+        lcar_msgs::DoorPtr door = pictureQueryVector->at(index);
         
-        cv::Mat image = cv_bridge::toCvCopy((sensor_msgs::Image)doormsg->original_picture)->image;
-        std::string file = "img_" + std::to_string(quadrotors[cur_uav].rejected_images) + ".jpg";
-        std::string path = images_path_.toStdString();
-        path += "/uav_" + std::to_string(cur_uav) + "/door/rejected";
-        struct stat st;
-        if(stat(&path[0], &st) == -1)
-            mkdir(&path[0], 0700);
+        saveImage(false, AccessPoint::door,
+            cv_bridge::toCvCopy((sensor_msgs::Image)door->original_picture, "rgb8")->image);
         
-        quadrotors[cur_uav].rejected_images++;
-        
-        bool success = cv::imwrite(path + "/" +file, image);
-        if(!success)
-            ROS_WARN_STREAM( "failed to write image to: " << path + "/" + file
-                    << ". The directory might not exist?");
-        
-//        
-        
-        //      sensor_msgs::Image imgmsg = pictureQueryVector->at(index);
         //  ROS_INFO_STREAM("door number " << index);
         pictureQueryVector->erase(pictureQueryVector->begin() + index);
         pictureMsgQWidgets_.erase(pictureMsgQWidgets_.begin() + index);
@@ -312,9 +285,39 @@ namespace rqt_gcs
         central_ui_.PictureMsgLayout->removeWidget(qw);
         delete qw;
         
-        //doormsg.accepted = false;
+        door->accepted = false;
         //quadrotors[cur_uav].SendDoorResponse(doormsg);
 
+    }
+    
+    void SimpleGCS::saveImage(bool img_accepted, AccessPoint::ObjectType type, const cv::Mat& image)
+    {
+        std::string ap_type;
+        if(type == AccessPoint::door)
+            ap_type = "door";
+        else if(type == AccessPoint::window)
+            ap_type = "window";
+        else // "hole"
+            ap_type = "hole";
+        
+        std::string path = image_root_path_.toStdString(), file;
+        if(img_accepted)
+        {
+            path += "/accepted/" + ap_type + "/uav_" + std::to_string(cur_uav);
+            file = "img_" + std::to_string(quadrotors[cur_uav].accepted_images++) + ".jpg";
+        }
+        else 
+        {
+            path += "/rejected/door/uav_" + std::to_string(cur_uav);
+            file = "img_" + std::to_string(quadrotors[cur_uav].rejected_images++) + ".jpg";
+        }
+                   
+        if(!boost::filesystem::exists(path))
+            boost::filesystem::create_directories(path);
+        
+        if(!cv::imwrite(path + "/" + file, image))
+            ROS_WARN_STREAM( "failed to write image to: " << path + "/" + file
+                    << ". The directory might not exist?");
     }
 
     void SimpleGCS::ExecutePlay()
@@ -647,8 +650,8 @@ namespace rqt_gcs
         
         QString path = getenv("HOME");
         path += "/Pictures/LCAR_Bot";
-        images_path_ = settings_->value("machine_learning/save_path", path).toString();
-        ROS_INFO_STREAM("images root directory: " << images_path_.toStdString());
+        image_root_path_ = settings_->value("machine_learning/save_path", path).toString();
+        ROS_INFO_STREAM("images root directory: " << image_root_path_.toStdString());
         
         settings_->endGroup();
         
