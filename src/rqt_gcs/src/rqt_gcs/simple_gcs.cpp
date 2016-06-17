@@ -1,5 +1,8 @@
 #include <rqt_gcs/simple_gcs.h>
 #include <QDesktopWidget>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 namespace rqt_gcs
 {
@@ -251,19 +254,22 @@ namespace rqt_gcs
     {
         // ROS_INFO_STREAM("Accepted");
         int index = central_ui_.PictureMsgLayout->indexOf(qw);
-//        lcar_msgs::DoorPtr doormsg = pictureQueryVector->at(index);
-//        
-//        doormsg->accepted = true;
-//        cv::Mat image = cv_bridge::toCvCopy((sensor_msgs::Image)doormsg->original_picture)->image;
-//        
-//        std::string full_path = images_path_.toStdString() + "/uav_" 
-//                + std::to_string(cur_uav) + "/door/accepted/img"
-//                + std::to_string(quadrotors[cur_uav].accepted_images) + ".png";
-//        
-//        quadrotors[cur_uav].accepted_images++;
-//        
-//        cv::imwrite(full_path, image);
-//        
+        lcar_msgs::DoorPtr doormsg = pictureQueryVector->at(index);
+        
+        doormsg->accepted = true;
+        cv::Mat image = cv_bridge::toCvCopy((sensor_msgs::Image)doormsg->original_picture)->image;
+        
+        std::string file = "img_" + std::to_string(quadrotors[cur_uav].rejected_images) + ".jpg";
+        std::string path = images_path_.toStdString();
+        path += "/uav_" + std::to_string(cur_uav) + "/door/accepted";
+        struct stat st;
+        if(stat(&path[0], &st) == -1)
+            mkdir(&path[0], 0700);
+        
+        quadrotors[cur_uav].accepted_images++;
+        
+        cv::imwrite(path + "/" + file, image);
+        
         // ROS_INFO_STREAM("door number " << index);
         pictureQueryVector->erase(pictureQueryVector->begin() + index);
         pictureMsgQWidgets_.erase(pictureMsgQWidgets_.begin() + index);
@@ -281,30 +287,21 @@ namespace rqt_gcs
         int index = central_ui_.PictureMsgLayout->indexOf(qw);
         lcar_msgs::DoorPtr doormsg = pictureQueryVector->at(index);
         
-//        cv::Mat image = cv_bridge::toCvCopy((sensor_msgs::Image)doormsg->original_picture, "bgr8")->image;
-//        std::string full_path = 
-//                //images_path_.toStdString() + "/uav_" 
-//                //+ std::to_string(cur_uav) + "/door/rejected/img" 
-//                //+ std::to_string(quadrotors[cur_uav].rejected_images) + ".png";
-//                "img" + std::to_string(quadrotors[cur_uav].rejected_images) + ".png";
-//                
-//        
-//        quadrotors[cur_uav].rejected_images++;
-//        
-//        bool success = cv::imwrite(full_path, image);
-//        if(!success)
-//            ROS_WARN_STREAM( "failed to write image to: " << full_path 
-//                    << " using OpenCV. Trying with regular c++ instead.");
-//        else
-//        {
-//           unsigned char* imgdata = image.data;
-//           size_t         imgdata_size = image.step[0] * image.rows;
-//
-//           std::ofstream imgout(full_path);
-//
-//           imgout.write(reinterpret_cast<char*>(imgdata), imgdata_size);
-//           imgout.close(); 
-//        }
+        cv::Mat image = cv_bridge::toCvCopy((sensor_msgs::Image)doormsg->original_picture)->image;
+        std::string file = "img_" + std::to_string(quadrotors[cur_uav].rejected_images) + ".jpg";
+        std::string path = images_path_.toStdString();
+        path += "/uav_" + std::to_string(cur_uav) + "/door/rejected";
+        struct stat st;
+        if(stat(&path[0], &st) == -1)
+            mkdir(&path[0], 0700);
+        
+        quadrotors[cur_uav].rejected_images++;
+        
+        bool success = cv::imwrite(path + "/" +file, image);
+        if(!success)
+            ROS_WARN_STREAM( "failed to write image to: " << path + "/" + file
+                    << ". The directory might not exist?");
+        
 //        
         
         //      sensor_msgs::Image imgmsg = pictureQueryVector->at(index);
@@ -648,8 +645,8 @@ namespace rqt_gcs
         else
             toggleMachineLearningMode(false);
         
-        QString user = (QString) getenv("USER");
-        QString path = "/home/" + user + "/Pictures/LCAR_Bot";
+        QString path = getenv("HOME");
+        path += "/Pictures/LCAR_Bot";
         images_path_ = settings_->value("machine_learning/save_path", path).toString();
         ROS_INFO_STREAM("images root directory: " << images_path_.toStdString());
         
