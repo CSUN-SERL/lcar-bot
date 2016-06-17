@@ -198,15 +198,15 @@ namespace rqt_gcs
 
         pictureQueryVector = quadrotors[cur_uav].GetDoorQueries();
 
-        int new_queries = pictureQueryVector->size();
+        int num_queries = pictureQueryVector->size();
 
-        QWidget * pmWidgets[new_queries];
-        Ui::PictureMsgWidget pmUiWidgets[new_queries];
-        QWidget * imgWidget[new_queries];
-        Ui::ImageViewWidget imgUiWidget[new_queries];
+        QWidget * pmWidgets[num_queries];
+        Ui::PictureMsgWidget pmUiWidgets[num_queries];
+        QWidget * imgWidget[num_queries];
+        Ui::ImageViewWidget imgUiWidget[num_queries];
 
 
-        for(int i = 0; i < new_queries; i++)
+        for(int i = 0; i < num_queries; i++)
         {
             //add widget to the list
             pictureMsgQWidgets_.push_back(pmWidgets[i]);
@@ -215,10 +215,10 @@ namespace rqt_gcs
             imgWidget[i] = new QWidget();
 
             //retrieve Query msg for door image
-            lcar_msgs::Door doorQuery = pictureQueryVector->at(i);
+            lcar_msgs::DoorPtr doorQuery = pictureQueryVector->at(i);
 
-            QImage image(doorQuery.framed_picture.data.data(), doorQuery.framed_picture.width, 
-                         doorQuery.framed_picture.height, doorQuery.framed_picture.step, 
+            QImage image(doorQuery->framed_picture.data.data(), doorQuery->framed_picture.width, 
+                         doorQuery->framed_picture.height, doorQuery->framed_picture.step, 
                          QImage::Format_RGB888);
 
             //set up the ui
@@ -251,8 +251,19 @@ namespace rqt_gcs
     {
         // ROS_INFO_STREAM("Accepted");
         int index = central_ui_.PictureMsgLayout->indexOf(qw);
-        lcar_msgs::Door doormsg = pictureQueryVector->at(index);
-        // sensor_msgs::Image immsg = pictureQueryVector->at(index);
+//        lcar_msgs::DoorPtr doormsg = pictureQueryVector->at(index);
+//        
+//        doormsg->accepted = true;
+//        cv::Mat image = cv_bridge::toCvCopy((sensor_msgs::Image)doormsg->original_picture)->image;
+//        
+//        std::string full_path = images_path_.toStdString() + "/uav_" 
+//                + std::to_string(cur_uav) + "/door/accepted/img"
+//                + std::to_string(quadrotors[cur_uav].accepted_images) + ".png";
+//        
+//        quadrotors[cur_uav].accepted_images++;
+//        
+//        cv::imwrite(full_path, image);
+//        
         // ROS_INFO_STREAM("door number " << index);
         pictureQueryVector->erase(pictureQueryVector->begin() + index);
         pictureMsgQWidgets_.erase(pictureMsgQWidgets_.begin() + index);
@@ -260,8 +271,7 @@ namespace rqt_gcs
         central_ui_.PictureMsgLayout->removeWidget(qw);
         delete qw;
 
-        //doormsg.accepted = true;
-        // quadrotors[cur_uav].SendDoorResponse(doormsg);
+        //quadrotors[cur_uav].SendDoorResponse(doormsg);
     }
 
     void SimpleGCS::DenyDoorQuery(QWidget * qw)
@@ -269,15 +279,42 @@ namespace rqt_gcs
         // ROS_INFO_STREAM("Denyed");
 
         int index = central_ui_.PictureMsgLayout->indexOf(qw);
-        lcar_msgs::Door doormsg = pictureQueryVector->at(index);
-        // sensor_msgs::Image imgmsg = pictureQueryVector->at(index);
+        lcar_msgs::DoorPtr doormsg = pictureQueryVector->at(index);
+        
+//        cv::Mat image = cv_bridge::toCvCopy((sensor_msgs::Image)doormsg->original_picture, "bgr8")->image;
+//        std::string full_path = 
+//                //images_path_.toStdString() + "/uav_" 
+//                //+ std::to_string(cur_uav) + "/door/rejected/img" 
+//                //+ std::to_string(quadrotors[cur_uav].rejected_images) + ".png";
+//                "img" + std::to_string(quadrotors[cur_uav].rejected_images) + ".png";
+//                
+//        
+//        quadrotors[cur_uav].rejected_images++;
+//        
+//        bool success = cv::imwrite(full_path, image);
+//        if(!success)
+//            ROS_WARN_STREAM( "failed to write image to: " << full_path 
+//                    << " using OpenCV. Trying with regular c++ instead.");
+//        else
+//        {
+//           unsigned char* imgdata = image.data;
+//           size_t         imgdata_size = image.step[0] * image.rows;
+//
+//           std::ofstream imgout(full_path);
+//
+//           imgout.write(reinterpret_cast<char*>(imgdata), imgdata_size);
+//           imgout.close(); 
+//        }
+//        
+        
+        //      sensor_msgs::Image imgmsg = pictureQueryVector->at(index);
         //  ROS_INFO_STREAM("door number " << index);
         pictureQueryVector->erase(pictureQueryVector->begin() + index);
         pictureMsgQWidgets_.erase(pictureMsgQWidgets_.begin() + index);
 
         central_ui_.PictureMsgLayout->removeWidget(qw);
         delete qw;
-
+        
         //doormsg.accepted = false;
         //quadrotors[cur_uav].SendDoorResponse(doormsg);
 
@@ -605,10 +642,17 @@ namespace rqt_gcs
         settings_ = new QSettings("SERL", "LCAR_Bot");
         
         settings_->beginGroup("general_tab");
+        
         if(settings_->value("machine_learning","online").toString() == "online")
             toggleMachineLearningMode(true);
         else
             toggleMachineLearningMode(false);
+        
+        QString user = (QString) getenv("USER");
+        QString path = "/home/" + user + "/Pictures/LCAR_Bot";
+        images_path_ = settings_->value("machine_learning/save_path", path).toString();
+        ROS_INFO_STREAM("images root directory: " << images_path_.toStdString());
+        
         settings_->endGroup();
         
         //connect settings button to settings widget

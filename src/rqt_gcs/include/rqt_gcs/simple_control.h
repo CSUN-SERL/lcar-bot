@@ -77,14 +77,17 @@ public:
     SimpleControl(int uav_id);
     ~SimpleControl();
     
+    int accepted_images = 0,
+        rejected_images = 0;
+    
     /**
      * set online mode on or off
      * 
-     * @param online: pass true for online, false for offline
+     * @param value: pass true for online, false for offline
      */
-    bool setOnlineMode(bool online)
+    bool setOnlineMode(bool value)
     {
-       online_mode = online;
+       online_mode = value;
     }
     /**
       Arm or disarm the UAV.
@@ -247,7 +250,7 @@ public:
     int GetDistanceToWP() { return CalculateDistance(pose_target, pose_local); }
     float GetMissionProgress();
     std::vector<AccessPoint>* GetRefAccessPoints() { return &access_pts; }
-    std::vector<lcar_msgs::Door>* GetDoorQueries() { return &queries_door; }
+    std::vector<lcar_msgs::DoorPtr>* GetDoorQueries() { return &queries_door; }
 
 private:
     void InitialSetup();
@@ -300,16 +303,15 @@ private:
         AccessPoint new_point;
 
         new_point.SetTime(ros::Time::now());
-        sensor_msgs::Image framed_picture = (sensor_msgs::Image)msg_detection->framed_picture;
-        new_point.SetImage(framed_picture);
+        new_point.SetImage((sensor_msgs::Image)msg_detection->framed_picture);
         new_point.SetAltitude(altitude_rel);
         new_point.SetHeading(heading_deg);
         new_point.SetLocation(pos_global);
         new_point.SetType(AccessPoint::door);
         access_pts.push_back(new_point);
-        
+                
         if(online_mode && msg_detection->query){
-            queries_door.push_back(*msg_detection);
+            queries_door.push_back(msg_detection);
         }
         
     }
@@ -363,10 +365,9 @@ private:
                                     goal_prev = null;
     ros::Time                       last_request;
     std::vector<AccessPoint>        access_pts;
-    std::vector<lcar_msgs::Door>    queries_door;
-    bool                            collision = false;
-    bool                            online_mode = true;
-    
+    std::vector<lcar_msgs::DoorPtr> queries_door;
+    bool                            collision = false,
+                                    online_mode = true;
 };
 
 #endif

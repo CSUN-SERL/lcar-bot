@@ -103,7 +103,7 @@ namespace rqt_gcs{
     lcar_msgs::Target GetMission(std::string fileName);
     SimpleControl quadrotors[NUM_UAV] = {};
     std::vector<AccessPoint> * accessPointsVector;
-    std::vector<lcar_msgs::Door> * pictureQueryVector;
+    std::vector<lcar_msgs::DoorPtr> * pictureQueryVector;
 
    
     cv::Mat conversion_mat_;
@@ -149,6 +149,7 @@ namespace rqt_gcs{
     QSignalMapper* denyDoorMapper;
     
     QSettings *settings_;
+    QString images_path_;
   };
 } // name space
 #endif // my_namespace__my_plugin_H

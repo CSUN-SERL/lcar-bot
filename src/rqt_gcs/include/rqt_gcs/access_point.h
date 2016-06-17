@@ -38,7 +38,7 @@ public:
 
 private:
     ros::Time               capture_time;        //Time of image capture
-    sensor_msgs::Image image;               //Access Point image
+    sensor_msgs::Image      image;               //Access Point image
     sensor_msgs::NavSatFix  capture_location;    //GPS location at time of image capture
     std_msgs::Float64       compass_heading;
     std_msgs::Float64       altitude;
