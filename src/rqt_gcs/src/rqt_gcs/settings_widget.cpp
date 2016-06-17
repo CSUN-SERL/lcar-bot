@@ -274,7 +274,7 @@ namespace rqt_gcs
         //writeObjectDetectionTabSettings();
         
         if(ml_state_ != ml_state_previous)
-            emit toggleMachineLearningMode(widget_.online_btn->isChecked());
+            emit toggleMachineLearningMode(widget_.online_btn->isEnabled());
     
         emit dismissMe();
     }
@@ -292,7 +292,7 @@ namespace rqt_gcs
             widget_.frequency_groupbox->setEnabled(true);
 
         std::cout << "frequency group "
-                << (widget_.nominal_btn->isChecked() ? "disabled" : "enabled")
+                << (widget_.nominal_btn->isEnabled() ? "enabled" : "disabled")
                 << std::endl;
     }
 
@@ -304,7 +304,7 @@ namespace rqt_gcs
             widget_.interval_text_box->setEnabled(false);
 
         std::cout << "interval text box "
-                << (widget_.interval_btn->isChecked() ? "enabled" : "disabled")
+                << (widget_.interval_btn->isEnabled() ? "enabled" : "disabled")
                 << std::endl;
     }
 
@@ -316,7 +316,7 @@ namespace rqt_gcs
             widget_.length_text_box->setEnabled(false);
 
         std::cout << "length text box "
-                << (widget_.length_check_box->isChecked() ? "enabled" : "disabled")
+                << (widget_.length_check_box->isEnabled() ? "enabled" : "disabled")
                 << std::endl;
     }
     

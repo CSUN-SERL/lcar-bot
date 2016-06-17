@@ -10,7 +10,7 @@ namespace rqt_gcs
 
     SimpleGCS::SimpleGCS()
     : rqt_gui_cpp::Plugin()
-    , widget_(0)
+    , widget_(nullptr)
     , settings_widget_(nullptr)
     {
         //Constructor is called first before initPlugin function
@@ -107,6 +107,13 @@ namespace rqt_gcs
         
         initializeSettings();
     }
+    
+    int SimpleGCS::getNumUav()
+    {
+        //TODO
+            //set NUM_UAV macro according to the number 
+            //of uav's identified in the global namespace(?)
+    }
 
     //Timed update of for the GCS
 
@@ -194,9 +201,8 @@ namespace rqt_gcs
         {
             central_ui_.PictureMsgLayout->removeWidget(pictureMsgQWidgets_.at(i));
             delete pictureMsgQWidgets_.at(i);
-            pictureMsgQWidgets_.at(i) = NULL;
+            pictureMsgQWidgets_.at(i) = nullptr;
             pictureMsgQWidgets_.pop_back();
-
         }
         pictureMsgQWidgets_.clear();
 
@@ -208,7 +214,6 @@ namespace rqt_gcs
         Ui::PictureMsgWidget pmUiWidgets[num_queries];
         QWidget * imgWidget[num_queries];
         Ui::ImageViewWidget imgUiWidget[num_queries];
-
 
         for(int i = 0; i < num_queries; i++)
         {
@@ -287,7 +292,6 @@ namespace rqt_gcs
         
         door->accepted = false;
         //quadrotors[cur_uav].SendDoorResponse(doormsg);
-
     }
     
     void SimpleGCS::saveImage(bool img_accepted, AccessPoint::ObjectType type, const cv::Mat& image)
@@ -308,7 +312,7 @@ namespace rqt_gcs
         }
         else 
         {
-            path += "/rejected/door/uav_" + std::to_string(cur_uav);
+            path += "/rejected/" + ap_type + "/uav_" + std::to_string(cur_uav);
             file = "img_" + std::to_string(quadrotors[cur_uav].rejected_images++) + ".jpg";
         }
                    
@@ -512,7 +516,6 @@ namespace rqt_gcs
             }
             connect(signal_mapper2, SIGNAL(mapped(QWidget*)), 
                     this, SLOT(DeleteAccessPoint(QWidget*)));
-
         }
 
         // show the menu
@@ -537,8 +540,6 @@ namespace rqt_gcs
 
         apmUi_.AccessPointMenuLayout->removeWidget(w);
         delete w;
-
-
     }
 
     void SimpleGCS::QuadSelect(int quadNumber)
@@ -692,13 +693,13 @@ namespace rqt_gcs
         settings_widget_ = nullptr;
     }
     
-    void SimpleGCS::toggleMachineLearningMode(bool online)
+    void SimpleGCS::toggleMachineLearningMode(bool toggle)
     {
-        central_ui_.uavQueriesFame->setVisible(online);
-        central_ui_.uavQueriesFame->setEnabled(online);
+        central_ui_.uavQueriesFame->setVisible(toggle);
+        central_ui_.uavQueriesFame->setEnabled(toggle);
         
         for(int i = 0; i < NUM_UAV; i++)
-            quadrotors[i].setOnlineMode(online);
+            quadrotors[i].setOnlineMode(toggle);
     }
 
 } // namespace

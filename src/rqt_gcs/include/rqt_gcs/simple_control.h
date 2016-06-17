@@ -310,10 +310,8 @@ private:
         new_point.SetType(AccessPoint::door);
         access_pts.push_back(new_point);
                 
-        if(online_mode && msg_detection->query){
+        if(online_mode && msg_detection->query)
             queries_door.push_back(msg_detection);
-        }
-        
     }
 
     //For returning Flight State Data to GCS

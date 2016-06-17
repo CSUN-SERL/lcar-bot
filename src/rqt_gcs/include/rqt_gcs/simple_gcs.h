@@ -68,6 +68,7 @@ namespace rqt_gcs{
     void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
     void initializeSettings();
+    int getNumUav();
     
     virtual void initPlugin(qt_gui_cpp::PluginContext& context);
     virtual void shutdownPlugin();
@@ -97,7 +98,7 @@ namespace rqt_gcs{
 
   private:
     void UpdatePFD();
-        void UpdateMsgQuery();
+    void UpdateMsgQuery();
     int cur_uav = 0;
     int timeCounter = 0;
     lcar_msgs::Target GetMission(std::string fileName);
