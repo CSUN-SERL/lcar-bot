@@ -274,7 +274,7 @@ namespace rqt_gcs
         //writeObjectDetectionTabSettings();
         
         if(ml_state_ != ml_state_previous)
-            emit toggleMachineLearningMode(widget_.online_btn->isEnabled());
+            emit toggleMachineLearningMode(widget_.online_btn->isChecked());
     
         emit dismissMe();
     }
@@ -286,22 +286,16 @@ namespace rqt_gcs
 
     void SettingsWidget::toggleFrequencyGroup()
     {
-        if(widget_.nominal_btn->isChecked())
-            widget_.frequency_groupbox->setEnabled(false);
-        else
-            widget_.frequency_groupbox->setEnabled(true);
+        widget_.frequency_groupbox->setEnabled(!widget_.nominal_btn->isChecked());
 
         std::cout << "frequency group "
-                << (widget_.nominal_btn->isEnabled() ? "enabled" : "disabled")
+                << (widget_.frequency_groupbox->isEnabled() ? "enabled" : "disabled")
                 << std::endl;
     }
 
     void SettingsWidget::toggleIntervalTextBox()
     {
-        if(widget_.interval_btn->isChecked())
-            widget_.interval_text_box->setEnabled(true);
-        else
-            widget_.interval_text_box->setEnabled(false);
+        widget_.interval_text_box->setEnabled(widget_.interval_btn->isChecked()); 
 
         std::cout << "interval text box "
                 << (widget_.interval_btn->isEnabled() ? "enabled" : "disabled")
@@ -310,10 +304,7 @@ namespace rqt_gcs
 
     void SettingsWidget::toggleLengthTextBox()
     {
-        if(widget_.length_check_box->isChecked())
-            widget_.length_text_box->setEnabled(true);
-        else
-            widget_.length_text_box->setEnabled(false);
+        widget_.length_text_box->setEnabled(widget_.length_check_box->isChecked());
 
         std::cout << "length text box "
                 << (widget_.length_check_box->isEnabled() ? "enabled" : "disabled")

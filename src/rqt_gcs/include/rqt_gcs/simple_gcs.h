@@ -45,8 +45,7 @@
 #include <QMainWindow>
 #include <QSignalMapper>
 
-#define NUM_UAV 2 //Total number of UAV's in the system
-
+#define MAX_UAV 100 // the total number of UAV's manageable by our system
 
 
 namespace rqt_gcs{
@@ -68,7 +67,6 @@ namespace rqt_gcs{
     void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
     void initializeSettings();
-    int getNumUav();
     
     virtual void initPlugin(qt_gui_cpp::PluginContext& context);
     virtual void shutdownPlugin();
@@ -99,12 +97,16 @@ namespace rqt_gcs{
   private:
     void UpdatePFD();
     void UpdateMsgQuery();
+    lcar_msgs::Target GetMission(std::string fileName);
+    void saveImage(bool, std::string, const cv::Mat&);
+    int setNUM_UAV();
+    
     int cur_uav = 0;
     int timeCounter = 0;
-    lcar_msgs::Target GetMission(std::string fileName);
-    void saveImage(bool, AccessPoint::ObjectType, const cv::Mat&);
+    int NUM_UAV; //Total number of UAV's in the system
     
-    SimpleControl quadrotors[NUM_UAV] = {};
+    
+    std::vector<SimpleControl*> quadrotors;
     std::vector<AccessPoint> * accessPointsVector;
     std::vector<lcar_msgs::DoorPtr> * pictureQueryVector;
 
@@ -120,7 +122,7 @@ namespace rqt_gcs{
     Ui::ImageViewWidget ivUi_;
     Ui::PFDWidget pfd_ui;
     Ui::centralWidget central_ui_;
-    Ui::UAVConditionWidget uavCondWidgetArr[NUM_UAV];
+    std::vector<Ui::UAVConditionWidget*> uavCondWidgetArr;
     Ui::AccessPointsMenuWidget apmUi_;
     Ui::PictureMsgWidget pmUi_;
 
@@ -129,7 +131,7 @@ namespace rqt_gcs{
     QWidget* uavQuestionWidget_;
     QWidget* uavStatWidget_;
     QWidget* imageViewWidget_;
-    QWidget* uavListWidgetArr[NUM_UAV];
+    std::vector<QWidget*> uavListWidgetArr;
     QWidget* PFDQWidget;
     QWidget* apmQWidget_;
     QWidget* settings_widget_;
