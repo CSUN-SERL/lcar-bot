@@ -114,7 +114,8 @@ namespace rqt_gcs
 
 
         //set up access points
-        accessPointsVector = quadrotors[0]->GetRefAccessPoints();
+        if(NUM_UAV > 0)
+            accessPointsVector = quadrotors[0]->GetRefAccessPoints();
         
         initializeSettings();
     }
@@ -126,7 +127,7 @@ namespace rqt_gcs
             //of uav's identified in the global namespace(?)
         ros::V_string nodes;
         ros::master::getNodes(nodes);
-        int num_uav = -1;
+        int num_uav = 0;
         ros::V_string::iterator it = nodes.begin();
         for(int i = 1; i <= MAX_UAV && it != nodes.end(); i++)
         {
@@ -144,10 +145,10 @@ namespace rqt_gcs
             
         }
         
-        if(num_uav != -1)
+        if(num_uav > 0)
             NUM_UAV = num_uav;
         else
-            NUM_UAV = 2; // for now...
+            NUM_UAV = 0; // for now...
         
         ROS_INFO_STREAM("detected " << NUM_UAV << " UAV's");
         
@@ -159,6 +160,9 @@ namespace rqt_gcs
     void SimpleGCS::TimedUpdate()
     {
 
+        if(NUM_UAV == 0)
+            return;
+        
         timeCounter++;
 
 
@@ -233,7 +237,7 @@ namespace rqt_gcs
 
     void SimpleGCS::UpdateMsgQuery()
     {
-        if(!central_ui_.uavQueriesFame->isEnabled())
+        if(!central_ui_.uavQueriesFame->isEnabled() || NUM_UAV == 0)
             return;
         
         for(int i = pictureMsgQWidgets_.size() - 1; i >= 0; i--)
@@ -357,6 +361,9 @@ namespace rqt_gcs
 
     void SimpleGCS::ExecutePlay()
     {
+        if(NUM_UAV == 0)
+            return;
+        
         int play_num = mpUi_.playComboBox->currentIndex();
 
         if(play_num == 0)
@@ -384,7 +391,9 @@ namespace rqt_gcs
 
     void SimpleGCS::CancelPlay()
     {
-
+        if(NUM_UAV == 0)
+            return;
+        
         for(int i = 0; i < NUM_UAV; i++)
         {
             quadrotors[i]->SetRTL();
@@ -394,6 +403,9 @@ namespace rqt_gcs
 
     void SimpleGCS::ScoutBuilding()
     {
+        if(NUM_UAV == 0)
+            return;
+        
         int building_index = mpUi_.buildingsComboBox->currentIndex() + 1;
         std::string file_name = "building" + std::to_string(building_index) + ".txt";
 
@@ -403,11 +415,17 @@ namespace rqt_gcs
 
     void SimpleGCS::StopQuad()
     {
+        if(NUM_UAV == 0)
+            return;
+        
         quadrotors[cur_uav]->SetRTL();
     }
 
     void SimpleGCS::ChangeFlightMode()
     {
+        if(NUM_UAV == 0)
+            return;
+        
         if(mpUi_.flightModeComboBox->currentIndex() == 0)
         {
             ROS_INFO_STREAM("Quadrotor Stablized");
@@ -452,7 +470,9 @@ namespace rqt_gcs
 
     void SimpleGCS::RefreshAccessPointsMenu()
     {
-
+        if(NUM_UAV == 0)
+            return;
+        
         //clear out old list of Access points widgets
         for(int i = accessPointsQWidgets_.size() - 1; i >= 0; i--)
         {
@@ -561,6 +581,9 @@ namespace rqt_gcs
 
     void SimpleGCS::DeleteAccessPoint(QWidget* w)
     {
+        if(NUM_UAV == 0)
+            return;
+        
         // ROS_INFO_STREAM("Access point menu closed");
 
         int deleteIndex = apmUi_.AccessPointMenuLayout->indexOf(w);
@@ -575,6 +598,9 @@ namespace rqt_gcs
 
     void SimpleGCS::QuadSelect(int quadNumber)
     {
+        if(NUM_UAV == 0)
+            return;
+        
         cur_uav = quadNumber;
         sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(quadNumber + 1) + "/stereo_cam/left/image_rect", 
                                          1, &SimpleGCS::ImageCallback, this);
@@ -583,11 +609,17 @@ namespace rqt_gcs
 
     void SimpleGCS::ArmSelectedQuad()
     {
+        if(NUM_UAV == 0)
+            return;
+        
         quadrotors[cur_uav]->Arm(true);
     }
 
     void SimpleGCS::DisarmSelectedQuad()
     {
+        if(NUM_UAV == 0)
+            return;
+        
         quadrotors[cur_uav]->Arm(false);
     }
 
@@ -617,6 +649,9 @@ namespace rqt_gcs
 
     void SimpleGCS::UpdatePFD()
     {
+        if(NUM_UAV == 0)
+            return;
+        
         pfd_ui.widgetPFD->setRoll((quadrotors[cur_uav]->GetFlightState().roll)*180);
         pfd_ui.widgetPFD->setPitch((quadrotors[cur_uav]->GetFlightState().pitch)*90);
         pfd_ui.widgetPFD->setHeading(quadrotors[cur_uav]->GetFlightState().heading);
@@ -628,8 +663,7 @@ namespace rqt_gcs
     }
 
     lcar_msgs::Target SimpleGCS::GetMission(std::string fileName)
-    {
-
+    {   
         float pos_x, pos_y, pos_z, radius;
         lcar_msgs::Target building;
         std::ifstream fileIn(fileName);
@@ -651,6 +685,9 @@ namespace rqt_gcs
 
     void SimpleGCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
     {
+        if(NUM_UAV == 0)
+            return;
+        
         try
         {
             //don't change my colorspace! (bgr8)
