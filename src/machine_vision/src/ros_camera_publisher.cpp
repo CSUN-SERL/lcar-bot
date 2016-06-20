@@ -29,7 +29,8 @@ int main(int argc, char** argv)
   }
   image_transport::Publisher pub = it.advertise(topic, 1);
   ROS_INFO_STREAM("node: " << ros::this_node::getName()  
-                    << " publishing on topic: " << topic);
+                    << " publishing on topic: " 
+                    << ros::this_node::getNamespace() + "/" + topic);
 
   int video_source;
   paramSet = ros::param::get("~video_id", video_source);

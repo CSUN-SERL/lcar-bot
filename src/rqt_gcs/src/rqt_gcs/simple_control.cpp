@@ -25,12 +25,13 @@ int main(int argc, char **argv)
 
 }
 
-int SimpleControl::id = 0;
+//int SimpleControl::id = 0;
 
 
 SimpleControl::SimpleControl()  //Class constructor
 {
-    ++id;
+    id = -1;
+    static_id++;
     this->InitialSetup();
 }
 

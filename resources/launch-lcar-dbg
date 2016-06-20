@@ -14,6 +14,7 @@ function ctrl_c(){
 
 #    pkill rosout    # kill rosout explicitly
     pkill -P $$     # kill all processes started by this script (see below)
+    yes | rosnode cleanup
     rm -f .tmp      # delete stderr output
 }
 
@@ -26,13 +27,13 @@ function ctrl_c(){
 
 NS=""
 if [ -z "$1" ]; then
-   NS=/UAV1
+   NS=UAV1
 elif [ "$1" != "-no-stereo" ]; then
-   NS=/UAV"$1"
+   NS=UAV"$1"
 fi
 
 if [ -z "$NS" ]; then
-    NS=/UAV1
+    NS=UAV1
 fi
 
 if [ $(lsusb | grep 'ID 2a0b:00f5' | wc -c) -ne 0 -a $# -ne 2 -a "$1" != "-no-stereo" ]; then

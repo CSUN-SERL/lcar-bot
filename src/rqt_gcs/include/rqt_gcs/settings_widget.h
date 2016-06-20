@@ -11,6 +11,7 @@
 #include "ui_SettingsWidget.h"
 #include <QtCore/QSettings>
 
+
 namespace rqt_gcs
 {
 
@@ -37,7 +38,7 @@ namespace rqt_gcs
 
     signals:
         void dismissMe();
-        void toggleMachineLearningMode(bool);
+        void machineLearningModeToggled(bool);
 
     private slots:
         void applyClicked();

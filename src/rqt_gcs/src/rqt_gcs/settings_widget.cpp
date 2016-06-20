@@ -274,7 +274,7 @@ namespace rqt_gcs
         //writeObjectDetectionTabSettings();
         
         if(ml_state_ != ml_state_previous)
-            emit toggleMachineLearningMode(widget_.online_btn->isChecked());
+            emit machineLearningModeToggled(widget_.online_btn->isChecked());
     
         emit dismissMe();
     }

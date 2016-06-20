@@ -17,6 +17,10 @@
 #include <vector>
 #include <fstream>
 
+
+#include <boost/filesystem/operations.hpp>
+#include <boost/thread.hpp>
+
 #include <image_transport/image_transport.h>
 #include "opencv2/highgui.hpp"
 #include <cv_bridge/cv_bridge.h>
@@ -44,6 +48,7 @@
 #include <QTimer>
 #include <QMainWindow>
 #include <QSignalMapper>
+#include <QDesktopWidget>
 
 #define MAX_UAV 100 // the total number of UAV's manageable by our system
 
@@ -89,20 +94,23 @@ namespace rqt_gcs{
     virtual void AcceptDoorQuery(QWidget*);
     virtual void DenyDoorQuery(QWidget*);
     virtual void SettingsClicked();
+    virtual void MonitorUavNamespace();
     
     //SETTINGS RELATED
     virtual void DestroySettingsWidget();
-    virtual void toggleMachineLearningMode(bool);
+    virtual void ToggleMachineLearningMode(bool);
 
   private:
     void UpdatePFD();
     void UpdateMsgQuery();
     lcar_msgs::Target GetMission(std::string fileName);
     void saveImage(bool, std::string, const cv::Mat&);
-    int setNUM_UAV();
+    void parseUavNamespace(std::vector<int>&, std::map<int,int>* map = nullptr);
+    void addUAV(int);
+    void deleteUav(int);
     
-    int cur_uav = 0;
-    int timeCounter = 0;
+    int cur_uav;
+    int timeCounter;
     int NUM_UAV; //Total number of UAV's in the system
     
     
@@ -112,8 +120,8 @@ namespace rqt_gcs{
 
    
     cv::Mat conversion_mat_;
-    image_transport::Subscriber sub_stereo = it_stereo.subscribe("/UAV1/stereo_cam/left/image_rect", 
-                                                                 1, &SimpleGCS::ImageCallback, this);
+    image_transport::Subscriber sub_stereo; //it_stereo.subscribe("/UAV1/stereo_cam/left/image_rect", 
+                                               //                  5, &SimpleGCS::ImageCallback, this);
 
     Ui::SimpleGCSWidget ui_;
     Ui::MissionProgressWidget mpUi_;
@@ -142,7 +150,6 @@ namespace rqt_gcs{
 
     QLabel* label;
     QTimer* update_timer;
-    QMutex query_lock;
 
     QString temp_data;
     QString quad_id;
@@ -155,6 +162,8 @@ namespace rqt_gcs{
     
     QSettings *settings_;
     QString image_root_path_;
+    QTimer* uav_ns_timer;
+    QMutex uav_mutex;
   };
 } // name space
 #endif // my_namespace__my_plugin_H
