@@ -77,14 +77,13 @@ namespace rqt_gcs
         update_timer = new QTimer(this);
         connect(update_timer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
         
+        initializeSettings();
+        
         std::vector<int> uavs;
         parseUavNamespace(uavs);
         
         for(int i = 0; i < uavs.size(); i++)
             addUAV(uavs[i]);
-
-        initializeSettings();
-
 
         connect(update_timer, SIGNAL(timeout()),
                 this, SLOT(MonitorUavNamespace()),Qt::ConnectionType::DirectConnection);  
@@ -230,7 +229,7 @@ namespace rqt_gcs
         }
     }
     
-     void SimpleGCS::parseUavNamespace(std::vector<int>& UAVs, std::map<int,int>* map)
+    void SimpleGCS::parseUavNamespace(std::vector<int>& UAVs, std::map<int,int>* map)
     {
         ros::V_string nodes;
         ros::master::getNodes(nodes);
