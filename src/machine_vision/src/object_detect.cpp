@@ -178,7 +178,7 @@ void GetSvmDetector(const Ptr<SVM>& svm, vector< float > & hog_detector) {
 
 ////////////////////////////////////////////////////////////////////////////////
 int main (int argc, char** argv){
-  ros::init(argc, argv, "object_detection", ros::init_options::AnonymousName);
+  ros::init(argc, argv, "object_detection" /*, ros::init_options::AnonymousName*/ );
 
   ros::NodeHandle nh;
   //cv::namedWindow("view");
@@ -197,13 +197,12 @@ int main (int argc, char** argv){
   pub_query_ = nh.advertise<lcar_msgs::Door>("object_detection/access_point/door", 1);
   
   std::string ns = ros::this_node::getNamespace();
-  std::string topic = "stereo_cam/left/image_rect";
-  std::string full_topic = (ns.size() > 1)? ns.substr(1) + "/" + topic : topic;
+  std::string topic = ns + "/stereo_cam/left/image_rect";
   
-  image_transport::Subscriber sub = it.subscribe(full_topic, 1, imageCallback);
+  image_transport::Subscriber sub = it.subscribe(topic, 1, imageCallback);
   
   ROS_INFO_STREAM("node: " << ros::this_node::getName() << 
-                  " is subscribed to topic: " << full_topic);
+                  " is subscribed to topic: " << topic);
   
   ros::spin();
 

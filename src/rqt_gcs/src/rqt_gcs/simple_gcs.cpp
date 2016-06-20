@@ -79,14 +79,15 @@ namespace rqt_gcs
         
         initializeSettings();
         
-        std::vector<int> uavs;
+        std::map<int,int> uavs;
         parseUavNamespace(uavs);
         
-        for(int i = 0; i < uavs.size(); i++)
-            addUAV(uavs[i]);
+        for(auto const& iter : uavs)
+            addUAV(iter.first);
 
         connect(update_timer, SIGNAL(timeout()),
-                this, SLOT(MonitorUavNamespace()),Qt::ConnectionType::DirectConnection);  
+                this, SLOT(MonitorUavNamespace()),
+                Qt::ConnectionType::DirectConnection);  
         
         //30 hz :1000/30 = 33.33...
         update_timer->start(33);
@@ -104,17 +105,17 @@ namespace rqt_gcs
         quad_id.setNum(uav_id);
         temp_data += quad_id;
         
-        std::vector<Ui::UAVConditionWidget*>::const_iterator cond_iter = uavCondWidgetArr.begin();
-        std::vector<QWidget*>::const_iterator list_iter = uavListWidgetArr.begin();
-        std::vector<SimpleControl*>::const_iterator quad_iter = quadrotors.begin();
+        auto cond_iter = uavCondWidgetArr.begin();
+        auto list_iter = uavListWidgetArr.begin();
+        auto quad_iter = quadrotors.begin();
         int index = 0;
         
         while(quad_iter != quadrotors.end() && uav_id > (*quad_iter)->id)
         {               
-            cond_iter++;
-            list_iter++;
-            quad_iter++;
-            index++;
+            ++cond_iter;
+            ++list_iter;
+            ++quad_iter;
+            ++index;
         }
 
         uavCondWidgetArr.insert(cond_iter, new Ui::UAVConditionWidget());
@@ -150,15 +151,15 @@ namespace rqt_gcs
         
         central_ui_.UAVListLayout->removeWidget(uavListWidgetArr[index]);
         
-        std::vector<Ui::UAVConditionWidget*>::const_iterator cond_iter = uavCondWidgetArr.begin();
-        std::vector<QWidget*>::const_iterator list_iter = uavListWidgetArr.begin();
-        std::vector<SimpleControl*>::const_iterator quad_iter = quadrotors.begin();
+        auto cond_iter = uavCondWidgetArr.begin();
+        auto list_iter = uavListWidgetArr.begin();
+        auto quad_iter = quadrotors.begin();
 
         while((*quad_iter)->id != quadrotors[index]->id)
         {
-            cond_iter++;
-            list_iter++;
-            quad_iter++;
+            ++cond_iter;
+            ++list_iter;
+            ++quad_iter;
         }
         
         delete uavCondWidgetArr[index];
@@ -181,8 +182,8 @@ namespace rqt_gcs
         
         NUM_UAV--;
         
-        if(NUM_UAV == 0)
-            cur_uav = -1;
+        if(0 <= NUM_UAV  &&  NUM_UAV <= 1)
+            cur_uav--; //0 or -1
         else if(cur_uav == index && cur_uav > 0)
             QuadSelect(cur_uav-1);
         
@@ -191,36 +192,28 @@ namespace rqt_gcs
     
     void SimpleGCS::MonitorUavNamespace()
     {   
-        std::vector<int> uavs;
-        parseUavNamespace(uavs);
-        
-        if(NUM_UAV < uavs.size())
+        std::map<int,int> uav_map;
+        parseUavNamespace(uav_map);
+        if(NUM_UAV < uav_map.size())
         {
-            for(int i = 0; i < uavs.size(); i++)
+            for(auto const& iter : uav_map)
             {
                 bool contains_id = false;
                 for(int j = 0; j < quadrotors.size(); j++)
                 {
-                    if(uavs[i] == quadrotors[j]->id)
+                    if(iter.first == quadrotors[j]->id)
                         contains_id = true;
                 }
                 
                 if(!contains_id)
-                    addUAV(uavs[i]);
+                    addUAV(iter.first);
             }             
         }
-        else if(NUM_UAV > uavs.size())
+        else if(NUM_UAV > uav_map.size())
         {   
             for(int i = 0; i < quadrotors.size(); i++)
             {
-                bool contains_id = false; 
-                for(int j = 0; j < uavs.size(); j++)
-                {
-                    if(quadrotors[i]->id == uavs[j]) 
-                        contains_id = true;        
-                }
-                
-                if(!contains_id)
+                if(uav_map.count(quadrotors[i]->id) == 0)
                 {
                     deleteUAV(i);
                     i--;
@@ -229,25 +222,17 @@ namespace rqt_gcs
         }
     }
     
-    void SimpleGCS::parseUavNamespace(std::vector<int>& UAVs, std::map<int,int>* map)
+    void SimpleGCS::parseUavNamespace(std::map<int,int>& map)
     {
         ros::V_string nodes;
         ros::master::getNodes(nodes);
-        bool local = false;
-        if(map == nullptr)
-        {
-            map = new std::map<int,int>();
-            local = true;
-        }
-        ros::V_string::iterator node_iter = nodes.begin();
 
-        for(; node_iter != nodes.end(); node_iter++)
+        for(const auto& node : nodes)
         {
-            std::string node = *node_iter;
             int index = node.find("/UAV");
             if(index == node.npos)
             {   //nodes are printed alphabetically, if we passed UAV namespace, there are no more
-                if(map->size() > 0)
+                if(map.size() > 0)
                     break;
                 else  // skip nodes in front of /UAV namespace
                     continue;
@@ -258,14 +243,9 @@ namespace rqt_gcs
             char * end;
             int uav_id = std::strtol(&id_string[0], &end, 10);
             
-            if(map->count(uav_id) == 0)
-            {
-                map->insert(std::pair<int,int>(uav_id, uav_id));
-                UAVs.push_back(uav_id);
-            }
+            if(map.count(uav_id) == 0)
+                map.insert(std::pair<int,int>(uav_id, uav_id));   
         }
-        if (local)
-            delete map;
     }
 
     //Timed update of for the GCS

@@ -105,7 +105,7 @@ namespace rqt_gcs{
     void UpdateMsgQuery();
     lcar_msgs::Target GetMission(std::string fileName);
     void saveImage(bool, std::string, const cv::Mat&);
-    void parseUavNamespace(std::vector<int>&, std::map<int,int>* map = nullptr);
+    void parseUavNamespace(std::map<int,int>&);
     void addUAV(int);
     void deleteUAV(int);
     
@@ -120,9 +120,7 @@ namespace rqt_gcs{
 
    
     cv::Mat conversion_mat_;
-    image_transport::Subscriber sub_stereo; //it_stereo.subscribe("/UAV1/stereo_cam/left/image_rect", 
-                                               //                  5, &SimpleGCS::ImageCallback, this);
-
+    image_transport::Subscriber sub_stereo;
     Ui::SimpleGCSWidget ui_;
     Ui::MissionProgressWidget mpUi_;
     Ui::UavQuestionWidget uqUi_;

@@ -24,6 +24,7 @@
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <sensor_msgs/Image.h>
+#include <std_msgs/Int8.h>
 #include <std_msgs/Float64.h>
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -73,7 +74,7 @@ class SimpleControl
 {
 public:
     int id;
-    int static_id;
+    static int static_id;
     SimpleControl();
     SimpleControl(int uav_id);
     ~SimpleControl();
@@ -252,6 +253,7 @@ public:
     float GetMissionProgress();
     std::vector<AccessPoint>* GetRefAccessPoints() { return &access_pts; }
     std::vector<lcar_msgs::DoorPtr>* GetDoorQueries() { return &queries_door; }
+    bool GetContactStatus() { return in_contact; }
 
 private:
     void InitialSetup();
@@ -314,6 +316,37 @@ private:
         if(online_mode && msg_detection->query)
             queries_door.push_back(msg_detection);
     }
+    void UavHeartbeatCallback(std_msgs::Int8 heartbeat_msg)
+    {
+        if(connection_sim)
+            return;
+        
+        uav_heartbeat_timer.stop();
+        
+        in_contact = true;
+        //ROS_INFO_STREAM("received heartbeat for uav_" << id);
+        //TODO
+            //logic for receiving a heartbeat from the uav
+        
+        uav_heartbeat_timer.start();
+    }
+    void UavHeartbeatTimeoutCallback(const ros::TimerEvent& e)
+    {
+        //ROS_ERROR_STREAM("did not recieve heartbeat for uav_" << id);
+
+        in_contact = false;
+
+        //TODO
+            //gray out vehicle select button on main gui
+            //some kind of notification to the user
+        
+    }
+    void GcsHeartbeatTimeoutCallback(const ros::TimerEvent& e)
+    {
+        std_msgs::Int8 heartbeat;
+        heartbeat.data = num_heartbeats++;
+        pub_heartbeat.publish<std_msgs::Int8>(heartbeat);
+    }
 
     //For returning Flight State Data to GCS
     FlightState UpdateFlightState();
@@ -331,7 +364,8 @@ private:
                                     pub_angular_vel,
                                     pub_linear_vel,
                                     pub_setpoint_accel,
-                                    pub_door_answer;
+                                    pub_door_answer,
+                                    pub_heartbeat;
     ros::Subscriber                 sub_state,
                                     sub_battery,
                                     sub_imu,
@@ -343,7 +377,8 @@ private:
                                     sub_vrpn,
                                     sub_depth,
                                     sub_door_query,
-                                    sub_detection;
+                                    sub_detection,
+                                    sub_heartbeat;
 
     //UAV State Variables
     std::string                     ns;
@@ -366,7 +401,12 @@ private:
     std::vector<AccessPoint>        access_pts;
     std::vector<lcar_msgs::DoorPtr> queries_door;
     bool                            collision = false,
-                                    online_mode = true;
+                                    online_mode = true,
+                                    connection_sim = true,
+                                    in_contact = true;
+    ros::Timer                      uav_heartbeat_timer,
+                                    gcs_heartbeat_timer;
+    int                             num_heartbeats;
 };
 
 #endif

@@ -25,19 +25,19 @@ int main(int argc, char **argv)
 
 }
 
-//int SimpleControl::id = 0;
+int SimpleControl::static_id = 0;
 
 
 SimpleControl::SimpleControl()  //Class constructor
 {
-    id = -1;
-    static_id++;
+    id = static_id++;
     this->InitialSetup();
 }
 
 SimpleControl::SimpleControl(int uav_id)  //Class constructor
 {
     id = uav_id;
+    static_id++;
     this->InitialSetup();
 }
 
@@ -65,7 +65,8 @@ void SimpleControl::InitialSetup()
     pub_linear_vel        = nh.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_velocity/cmd_vel",QUEUE_SIZE);
     pub_setpoint_accel    = nh.advertise<geometry_msgs::Vector3Stamped>(ns + "/mavros/setpoint_accel/accel",QUEUE_SIZE);
     pub_door_answer       = nh.advertise<lcar_msgs::Door>(ns + "/object_detection/door/answer",QUEUE_SIZE);
-
+    pub_heartbeat         = nh.advertise<std_msgs::Int8>(ns + "/hearbeat/gcs", 0);
+    
     //Initialize Subscribers
     sub_state      = nh.subscribe(ns + "/mavros/state", QUEUE_SIZE, &SimpleControl::StateCallback, this);
     sub_battery    = nh.subscribe(ns + "/mavros/battery", QUEUE_SIZE, &SimpleControl::BatteryCallback, this);
@@ -76,9 +77,13 @@ void SimpleControl::InitialSetup()
     sub_pos_global = nh.subscribe(ns + "/mavros/global_position/global", QUEUE_SIZE, &SimpleControl::NavSatFixCallback, this);
     sub_pos_local  = nh.subscribe(ns + "/mavros/local_position/pose", QUEUE_SIZE, &SimpleControl::LocalPosCallback, this);
     sub_depth      = nh.subscribe(ns + "/object_avoidance/depth", QUEUE_SIZE, &SimpleControl::DepthCallback, this);
-    //sub_door_query = nh.subscribe(ns + "/object_detection/door/query", QUEUE_SIZE, &SimpleControl::DoorQueryCallback, this);
+    //sub_door_query = nh.subscribe(ns + "/objectdetection/door/query", QUEUE_SIZE, &SimpleControl::DoorQueryCallback, this);
     sub_detection  = nh.subscribe(ns + "/object_detection/access_point/door", QUEUE_SIZE, &SimpleControl::DetectionCallback, this);
-
+    sub_heartbeat  = nh.subscribe(ns + "/heartbeat/uav", 0, &SimpleControl::UavHeartbeatCallback, this); 
+    
+    uav_heartbeat_timer = nh.createTimer(ros::Duration(0.1), &SimpleControl::UavHeartbeatTimeoutCallback, this);
+    gcs_heartbeat_timer = nh.createTimer(ros::Duration(0.1), &SimpleControl::GcsHeartbeatTimeoutCallback, this);        
+    
     //Set Home position
     pose_home.position.x = pose_home.position.y = pose_home.position.z = 0;
     quaternionTFToMsg(tf::createQuaternionFromYaw(0), pose_home.orientation);
