@@ -107,7 +107,7 @@ namespace rqt_gcs{
     void saveImage(bool, std::string, const cv::Mat&);
     void parseUavNamespace(std::vector<int>&, std::map<int,int>* map = nullptr);
     void addUAV(int);
-    void deleteUav(int);
+    void deleteUAV(int);
     
     int cur_uav;
     int timeCounter;

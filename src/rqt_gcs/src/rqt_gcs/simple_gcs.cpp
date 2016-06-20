@@ -144,7 +144,7 @@ namespace rqt_gcs
         uav_mutex.unlock();
     }
     
-    void SimpleGCS::deleteUav(int index)
+    void SimpleGCS::deleteUAV(int index)
     {   
         uav_mutex.lock();
         
@@ -222,7 +222,7 @@ namespace rqt_gcs
                 
                 if(!contains_id)
                 {
-                    deleteUav(i);
+                    deleteUAV(i);
                     i--;
                 }
             }
