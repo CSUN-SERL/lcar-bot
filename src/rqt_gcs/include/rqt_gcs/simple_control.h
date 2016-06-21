@@ -24,7 +24,7 @@
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <sensor_msgs/Image.h>
-#include <std_msgs/Int8.h>
+#include <std_msgs/Int32.h>
 #include <std_msgs/Float64.h>
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -253,7 +253,7 @@ public:
     float GetMissionProgress();
     std::vector<AccessPoint>* GetRefAccessPoints() { return &access_pts; }
     std::vector<lcar_msgs::DoorPtr>* GetDoorQueries() { return &queries_door; }
-    bool GetContactStatus() { return in_contact; }
+    bool GetContactStatus() { return recieved_heartbeat; }
 
 private:
     void InitialSetup();
@@ -316,15 +316,15 @@ private:
         if(online_mode && msg_detection->query)
             queries_door.push_back(msg_detection);
     }
-    void UavHeartbeatCallback(std_msgs::Int8 heartbeat_msg)
+    void UavHeartbeatCallback(std_msgs::Int32 heartbeat_msg)
     {
         if(connection_sim)
             return;
         
         uav_heartbeat_timer.stop();
         
-        in_contact = true;
-        //ROS_INFO_STREAM("received heartbeat for uav_" << id);
+        recieved_heartbeat = true;
+        ROS_INFO_STREAM("received heartbeat for uav_" << id);
         //TODO
             //logic for receiving a heartbeat from the uav
         
@@ -332,20 +332,22 @@ private:
     }
     void UavHeartbeatTimeoutCallback(const ros::TimerEvent& e)
     {
-        //ROS_ERROR_STREAM("did not recieve heartbeat for uav_" << id);
+        ROS_ERROR_STREAM("did not recieve heartbeat for uav_" << id);
 
-        in_contact = false;
+        recieved_heartbeat = false;
 
         //TODO
             //gray out vehicle select button on main gui
             //some kind of notification to the user
+        //UPDATE
+            // this will be handled by SimpleGCS, by querying each uav for the 
+            // value of in_contact. if false, gray out its button
         
     }
     void GcsHeartbeatTimeoutCallback(const ros::TimerEvent& e)
     {
-        std_msgs::Int8 heartbeat;
-        heartbeat.data = num_heartbeats++;
-        pub_heartbeat.publish<std_msgs::Int8>(heartbeat);
+        heartbeat.data++;
+        pub_heartbeat.publish(heartbeat);
     }
 
     //For returning Flight State Data to GCS
@@ -402,11 +404,11 @@ private:
     std::vector<lcar_msgs::DoorPtr> queries_door;
     bool                            collision = false,
                                     online_mode = true,
-                                    connection_sim = true,
-                                    in_contact = true;
+                                    connection_sim = false,
+                                    recieved_heartbeat = true;
     ros::Timer                      uav_heartbeat_timer,
                                     gcs_heartbeat_timer;
-    int                             num_heartbeats;
+    std_msgs::Int32                 heartbeat;
 };
 
 #endif

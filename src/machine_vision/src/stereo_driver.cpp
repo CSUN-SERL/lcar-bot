@@ -21,7 +21,7 @@ StereoDriver::StereoDriver(
 
     pub_left_  = it_.advertiseCamera( "stereo_cam/left/image_raw", 1);
     pub_right_ = it_.advertiseCamera("stereo_cam/right/image_raw", 1);
-    pub_rgb_   = it_.advertise("stereo_cam/rgb/image_raw", 1);
+    //pub_rgb_   = it_.advertise("stereo_cam/rgb/image_raw", 1);
 }
 
 StereoDriver::~StereoDriver(){}

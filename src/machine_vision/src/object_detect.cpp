@@ -17,7 +17,7 @@
 #include <iostream>
 #include <thread>
 #include <lcar_msgs/Door.h>
-
+ 
 using namespace std;
 using namespace cv;
 using namespace cv::ml;
@@ -28,7 +28,7 @@ ros::Publisher pub_query_;
 Ptr<SVM> svm_;
 vector< float > hog_detector_;
 HOGDescriptor hog_; //(Size( 90, 160 ), Size(16, 16), Size(8, 8), Size(8, 8), 9)
-
+vector<Mat> histograms;
 //cv::Mat src;
 vector< Mat > training_data_;
 vector< cv::Mat > img_array_;
@@ -36,6 +36,7 @@ const Size & img_size_ = Size(128, 256);
 
 int door_count = 0;
 int img_iterator = 0;
+double compare_hist_threshold = 1; 
 
 /////////////////////////////////////////////////////////////////////////////
 void HogFeatureExtraction(Mat ImgMat) {
@@ -176,6 +177,23 @@ void GetSvmDetector(const Ptr<SVM>& svm, vector< float > & hog_detector) {
     hog_detector[sv.cols] = (float) -rho;
 }
 
+//double compareHistogram(const cv::Mat& color_mat)
+//{
+//    Mat hsv_mat;
+//    cv::cvtColor(color_mat, hsv_mat, cv::COLOR_BGR2HSV);
+//    if(histograms.size() == 0)
+//    {
+//        histograms.push_back(hsv_mat);
+//        return 0.0;
+//    }
+//    
+//    for(const auto& mat: histograms)
+//    {
+//        double result = cv::compareHist(mat,hsv_mat);
+//       // if result > 
+//    }
+//}
+
 ////////////////////////////////////////////////////////////////////////////////
 int main (int argc, char** argv){
   ros::init(argc, argv, "object_detection" /*, ros::init_options::AnonymousName*/ );
@@ -197,12 +215,12 @@ int main (int argc, char** argv){
   pub_query_ = nh.advertise<lcar_msgs::Door>("object_detection/access_point/door", 1);
   
   std::string ns = ros::this_node::getNamespace();
-  std::string topic = ns + "/stereo_cam/left/image_rect";
+  std::string topic = "stereo_cam/left/image_rect";
   
   image_transport::Subscriber sub = it.subscribe(topic, 1, imageCallback);
   
   ROS_INFO_STREAM("node: " << ros::this_node::getName() << 
-                  " is subscribed to topic: " << topic);
+                  " is subscribed to topic: " << ns + "/" + topic);
   
   ros::spin();
 
