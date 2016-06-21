@@ -21,8 +21,7 @@ BackupManager::BackupManager(int id)  //Class constructor
   //Setup heartbeat timer
   timer_heartbeat = nh.createTimer(ros::Duration(0.1), &BackupManager::PublishHeartbeat, this);
 
-  std::string ns = DEF_NS + std::to_string(id); //UAV Namespace
-  pub_heartbeat = nh.advertise<std_msgs::Int32>(ns + "/heartbeat/uav", 0);
+  pub_heartbeat = nh.advertise<std_msgs::Int32>("/heartbeat/uav", 0);
 }
 
 BackupManager::~BackupManager()
