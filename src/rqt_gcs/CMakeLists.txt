@@ -104,7 +104,7 @@ include_directories(${rqt_gcs_INCLUDE_DIRECTORIES}
 add_executable(simple_control src/rqt_gcs/simple_control.cpp)
 add_executable(gps_publisher src/rqt_gcs/gps_publisher.cpp)
 add_executable(gps_demo src/rqt_gcs/gps_demo.cpp)
-add_executable(connection_manager src/rqt_gcs/connection_manager.cpp)
+add_executable(backup_control src/rqt_gcs/backup_control.cpp)
 add_executable(safe_mocap src/rqt_gcs/safe_mocap.cpp)
 
 add_library(${PROJECT_NAME}
@@ -121,7 +121,7 @@ add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(simple_control ${catkin_LIBRARIES})
 target_link_libraries(gps_publisher ${catkin_LIBRARIES})
 target_link_libraries(gps_demo ${catkin_LIBRARIES})
-target_link_libraries(connection_manager ${catkin_LIBRARIES})
+target_link_libraries(backup_control ${catkin_LIBRARIES})
 target_link_libraries(safe_mocap ${catkin_LIBRARIES})
 target_link_libraries(  ${PROJECT_NAME}
                         ${catkin_LIBRARIES}
