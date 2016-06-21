@@ -3,9 +3,9 @@
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "backup_control");
-  ros::Rate loop_rate(10); //10Hz
 
   BackupManager manager(1);
+  ros::Rate loop_rate(10); //10Hz
 
   while(ros::ok())
   {
