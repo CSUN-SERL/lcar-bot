@@ -88,7 +88,7 @@ namespace rqt_gcs{
     virtual void ChangeFlightMode();
     virtual void RefreshAccessPointsMenu();
     virtual void DeleteAccessPoint(QWidget*);
-    virtual void QuadSelect(int);
+    virtual void QuadSelected(int);
     virtual void ArmSelectedQuad();
     virtual void DisarmSelectedQuad();
     virtual void AcceptDoorQuery(QWidget*);
@@ -106,9 +106,9 @@ namespace rqt_gcs{
     lcar_msgs::Target GetMission(std::string fileName);
     void saveImage(bool, std::string, const cv::Mat&);
     void parseUavNamespace(std::map<int,int>&);
-    void addUAV(int);
-    void deleteUAV(int);
-    
+    void addUav(int);
+    void deleteUav(int);
+    void selectQuad(int);
     int cur_uav;
     int timeCounter;
     int NUM_UAV; //Total number of UAV's in the system

@@ -422,7 +422,7 @@ FlightState SimpleControl::UpdateFlightState()
     return flight_state;
 }
 
-int SimpleControl::ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
+  int SimpleControl::ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
 {
     int result;
 

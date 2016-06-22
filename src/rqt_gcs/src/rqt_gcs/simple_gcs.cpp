@@ -69,7 +69,7 @@ namespace rqt_gcs
         acceptDoorMapper = new QSignalMapper(this);
         denyDoorMapper = new QSignalMapper(this);
 
-        connect(signal_mapper, SIGNAL(mapped(int)), this, SLOT(QuadSelect(int)));
+        connect(signal_mapper, SIGNAL(mapped(int)), this, SLOT(QuadSelected(int)));
         connect(acceptDoorMapper, SIGNAL(mapped(QWidget*)), this, SLOT(AcceptDoorQuery(QWidget*)));
         connect(denyDoorMapper, SIGNAL(mapped(QWidget*)), this, SLOT(DenyDoorQuery(QWidget*)));
 
@@ -83,7 +83,7 @@ namespace rqt_gcs
         parseUavNamespace(uavs);
         
         for(auto const& iter : uavs)
-            addUAV(iter.first);
+            addUav(iter.first);
 
         connect(update_timer, SIGNAL(timeout()),
                 this, SLOT(MonitorUavNamespace()),
@@ -95,7 +95,7 @@ namespace rqt_gcs
     }
     
     
-    void SimpleGCS::addUAV(int uav_id)
+    void SimpleGCS::addUav(int uav_id)
     {
         uav_mutex.lock();
         
@@ -140,12 +140,12 @@ namespace rqt_gcs
         NUM_UAV++;
         
         if(NUM_UAV == 1)
-            QuadSelect(0);
+            selectQuad(0);
         
         uav_mutex.unlock();
     }
     
-    void SimpleGCS::deleteUAV(int index)
+    void SimpleGCS::deleteUav(int index)
     {   
         uav_mutex.lock();
         
@@ -182,10 +182,13 @@ namespace rqt_gcs
         
         NUM_UAV--;
         
-        if(0 <= NUM_UAV  &&  NUM_UAV <= 1)
-            cur_uav--; //0 or -1
-        else if(cur_uav == index && cur_uav > 0)
-            QuadSelect(cur_uav-1);
+        if(NUM_UAV == 0)
+            cur_uav= -1; // no more UAV's to select
+        else if(NUM_UAV == 1 || (cur_uav == index && index == 0))
+            selectQuad(0); // default to only remaining uav/first in the list
+        else if(NUM_UAV > 1 && cur_uav == index)
+            selectQuad(cur_uav-1); 
+            //if the currently selected uav was deleted, choose the one in front of it
         
         uav_mutex.unlock();
     }
@@ -206,7 +209,7 @@ namespace rqt_gcs
                 }
                 
                 if(!contains_id)
-                    addUAV(iter.first);
+                    addUav(iter.first);
             }             
         }
         else if(NUM_UAV > uav_map.size())
@@ -215,7 +218,7 @@ namespace rqt_gcs
             {
                 if(uav_map.count(quadrotors[i]->id) == 0)
                 {
-                    deleteUAV(i);
+                    deleteUav(i);
                     i--;
                 }
             }
@@ -254,12 +257,13 @@ namespace rqt_gcs
     {
 
         if(NUM_UAV == 0 || cur_uav == -1)
+        {
+            
             return;
+        }
         
-        timeCounter++;
-
-
-        if(timeCounter >= 30)
+        
+        if(timeCounter++ >= 30)
         {
             //ROS_INFO_STREAM("MSGs UPdated");
             UpdateMsgQuery();
@@ -690,8 +694,15 @@ namespace rqt_gcs
         apmUi_.AccessPointMenuLayout->removeWidget(w);
         delete w;
     }
-
-    void SimpleGCS::QuadSelect(int quadNumber)
+    
+    // slot gets called when user click on a uav button
+    void SimpleGCS::QuadSelected(int quadNumber) 
+    {
+        selectQuad(quadNumber);  
+    }
+    
+    //needed in addUav(int) and deleteUav(int)
+    void SimpleGCS::selectQuad(int quadNumber)
     {
         if(NUM_UAV == 0)
             return;

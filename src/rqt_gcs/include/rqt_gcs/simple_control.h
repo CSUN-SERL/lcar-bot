@@ -253,7 +253,7 @@ public:
     float GetMissionProgress();
     std::vector<AccessPoint>* GetRefAccessPoints() { return &access_pts; }
     std::vector<lcar_msgs::DoorPtr>* GetDoorQueries() { return &queries_door; }
-    bool GetContactStatus() { return recieved_heartbeat; }
+    bool GetHeartbeatStatus() { return heartbeat_recieved; }
 
 private:
     void InitialSetup();
@@ -323,7 +323,7 @@ private:
         
         uav_heartbeat_timer.stop();
         
-        recieved_heartbeat = true;
+        heartbeat_recieved = true;
         ROS_INFO_STREAM("received heartbeat for uav_" << id);
         //TODO
             //logic for receiving a heartbeat from the uav
@@ -334,7 +334,7 @@ private:
     {
         ROS_ERROR_STREAM("did not recieve heartbeat for uav_" << id);
 
-        recieved_heartbeat = false;
+        heartbeat_recieved = false;
 
         //TODO
             //gray out vehicle select button on main gui
@@ -405,7 +405,7 @@ private:
     bool                            collision = false,
                                     online_mode = true,
                                     connection_sim = false,
-                                    recieved_heartbeat = true;
+                                    heartbeat_recieved = true;
     ros::Timer                      uav_heartbeat_timer,
                                     gcs_heartbeat_timer;
     std_msgs::Int32                 heartbeat;

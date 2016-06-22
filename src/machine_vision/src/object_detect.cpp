@@ -15,7 +15,9 @@
 #include <ros/package.h>
 
 #include <iostream>
-#include <thread>
+#include <map>
+#include <vector>
+#include <string>
 #include <lcar_msgs/Door.h>
  
 using namespace std;
@@ -28,7 +30,7 @@ ros::Publisher pub_query_;
 Ptr<SVM> svm_;
 vector< float > hog_detector_;
 HOGDescriptor hog_; //(Size( 90, 160 ), Size(16, 16), Size(8, 8), Size(8, 8), 9)
-vector<Mat> histograms;
+
 //cv::Mat src;
 vector< Mat > training_data_;
 vector< cv::Mat > img_array_;
@@ -36,7 +38,14 @@ const Size & img_size_ = Size(128, 256);
 
 int door_count = 0;
 int img_iterator = 0;
-double compare_hist_threshold = 1; 
+
+static std::string object_types_ [] = {"door", "window", "hole"};
+std::map< std::string, std::vector<Mat> > hist_map_;
+      /*eg.    "door", <vector of door images>
+       *     "window", <vector of window images>
+       *     ... TODO: handle other types of opening types
+       */
+      
 
 /////////////////////////////////////////////////////////////////////////////
 void HogFeatureExtraction(Mat ImgMat) {
@@ -176,23 +185,7 @@ void GetSvmDetector(const Ptr<SVM>& svm, vector< float > & hog_detector) {
     memcpy(&hog_detector[0], sv.ptr(), sv.cols * sizeof (hog_detector[0]));
     hog_detector[sv.cols] = (float) -rho;
 }
-
-//double compareHistogram(const cv::Mat& color_mat)
-//{
-//    Mat hsv_mat;
-//    cv::cvtColor(color_mat, hsv_mat, cv::COLOR_BGR2HSV);
-//    if(histograms.size() == 0)
-//    {
-//        histograms.push_back(hsv_mat);
-//        return 0.0;
-//    }
-//    
-//    for(const auto& mat: histograms)
-//    {
-//        double result = cv::compareHist(mat,hsv_mat);
-//       // if result > 
-//    }
-//}
+///
 
 ////////////////////////////////////////////////////////////////////////////////
 int main (int argc, char** argv){
