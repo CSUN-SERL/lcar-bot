@@ -46,6 +46,7 @@
 #include <QString>
 #include <QStringList>
 #include <QTimer>
+#include <QThread>
 #include <QMainWindow>
 #include <QSignalMapper>
 #include <QDesktopWidget>
@@ -95,6 +96,7 @@ namespace rqt_gcs{
     virtual void DenyDoorQuery(QWidget*);
     virtual void SettingsClicked();
     virtual void MonitorUavNamespace();
+    virtual void MonitorConnection();
     
     //SETTINGS RELATED
     virtual void DestroySettingsWidget();
@@ -109,6 +111,8 @@ namespace rqt_gcs{
     void addUav(int);
     void deleteUav(int);
     void selectQuad(int);
+    void initializeThreads();
+    
     int cur_uav;
     int timeCounter;
     int NUM_UAV; //Total number of UAV's in the system
@@ -160,8 +164,14 @@ namespace rqt_gcs{
     
     QSettings *settings_;
     QString image_root_path_;
-    QTimer* uav_ns_timer;
+    
     QMutex uav_mutex;
+    QTimer  *uav_ns_timer;
+    QThread *t_namespace_monitor;
+    
+    QTimer  *connection_timer;
+    QThread *t_connection_monitor;
   };
-} // name space
-#endif // my_namespace__my_plugin_H
+  
+} // rqt_gcs name space
+#endif //rqt_gcs__SimpleGCS_H

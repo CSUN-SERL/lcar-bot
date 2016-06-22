@@ -14,8 +14,9 @@ function ctrl_c(){
 
 #    pkill rosout    # kill rosout explicitly
     pkill -P $$     # kill all processes started by this script (see below)
-    yes | rosnode cleanup
+#    yes | rosnode cleanup
     rm -f .tmp      # delete stderr output
+    //echo "shutting down UAV$1"
 }
 
 
@@ -48,4 +49,4 @@ elif [ $(ls /dev/video* | wc -c) -ne 0 ]; then
     ROS_NAMESPACE="$NS" rosrun rqt_gcs backup_control
 else
     wait
-fi 
+fi

@@ -243,8 +243,13 @@ public:
     */
     void SendDoorResponse(lcar_msgs::Door msg_answer) { pub_door_answer.publish(msg_answer); }
 
+    void DropConnection(bool drop_connection)
+    {
+        connection_dropped = drop_connection;
+    }
     
     //Getter Functions
+    int GetId() { return id; }
     mavros_msgs::State GetState() { return state; }
     mavros_msgs::BatteryStatus GetBatteryStatus() { return battery; }
     sensor_msgs::Imu  GetImu() { return imu; }
@@ -253,7 +258,8 @@ public:
     float GetMissionProgress();
     std::vector<AccessPoint>* GetRefAccessPoints() { return &access_pts; }
     std::vector<lcar_msgs::DoorPtr>* GetDoorQueries() { return &queries_door; }
-    bool GetHeartbeatStatus() { return heartbeat_recieved; }
+    bool RecievedHeartbeat() { return heartbeat_recieved; }
+    
 
 private:
     void InitialSetup();
@@ -316,24 +322,22 @@ private:
         if(online_mode && msg_detection->query)
             queries_door.push_back(msg_detection);
     }
+    
     void UavHeartbeatCallback(std_msgs::Int32 heartbeat_msg)
     {
-        if(connection_sim)
+        if(connection_dropped)
             return;
         
         uav_heartbeat_timer.stop();
         
         heartbeat_recieved = true;
-        ROS_INFO_STREAM("received heartbeat for uav_" << id);
-        //TODO
-            //logic for receiving a heartbeat from the uav
+        uav_heartbeat.data = heartbeat_msg.data;
         
         uav_heartbeat_timer.start();
     }
+    
     void UavHeartbeatTimeoutCallback(const ros::TimerEvent& e)
     {
-        ROS_ERROR_STREAM("did not recieve heartbeat for uav_" << id);
-
         heartbeat_recieved = false;
 
         //TODO
@@ -341,13 +345,14 @@ private:
             //some kind of notification to the user
         //UPDATE
             // this will be handled by SimpleGCS, by querying each uav for the 
-            // value of in_contact. if false, gray out its button
+            // value of heartbeat_recieved. if false, gray out its button
         
     }
-    void GcsHeartbeatTimeoutCallback(const ros::TimerEvent& e)
+    
+    void GcsPublishHeartbeat(const ros::TimerEvent& e)
     {
-        heartbeat.data++;
-        pub_heartbeat.publish(heartbeat);
+        gcs_heartbeat.data++;
+        pub_heartbeat.publish(gcs_heartbeat);
     }
 
     //For returning Flight State Data to GCS
@@ -404,11 +409,12 @@ private:
     std::vector<lcar_msgs::DoorPtr> queries_door;
     bool                            collision = false,
                                     online_mode = true,
-                                    connection_sim = false,
+                                    connection_dropped = false,
                                     heartbeat_recieved = true;
     ros::Timer                      uav_heartbeat_timer,
                                     gcs_heartbeat_timer;
-    std_msgs::Int32                 heartbeat;
+    std_msgs::Int32                 gcs_heartbeat,
+                                    uav_heartbeat;
 };
 
 #endif

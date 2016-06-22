@@ -21,7 +21,7 @@ BackupManager::BackupManager(int id)  //Class constructor
   //Setup heartbeat timer
   timer_heartbeat = nh.createTimer(ros::Duration(0.1), &BackupManager::PublishHeartbeat, this);
   
-  //this topic should be advertised under the /UAV* namsepace, eg/ /UAV1/heartbeat/uav
+  //this topic should be advertised under the /UAV* namsepace, eg. /UAV1/heartbeat/uav
   pub_heartbeat = nh.advertise<std_msgs::Int32>("heartbeat/uav", 0);
 }
 

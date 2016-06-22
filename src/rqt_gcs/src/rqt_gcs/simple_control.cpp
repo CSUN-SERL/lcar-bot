@@ -82,7 +82,7 @@ void SimpleControl::InitialSetup()
     sub_heartbeat  = nh.subscribe(ns + "/heartbeat/uav", 0, &SimpleControl::UavHeartbeatCallback, this); 
     
     uav_heartbeat_timer = nh.createTimer(ros::Duration(0.25), &SimpleControl::UavHeartbeatTimeoutCallback, this);
-    gcs_heartbeat_timer = nh.createTimer(ros::Duration(0.1), &SimpleControl::GcsHeartbeatTimeoutCallback, this);        
+    gcs_heartbeat_timer = nh.createTimer(ros::Duration(0.1), &SimpleControl::GcsPublishHeartbeat, this);        
     
     //Set Home position
     pose_home.position.x = pose_home.position.y = pose_home.position.z = 0;

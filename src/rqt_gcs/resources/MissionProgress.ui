@@ -180,16 +180,19 @@ color: rgb(240, 240, 240);</string>
        </spacer>
       </item>
       <item>
-       <widget class="QLineEdit" name="uavNameEdit">
+       <widget class="QLabel" name="uavNameEdit">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="font">
          <font>
           <pointsize>14</pointsize>
           <weight>75</weight>
           <bold>true</bold>
          </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true"/>
         </property>
         <property name="text">
          <string/>

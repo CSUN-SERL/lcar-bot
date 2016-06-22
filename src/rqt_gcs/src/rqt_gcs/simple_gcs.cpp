@@ -78,16 +78,7 @@ namespace rqt_gcs
         connect(update_timer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
         
         initializeSettings();
-        
-        std::map<int,int> uavs;
-        parseUavNamespace(uavs);
-        
-        for(auto const& iter : uavs)
-            addUav(iter.first);
-
-        connect(update_timer, SIGNAL(timeout()),
-                this, SLOT(MonitorUavNamespace()),
-                Qt::ConnectionType::DirectConnection);  
+        initializeThreads();
         
         //30 hz :1000/30 = 33.33...
         update_timer->start(33);
@@ -163,11 +154,8 @@ namespace rqt_gcs
         }
         
         delete uavCondWidgetArr[index];
-        uavCondWidgetArr[index] == nullptr;
         delete uavListWidgetArr[index];
-        uavListWidgetArr[index] == nullptr;
         delete quadrotors[index];
-        quadrotors[index] = nullptr;
         
         uavCondWidgetArr.erase(cond_iter);
         uavListWidgetArr.erase(list_iter);
@@ -193,10 +181,37 @@ namespace rqt_gcs
         uav_mutex.unlock();
     }
     
+    void SimpleGCS::parseUavNamespace(std::map<int,int>& map)
+    {
+        ros::V_string nodes;
+        ros::master::getNodes(nodes);
+
+        for(auto const& node : nodes)
+        {
+            int index = node.find("/UAV");
+            if(index == node.npos)
+            {   //nodes are printed alphabetically, if we passed UAV namespace, there are no more
+                if(map.size() > 0)
+                    break;
+                else  // skip nodes in front of /UAV namespace
+                    continue;
+            }
+            
+            std::string id_string = node.substr(index+4, 3);
+            id_string = id_string.substr(0,id_string.find("/"));
+            char * end;
+            int uav_id = std::strtol(&id_string[0], &end, 10);
+            
+            if(map.count(uav_id) == 0)
+                map.insert(std::pair<int,int>(uav_id, uav_id));   
+        }
+    }
+    
     void SimpleGCS::MonitorUavNamespace()
     {   
         std::map<int,int> uav_map;
         parseUavNamespace(uav_map);
+        
         if(NUM_UAV < uav_map.size())
         {
             for(auto const& iter : uav_map)
@@ -224,32 +239,44 @@ namespace rqt_gcs
             }
         }
     }
-    
-    void SimpleGCS::parseUavNamespace(std::map<int,int>& map)
+        
+    void SimpleGCS::MonitorConnection()
     {
-        ros::V_string nodes;
-        ros::master::getNodes(nodes);
+        /*
+         * under normal conditions (recieved a heartbeat), button stylesheet is: 
+         *      background-color: rgb(64, 89, 140);
+         *      color: rgb(240, 240, 240);
+         *  
+         * when heartbeat is not recieved, we grey it out:
+         *      background-color: rgb(80, 90, 100);
+         *      color: rgb(150, 150, 150);
+         */
+        
+        for(int i = 0; i < quadrotors.size(); i++)
+        {   
+            SimpleControl* quad = quadrotors[i];
+            QWidget* button = uavCondWidgetArr[i]->VehicleSelectButton;
 
-        for(const auto& node : nodes)
-        {
-            int index = node.find("/UAV");
-            if(index == node.npos)
-            {   //nodes are printed alphabetically, if we passed UAV namespace, there are no more
-                if(map.size() > 0)
-                    break;
-                else  // skip nodes in front of /UAV namespace
-                    continue;
+            if(!quad->RecievedHeartbeat() )
+            {
+                 //ROS_WARN_STREAM("no heartbeat for UAV_" << quad->id);
+                if(button->isEnabled()) // is the button already disabled?
+                {
+                    button->setEnabled(false);
+                    button->setStyleSheet("background-color: rgb(80, 90, 110); color: rgb(150, 150, 150);");
+                }
             }
-            
-            std::string id_string = node.substr(index+4, 3);
-            id_string = id_string.substr(0,id_string.find("/"));
-            char * end;
-            int uav_id = std::strtol(&id_string[0], &end, 10);
-            
-            if(map.count(uav_id) == 0)
-                map.insert(std::pair<int,int>(uav_id, uav_id));   
+            else
+            {
+                //ROS_INFO_STREAM("recieved heartbeat for UAV_" << quad->id);
+                if(!button->isEnabled()) // is the button already enabled?
+                {
+                    button->setEnabled(true);
+                    button->setStyleSheet("background-color: rgb(64, 89, 140); color: rgb(240, 240, 240);");
+                }
+            }
         }
-    }
+    }    
 
     //Timed update of for the GCS
 
@@ -258,7 +285,7 @@ namespace rqt_gcs
 
         if(NUM_UAV == 0 || cur_uav == -1)
         {
-            
+            mpUi_.uavNameEdit->setText("NO UAV's");
             return;
         }
         
@@ -795,9 +822,6 @@ namespace rqt_gcs
 
     void SimpleGCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
     {
-        if(NUM_UAV == 0)
-            return;
-        
         try
         {
             //don't change my colorspace! (bgr8)
@@ -813,6 +837,30 @@ namespace rqt_gcs
         }
     }
 
+    void SimpleGCS::initializeThreads()
+    {
+        t_namespace_monitor = new QThread();
+        uav_ns_timer = new QTimer();
+        uav_ns_timer->setInterval(20);
+        uav_ns_timer->moveToThread(t_namespace_monitor);          
+        connect(uav_ns_timer, SIGNAL(timeout()),
+                this, SLOT(MonitorUavNamespace())); 
+        connect(t_namespace_monitor, SIGNAL(started()), 
+                uav_ns_timer, SLOT(start()));                                        
+        t_namespace_monitor->start();
+        
+        
+        t_connection_monitor = new QThread();
+        connection_timer = new QTimer();
+        connection_timer->setInterval(20);
+        connection_timer->moveToThread(t_connection_monitor);
+        connect(connection_timer, SIGNAL(timeout()),
+                this, SLOT(MonitorConnection()));
+        connect(t_connection_monitor, SIGNAL(started()), 
+                connection_timer, SLOT(start()));
+        t_connection_monitor->start();
+    }
+    
     // SettingsWidget and QSettings related stuff
     
     void SimpleGCS::initializeSettings()
