@@ -28,6 +28,7 @@ private:
   ros::Subscriber sub_heartbeat, sub_pos_local;
   ros::Timer timer_heartbeat_uav;
   ros::Timer timer_heartbeat_gcs;
+  double time_connection_loss = -1;
 
   std_msgs::Int32 heartbeat_uav;
   geometry_msgs::Pose pose_local, pose_prev;
