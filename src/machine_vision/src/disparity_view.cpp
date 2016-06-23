@@ -8,6 +8,8 @@
 #include <opencv2/highgui.hpp>
 
 std::string topic;
+std::string ns; // namespace
+std::string full_topic;
 
 namespace enc = sensor_msgs::image_encodings;
 cv::Mat_<cv::Vec3b> disparity_color_;
@@ -296,7 +298,7 @@ void disparityCallback(const stereo_msgs::DisparityImageConstPtr& disparity_msg)
       }
     }
     
-    cv::imshow(topic, disparity_color_);
+    cv::imshow(full_topic, disparity_color_);
     cv::waitKey(1);
 }
 
@@ -310,11 +312,12 @@ int main (int argc, char **argv)
   if(!paramSet)
       topic = "stereo_cam/disparity";
   
-  ROS_INFO_STREAM ("topic: " << topic );
+  full_topic = ros::this_node::getNamespace() + "/" + topic;
+  ROS_INFO_STREAM ("topic: " << full_topic);
   
   ros::Subscriber sub = nh.subscribe(topic, 10, disparityCallback);
   
-  cv::namedWindow(topic, cv::WINDOW_KEEPRATIO);
+  cv::namedWindow(full_topic, cv::WINDOW_KEEPRATIO);
   cv::startWindowThread();
   
   ros::spin(); 

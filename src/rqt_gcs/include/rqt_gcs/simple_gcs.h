@@ -105,13 +105,16 @@ namespace rqt_gcs{
   private:
     void UpdatePFD();
     void UpdateMsgQuery();
+    void clearMsgQuery();
+    void clearAccessPoints();
+    void clearImageView();
     lcar_msgs::Target GetMission(std::string fileName);
     void saveImage(bool, std::string, const cv::Mat&);
     void parseUavNamespace(std::map<int,int>&);
     void addUav(int);
     void deleteUav(int);
     void selectQuad(int);
-    void initializeThreads();
+    void initializeMonitors();
     
     int cur_uav;
     int timeCounter;
@@ -165,12 +168,9 @@ namespace rqt_gcs{
     QSettings *settings_;
     QString image_root_path_;
     
-    QMutex uav_mutex;
+    //QMutex uav_mutex;
     QTimer  *uav_ns_timer;
-    QThread *t_namespace_monitor;
-    
     QTimer  *connection_timer;
-    QThread *t_connection_monitor;
   };
   
 } // rqt_gcs name space

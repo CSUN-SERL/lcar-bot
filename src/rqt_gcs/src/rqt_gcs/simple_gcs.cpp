@@ -9,7 +9,6 @@ namespace rqt_gcs
     , widget_(nullptr)
     , settings_widget_(nullptr)
     {
-        
         //Constructor is called first before initPlugin function
         setObjectName("LCAR Bot GCS");
     }
@@ -78,7 +77,7 @@ namespace rqt_gcs
         connect(update_timer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
         
         initializeSettings();
-        initializeThreads();
+        initializeMonitors();
         
         //30 hz :1000/30 = 33.33...
         update_timer->start(33);
@@ -88,7 +87,7 @@ namespace rqt_gcs
     
     void SimpleGCS::addUav(int uav_id)
     {
-        uav_mutex.lock();
+        //uav_mutex.lock();
         
         ROS_WARN_STREAM("Adding UAV with id: " << uav_id);
         
@@ -133,12 +132,12 @@ namespace rqt_gcs
         if(NUM_UAV == 1)
             selectQuad(0);
         
-        uav_mutex.unlock();
+        //uav_mutex.unlock();
     }
     
     void SimpleGCS::deleteUav(int index)
     {   
-        uav_mutex.lock();
+        //uav_mutex.lock();
         
         central_ui_.UAVListLayout->removeWidget(uavListWidgetArr[index]);
         
@@ -170,15 +169,20 @@ namespace rqt_gcs
         
         NUM_UAV--;
         
-        if(NUM_UAV == 0)
+        if(NUM_UAV == 0) // perform gui cleanup
+        {
             cur_uav= -1; // no more UAV's to select
+            clearMsgQuery();
+            clearAccessPoints();
+            ivUi_.image_frame->setImage(QImage()); // clear the image view
+        }
         else if(NUM_UAV == 1 || (cur_uav == index && index == 0))
             selectQuad(0); // default to only remaining uav/first in the list
         else if(NUM_UAV > 1 && cur_uav == index)
             selectQuad(cur_uav-1); 
             //if the currently selected uav was deleted, choose the one in front of it
         
-        uav_mutex.unlock();
+        //uav_mutex.unlock();
     }
     
     void SimpleGCS::parseUavNamespace(std::map<int,int>& map)
@@ -259,7 +263,7 @@ namespace rqt_gcs
 
             if(!quad->RecievedHeartbeat() )
             {
-                 //ROS_WARN_STREAM("no heartbeat for UAV_" << quad->id);
+                //ROS_WARN_STREAM("no heartbeat for UAV_" << quad->id);
                 if(button->isEnabled()) // is the button already disabled?
                 {
                     button->setEnabled(false);
@@ -360,20 +364,27 @@ namespace rqt_gcs
         
     }
 
+    void SimpleGCS::clearMsgQuery()
+    {
+        for(int i = pictureMsgQWidgets_.size() - 1; i >= 0; i--)
+        {
+            central_ui_.PictureMsgLayout->removeWidget(pictureMsgQWidgets_.at(i));
+            delete pictureMsgQWidgets_.at(i);
+            //pictureMsgQWidgets_.at(i) = nullptr;
+            pictureMsgQWidgets_.pop_back();
+        }
+        pictureMsgQWidgets_.clear();
+
+    }
+    
+    
     void SimpleGCS::UpdateMsgQuery()
     {
         if(!central_ui_.uavQueriesFame->isEnabled() || NUM_UAV == 0)
             return;
         
-        for(int i = pictureMsgQWidgets_.size() - 1; i >= 0; i--)
-        {
-            central_ui_.PictureMsgLayout->removeWidget(pictureMsgQWidgets_.at(i));
-            delete pictureMsgQWidgets_.at(i);
-            pictureMsgQWidgets_.at(i) = nullptr;
-            pictureMsgQWidgets_.pop_back();
-        }
-        pictureMsgQWidgets_.clear();
-
+        clearMsgQuery();
+        
         pictureQueryVector = quadrotors[cur_uav]->GetDoorQueries();
 
         int num_queries = pictureQueryVector->size();
@@ -594,11 +605,8 @@ namespace rqt_gcs
         }
     }
 
-    void SimpleGCS::RefreshAccessPointsMenu()
+    void SimpleGCS::clearAccessPoints()
     {
-        if(NUM_UAV == 0)
-            return;
-        
         //clear out old list of Access points widgets
         for(int i = accessPointsQWidgets_.size() - 1; i >= 0; i--)
         {
@@ -611,6 +619,14 @@ namespace rqt_gcs
         accessPointsQWidgets_.clear();
         disconnect(signal_mapper2, SIGNAL(mapped(QWidget*)), 
                    this, SLOT(DeleteAccessPoint(QWidget*)));
+    }
+    
+    void SimpleGCS::RefreshAccessPointsMenu()
+    {
+        if(NUM_UAV == 0)
+            return;
+        
+        clearAccessPoints();
 
         //retreive access points
         accessPointsVector = quadrotors[cur_uav]->GetRefAccessPoints();
@@ -713,7 +729,7 @@ namespace rqt_gcs
         // ROS_INFO_STREAM("Access point menu closed");
 
         int deleteIndex = apmUi_.AccessPointMenuLayout->indexOf(w);
-        ROS_INFO_STREAM("Access point %d Deleted" << deleteIndex);
+        ROS_INFO("Access point %d Deleted", deleteIndex);
 
         accessPointsVector->erase(accessPointsVector->begin() + deleteIndex - 1);
         accessPointsQWidgets_.erase(accessPointsQWidgets_.begin() + deleteIndex - 1);
@@ -731,14 +747,15 @@ namespace rqt_gcs
     //needed in addUav(int) and deleteUav(int)
     void SimpleGCS::selectQuad(int quadNumber)
     {
-        if(NUM_UAV == 0)
+        if(NUM_UAV == 0 || cur_uav == quadNumber)
             return;
         
+       
         cur_uav = quadNumber;
         int uav_id = quadrotors[cur_uav]->id;
         sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav_id) + "/stereo_cam/left/image_rect", 
                                          5, &SimpleGCS::ImageCallback, this);
-        
+        ivUi_.image_frame->setImage(QImage()); // clear the image view
         accessPointsVector = quadrotors[cur_uav]->GetRefAccessPoints();
         
         UpdateMsgQuery();
@@ -819,6 +836,10 @@ namespace rqt_gcs
         return building;
     }
 
+    void SimpleGCS::clearImageView()
+    {
+        //TODO
+    }
 
     void SimpleGCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
     {
@@ -837,28 +858,18 @@ namespace rqt_gcs
         }
     }
 
-    void SimpleGCS::initializeThreads()
+    void SimpleGCS::initializeMonitors()
     {
-        t_namespace_monitor = new QThread();
         uav_ns_timer = new QTimer();
-        uav_ns_timer->setInterval(20);
-        uav_ns_timer->moveToThread(t_namespace_monitor);          
         connect(uav_ns_timer, SIGNAL(timeout()),
-                this, SLOT(MonitorUavNamespace())); 
-        connect(t_namespace_monitor, SIGNAL(started()), 
-                uav_ns_timer, SLOT(start()));                                        
-        t_namespace_monitor->start();
+                this, SLOT(MonitorUavNamespace()));                                       
+        uav_ns_timer->start(20);        
         
         
-        t_connection_monitor = new QThread();
         connection_timer = new QTimer();
-        connection_timer->setInterval(20);
-        connection_timer->moveToThread(t_connection_monitor);
         connect(connection_timer, SIGNAL(timeout()),
                 this, SLOT(MonitorConnection()));
-        connect(t_connection_monitor, SIGNAL(started()), 
-                connection_timer, SLOT(start()));
-        t_connection_monitor->start();
+        connection_timer->start(20);
     }
     
     // SettingsWidget and QSettings related stuff
