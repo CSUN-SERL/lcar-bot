@@ -65,7 +65,7 @@ void SimpleControl::InitialSetup()
     pub_linear_vel        = nh.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_velocity/cmd_vel",QUEUE_SIZE);
     pub_setpoint_accel    = nh.advertise<geometry_msgs::Vector3Stamped>(ns + "/mavros/setpoint_accel/accel",QUEUE_SIZE);
     pub_door_answer       = nh.advertise<lcar_msgs::Door>(ns + "/object_detection/door/answer",QUEUE_SIZE);
-    pub_heartbeat         = nh.advertise<std_msgs::Int32>(ns + "/hearbeat/gcs", 0);
+    pub_heartbeat         = nh.advertise<std_msgs::Int32>(ns + "/heartbeat/gcs", 0);
     
     //Initialize Subscribers
     sub_state      = nh.subscribe(ns + "/mavros/state", QUEUE_SIZE, &SimpleControl::StateCallback, this);
@@ -81,8 +81,8 @@ void SimpleControl::InitialSetup()
     sub_detection  = nh.subscribe(ns + "/object_detection/access_point/door", QUEUE_SIZE, &SimpleControl::DetectionCallback, this);
     sub_heartbeat  = nh.subscribe(ns + "/heartbeat/uav", 0, &SimpleControl::UavHeartbeatCallback, this); 
     
-    uav_heartbeat_timer = nh.createTimer(ros::Duration(0.25), &SimpleControl::UavHeartbeatTimeoutCallback, this);
-    gcs_heartbeat_timer = nh.createTimer(ros::Duration(0.1), &SimpleControl::GcsPublishHeartbeat, this);        
+    timer_heartbeat_uav = nh.createTimer(ros::Duration(0.25), &SimpleControl::UavHeartbeatTimeoutCallback, this);
+    timer_heartbeat_gcs = nh.createTimer(ros::Duration(0.1), &SimpleControl::GcsPublishHeartbeat, this);        
     
     //Set Home position
     pose_home.position.x = pose_home.position.y = pose_home.position.z = 0;

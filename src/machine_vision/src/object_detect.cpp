@@ -102,7 +102,7 @@ void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image) {
                 detected_objects
                 ,weights
                 ,0.8         // hit threshold
-                ,Size(8,8) // step size
+                ,Size(16,16) // step size
                 ,Size(8,8) // padding
                 ,1.1       // scale factor
                 ,2       // final threshold

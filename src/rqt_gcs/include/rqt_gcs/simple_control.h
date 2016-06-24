@@ -82,6 +82,13 @@ public:
     int accepted_images = 0,
         rejected_images = 0;
     
+    
+    bool operator<(SimpleControl& b)
+    {
+        return this->id < b.id;
+    }
+    
+    
     /**
      * set online mode on or off
      * 
@@ -236,7 +243,7 @@ public:
     /**
       Return to launch site
     */
-    void SetRTL() { this->EnableOffboard(); goal = rtl; }
+    void SetRTL() { this->EnableOffboard(); goal = rtl; }  
 
     /**
       Manage the UAV and ensure that it is stable
@@ -328,12 +335,12 @@ private:
         if(connection_dropped)
             return;
         
-        uav_heartbeat_timer.stop();
+        timer_heartbeat_uav.stop();
         
         heartbeat_recieved = true;
         uav_heartbeat.data = heartbeat_msg.data;
         
-        uav_heartbeat_timer.start();
+        timer_heartbeat_uav.start();
     }
     
     void UavHeartbeatTimeoutCallback(const ros::TimerEvent& e)
@@ -411,8 +418,8 @@ private:
                                     online_mode = true,
                                     connection_dropped = false,
                                     heartbeat_recieved = true;
-    ros::Timer                      uav_heartbeat_timer,
-                                    gcs_heartbeat_timer;
+    ros::Timer                      timer_heartbeat_uav,
+                                    timer_heartbeat_gcs;
     std_msgs::Int32                 gcs_heartbeat,
                                     uav_heartbeat;
 };

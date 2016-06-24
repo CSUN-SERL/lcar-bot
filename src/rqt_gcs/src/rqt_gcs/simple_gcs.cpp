@@ -1,5 +1,5 @@
 #include <rqt_gcs/simple_gcs.h>
-#include <map>
+
 
 namespace rqt_gcs
 {
@@ -94,23 +94,14 @@ namespace rqt_gcs
         temp_data = "UAV ";
         quad_id.setNum(uav_id);
         temp_data += quad_id;
-        
-        auto cond_iter = uavCondWidgetArr.begin();
-        auto list_iter = uavListWidgetArr.begin();
-        auto quad_iter = quadrotors.begin();
-        int index = 0;
-        
-        while(quad_iter != quadrotors.end() && uav_id > (*quad_iter)->id)
-        {               
-            ++cond_iter;
-            ++list_iter;
-            ++quad_iter;
-            ++index;
-        }
 
-        uavCondWidgetArr.insert(cond_iter, new Ui::UAVConditionWidget());
-        uavListWidgetArr.insert(list_iter, new QWidget());
-        quadrotors.insert(quad_iter, new SimpleControl(uav_id));
+        int index = 0;
+        while(index < NUM_UAV && uav_id > quadrotors[index]->id)           
+            ++index;
+
+        uavCondWidgetArr.insert(uavCondWidgetArr.begin() + index, new Ui::UAVConditionWidget());
+        uavListWidgetArr.insert(uavListWidgetArr.begin() + index, new QWidget());
+        quadrotors.insert(quadrotors.begin() + index, new SimpleControl(uav_id));
         
         uavCondWidgetArr[index]->setupUi(uavListWidgetArr[index]);
         uavCondWidgetArr[index]->VehicleSelectButton->setText(std::to_string(uav_id).c_str());
@@ -141,24 +132,20 @@ namespace rqt_gcs
         
         central_ui_.UAVListLayout->removeWidget(uavListWidgetArr[index]);
         
-        auto cond_iter = uavCondWidgetArr.begin();
-        auto list_iter = uavListWidgetArr.begin();
-        auto quad_iter = quadrotors.begin();
-
-        while((*quad_iter)->id != quadrotors[index]->id)
-        {
-            ++cond_iter;
-            ++list_iter;
-            ++quad_iter;
+        if(cur_uav == index){
+            if(apmQWidget_->isVisible())
+                clearAccessPoints();
+            if(central_ui_.uavQueriesFame->isVisible())
+                clearMsgQuery();
         }
         
         delete uavCondWidgetArr[index];
         delete uavListWidgetArr[index];
         delete quadrotors[index];
         
-        uavCondWidgetArr.erase(cond_iter);
-        uavListWidgetArr.erase(list_iter);
-        quadrotors.erase(quad_iter);
+        uavCondWidgetArr.erase(uavCondWidgetArr.begin() + index);
+        uavListWidgetArr.erase(uavListWidgetArr.begin() + index);
+        quadrotors.erase(quadrotors.begin() + index);
         
         for(int i = index; i < quadrotors.size(); i++)
         {
@@ -171,9 +158,7 @@ namespace rqt_gcs
         
         if(NUM_UAV == 0) // perform gui cleanup
         {
-            cur_uav= -1; // no more UAV's to select
-            clearMsgQuery();
-            clearAccessPoints();
+            cur_uav = -1; // no more UAV's to select
             ivUi_.image_frame->setImage(QImage()); // clear the image view
         }
         else if(NUM_UAV == 1 || (cur_uav == index && index == 0))
@@ -189,7 +174,7 @@ namespace rqt_gcs
     {
         ros::V_string nodes;
         ros::master::getNodes(nodes);
-
+        
         for(auto const& node : nodes)
         {
             int index = node.find("/UAV");
@@ -210,6 +195,21 @@ namespace rqt_gcs
                 map.insert(std::pair<int,int>(uav_id, uav_id));   
         }
     }
+        
+    int SimpleGCS::binarySearch(int target_id, int low, int high)
+    {
+        if(low > high)
+            return -1;
+        
+        int index = (low + high) / 2;
+        
+        if(quadrotors[index]->id == target_id)
+            return index;
+        else if(quadrotors[index]->id < target_id) //search higher
+            return binarySearch(target_id, index+1, high);
+        else
+            return binarySearch(target_id, low, index-1);
+    }
     
     void SimpleGCS::MonitorUavNamespace()
     {   
@@ -217,18 +217,11 @@ namespace rqt_gcs
         parseUavNamespace(uav_map);
         
         if(NUM_UAV < uav_map.size())
-        {
-            for(auto const& iter : uav_map)
-            {
-                bool contains_id = false;
-                for(int j = 0; j < quadrotors.size(); j++)
-                {
-                    if(iter.first == quadrotors[j]->id)
-                        contains_id = true;
-                }
-                
-                if(!contains_id)
-                    addUav(iter.first);
+        {   
+            for(auto const& uav : uav_map)
+            {   
+                if(binarySearch(uav.first, 0, NUM_UAV-1) == -1)
+                    addUav(uav.first);
             }             
         }
         else if(NUM_UAV > uav_map.size())
@@ -256,12 +249,12 @@ namespace rqt_gcs
          *      color: rgb(150, 150, 150);
          */
         
-        for(int i = 0; i < quadrotors.size(); i++)
+        for(int i = 0; i < NUM_UAV; i++)
         {   
             SimpleControl* quad = quadrotors[i];
             QWidget* button = uavCondWidgetArr[i]->VehicleSelectButton;
 
-            if(!quad->RecievedHeartbeat() )
+            if(!quad->RecievedHeartbeat())
             {
                 //ROS_WARN_STREAM("no heartbeat for UAV_" << quad->id);
                 if(button->isEnabled()) // is the button already disabled?
@@ -612,7 +605,7 @@ namespace rqt_gcs
         {
             apmUi_.AccessPointMenuLayout->removeWidget(accessPointsQWidgets_.at(i));
             delete accessPointsQWidgets_.at(i);
-            accessPointsQWidgets_.at(i) = NULL;
+            accessPointsQWidgets_.at(i) = nullptr;
             accessPointsQWidgets_.pop_back();
 
         }
@@ -756,8 +749,11 @@ namespace rqt_gcs
         sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav_id) + "/stereo_cam/left/image_rect", 
                                          5, &SimpleGCS::ImageCallback, this);
         ivUi_.image_frame->setImage(QImage()); // clear the image view
-        accessPointsVector = quadrotors[cur_uav]->GetRefAccessPoints();
         
+        //accessPointsVector = quadrotors[cur_uav]->GetRefAccessPoints();
+        if(apmQWidget_->isVisible())
+            RefreshAccessPointsMenu();
+
         UpdateMsgQuery();
     }
 
@@ -938,7 +934,7 @@ namespace rqt_gcs
         for(int i = 0; i < NUM_UAV; i++)
             quadrotors[i]->setOnlineMode(toggle);
     }
-
+    
 } // namespace
 PLUGINLIB_DECLARE_CLASS(rqt_gcs, SimpleGCS, rqt_gcs::SimpleGCS, rqt_gui_cpp::Plugin)
 //PLUGINLIB_EXPORT_CLASS(rqt_gcs::SimpleGCS, rqt_gui_cpp::Plugin)

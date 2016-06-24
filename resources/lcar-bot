@@ -27,14 +27,17 @@ function ctrl_c(){
 #rqt &
 
 NS=""
+ID=""
 if [ -z "$1" ]; then
-   NS=UAV1
+    ID=1
+    NS=UAV"$ID"
 elif [ "$1" != "-no-stereo" ]; then
-   NS=UAV"$1"
+   ID="$1"
+   NS=UAV"$ID"
 fi
 
 if [ -z "$NS" ]; then
-    NS=UAV1
+    NS=UAV"$ID"
 fi
 
 if [ $(lsusb | grep 'ID 2a0b:00f5' | wc -c) -ne 0 -a $# -ne 2 -a "$1" != "-no-stereo" ]; then
@@ -42,11 +45,11 @@ if [ $(lsusb | grep 'ID 2a0b:00f5' | wc -c) -ne 0 -a $# -ne 2 -a "$1" != "-no-st
     ROS_NAMESPACE="$NS"/stereo_cam rosrun stereo_image_proc stereo_image_proc &
     ROS_NAMESPACE="$NS"            rosrun machine_vision object_detection &
     ROS_NAMESPACE="$NS" rosrun machine_vision disparity_view _topic:=stereo_cam/disparity &
-    ROS_NAMESPACE="$NS" rosrun rqt_gcs backup_control
+    ROS_NAMESPACE="$NS" rosrun rqt_gcs backup_control _id:="$ID"
 elif [ $(ls /dev/video* | wc -c) -ne 0 ]; then
     ROS_NAMESPACE="$NS" rosrun machine_vision camera_publisher _topic:=stereo_cam/left/image_rect &
     ROS_NAMESPACE="$NS" rosrun machine_vision object_detection &
-    ROS_NAMESPACE="$NS" rosrun rqt_gcs backup_control
+    ROS_NAMESPACE="$NS" rosrun rqt_gcs backup_control _id:="$ID"
 else
     wait
 fi

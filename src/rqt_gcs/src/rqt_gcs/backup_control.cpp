@@ -3,8 +3,13 @@
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "backup_control");
-
-  BackupControl control(1);
+  
+  int id;
+  if(!ros::param::get("~id",id))
+      id = 1;
+  
+  BackupControl bc(id);
+  
   ros::Rate loop_rate(10); //10Hz
 
   while(ros::ok())
@@ -18,6 +23,8 @@ int main(int argc, char **argv)
 
 BackupControl::BackupControl(int id)  //Class constructor
 {
+  this->id = id;
+    
   //Setup heartbeat timers
   timer_heartbeat_uav   = nh.createTimer(ros::Duration(0.1), &BackupControl::PublishHeartbeat, this);
   timer_heartbeat_gcs   = nh.createTimer(ros::Duration(0.25), &BackupControl::AssumeControl, this);
@@ -27,7 +34,7 @@ BackupControl::BackupControl(int id)  //Class constructor
   pub_sp_position = nh.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 10);
 
   sub_heartbeat = nh.subscribe("heartbeat/gcs", 0, &BackupControl::ReceiveHeartbeat, this);
-  sub_pos_local  = nh.subscribe("mavros/local_position/pose", 0, &BackupControl::LocalPosCallback, this);
+  sub_pos_local = nh.subscribe("mavros/local_position/pose", 0, &BackupControl::LocalPosCallback, this);
 }
 
 BackupControl::~BackupControl()
@@ -45,13 +52,14 @@ void BackupControl::ReceiveHeartbeat(const std_msgs::Int32 &msg_hb)
 {
     //Restart Timer
     timer_heartbeat_gcs.stop();
-    timer_heartbeat_gcs.start();
-
+    
     //Update previous position
     pose_prev = pose_local;
 
     //Reset connection loss time
     time_connection_loss = -1;
+    
+    timer_heartbeat_gcs.start();
 }
 
 void BackupControl::AssumeControl(const ros::TimerEvent &e){
@@ -74,6 +82,7 @@ void BackupControl::AssumeControl(const ros::TimerEvent &e){
     else{
         //Return to Launch
         //TODO: Implement ability to RTL
-        ROS_WARN_STREAM("Lost connection for too long. Returning home.");
+        ROS_WARN_STREAM(ros::this_node::getName() << 
+                " lost connection for too long. Returning home.");
     }
 }

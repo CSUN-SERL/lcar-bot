@@ -16,7 +16,8 @@
 #include <string>
 #include <vector>
 #include <fstream>
-
+#include <map>
+#include <algorithm>
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/thread.hpp>
@@ -78,8 +79,8 @@ namespace rqt_gcs{
     virtual void shutdownPlugin();
     virtual void saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const;
     virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings);
+    int binarySearch(int, int, int);
     
-
   protected slots:
     virtual void TimedUpdate();
     virtual void ExecutePlay();
