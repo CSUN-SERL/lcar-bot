@@ -58,7 +58,7 @@ namespace rqt_gcs
         connect(mpUi_.scoutBuildingButton, SIGNAL(clicked()), this, SLOT(ScoutBuilding()));
         connect(mpUi_.stopMissionButton, SIGNAL(clicked()), this, SLOT(StopQuad()));
         connect(mpUi_.changeFlightModeButton, SIGNAL(clicked()), this, SLOT(ChangeFlightMode()));
-        connect(mpUi_.viewAccessPointsButton, SIGNAL(clicked()), this, SLOT(RefreshAccessPointsMenu()));
+        connect(mpUi_.viewAccessPointsButton, SIGNAL(clicked()), this, SLOT(ShowAccessPoints()));
         connect(mpUi_.armButton, SIGNAL(clicked()), this, SLOT(ArmSelectedQuad()));
         connect(mpUi_.disarmButton, SIGNAL(clicked()), this, SLOT(DisarmSelectedQuad()));
 
@@ -87,7 +87,7 @@ namespace rqt_gcs
     
     void SimpleGCS::addUav(int uav_id)
     {
-        //uav_mutex.lock();
+        uav_mutex.lock();
         
         ROS_WARN_STREAM("Adding UAV with id: " << uav_id);
         
@@ -123,16 +123,17 @@ namespace rqt_gcs
         if(NUM_UAV == 1)
             selectQuad(0);
         
-        //uav_mutex.unlock();
+        uav_mutex.unlock();
     }
     
     void SimpleGCS::deleteUav(int index)
     {   
-        //uav_mutex.lock();
+        uav_mutex.lock();
         
         central_ui_.UAVListLayout->removeWidget(uavListWidgetArr[index]);
         
-        if(cur_uav == index){
+        if(cur_uav == index)
+        {
             if(apmQWidget_->isVisible())
                 clearAccessPoints();
             if(central_ui_.uavQueriesFame->isVisible())
@@ -167,7 +168,7 @@ namespace rqt_gcs
             selectQuad(cur_uav-1); 
             //if the currently selected uav was deleted, choose the one in front of it
         
-        //uav_mutex.unlock();
+        uav_mutex.unlock();
     }
     
     void SimpleGCS::parseUavNamespace(std::map<int,int>& map)
@@ -254,7 +255,7 @@ namespace rqt_gcs
             SimpleControl* quad = quadrotors[i];
             QWidget* button = uavCondWidgetArr[i]->VehicleSelectButton;
 
-            if(!quad->RecievedHeartbeat())
+            if(!quad->RecievedHeartbeat()) // no heartbeat
             {
                 //ROS_WARN_STREAM("no heartbeat for UAV_" << quad->id);
                 if(button->isEnabled()) // is the button already disabled?
@@ -291,60 +292,56 @@ namespace rqt_gcs
         {
             //ROS_INFO_STREAM("MSGs UPdated");
             UpdateMsgQuery();
+            RefreshAccessPointsMenu();    
             timeCounter = 0;
         }
 
         
-        SimpleControl quad = *quadrotors[cur_uav];
-        quad_id.setNum(quad.id);
+        SimpleControl* quad = quadrotors[cur_uav];
+        quad_id.setNum(quad->id);
         
-        temp_data = quad.GetState().mode.c_str();
+        temp_data = quad->GetState().mode.c_str();
         temp_data += ":";
-        temp_data += quad.GetState().armed ? "Armed" : "Disarmed";
+        temp_data += quad->GetState().armed ? "Armed" : "Disarmed";
         usUi_.flightModeDisplay->setText(temp_data);
 
-        temp_data.setNum(quad.GetFlightState().yaw, 'f', 2);
+        temp_data.setNum(quad->GetFlightState().yaw, 'f', 2);
         usUi_.yawDisplay->setText(temp_data);
 
-        temp_data.setNum(quad.GetFlightState().roll, 'f', 2);
+        temp_data.setNum(quad->GetFlightState().roll, 'f', 2);
         usUi_.rollDisplay->setText(temp_data);
 
-        temp_data.setNum(quad.GetFlightState().pitch, 'f', 2);
+        temp_data.setNum(quad->GetFlightState().pitch, 'f', 2);
         usUi_.pitchDisplay->setText(temp_data);
 
-        temp_data.setNum(quad.GetFlightState().altitude, 'f', 2);
+        temp_data.setNum(quad->GetFlightState().altitude, 'f', 2);
         usUi_.altitudeDisplay->setText(temp_data);
 
-        temp_data.setNum(quad.GetFlightState().vertical_speed, 'f', 2);
+        temp_data.setNum(quad->GetFlightState().vertical_speed, 'f', 2);
         usUi_.verticalSpaceDisplay->setText(temp_data);
 
-        temp_data.setNum(quad.GetFlightState().ground_speed, 'f', 2);
+        temp_data.setNum(quad->GetFlightState().ground_speed, 'f', 2);
         usUi_.horizontalSpaceDisplay->setText(temp_data);
 
-        temp_data.setNum(quad.GetFlightState().heading, 'f', 2);
+        temp_data.setNum(quad->GetFlightState().heading, 'f', 2);
         usUi_.headingDisplay->setText(temp_data);
 
-        temp_data.setNum(quad.GetDistanceToWP());
+        temp_data.setNum(quad->GetDistanceToWP());
         usUi_.waypointDisplay->setText(temp_data);
 
-        temp_data.setNum(quad.GetBatteryStatus().remaining * 100);
+        temp_data.setNum(quad->GetBatteryStatus().remaining * 100);
         usUi_.batteryProgressBar->setValue(temp_data.toInt());
         
-        quad_id.setNum(quad.id);
+        quad_id.setNum(quad->id);
         temp_data = "UAV ";
         temp_data += quad_id;
 
         mpUi_.uavNameEdit->setText(temp_data);
 
-        mpUi_.missionProgressBar->setValue(quad.GetMissionProgress()*100);
+        mpUi_.missionProgressBar->setValue(quad->GetMissionProgress()*100);
 
         this->UpdatePFD();
 
-        //Update all UAV's in the system
-        for(int index = 0; index < NUM_UAV; index++)
-        {
-            quadrotors[index]->Run();
-        }
 
         //Update Uav List widgets
         for(int i = 0; i < NUM_UAV; i++)
@@ -355,6 +352,20 @@ namespace rqt_gcs
             uavCondWidgetArr[i]->VehicleConditionLine->setText(temp_data);
         }
         
+    }
+    
+    void SimpleGCS::runQuads()
+    {
+        while(true)
+        {   
+            uav_mutex.lock();
+            //Update all UAV's in the system
+            for(int index = 0; index < NUM_UAV; index++)
+            {
+                quadrotors[index]->Run();
+            }
+            uav_mutex.unlock();
+        }
     }
 
     void SimpleGCS::clearMsgQuery()
@@ -709,11 +720,14 @@ namespace rqt_gcs
         quad_id.setNum(quadrotors[cur_uav]->id);
         temp_data += quad_id;
         apmUi_.uavNameLineEdit->setText(temp_data);
-        apmQWidget_->show();
-
         //test++;
     }
 
+    void SimpleGCS::ShowAccessPoints()
+    {
+        apmQWidget_->show();
+    }
+    
     void SimpleGCS::DeleteAccessPoint(QWidget* w)
     {
         if(NUM_UAV == 0)
@@ -747,7 +761,7 @@ namespace rqt_gcs
         cur_uav = quadNumber;
         int uav_id = quadrotors[cur_uav]->id;
         sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav_id) + "/stereo_cam/left/image_rect", 
-                                         5, &SimpleGCS::ImageCallback, this);
+                                         10, &SimpleGCS::ImageCallback, this);
         ivUi_.image_frame->setImage(QImage()); // clear the image view
         
         //accessPointsVector = quadrotors[cur_uav]->GetRefAccessPoints();
@@ -866,6 +880,8 @@ namespace rqt_gcs
         connect(connection_timer, SIGNAL(timeout()),
                 this, SLOT(MonitorConnection()));
         connection_timer->start(20);
+        
+        thread_quad_manager = new boost::thread(&SimpleGCS::runQuads, this);
     }
     
     // SettingsWidget and QSettings related stuff

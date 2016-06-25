@@ -20,6 +20,7 @@
 #include <algorithm>
 
 #include <boost/filesystem/operations.hpp>
+#include <boost/thread/scoped_thread.hpp>
 #include <boost/thread.hpp>
 
 #include <image_transport/image_transport.h>
@@ -98,6 +99,7 @@ namespace rqt_gcs{
     virtual void SettingsClicked();
     virtual void MonitorUavNamespace();
     virtual void MonitorConnection();
+    virtual void ShowAccessPoints();
     
     //SETTINGS RELATED
     virtual void DestroySettingsWidget();
@@ -116,6 +118,7 @@ namespace rqt_gcs{
     void deleteUav(int);
     void selectQuad(int);
     void initializeMonitors();
+    void runQuads();
     
     int cur_uav;
     int timeCounter;
@@ -169,9 +172,11 @@ namespace rqt_gcs{
     QSettings *settings_;
     QString image_root_path_;
     
-    //QMutex uav_mutex;
+    QMutex uav_mutex;
     QTimer  *uav_ns_timer;
     QTimer  *connection_timer;
+    
+    boost::thread* thread_quad_manager;
   };
   
 } // rqt_gcs name space
