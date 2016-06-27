@@ -20,8 +20,6 @@
 #include <algorithm>
 
 #include <boost/filesystem/operations.hpp>
-#include <boost/thread/scoped_thread.hpp>
-#include <boost/thread.hpp>
 
 #include <image_transport/image_transport.h>
 #include "opencv2/highgui.hpp"
@@ -52,17 +50,22 @@
 #include <QMainWindow>
 #include <QSignalMapper>
 #include <QDesktopWidget>
+#include <QWaitCondition>
 
 #define MAX_UAV 100 // the total number of UAV's manageable by our system
 
+//class SimpleGCSHelper;
 
 namespace rqt_gcs{
 
-
+  class SimpleGCSHelper;
 
   class SimpleGCS: public rqt_gui_cpp::Plugin
   {
   Q_OBJECT
+  
+  friend class SimpleGCSHelper;
+  
   public:
     SimpleGCS();
     ros::Subscriber sub;
@@ -80,7 +83,6 @@ namespace rqt_gcs{
     virtual void shutdownPlugin();
     virtual void saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const;
     virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings);
-    int binarySearch(int, int, int);
     
   protected slots:
     virtual void TimedUpdate();
@@ -97,10 +99,12 @@ namespace rqt_gcs{
     virtual void AcceptDoorQuery(QWidget*);
     virtual void DenyDoorQuery(QWidget*);
     virtual void SettingsClicked();
-    virtual void MonitorUavNamespace();
-    virtual void MonitorConnection();
     virtual void ShowAccessPoints();
     
+    virtual void AddUav(int);
+    virtual void DeleteUav(int);
+    virtual void UavConnectionToggled(int, int, bool);
+
     //SETTINGS RELATED
     virtual void DestroySettingsWidget();
     virtual void ToggleMachineLearningMode(bool);
@@ -113,19 +117,15 @@ namespace rqt_gcs{
     void clearImageView();
     lcar_msgs::Target GetMission(std::string fileName);
     void saveImage(bool, std::string, const cv::Mat&);
-    void parseUavNamespace(std::map<int,int>&);
-    void addUav(int);
-    void deleteUav(int);
     void selectQuad(int);
-    void initializeMonitors();
-    void runQuads();
+    void initializeHelperThreads();
     
     int cur_uav;
     int timeCounter;
     int NUM_UAV; //Total number of UAV's in the system
     
     
-    std::vector<SimpleControl*> quadrotors;
+    std::vector<SimpleControl*> UAVs;
     std::vector<AccessPoint> * accessPointsVector;
     std::vector<lcar_msgs::DoorPtr> * pictureQueryVector;
 
@@ -172,11 +172,42 @@ namespace rqt_gcs{
     QSettings *settings_;
     QString image_root_path_;
     
-    QMutex uav_mutex;
-    QTimer  *uav_ns_timer;
-    QTimer  *connection_timer;
+    QMutex  uav_mutex;
+    bool thread_namespace_has_priority = false;
     
-    boost::thread* thread_quad_manager;
+    QThread thread_connection;
+    QThread thread_namespace;
+    QThread thread_uav;
+    
+    SimpleGCSHelper *connection_monitor;
+    SimpleGCSHelper *namespace_monitor;
+    SimpleGCSHelper *uav_manager;
+    
+    QWaitCondition num_uav_changed;
+  };
+  
+  class SimpleGCSHelper : public QObject
+  {
+      Q_OBJECT
+              
+  public:   
+      SimpleGCSHelper(SimpleGCS *);
+      ~SimpleGCSHelper();
+      void parseUavNamespace(std::map<int,int>&);
+      int  binarySearch(int, int, int);
+  
+  public slots:  
+      void monitorUavNamespace();
+      void monitorConnections();
+      void runUavs();
+     
+  signals:
+      void addUav(int); // uav_id
+      void deleteUav(int); // index
+      void toggleUavConnection(int, int, bool);
+      
+  private:
+      SimpleGCS *gcs;
   };
   
 } // rqt_gcs name space

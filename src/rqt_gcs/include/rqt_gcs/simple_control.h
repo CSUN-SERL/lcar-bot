@@ -83,12 +83,6 @@ public:
         rejected_images = 0;
     
     
-    bool operator<(SimpleControl& b)
-    {
-        return this->id < b.id;
-    }
-    
-    
     /**
      * set online mode on or off
      * 

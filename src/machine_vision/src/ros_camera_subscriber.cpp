@@ -20,7 +20,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "image_listener", ros::init_options::AnonymousName);
+  ros::init(argc, argv, "image_listener" /*, ros::init_options::AnonymousName*/ );
   ros::NodeHandle nh;
   image_transport::ImageTransport it(nh);
 

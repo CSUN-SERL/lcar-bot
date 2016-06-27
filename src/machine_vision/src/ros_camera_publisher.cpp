@@ -14,7 +14,7 @@ using namespace std;
 int main(int argc, char** argv)
 {
 
-  ros::init(argc, argv, "camera_publisher", ros::init_options::AnonymousName);
+  ros::init(argc, argv, "camera_publisher" /*, ros::init_options::AnonymousName*/ );
   ros::NodeHandle nh;
   image_transport::ImageTransport it(nh);
 
