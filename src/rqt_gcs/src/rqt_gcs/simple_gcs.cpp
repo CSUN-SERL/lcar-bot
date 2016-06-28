@@ -52,7 +52,6 @@ namespace rqt_gcs
         missionProgressWidget_->setWindowTitle("Mission Control");
 
         //setup button logic for the widgets
-
         connect(mpUi_.executePlayButton, SIGNAL(clicked()), this, SLOT(ExecutePlay()));
         connect(mpUi_.cancelPlayButton, SIGNAL(clicked()), this, SLOT(CancelPlay()));
         connect(mpUi_.scoutBuildingButton, SIGNAL(clicked()), this, SLOT(ScoutBuilding()));
@@ -73,7 +72,7 @@ namespace rqt_gcs
         connect(denyDoorMapper, SIGNAL(mapped(QWidget*)), this, SLOT(DenyDoorQuery(QWidget*)));
 
         initializeSettings();
-        initializeHelperThreads();
+        initializeHelperThread();
 
         //Setup update timer
         update_timer = new QTimer(this);
@@ -105,7 +104,11 @@ namespace rqt_gcs
         uavCondWidgetArr[index]->VehicleNameLine->setText(temp_data);
 
         for(int i = index; i < NUM_UAV; i++)
+        {
             central_ui_.UAVListLayout->removeWidget(uavListWidgetArr[i]);
+            disconnect(uavCondWidgetArr[i]->VehicleSelectButton,
+                    SIGNAL(clicked()), signal_mapper, SLOT(map()));
+        }
 
         for(int i = index; i < UAVs.size(); i++)
         {
@@ -139,6 +142,10 @@ namespace rqt_gcs
         uavListWidgetArr.erase(uavListWidgetArr.begin() + index);
         UAVs.erase(UAVs.begin() + index);
 
+        for(int i = index; i < UAVs.size(); i++)
+            disconnect(uavCondWidgetArr[i]->VehicleSelectButton,
+                    SIGNAL(clicked()), signal_mapper, SLOT(map()));
+        
         for(int i = index; i < UAVs.size(); i++)
         {
             signal_mapper->setMapping(uavCondWidgetArr[i]->VehicleSelectButton, i);
@@ -187,20 +194,11 @@ namespace rqt_gcs
     }
 
     //Timed update of for the GCS
-
     void SimpleGCS::TimedUpdate()
     {
-//        while(thread_namespace_has_priority)
-//        {
-//            //wait until all uav's have been added or deleted
-//        }
-
-        //uav_mutex.lock();
-
         if(NUM_UAV == 0 || cur_uav == -1)
         {
             mpUi_.uavNameEdit->setText("NO UAV's");
-            //uav_mutex.unlock();
             return;
         }
 
@@ -258,10 +256,9 @@ namespace rqt_gcs
         mpUi_.missionProgressBar->setValue(quad->GetMissionProgress()*100);
 
         this->UpdatePFD();
-
-
+       
+        
         //Update Uav List widgets
-
         for(int i = 0; i < NUM_UAV; i++)
         {
             temp_data.setNum(UAVs[i]->GetBatteryStatus().remaining * 100);
@@ -269,8 +266,6 @@ namespace rqt_gcs
             temp_data = UAVs[i]->GetState().mode.c_str();
             uavCondWidgetArr[i]->VehicleConditionLine->setText(temp_data);
         }
-
-        //uav_mutex.unlock();
     }
 
     void SimpleGCS::clearMsgQuery()
@@ -279,7 +274,6 @@ namespace rqt_gcs
         {
             central_ui_.PictureMsgLayout->removeWidget(pictureMsgQWidgets_.at(i));
             delete pictureMsgQWidgets_.at(i);
-            //pictureMsgQWidgets_.at(i) = nullptr;
             pictureMsgQWidgets_.pop_back();
         }
         pictureMsgQWidgets_.clear();
@@ -288,13 +282,8 @@ namespace rqt_gcs
 
     void SimpleGCS::UpdateMsgQuery()
     {
-        //uav_mutex.lock();
-
-        if(!central_ui_.uavQueriesFame->isEnabled() || NUM_UAV == 0)
-        {
-            //uav_mutex.unlock();
+        if(NUM_UAV == 0 || !central_ui_.uavQueriesFame->isEnabled())
             return;
-        }
 
         clearMsgQuery();
 
@@ -346,8 +335,6 @@ namespace rqt_gcs
 
             central_ui_.PictureMsgLayout->addWidget(pictureMsgQWidgets_.at(i));
         }
-
-        //uav_mutex.unlock();
     }
 
     void SimpleGCS::AcceptDoorQuery(QWidget *qw)
@@ -413,13 +400,8 @@ namespace rqt_gcs
 
     void SimpleGCS::ExecutePlay()
     {
-        uav_mutex.lock();
-
         if(NUM_UAV == 0)
-        {
-            uav_mutex.unlock();
             return;
-        }
 
         int play_num = mpUi_.playComboBox->currentIndex();
 
@@ -444,71 +426,45 @@ namespace rqt_gcs
         }
 
         ROS_INFO_STREAM("Play " << play_num << " initiated");
-
-        uav_mutex.unlock();
     }
 
     void SimpleGCS::CancelPlay()
     {
-        uav_mutex.lock();
-
         if(NUM_UAV == 0)
-        {
-            uav_mutex.unlock();
             return;
-        }
 
         for(int i = 0; i < NUM_UAV; i++)
         {
             UAVs[i]->SetRTL();
         }
-
-        uav_mutex.unlock();
     }
 
     void SimpleGCS::ScoutBuilding()
     {
-        uav_mutex.lock();
 
         if(NUM_UAV == 0)
-        {
-            uav_mutex.unlock();
             return;
-        }
 
         int building_index = mpUi_.buildingsComboBox->currentIndex() + 1;
         std::string file_name = "building" + std::to_string(building_index) + ".txt";
 
         UAVs[cur_uav]->ScoutBuilding(GetMission(file_name));
         ROS_INFO_STREAM("Scouting Building " << building_index);
-
-        uav_mutex.unlock();
     }
 
     void SimpleGCS::StopQuad()
     {
-        uav_mutex.lock();
 
         if(NUM_UAV == 0)
-        {   
-            uav_mutex.unlock();
             return;
-        }
 
         UAVs[cur_uav]->SetRTL();
-
-        uav_mutex.unlock();
     }
 
     void SimpleGCS::ChangeFlightMode()
     {
-        uav_mutex.lock();
-
         if(NUM_UAV == 0)
-        {
-            uav_mutex.unlock();
             return;
-        }
 
         if(mpUi_.flightModeComboBox->currentIndex() == 0)
         {
@@ -550,8 +506,6 @@ namespace rqt_gcs
             ROS_INFO_STREAM("Quadrotor Offboard");
             UAVs[cur_uav]->SetMode("OFFBOARD");
         }
-
-        uav_mutex.unlock();
     }
 
     void SimpleGCS::clearAccessPoints()
@@ -563,7 +517,6 @@ namespace rqt_gcs
             delete accessPointsQWidgets_.at(i);
             accessPointsQWidgets_.at(i) = nullptr;
             accessPointsQWidgets_.pop_back();
-
         }
         accessPointsQWidgets_.clear();
         disconnect(signal_mapper2, SIGNAL(mapped(QWidget*)),
@@ -572,13 +525,8 @@ namespace rqt_gcs
 
     void SimpleGCS::RefreshAccessPointsMenu()
     {
-        //uav_mutex.lock();
-
-        if(NUM_UAV == 0)
-        {
-           // uav_mutex.unlock();
+        if(NUM_UAV == 0  || !apmQWidget_->isVisible())
             return;
-        }
 
         clearAccessPoints();
 
@@ -594,7 +542,7 @@ namespace rqt_gcs
         QWidget * imageWidget[numOfAccessPoints];
         Ui::ImageViewWidget imageUiWidget[numOfAccessPoints];
 
-        //create  a new list of access points if there are any access points
+        //create a new list of access points if there are any access points
         if(numOfAccessPoints != 0)
         {
             for(int i = 0; i < numOfAccessPoints; i++)
@@ -671,8 +619,6 @@ namespace rqt_gcs
         temp_data += quad_id;
         apmUi_.uavNameLineEdit->setText(temp_data);
         //test++;
-
-        //uav_mutex.unlock();
     }
 
     void SimpleGCS::ShowAccessPoints()
@@ -682,13 +628,8 @@ namespace rqt_gcs
 
     void SimpleGCS::DeleteAccessPoint(QWidget* w)
     {
-        uav_mutex.lock();
-
         if(NUM_UAV == 0)
-        {
-            uav_mutex.unlock();
             return;
-        }
 
         // ROS_INFO_STREAM("Access point menu closed");
 
@@ -700,8 +641,6 @@ namespace rqt_gcs
 
         apmUi_.AccessPointMenuLayout->removeWidget(w);
         delete w;
-
-        uav_mutex.unlock();
     }
 
     // slot gets called when user click on a uav button
@@ -719,45 +658,29 @@ namespace rqt_gcs
         cur_uav = quadNumber;
         int uav_id = UAVs[cur_uav]->id;
         sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav_id) + "/stereo_cam/left/image_rect",
-                                         10, &SimpleGCS::ImageCallback, this);
+                                         30, &SimpleGCS::ImageCallback, this);
         ivUi_.image_frame->setImage(QImage()); // clear the image view
 
-        //accessPointsVector = quadrotors[cur_uav]->GetRefAccessPoints();
-        if(apmQWidget_->isVisible())
-            RefreshAccessPointsMenu();
 
+        RefreshAccessPointsMenu();
         UpdateMsgQuery();
-
-        uav_mutex.unlock();
     }
 
     void SimpleGCS::ArmSelectedQuad()
     {
-        uav_mutex.lock();
-
         if(NUM_UAV == 0)
-        {
-            uav_mutex.unlock();
             return;
-        }
 
         UAVs[cur_uav]->Arm(true);
-
-        uav_mutex.unlock();
     }
 
     void SimpleGCS::DisarmSelectedQuad()
     {
-        uav_mutex.lock();
+
         if(NUM_UAV == 0)
-        {
-            uav_mutex.unlock();
             return;
-        }
 
         UAVs[cur_uav]->Arm(false);
-
-        uav_mutex.unlock();
     }
 
     void SimpleGCS::shutdownPlugin()
@@ -844,33 +767,23 @@ namespace rqt_gcs
         }
     }
 
-    void SimpleGCS::initializeHelperThreads()
-    {
-        namespace_monitor = new SimpleGCSHelper(this);
-        namespace_monitor->moveToThread(&thread_namespace);
-        connect(&thread_namespace, &QThread::started,
-               namespace_monitor, &SimpleGCSHelper::monitorUavNamespace);
-        connect(namespace_monitor, &SimpleGCSHelper::addUav,
-                this, &SimpleGCS::AddUav);
-        connect(namespace_monitor, &SimpleGCSHelper::deleteUav,
-                this, &SimpleGCS::DeleteUav);
-
-        connection_monitor = new SimpleGCSHelper(this);
-        connection_monitor->moveToThread(&thread_connection);
-        connect(&thread_connection, &QThread::started,
-                connection_monitor, &SimpleGCSHelper::monitorConnections);
-        connect(connection_monitor, &SimpleGCSHelper::toggleUavConnection,
-                this, &SimpleGCS::UavConnectionToggled);
-
+    void SimpleGCS::initializeHelperThread()
+    {       
         uav_manager = new SimpleGCSHelper(this);
         uav_manager->moveToThread(&thread_uav);
+        
         connect(&thread_uav, &QThread::started,
-                uav_manager, &SimpleGCSHelper::runUavs);
+                uav_manager, &SimpleGCSHelper::Run);
+        
+        connect(uav_manager, &SimpleGCSHelper::addUav,
+                this, &SimpleGCS::AddUav);
+        
+        connect(uav_manager, &SimpleGCSHelper::deleteUav,
+                this, &SimpleGCS::DeleteUav);
+        
+        connect(uav_manager, &SimpleGCSHelper::toggleUavConnection,
+                this, &SimpleGCS::UavConnectionToggled);
 
-        thread_namespace_has_priority = false;
-
-        thread_namespace.start();
-        thread_connection.start();
         thread_uav.start();
     }
 
@@ -934,15 +847,11 @@ namespace rqt_gcs
 
     void SimpleGCS::ToggleMachineLearningMode(bool toggle)
     {
-        uav_mutex.lock();
-
         central_ui_.uavQueriesFame->setVisible(toggle);
         central_ui_.uavQueriesFame->setEnabled(toggle);
 
         for(int i = 0; i < NUM_UAV; i++)
             UAVs[i]->setOnlineMode(toggle);
-
-        uav_mutex.unlock();
     }
 
 
@@ -1000,45 +909,36 @@ namespace rqt_gcs
 
     void SimpleGCSHelper::monitorUavNamespace()
     {
-        forever
+        std::map<int,int> uav_map;
+        parseUavNamespace(uav_map);
+
+        gcs->uav_mutex.lock();
+        
+        if(gcs->NUM_UAV < uav_map.size())
         {
-            gcs->uav_mutex.lock();
-
-            std::map<int,int> uav_map;
-            parseUavNamespace(uav_map);
-            int size = uav_map.size();
-
-            if(size != gcs->NUM_UAV)
-                gcs->thread_namespace_has_priority = true;
-            else
-                gcs->thread_namespace_has_priority = false;
-
-            if(gcs->NUM_UAV < size)
+            for(auto const& uav : uav_map)
             {
-                for(auto const& uav : uav_map)
+                if(binarySearch(uav.first, 0, gcs->NUM_UAV-1) == -1)
                 {
-                    if(binarySearch(uav.first, 0, gcs->NUM_UAV-1) == -1)
-                    {
-                        emit addUav(uav.first);
-                        gcs->num_uav_changed.wait(&gcs->uav_mutex);
-                    }
+                    emit addUav(uav.first);
+                    gcs->num_uav_changed.wait(&gcs->uav_mutex);
                 }
             }
-            else if(gcs->NUM_UAV > size)
-            {
-                for(int i = 0; i < gcs->UAVs.size(); i++)
-                {
-                    if(uav_map.count(gcs->UAVs[i]->id) == 0)
-                    {
-                        emit deleteUav(i);
-                        i--;
-                        gcs->num_uav_changed.wait(&gcs->uav_mutex);
-                    }
-                }
-            }
-
-            gcs->uav_mutex.unlock();
         }
+        else if(gcs->NUM_UAV > uav_map.size())
+        {
+            for(int i = 0; i < gcs->UAVs.size(); i++)
+            {
+                if(uav_map.count(gcs->UAVs[i]->id) == 0)
+                {
+                    emit deleteUav(i);
+                    i--;
+                    gcs->num_uav_changed.wait(&gcs->uav_mutex);
+                }
+            }
+        }
+
+        gcs->uav_mutex.unlock();
     }
 
     void SimpleGCSHelper::monitorConnections()
@@ -1052,56 +952,42 @@ namespace rqt_gcs
          *      background-color: rgb(80, 90, 100);
          *      color: rgb(150, 150, 150);
          */
-        
-        forever
+
+        for(int i = 0; i < gcs->NUM_UAV; i++)
         {
-            while(gcs->thread_namespace_has_priority)
+            SimpleControl* uav = gcs->UAVs[i];
+            QWidget* button = gcs->uavCondWidgetArr[i]->VehicleSelectButton;
+
+            if(!uav->RecievedHeartbeat()) // no heartbeat
             {
-                //wait until all uav's have been added or deleted
+                //ROS_WARN_STREAM("no heartbeat for UAV_" << quad->id);
+                if(button->isEnabled()) // is the button already disabled?
+                    emit toggleUavConnection(i, uav->id, false);
             }
-
-            gcs->uav_mutex.lock();
-
-            for(int i = 0; i < gcs->NUM_UAV; i++)
+            else
             {
-                SimpleControl* uav = gcs->UAVs[i];
-                QWidget* button = gcs->uavCondWidgetArr[i]->VehicleSelectButton;
-
-                if(!uav->RecievedHeartbeat()) // no heartbeat
-                {
-                    //ROS_WARN_STREAM("no heartbeat for UAV_" << quad->id);
-                    if(button->isEnabled()) // is the button already disabled?
-                        emit toggleUavConnection(i, uav->id, false);
-                }
-                else
-                {
-                    //ROS_INFO_STREAM("recieved heartbeat for UAV_" << quad->id);
-                    if(!button->isEnabled()) // is the button already enabled?
-                        emit toggleUavConnection(i, uav->id, true);
-                }
+                //ROS_INFO_STREAM("recieved heartbeat for UAV_" << quad->id);
+                if(!button->isEnabled()) // is the button already enabled?
+                    emit toggleUavConnection(i, uav->id, true);
             }
-
-            gcs->uav_mutex.unlock();
         }
     }
 
     void SimpleGCSHelper::runUavs()
     {
+        for(auto const& uav : gcs->UAVs)
+        {
+            uav->Run();
+        }
+    }
+    
+    void SimpleGCSHelper::Run()
+    {
         forever
         {
-            while(gcs->thread_namespace_has_priority)
-            {
-                //wait until all uav's have been added or deleted
-            }
-
-            gcs->uav_mutex.lock();
-
-            for(auto const& uav : gcs->UAVs)
-            {
-                uav->Run();
-            }
-
-            gcs->uav_mutex.unlock();
+            monitorUavNamespace();
+            monitorConnections();
+            runUavs();
         }
     }
 

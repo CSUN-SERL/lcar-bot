@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>633</width>
-    <height>584</height>
+    <width>814</width>
+    <height>590</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,26 +25,6 @@ color: rgb(236, 236, 236);
 /*border-radius: 5px;*/</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
-   <item row="0" column="0">
-    <widget class="QLabel" name="uavAccespointsLabel">
-     <property name="text">
-      <string>Access Points</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLineEdit" name="uavNameLineEdit">
-     <property name="text">
-      <string>Uav 1</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </item>
    <item row="2" column="0">
     <widget class="QScrollArea" name="scrollArea">
      <property name="horizontalScrollBarPolicy">
@@ -58,8 +38,8 @@ color: rgb(236, 236, 236);
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>613</width>
-        <height>508</height>
+        <width>794</width>
+        <height>545</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout">
@@ -88,6 +68,31 @@ color: rgb(236, 236, 236);
        </item>
       </layout>
      </widget>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="uavNameLineEdit">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Panel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="text">
+      <string>UAV 1</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="textInteractionFlags">
+      <set>Qt::NoTextInteraction</set>
+     </property>
     </widget>
    </item>
   </layout>

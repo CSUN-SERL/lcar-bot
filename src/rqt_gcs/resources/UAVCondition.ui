@@ -45,10 +45,22 @@ border-radius: 5px;</string>
    </property>
    <item row="0" column="0" rowspan="3">
     <widget class="QPushButton" name="VehicleSelectButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="minimumSize">
       <size>
        <width>80</width>
        <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>80</width>
+       <height>80</height>
       </size>
      </property>
      <property name="font">
@@ -72,24 +84,10 @@ color: rgb(240, 240, 240);</string>
      </property>
     </widget>
    </item>
-   <item row="0" column="2">
-    <widget class="QLineEdit" name="VehicleNameLine">
-     <property name="text">
-      <string>UAV 1</string>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="1">
     <widget class="QLabel" name="VehicleConditionLabel">
      <property name="text">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Condition:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="2">
-    <widget class="QLineEdit" name="VehicleConditionLine">
-     <property name="text">
-      <string>Scouting...</string>
      </property>
     </widget>
    </item>
@@ -100,10 +98,42 @@ color: rgb(240, 240, 240);</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="2">
-    <widget class="QLineEdit" name="VehicleBatteryLine">
+   <item row="0" column="3">
+    <widget class="QLineEdit" name="VehicleNameLine">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="text">
-      <string>37 %</string>
+      <string>UAV1</string>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="3">
+    <widget class="QLineEdit" name="VehicleConditionLine">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>scouting...</string>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="3">
+    <widget class="QLineEdit" name="VehicleBatteryLine">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>69%</string>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
      </property>
     </widget>
    </item>

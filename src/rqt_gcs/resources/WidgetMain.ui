@@ -85,7 +85,14 @@ background-color: rgb(48, 57, 80);</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <layout class="QHBoxLayout" name="CameraLayout"/>
+        <layout class="QHBoxLayout" name="CameraLayout">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="sizeConstraint">
+          <enum>QLayout::SetNoConstraint</enum>
+         </property>
+        </layout>
        </item>
        <item>
         <layout class="QHBoxLayout" name="MissionLayout"/>

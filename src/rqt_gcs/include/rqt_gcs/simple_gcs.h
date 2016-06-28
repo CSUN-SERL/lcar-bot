@@ -118,7 +118,7 @@ namespace rqt_gcs{
     lcar_msgs::Target GetMission(std::string fileName);
     void saveImage(bool, std::string, const cv::Mat&);
     void selectQuad(int);
-    void initializeHelperThreads();
+    void initializeHelperThread();
     
     int cur_uav;
     int timeCounter;
@@ -172,17 +172,10 @@ namespace rqt_gcs{
     QSettings *settings_;
     QString image_root_path_;
     
-    QMutex  uav_mutex;
-    bool thread_namespace_has_priority = false;
     
-    QThread thread_connection;
-    QThread thread_namespace;
     QThread thread_uav;
-    
-    SimpleGCSHelper *connection_monitor;
-    SimpleGCSHelper *namespace_monitor;
     SimpleGCSHelper *uav_manager;
-    
+    QMutex uav_mutex;
     QWaitCondition num_uav_changed;
   };
   
@@ -193,13 +186,9 @@ namespace rqt_gcs{
   public:   
       SimpleGCSHelper(SimpleGCS *);
       ~SimpleGCSHelper();
-      void parseUavNamespace(std::map<int,int>&);
-      int  binarySearch(int, int, int);
   
   public slots:  
-      void monitorUavNamespace();
-      void monitorConnections();
-      void runUavs();
+      void Run();
      
   signals:
       void addUav(int); // uav_id
@@ -208,6 +197,14 @@ namespace rqt_gcs{
       
   private:
       SimpleGCS *gcs;
+      
+      void monitorUavNamespace();
+      void monitorConnections();
+      void runUavs();
+      
+      void parseUavNamespace(std::map<int,int>&);
+      int  binarySearch(int, int, int);
+      
   };
   
 } // rqt_gcs name space

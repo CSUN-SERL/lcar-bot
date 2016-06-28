@@ -216,7 +216,7 @@ color: rgb(240, 240, 240);
       </size>
      </property>
      <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
+      <enum>QFrame::NoFrame</enum>
      </property>
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
@@ -229,8 +229,6 @@ color: rgb(240, 240, 240);
     </widget>
    </item>
   </layout>
-  <zorder>line</zorder>
-  <zorder>frame</zorder>
  </widget>
  <resources/>
  <connections/>
