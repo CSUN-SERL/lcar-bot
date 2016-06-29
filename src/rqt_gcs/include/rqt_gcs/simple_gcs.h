@@ -123,6 +123,8 @@ namespace rqt_gcs{
     int cur_uav;
     int timeCounter;
     int NUM_UAV; //Total number of UAV's in the system
+    int queries_last;
+    int access_points_last;
     
     
     std::vector<SimpleControl*> UAVs;
@@ -172,9 +174,8 @@ namespace rqt_gcs{
     QSettings *settings_;
     QString image_root_path_;
     
-    
-    QThread thread_uav;
-    SimpleGCSHelper *uav_manager;
+    QThread t_uav_monitor;
+    SimpleGCSHelper * uav_monitor;
     QMutex uav_mutex;
     QWaitCondition num_uav_changed;
   };
@@ -188,7 +189,7 @@ namespace rqt_gcs{
       ~SimpleGCSHelper();
   
   public slots:  
-      void Run();
+      void monitor();
      
   signals:
       void addUav(int); // uav_id
@@ -206,6 +207,6 @@ namespace rqt_gcs{
       int  binarySearch(int, int, int);
       
   };
-  
+    
 } // rqt_gcs name space
 #endif //rqt_gcs__SimpleGCS_H
