@@ -750,9 +750,9 @@ namespace rqt_gcs
         fileIn >> radius;
         //fileIn >> yaw;
 
-        building.target_point.position.x = pos_x;
-        building.target_point.position.y = pos_y;
-        building.target_point.position.z = pos_z;
+        building.target_local.position.x = pos_x;
+        building.target_local.position.y = pos_y;
+        building.target_local.position.z = pos_z;
         building.radius = radius;
         //building.orientation.w = yaw;
 
