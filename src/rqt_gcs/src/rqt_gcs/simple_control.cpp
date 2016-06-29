@@ -8,9 +8,9 @@ int main(int argc, char **argv)
     ros::Rate loop_rate(10); //10Hz
 
     lcar_msgs::Target target_pt;
-    target_pt.target_point.position.x = 0;
-    target_pt.target_point.position.y = 0;
-    target_pt.target_point.position.z = 2;
+    target_pt.target_local.position.x = 0;
+    target_pt.target_local.position.y = 0;
+    target_pt.target_local.position.z = 2;
     target_pt.radius = 2;
 
     quad1.Arm(true);
@@ -58,14 +58,15 @@ void SimpleControl::InitialSetup()
     sc_mission  = nh.serviceClient<mavros_msgs::WaypointPush>(ns + "/mavros/mission/push");
 
     //Initialize Publisher Objects
-    pub_override_rc       = nh.advertise<mavros_msgs::OverrideRCIn>(ns + "/mavros/rc/override",QUEUE_SIZE);
-    pub_setpoint_position = nh.advertise<geometry_msgs::PoseStamped>(ns + "/mavros/setpoint_position/local",QUEUE_SIZE);
-    pub_setpoint_attitude = nh.advertise<geometry_msgs::PoseStamped>(ns + "/mavros/setpoint_attitude/attitude",QUEUE_SIZE);
-    pub_angular_vel       = nh.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
-    pub_linear_vel        = nh.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_velocity/cmd_vel",QUEUE_SIZE);
-    pub_setpoint_accel    = nh.advertise<geometry_msgs::Vector3Stamped>(ns + "/mavros/setpoint_accel/accel",QUEUE_SIZE);
-    pub_door_answer       = nh.advertise<lcar_msgs::Door>(ns + "/object_detection/door/answer",QUEUE_SIZE);
-    pub_heartbeat         = nh.advertise<std_msgs::Int32>(ns + "/heartbeat/gcs", 0);
+    pub_override_rc         = nh.advertise<mavros_msgs::OverrideRCIn>(ns + "/mavros/rc/override",QUEUE_SIZE);
+    pub_setpoint_position   = nh.advertise<geometry_msgs::PoseStamped>(ns + "/mavros/setpoint_position/local",QUEUE_SIZE);
+    pub_setpoint_gposition  = nh.advertise<mavros_msgs::GlobalPositionTarget>(ns + "/mavros/setpoint_raw/global",QUEUE_SIZE);
+    pub_setpoint_attitude   = nh.advertise<geometry_msgs::PoseStamped>(ns + "/mavros/setpoint_attitude/attitude",QUEUE_SIZE);
+    pub_angular_vel         = nh.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_attitude/cmd_vel",QUEUE_SIZE);
+    pub_linear_vel          = nh.advertise<geometry_msgs::TwistStamped>(ns + "/mavros/setpoint_velocity/cmd_vel",QUEUE_SIZE);
+    pub_setpoint_accel      = nh.advertise<geometry_msgs::Vector3Stamped>(ns + "/mavros/setpoint_accel/accel",QUEUE_SIZE);
+    pub_door_answer         = nh.advertise<lcar_msgs::Door>(ns + "/object_detection/door/answer",QUEUE_SIZE);
+    pub_heartbeat           = nh.advertise<std_msgs::Int32>(ns + "/heartbeat/gcs", 0);
     
     //Initialize Subscribers
     sub_state      = nh.subscribe(ns + "/mavros/state", QUEUE_SIZE, &SimpleControl::StateCallback, this);
@@ -313,7 +314,7 @@ void SimpleControl::OverrideRC(int channel, int value)
     pub_override_rc.publish(override_msg);
 }
 
-void SimpleControl::SetLocalPosition(float x, float y, float z, float yaw)
+void SimpleControl::SetPosition(float x, float y, float z, float yaw)
 {
     //Create the message object
     geometry_msgs::PoseStamped position_stamped;
@@ -333,7 +334,7 @@ void SimpleControl::SetLocalPosition(float x, float y, float z, float yaw)
     pub_setpoint_position.publish(position_stamped);
 }
 
-void SimpleControl::SetLocalPosition(geometry_msgs::Pose new_pose)
+void SimpleControl::SetPosition(geometry_msgs::Pose new_pose)
 {
     //Create the message object
     geometry_msgs::PoseStamped position_stamped;
@@ -343,6 +344,12 @@ void SimpleControl::SetLocalPosition(geometry_msgs::Pose new_pose)
 
     //Publish the message
     pub_setpoint_position.publish(position_stamped);
+}
+
+void SimpleControl::SetPosition(mavros_msgs::GlobalPositionTarget new_pose)
+{
+    //Publish the message
+    pub_setpoint_gposition.publish(new_pose);
 }
 
 void SimpleControl::SetAttitude(float roll, float pitch, float yaw)
@@ -484,7 +491,7 @@ float SimpleControl::GetMissionProgress()
 nav_msgs::Path SimpleControl::CircleShape(lcar_msgs::Target target_point){
     geometry_msgs::PoseStamped pose_new_stamped;
     geometry_msgs::Pose pose_new;
-    geometry_msgs::Point point_center = target_point.target_point.position;
+    geometry_msgs::Point point_center = target_point.target_local.position;
     nav_msgs::Path mission;
     float yaw_angle, radius = target_point.radius;
 
@@ -506,44 +513,6 @@ nav_msgs::Path SimpleControl::CircleShape(lcar_msgs::Target target_point){
         pose_new_stamped.pose = pose_new;
         mission.poses.push_back(pose_new_stamped);
     }
-
-    return mission;
-}
-
-nav_msgs::Path SimpleControl::DiamondShape(lcar_msgs::Target target_point)
-{
-    nav_msgs::Path mission;
-    geometry_msgs::PoseStamped pose_stamped;
-    geometry_msgs::Pose pose;
-
-    pose.position.x    += target_point.radius;
-    pose.position.y     = target_point.target_point.position.y;
-    pose.position.z     = target_point.target_point.position.z;
-    quaternionTFToMsg(tf::createQuaternionFromYaw(angles::from_degrees(180)), pose.orientation);
-    pose_stamped.pose = pose;
-    mission.poses.push_back(pose_stamped);
-
-    pose.position.x     = target_point.target_point.position.x;
-    pose.position.y    += target_point.radius;
-    pose.position.z     = target_point.target_point.position.z;
-    quaternionTFToMsg(tf::createQuaternionFromYaw(angles::from_degrees(270)), pose.orientation);
-    pose_stamped.pose = pose;
-    mission.poses.push_back(pose_stamped);
-
-    pose.position.x    -= target_point.radius;
-    pose.position.y     = target_point.target_point.position.y;
-    pose.position.z     = target_point.target_point.position.z;
-    quaternionTFToMsg(tf::createQuaternionFromYaw(angles::from_degrees(0)), pose.orientation);
-    pose_stamped.pose = pose;
-    mission.poses.push_back(pose_stamped);
-
-    pose.position.x     = target_point.target_point.position.x;
-    pose.position.y    -= target_point.radius;
-    pose.position.z     = target_point.target_point.position.z;
-    quaternionTFToMsg(tf::createQuaternionFromYaw(angles::from_degrees(90)), pose.orientation);
-
-    pose_stamped.pose = pose;
-    mission.poses.push_back(pose_stamped);
 
     return mission;
 }
@@ -580,17 +549,17 @@ void SimpleControl::Run()
         }
         else if(std::abs(std::abs(pose_local.position.z) - std::abs(pose_target.position.z)) <= THRESHOLD_Z){
             //Achieved the proper altitude => Go to target location
-            this->SetLocalPosition(pose_target);
+            this->SetPosition(pose_target);
 
             pose_previous = pose_local; //Update previous position for fixing the altitude
         }
         else{
             //Ascend to the proper altitude first at the current location
-            this->SetLocalPosition(pose_previous.position.x, pose_previous.position.y, pose_target.position.z);
+            this->SetPosition(pose_previous.position.x, pose_previous.position.y, pose_target.position.z);
         }
     }
     else if(goal == hold_pose){
-        this->SetLocalPosition(pose_previous);
+        this->SetPosition(pose_previous);
     }
     else if(goal == scout){
         static int rev_count = 0;
@@ -598,7 +567,7 @@ void SimpleControl::Run()
 
         //Travel to the next waypoint
         pose_target = path_mission.poses.at(cur_point).pose;
-        this->SetLocalPosition(pose_target);
+        this->SetPosition(pose_target);
         goal = travel;
         cur_point++;
 
@@ -620,11 +589,11 @@ void SimpleControl::Run()
         }
         else if(abs(pose_local.position.z - ALT_RTL) <= THRESHOLD_Z){
             //Achieved the proper altitude => Go to target location
-            this->SetLocalPosition(pose_home.position.x, pose_home.position.y, ALT_RTL);
+            this->SetPosition(pose_home.position.x, pose_home.position.y, ALT_RTL);
             pose_previous = pose_local;
         }
         else{
-            this->SetLocalPosition(pose_previous.position.x, pose_previous.position.y, ALT_RTL);
+            this->SetPosition(pose_previous.position.x, pose_previous.position.y, ALT_RTL);
         }
     }
     else if(goal == land){
@@ -634,7 +603,7 @@ void SimpleControl::Run()
         }
         else{
             //Descend to the floor
-            this->SetLocalPosition(pose_previous.position.x, pose_previous.position.y, 0);
+            this->SetPosition(pose_previous.position.x, pose_previous.position.y, 0);
         }
     }
     else if(goal == disarm){

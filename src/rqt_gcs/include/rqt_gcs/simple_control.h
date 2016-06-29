@@ -21,6 +21,7 @@
 #include <mavros_msgs/Waypoint.h>
 #include <mavros_msgs/CommandCode.h>
 #include <mavros_msgs/WaypointPush.h>
+#include <mavros_msgs/GlobalPositionTarget.h>
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <sensor_msgs/Image.h>
@@ -170,21 +171,28 @@ public:
     void OverrideRC(int channel, int value);
 
     /**
-      Send a new position command to the UAV.
+      Send a new local position command to the UAV.
 
       @param x      New x position
       @param y      New y position
       @param z      New z position
       @param yaw    New yaw value in degrees
     */
-    void SetLocalPosition(float x, float y, float z, float yaw = 361);
+    void SetPosition(float x, float y, float z, float yaw = 361);
 
     /**
-      Send a new position command to the UAV.
+      Send a new local position command to the UAV.
 
       @param new_pose The new local position passed as a Pose object
     */
-    void SetLocalPosition(geometry_msgs::Pose new_pose);
+    void SetPosition(geometry_msgs::Pose new_pose);
+
+    /**
+      Send a new global position command to the UAV.
+
+      @param new_pose The new global position passed as a GlobalPositionTarget obect
+    */
+    void SetPosition(mavros_msgs::GlobalPositionTarget new_pose);
 
     /**
       Change the UAV's roll, pitch, and yaw values. Requires the UAV to be
@@ -368,6 +376,7 @@ private:
                                     sc_mission;
     ros::Publisher                  pub_override_rc,
                                     pub_setpoint_position,
+                                    pub_setpoint_gposition,
                                     pub_setpoint_attitude,
                                     pub_angular_vel,
                                     pub_linear_vel,
