@@ -1,2 +1,4 @@
-geometry_msgs/Pose target_point
+geometry_msgs/Pose target_local
+mavros_msgs/GlobalPositionTarget target_global
 float64 radius
+bool global

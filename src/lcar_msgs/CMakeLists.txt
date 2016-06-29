@@ -3,7 +3,8 @@ project(lcar_msgs)
 
 find_package(catkin REQUIRED COMPONENTS message_generation
                                         sensor_msgs
-                                        geometry_msgs)
+                                        geometry_msgs
+                                        mavros_msgs)
 
 include_directories(include)
 
@@ -13,6 +14,6 @@ add_message_files(
   Door.msg
   Target.msg)
 
-generate_messages(DEPENDENCIES sensor_msgs geometry_msgs)
+generate_messages(DEPENDENCIES sensor_msgs geometry_msgs mavros_msgs)
 
-catkin_package(CATKIN_DEPENDS message_runtime sensor_msgs geometry_msgs)
+catkin_package(CATKIN_DEPENDS message_runtime sensor_msgs geometry_msgs mavros_msgs)
