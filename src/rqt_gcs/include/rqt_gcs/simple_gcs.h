@@ -91,13 +91,13 @@ namespace rqt_gcs{
     virtual void ScoutBuilding();
     virtual void StopQuad();
     virtual void ChangeFlightMode();
-    virtual void RefreshAccessPointsMenu();
+    virtual void UpdateAccessPoints();
     virtual void DeleteAccessPoint(QWidget*);
     virtual void QuadSelected(int);
     virtual void ArmSelectedQuad();
     virtual void DisarmSelectedQuad();
     virtual void AcceptDoorQuery(QWidget*);
-    virtual void DenyDoorQuery(QWidget*);
+    virtual void RejectDoorQuery(QWidget*);
     virtual void SettingsClicked();
     virtual void ShowAccessPoints();
     
@@ -111,24 +111,25 @@ namespace rqt_gcs{
 
   private:
     void UpdatePFD();
-    void UpdateMsgQuery();
-    void clearMsgQuery();
+    void UpdateQueries();
+    void clearQueries();
     void clearAccessPoints();
     void clearImageView();
     lcar_msgs::Target GetMission(std::string fileName);
     void saveImage(bool, std::string, const cv::Mat&);
     void selectQuad(int);
     void initializeHelperThread();
+    void addAccessPoint(int);
     
     int cur_uav;
     int timeCounter;
     int NUM_UAV; //Total number of UAV's in the system
-    int queries_last;
-    int access_points_last;
+    int num_queries_last;
+    int num_access_points_last;
     
     
     std::vector<SimpleControl*> UAVs;
-    std::vector<AccessPoint> * accessPointsVector;
+    std::vector<AccessPoint> * accessPointVector;
     std::vector<lcar_msgs::DoorPtr> * pictureQueryVector;
 
    
@@ -155,8 +156,8 @@ namespace rqt_gcs{
     QWidget* apmQWidget_;
     QWidget* settings_widget_;
 
-    std::vector<QWidget*> accessPointsQWidgets_;
-    std::vector<QWidget*> pictureMsgQWidgets_;
+    std::vector<QWidget*> accessPointWidgets_;
+    std::vector<QWidget*> pictureQueryWidgets_;
 
 
     QLabel* label;
@@ -182,12 +183,12 @@ namespace rqt_gcs{
   
   class SimpleGCSHelper : public QObject
   {
-      Q_OBJECT
+  Q_OBJECT
               
   public:   
       SimpleGCSHelper(SimpleGCS *);
       ~SimpleGCSHelper();
-  
+
   public slots:  
       void monitor();
      
@@ -205,7 +206,6 @@ namespace rqt_gcs{
       
       void parseUavNamespace(std::map<int,int>&);
       int  binarySearch(int, int, int);
-      
   };
     
 } // rqt_gcs name space

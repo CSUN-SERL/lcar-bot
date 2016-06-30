@@ -26,7 +26,6 @@ namespace rqt_gcs
         connect(widget_.cancel_btn, SIGNAL(clicked()),
                 this, SLOT(cancelClicked()));
 
-
         //nominal, marginal, poor radio buttons enable or disable frequency group
         connect(widget_.nominal_btn, SIGNAL(clicked()),
                 this, SLOT(toggleFrequencyGroup()));
