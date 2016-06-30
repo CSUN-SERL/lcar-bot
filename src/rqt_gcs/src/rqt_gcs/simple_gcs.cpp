@@ -3,7 +3,7 @@
 
 namespace rqt_gcs
 {
-
+    
     SimpleGCS::SimpleGCS()
     : rqt_gui_cpp::Plugin()
     , widget_(nullptr)
@@ -40,7 +40,6 @@ namespace rqt_gcs
         ivUi_.setupUi(imageViewWidget_);
         pfd_ui.setupUi(PFDQWidget);
         apmUi_.setupUi(apmQWidget_);
-
 
         //Add widgets to the Main UI
         context.addWidget(widget_);
@@ -271,8 +270,8 @@ namespace rqt_gcs
     {
         for(int i = pictureQueryWidgets_.size() - 1; i >= 0; i--)
         {
-            central_ui_.PictureMsgLayout->removeWidget(pictureQueryWidgets_.at(i));
-            delete pictureQueryWidgets_.at(i);
+            central_ui_.PictureMsgLayout->removeWidget(pictureQueryWidgets_[i]);
+            delete pictureQueryWidgets_[i];
         }
         pictureQueryWidgets_.clear();
         
@@ -319,18 +318,18 @@ namespace rqt_gcs
 
             //map signal for yes button
             acceptDoorMapper->setMapping(pmUiWidget.yesButton,
-                                         pictureQueryWidgets_.at(index));
+                                         pictureQueryWidgets_[index]);
             connect(pmUiWidget.yesButton, SIGNAL(clicked()),
                     acceptDoorMapper, SLOT(map()));
 
             //map signal for yes button
             denyDoorMapper->setMapping(pmUiWidget.rejectButton,
-                                       pictureQueryWidgets_.at(index));
+                                       pictureQueryWidgets_[index]);
             connect(pmUiWidget.rejectButton, SIGNAL(clicked()),
                     denyDoorMapper, SLOT(map()));
 
             //add to user interface
-            central_ui_.PictureMsgLayout->addWidget(pictureQueryWidgets_.at(index));
+            central_ui_.PictureMsgLayout->addWidget(pictureQueryWidgets_[index]);
         }
         
         num_queries_last = pqv_size;
@@ -339,7 +338,7 @@ namespace rqt_gcs
     void SimpleGCS::AcceptDoorQuery(QWidget *qw)
     {
         int index = central_ui_.PictureMsgLayout->indexOf(qw);
-        lcar_msgs::DoorPtr door = pictureQueryVector->at(index);
+        lcar_msgs::DoorPtr door = (*pictureQueryVector)[index];
 
         saveImage(true, "door",
             cv_bridge::toCvCopy((sensor_msgs::Image)door->original_picture, "rgb8")->image);
@@ -510,8 +509,8 @@ namespace rqt_gcs
         //clear out old list of Access points widgets
         for(int i = accessPointWidgets_.size()-1; i >= 0; i--)
         {
-            apmUi_.AccessPointMenuLayout->removeWidget(accessPointWidgets_.at(i));
-            delete accessPointWidgets_.at(i);
+            apmUi_.AccessPointMenuLayout->removeWidget(accessPointWidgets_[i]);
+            delete accessPointWidgets_[i];
         }
         accessPointWidgets_.clear();
         
@@ -583,13 +582,13 @@ namespace rqt_gcs
 
             //map signal to the delete button
             signal_mapper2->setMapping(apUiWidget.deleteAccessPointButton,
-                                       accessPointWidgets_.at(index));
+                                       accessPointWidgets_[index]);
 
             connect(apUiWidget.deleteAccessPointButton, SIGNAL(clicked()),
                     signal_mapper2, SLOT(map()));
 
             //finally, add it to the gui
-            apmUi_.AccessPointMenuLayout->addWidget(accessPointWidgets_.at(index));
+            apmUi_.AccessPointMenuLayout->addWidget(accessPointWidgets_[index]);
         }
         
         num_access_points_last = apv_size;
@@ -607,9 +606,6 @@ namespace rqt_gcs
 
     void SimpleGCS::DeleteAccessPoint(QWidget* w)
     {
-        if(NUM_UAV == 0)
-            return;
-
         int deleteIndex = apmUi_.AccessPointMenuLayout->indexOf(w);
         
         accessPointVector->erase(accessPointVector->begin() + deleteIndex - 1);
@@ -629,7 +625,7 @@ namespace rqt_gcs
     //needed in addUav(int) and deleteUav(int)
     void SimpleGCS::selectQuad(int quadNumber)
     {
-        if(NUM_UAV == 0 || cur_uav == quadNumber)
+        if(cur_uav == quadNumber)
             return;
 
         cur_uav = quadNumber;
