@@ -96,8 +96,8 @@ namespace rqt_gcs{
     virtual void QuadSelected(int);
     virtual void ArmSelectedQuad();
     virtual void DisarmSelectedQuad();
-    virtual void AcceptDoorQuery(QWidget*);
-    virtual void RejectDoorQuery(QWidget*);
+    virtual void AcceptDoorQuery(QWidget *);
+    virtual void RejectDoorQuery(QWidget *);
     virtual void SettingsClicked();
     virtual void ShowAccessPoints();
     
@@ -120,6 +120,7 @@ namespace rqt_gcs{
     void selectQuad(int);
     void initializeHelperThread();
     void addAccessPoint(int);
+    void answerDoorQuery(QWidget *, bool);
     
     int cur_uav;
     int timeCounter;

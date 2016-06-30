@@ -334,12 +334,12 @@ namespace rqt_gcs
         num_queries_last = pqv_size;
     }
 
-    void SimpleGCS::AcceptDoorQuery(QWidget *qw)
+    void SimpleGCS::answerDoorQuery(QWidget * qw, bool accepted)
     {
         int index = central_ui_.PictureMsgLayout->indexOf(qw);
         lcar_msgs::DoorPtr door = (*pictureQueryVector)[index];
 
-        saveImage(true, "door",
+        saveImage(accepted, "door",
             cv_bridge::toCvCopy((sensor_msgs::Image)door->original_picture, "rgb8")->image);
 
         pictureQueryVector->erase(pictureQueryVector->begin() + index);
@@ -347,34 +347,26 @@ namespace rqt_gcs
         central_ui_.PictureMsgLayout->removeWidget(qw);
         delete qw;
 
-        door->accepted = true;
+        door->accepted = accepted;
         num_queries_last--;
         //UAVs[cur_uav]->SendDoorResponse(doormsg);
+    }
+    
+    void SimpleGCS::AcceptDoorQuery(QWidget *qw)
+    {
+        answerDoorQuery(qw, true);
     }
 
     void SimpleGCS::RejectDoorQuery(QWidget * qw)
     {
-        int index = central_ui_.PictureMsgLayout->indexOf(qw);
-        lcar_msgs::DoorPtr door = pictureQueryVector->at(index);
-
-        saveImage(false, "door",
-            cv_bridge::toCvCopy((sensor_msgs::Image)door->original_picture, "rgb8")->image);
-
-        pictureQueryVector->erase(pictureQueryVector->begin() + index);
-        pictureQueryWidgets_.erase(pictureQueryWidgets_.begin() + index);
-        central_ui_.PictureMsgLayout->removeWidget(qw);
-        delete qw;
-        
-        door->accepted = false;
-        num_queries_last--;
-        //UAVs[cur_uav].SendDoorResponse(doormsg);
+        answerDoorQuery(qw, false);
     }
 
-    void SimpleGCS::saveImage(bool img_accepted, std::string ap_type, const cv::Mat& image)
+    void SimpleGCS::saveImage(bool accepted, std::string ap_type, const cv::Mat& image)
     {
         std::string path = image_root_path_.toStdString(), file;
         SimpleControl* uav = UAVs[cur_uav];
-        if(img_accepted)
+        if(accepted)
         {
             path += "/accepted/" + ap_type + "/uav_" + std::to_string(uav->id);
             file = "img_" + std::to_string(uav->accepted_images++) + ".jpg";
