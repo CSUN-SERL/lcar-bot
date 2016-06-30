@@ -89,13 +89,12 @@ namespace rqt_gcs
 
         ROS_WARN_STREAM("Adding UAV with id: " << uav_id);
 
-        temp_data = "UAV ";
         quad_id.setNum(uav_id);
-        temp_data += quad_id;
+        temp_data = "UAV " + quad_id;
 
         int index = 0;
         while(index < NUM_UAV && uav_id > UAVs[index]->id)
-            ++index;
+            index++;
 
         UAVs.insert(UAVs.begin() + index, new SimpleControl(uav_id));
         uavCondWidgetArr.insert(uavCondWidgetArr.begin() + index, new Ui::UAVConditionWidget());
@@ -126,13 +125,14 @@ namespace rqt_gcs
             selectQuad(0);
 
         num_uav_changed.wakeAll();
-
         uav_mutex.unlock();
     }
 
     void SimpleGCS::DeleteUav(int index)
     {
         uav_mutex.lock();
+        
+        ROS_WARN_STREAM("Deleting UAV with id: " << UAVs[index]->id);
 
         central_ui_.UAVListLayout->removeWidget(uavListWidgetArr[index]);
 
@@ -211,48 +211,47 @@ namespace rqt_gcs
             timeCounter = 0;
         }
 
-        SimpleControl* quad = UAVs[cur_uav];
-        quad_id.setNum(quad->id);
+        SimpleControl* uav = UAVs[cur_uav];
+        quad_id.setNum(uav->id);
 
-        temp_data = quad->GetState().mode.c_str();
+        temp_data = uav->GetState().mode.c_str();
         temp_data += ":";
-        temp_data += quad->GetState().armed ? "Armed" : "Disarmed";
+        temp_data += uav->GetState().armed ? "Armed" : "Disarmed";
         usUi_.flightModeDisplay->setText(temp_data);
 
-        temp_data.setNum(quad->GetFlightState().yaw, 'f', 2);
+        temp_data.setNum(uav->GetFlightState().yaw, 'f', 2);
         usUi_.yawDisplay->setText(temp_data);
 
-        temp_data.setNum(quad->GetFlightState().roll, 'f', 2);
+        temp_data.setNum(uav->GetFlightState().roll, 'f', 2);
         usUi_.rollDisplay->setText(temp_data);
 
-        temp_data.setNum(quad->GetFlightState().pitch, 'f', 2);
+        temp_data.setNum(uav->GetFlightState().pitch, 'f', 2);
         usUi_.pitchDisplay->setText(temp_data);
 
-        temp_data.setNum(quad->GetFlightState().altitude, 'f', 2);
+        temp_data.setNum(uav->GetFlightState().altitude, 'f', 2);
         usUi_.altitudeDisplay->setText(temp_data);
 
-        temp_data.setNum(quad->GetFlightState().vertical_speed, 'f', 2);
+        temp_data.setNum(uav->GetFlightState().vertical_speed, 'f', 2);
         usUi_.verticalSpaceDisplay->setText(temp_data);
 
-        temp_data.setNum(quad->GetFlightState().ground_speed, 'f', 2);
+        temp_data.setNum(uav->GetFlightState().ground_speed, 'f', 2);
         usUi_.horizontalSpaceDisplay->setText(temp_data);
 
-        temp_data.setNum(quad->GetFlightState().heading, 'f', 2);
+        temp_data.setNum(uav->GetFlightState().heading, 'f', 2);
         usUi_.headingDisplay->setText(temp_data);
 
-        temp_data.setNum(quad->GetDistanceToWP());
+        temp_data.setNum(uav->GetDistanceToWP());
         usUi_.waypointDisplay->setText(temp_data);
 
-        temp_data.setNum(quad->GetBatteryStatus().remaining * 100);
+        temp_data.setNum(uav->GetBatteryStatus().remaining * 100);
         usUi_.batteryProgressBar->setValue(temp_data.toInt());
 
-        quad_id.setNum(quad->id);
-        temp_data = "UAV ";
-        temp_data += quad_id;
+        quad_id.setNum(uav->id);
+        temp_data = "UAV " + quad_id;
 
         mpUi_.uavNameEdit->setText(temp_data);
 
-        mpUi_.missionProgressBar->setValue(quad->GetMissionProgress()*100);
+        mpUi_.missionProgressBar->setValue(uav->GetMissionProgress()*100);
 
         this->UpdatePFD();
        
@@ -343,7 +342,6 @@ namespace rqt_gcs
         saveImage(true, "door",
             cv_bridge::toCvCopy((sensor_msgs::Image)door->original_picture, "rgb8")->image);
 
-        ROS_INFO_STREAM("door number " << index);
         pictureQueryVector->erase(pictureQueryVector->begin() + index);
         pictureQueryWidgets_.erase(pictureQueryWidgets_.begin() + index);
         central_ui_.PictureMsgLayout->removeWidget(qw);
@@ -351,7 +349,7 @@ namespace rqt_gcs
 
         door->accepted = true;
         num_queries_last--;
-        //quadrotors[cur_uav]->SendDoorResponse(doormsg);
+        //UAVs[cur_uav]->SendDoorResponse(doormsg);
     }
 
     void SimpleGCS::RejectDoorQuery(QWidget * qw)
@@ -362,7 +360,6 @@ namespace rqt_gcs
         saveImage(false, "door",
             cv_bridge::toCvCopy((sensor_msgs::Image)door->original_picture, "rgb8")->image);
 
-        ROS_INFO_STREAM("door number " << index);
         pictureQueryVector->erase(pictureQueryVector->begin() + index);
         pictureQueryWidgets_.erase(pictureQueryWidgets_.begin() + index);
         central_ui_.PictureMsgLayout->removeWidget(qw);
@@ -370,7 +367,7 @@ namespace rqt_gcs
         
         door->accepted = false;
         num_queries_last--;
-        //quadrotors[cur_uav].SendDoorResponse(doormsg);
+        //UAVs[cur_uav].SendDoorResponse(doormsg);
     }
 
     void SimpleGCS::saveImage(bool img_accepted, std::string ap_type, const cv::Mat& image)
@@ -556,8 +553,7 @@ namespace rqt_gcs
 
             //access point name
             access_point_id.setNum(i + num_access_points_last + 1);
-            access_point_temp_data = "Access Point ";
-            access_point_temp_data += access_point_id;
+            access_point_temp_data = "Access Point " + access_point_id;
             apUiWidget.buildingNameLine->setText(access_point_temp_data);
 
             //altitude
@@ -596,9 +592,8 @@ namespace rqt_gcs
 
     void SimpleGCS::ShowAccessPoints()
     {
-        temp_data = "UAV ";
         quad_id.setNum(UAVs[cur_uav]->id);
-        temp_data += quad_id;
+        temp_data = "UAV " + quad_id;
         apmUi_.uavNameLineEdit->setText(temp_data);
 
         apmQWidget_->show();
@@ -607,7 +602,7 @@ namespace rqt_gcs
     void SimpleGCS::DeleteAccessPoint(QWidget* w)
     {
         int deleteIndex = apmUi_.AccessPointMenuLayout->indexOf(w);
-        
+        // not sure why deleteIndex - 1 is necessary
         accessPointVector->erase(accessPointVector->begin() + deleteIndex - 1);
         accessPointWidgets_.erase(accessPointWidgets_.begin() + deleteIndex -1);
         apmUi_.AccessPointMenuLayout->removeWidget(w);
