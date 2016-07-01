@@ -51,13 +51,14 @@
 #include <QSignalMapper>
 #include <QDesktopWidget>
 #include <QWaitCondition>
+#include <QMetaType>
 
 #define MAX_UAV 100 // the total number of UAV's manageable by our system
 
-//class SimpleGCSHelper;
-
 namespace rqt_gcs{
 
+  enum UavStatus { null = -1, active, deleted, purged };
+  
   class SimpleGCSHelper;
 
   class SimpleGCS: public rqt_gui_cpp::Plugin
@@ -102,9 +103,10 @@ namespace rqt_gcs{
     virtual void ShowAccessPoints();
     
     virtual void AddUav(int);
-    virtual void DeleteUav(int);
+    virtual void DeleteUav(int, UavStatus);
+    virtual void PurgeDeletedUavs();
     virtual void UavConnectionToggled(int, int, bool);
-
+    
     //SETTINGS RELATED
     virtual void DestroySettingsWidget();
     virtual void ToggleMachineLearningMode(bool);
@@ -128,11 +130,12 @@ namespace rqt_gcs{
     int num_queries_last;
     int num_access_points_last;
     
+    std::vector<SimpleControl*> active_uavs;
+    std::map<int, UavStatus> all_uav_stat;
+    std::map<int, SimpleControl*> deleted_uavs;
     
-    std::vector<SimpleControl*> UAVs;
     std::vector<AccessPoint> * accessPointVector;
     std::vector<lcar_msgs::DoorPtr> * pictureQueryVector;
-
    
     cv::Mat conversion_mat_;
     image_transport::Subscriber sub_stereo;
@@ -160,8 +163,6 @@ namespace rqt_gcs{
     std::vector<QWidget*> accessPointWidgets_;
     std::vector<QWidget*> pictureQueryWidgets_;
 
-
-    QLabel* label;
     QTimer* update_timer;
 
     QString temp_data;
@@ -195,19 +196,22 @@ namespace rqt_gcs{
      
   signals:
       void addUav(int); // uav_id
-      void deleteUav(int); // index
+      void deleteUav(int, UavStatus);
       void toggleUavConnection(int, int, bool);
       
   private:
       SimpleGCS *gcs;
       
+      int  binarySearch(int, int, int);
+      void parseUavNamespace(std::map<int, int>&);
+
+      
       void monitorUavNamespace();
       void monitorConnections();
       void runUavs();
-      
-      void parseUavNamespace(std::map<int,int>&);
-      int  binarySearch(int, int, int);
+            
   };
     
 } // rqt_gcs name space
+Q_DECLARE_METATYPE(rqt_gcs::UavStatus);
 #endif //rqt_gcs__SimpleGCS_H
