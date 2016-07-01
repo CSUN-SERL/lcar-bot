@@ -6,8 +6,11 @@ trap "" SIGTSTP
 
 function ctrl_c()
 {  
+    YLW='\033[1;33m' #Yellow
+    NC='\033[0m' # No Color
+
     let LAST=$HIGH-1
-    printf "\ncalling rosnode kill on UAV $LOW - UAV $LAST\n"
+    printf "\n\n${YLW}calling rosnode kill on UAV[$LOW-$LAST]${NC}\n\n"
 
     ID=$LOW
 
@@ -23,11 +26,11 @@ function ctrl_c()
 }
 
 if [ -z "$1" ]; then 
-    printf "    usage: ./lcar-fleet <number> [<larger-number>] [mono]\n"
-    printf "       eg: ./lcar-fleet 10          | launches 10 lcar-bots with id's 0 - 9 with stereo_cams\n"
-    printf "           ./lcar-fleet 10 20       | launches 10 lcar-bots with id's 10 - 19 with stereo_cams\n"
-    printf "           ./lcar-fleet 10 mono     | launches 10 lcar-bots with id's 0 - 9 with mono_cams\n"
-    printf "           ./lcar-fleet 10 20 mono  | launches 10 lcar-bots with id's 10 - 19 with mono_cams\n"
+    printf "    usage: lcar-fleet <number> [<larger-number>] [mono]\n\n"
+    printf "       eg: lcar-fleet 10          | launches 10 lcar-bots with id's 0 - 9 with stereo_cams\n"
+    printf "           lcar-fleet 10 20       | launches 10 lcar-bots with id's 10 - 19 with stereo_cams\n"
+    printf "           lcar-fleet 10 mono     | launches 10 lcar-bots with id's 0 - 9 with mono_cams\n"
+    printf "           lcar-fleet 10 20 mono  | launches 10 lcar-bots with id's 10 - 19 with mono_cams\n"
     exit
 fi
 
@@ -51,7 +54,7 @@ fi
 ID=$LOW
 
 while [ $ID -lt $HIGH ]; do
-    ./lcar-bot $ID $MONO &
+    lcar-bot $ID $MONO &
     let ID=ID+1
 done
     

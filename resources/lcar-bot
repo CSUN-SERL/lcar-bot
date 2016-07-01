@@ -1,9 +1,7 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # trap ctrl-c and call ctrl_c()
 trap "ctrl_c" INT SIGINT SIGTSTP
-#trap ctrl-z and do nothing
-
 
 function ctrl_c()
 {
@@ -14,27 +12,25 @@ function ctrl_c()
     exit
 }
 
-NS=""
+
 ID=""
 if [ -z "$1" ]; then
     ID=1
-    NS=UAV"$ID"
 elif [ "$1" != "mono" ]; then
    ID="$1"
-   NS=UAV"$ID"
 else
-    printf "    usage: ./lcar-bot [<number>] [mono]\n"
-    printf "       eg: ./lcar-bot           | launches an lcar-bot with id 1 with stereo_cam\n"
-    printf "           ./lcar-bot 10        | launches an lcar-bot with id 10 with stereo_cam\n"
-    printf "           ./lcar-bot 10 -mono  | launches an lcar-bot with id 10 with mono_cam\n" 
+    printf "    usage: lcar-bot [<number>] [mono]\n\n"
+    printf "       eg: lcar-bot           | launches an lcar-bot with id 1 with stereo_cam\n"
+    printf "           lcar-bot 10        | launches an lcar-bot with id 10 with stereo_cam\n"
+    printf "           lcar-bot 10 mono   | launches an lcar-bot with id 10 with mono_cam\n" 
     exit
 fi
 
-if [ -z "$NS" ]; then
-    NS=UAV"$ID"
-fi
 
-if [ $(lsusb | grep 'ID 2a0b:00f5' | wc -c) -ne 0 -a $# -ne 2 -a "$1" != "-mono" ]; then
+NS=UAV"$ID"
+
+
+if [ $(lsusb | grep 'ID 2a0b:00f5' | wc -c) -ne 0 -a $# -ne 2 -a "$1" != "mono" ]; then
     ROS_NAMESPACE="$NS"            rosrun machine_vision stereo_driver &
     ROS_NAMESPACE="$NS"/stereo_cam rosrun stereo_image_proc stereo_image_proc &
     ROS_NAMESPACE="$NS"            rosrun machine_vision object_detection &
