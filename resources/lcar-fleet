@@ -1,0 +1,58 @@
+#!/bin/bash
+
+trap ctrl_c SIGINT
+#trap ctrl-z and do nothing
+trap "" SIGTSTP
+
+function ctrl_c()
+{  
+    let LAST=$HIGH-1
+    printf "\ncalling rosnode kill on UAV $LOW - UAV $LAST\n"
+
+    ID=$LOW
+
+    while [ $ID -le $HIGH ]; do
+        for node in $( rosnode list | grep UAV$ID ); do 
+            rosnode kill $node
+        done
+
+        let ID=ID+1
+    done
+    
+    exit
+}
+
+if [ -z "$1" ]; then 
+    printf "    usage: ./lcar-fleet <number> [<larger-number>] [mono]\n"
+    printf "       eg: ./lcar-fleet 10          | launches 10 lcar-bots with id's 0 - 9 with stereo_cams\n"
+    printf "           ./lcar-fleet 10 20       | launches 10 lcar-bots with id's 10 - 19 with stereo_cams\n"
+    printf "           ./lcar-fleet 10 mono     | launches 10 lcar-bots with id's 0 - 9 with mono_cams\n"
+    printf "           ./lcar-fleet 10 20 mono  | launches 10 lcar-bots with id's 10 - 19 with mono_cams\n"
+    exit
+fi
+
+LOW=0
+HIGH=$1
+MONO=""
+
+if [ $# -gt 1 ]; then
+    if [ "$2" != "mono" ]; then
+        LOW=$1
+        HIGH=$2
+    else
+        MONO="$2"
+    fi
+fi
+
+if [ $# -gt 2 ]; then
+    MONO="$3"
+fi
+
+ID=$LOW
+
+while [ $ID -lt $HIGH ]; do
+    ./lcar-bot $ID $MONO &
+    let ID=ID+1
+done
+    
+wait

@@ -1,55 +1,49 @@
 #!/usr/bin/env bash
 
 # trap ctrl-c and call ctrl_c()
-trap ctrl_c INT
+trap "ctrl_c" INT SIGINT SIGTSTP
 #trap ctrl-z and do nothing
-trap "" SIGTSTP
 
-function ctrl_c(){
-    exec 2>.tmp     # redirect stderr output to .tmp
-#
-#    pkill rosmaster # kill rosmaster explicitly
-#
-#    sleep 1s        # give it time to output to terminal (avoids hang at the end)
 
-#    pkill rosout    # kill rosout explicitly
-    pkill -P $$     # kill all processes started by this script (see below)
-#    yes | rosnode cleanup
-    rm -f .tmp      # delete stderr output
-    //echo "shutting down UAV$1"
+function ctrl_c()
+{
+    for node in $( rosnode list | grep UAV$ID ); do
+        rosnode kill $node
+    done
+
+    exit
 }
-
-
-#roscore &
-#
-#sleep 1s #give roscore time to launch fully (including launching rosmaster and rosout under different processes)
-
-#rqt &
 
 NS=""
 ID=""
 if [ -z "$1" ]; then
     ID=1
     NS=UAV"$ID"
-elif [ "$1" != "-no-stereo" ]; then
+elif [ "$1" != "mono" ]; then
    ID="$1"
    NS=UAV"$ID"
+else
+    printf "    usage: ./lcar-bot [<number>] [mono]\n"
+    printf "       eg: ./lcar-bot           | launches an lcar-bot with id 1 with stereo_cam\n"
+    printf "           ./lcar-bot 10        | launches an lcar-bot with id 10 with stereo_cam\n"
+    printf "           ./lcar-bot 10 -mono  | launches an lcar-bot with id 10 with mono_cam\n" 
+    exit
 fi
 
 if [ -z "$NS" ]; then
     NS=UAV"$ID"
 fi
 
-if [ $(lsusb | grep 'ID 2a0b:00f5' | wc -c) -ne 0 -a $# -ne 2 -a "$1" != "-no-stereo" ]; then
+if [ $(lsusb | grep 'ID 2a0b:00f5' | wc -c) -ne 0 -a $# -ne 2 -a "$1" != "-mono" ]; then
     ROS_NAMESPACE="$NS"            rosrun machine_vision stereo_driver &
     ROS_NAMESPACE="$NS"/stereo_cam rosrun stereo_image_proc stereo_image_proc &
     ROS_NAMESPACE="$NS"            rosrun machine_vision object_detection &
    # ROS_NAMESPACE="$NS" rosrun machine_vision disparity_view _topic:=stereo_cam/disparity &
-    ROS_NAMESPACE="$NS" rosrun rqt_gcs backup_control _id:="$ID"
+    ROS_NAMESPACE="$NS" rosrun rqt_gcs backup_control _id:="$ID" &
 elif [ $(ls /dev/video* | wc -c) -ne 0 ]; then
     ROS_NAMESPACE="$NS" rosrun machine_vision camera_publisher _topic:=stereo_cam/left/image_rect &
     ROS_NAMESPACE="$NS" rosrun machine_vision object_detection &
-    ROS_NAMESPACE="$NS" rosrun rqt_gcs backup_control _id:="$ID"
-else
-    wait
+    ROS_NAMESPACE="$NS" rosrun rqt_gcs backup_control _id:="$ID" &
 fi
+
+wait
