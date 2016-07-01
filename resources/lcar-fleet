@@ -11,7 +11,7 @@ function ctrl_c()
 
     ID=$LOW
 
-    while [ $ID -le $HIGH ]; do
+    while [ $ID -lt $HIGH ]; do
         for node in $( rosnode list | grep UAV$ID ); do 
             rosnode kill $node
         done
