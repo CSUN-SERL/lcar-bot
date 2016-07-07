@@ -433,23 +433,50 @@ FlightState SimpleControl::UpdateFlightState()
 {
     int result;
 
-    //Get the yaw values
-    double roll, pitch, yaw1, yaw2;
-    tf::Quaternion quaternion_tf1, quaternion_tf2;
+    if(position_mode = local){
+        //Get the yaw values
+        double roll, pitch, yaw1, yaw2;
+        tf::Quaternion quaternion_tf1, quaternion_tf2;
 
-    tf::quaternionMsgToTF(pose1.orientation, quaternion_tf1);
-    tf::Matrix3x3 m1{quaternion_tf1};
+        tf::quaternionMsgToTF(pose1.orientation, quaternion_tf1);
+        tf::Matrix3x3 m1{quaternion_tf1};
 
-    tf::quaternionMsgToTF(pose2.orientation, quaternion_tf2);
-    tf::Matrix3x3 m2{quaternion_tf2};
+        tf::quaternionMsgToTF(pose2.orientation, quaternion_tf2);
+        tf::Matrix3x3 m2{quaternion_tf2};
 
-    m1.getRPY(roll, pitch, yaw1);
-    m2.getRPY(roll, pitch, yaw2);
+        m1.getRPY(roll, pitch, yaw1);
+        m2.getRPY(roll, pitch, yaw2);
 
-    if( std::abs(pose2.position.x - pose1.position.x)   <= THRESHOLD_XY &&
-        std::abs(pose2.position.y - pose1.position.y)   <= THRESHOLD_XY &&
-        std::abs(pose2.position.z - pose1.position.z)   <= THRESHOLD_Z  &&
-        std::abs(yaw2 - yaw1)                           <= THRESHOLD_YAW){
+        if( std::abs(pose2.position.x - pose1.position.x)   <= THRESHOLD_XY &&
+            std::abs(pose2.position.y - pose1.position.y)   <= THRESHOLD_XY &&
+            std::abs(pose2.position.z - pose1.position.z)   <= THRESHOLD_Z  &&
+            std::abs(yaw2 - yaw1)                           <= THRESHOLD_YAW){
+            result = 0;
+        }
+        else result = 1;
+    }
+    else{
+        //Compare global position
+        if( std::abs(pose2.position.x - pose1.position.x)   <= THRESHOLD_XY &&
+            std::abs(pose2.position.y - pose1.position.y)   <= THRESHOLD_XY &&
+            std::abs(pose2.position.z - pose1.position.z)   <= THRESHOLD_Z){
+            result = 0;
+        }
+        else result = 1;
+    }
+
+    return result;
+}
+
+int SimpleControl::CompareAltitude(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
+{
+    int result;
+    float threshold;
+
+    if(position_mode = local) threshold = THRESHOLD_Z;
+    else threshold = THRESHOLD_ALT;
+
+    if(std::abs(pose1.position.z - pose2.position.z) <= threshold){
         result = 0;
     }
     else result = 1;
@@ -489,29 +516,35 @@ float SimpleControl::GetMissionProgress()
 }
 
 nav_msgs::Path SimpleControl::CircleShape(lcar_msgs::Target target_point){
+
     geometry_msgs::PoseStamped pose_new_stamped;
     geometry_msgs::Pose pose_new;
     geometry_msgs::Point point_center = target_point.target_local.position;
     nav_msgs::Path mission;
     float yaw_angle, radius = target_point.radius;
 
-    //Generate the Mission
-    for(int angle = 0; angle < 360; angle++){
-        //Generate a position from the angle
-        tf::pointEigenToMsg(Eigen::Vector3d(radius * (cos(angles::from_degrees(angle))),
-                                            radius * (sin(angles::from_degrees(angle))),
-                                            point_center.z),
-                            pose_new.position);
-        //Offset the center point to the target location
-        pose_new.position.x += point_center.x;
-        pose_new.position.y += point_center.y;
+    if(position_mode = local){
+        //Generate the Mission
+        for(int angle = 0; angle < 360; angle++){
+            //Generate a position from the angle
+            tf::pointEigenToMsg(Eigen::Vector3d(radius * (cos(angles::from_degrees(angle))),
+                                                radius * (sin(angles::from_degrees(angle))),
+                                                point_center.z),
+                                pose_new.position);
+            //Offset the center point to the target location
+            pose_new.position.x += point_center.x;
+            pose_new.position.y += point_center.y;
 
-        //Create the yaw angle that points to the center of the circle
-        yaw_angle = angles::normalize_angle_positive(angles::from_degrees(angle + 180));
-        quaternionTFToMsg(tf::createQuaternionFromYaw(yaw_angle), pose_new.orientation);
+            //Create the yaw angle that points to the center of the circle
+            yaw_angle = angles::normalize_angle_positive(angles::from_degrees(angle + 180));
+            quaternionTFToMsg(tf::createQuaternionFromYaw(yaw_angle), pose_new.orientation);
 
-        pose_new_stamped.pose = pose_new;
-        mission.poses.push_back(pose_new_stamped);
+            pose_new_stamped.pose = pose_new;
+            mission.poses.push_back(pose_new_stamped);
+        }
+    }
+    else{
+        //TODO: Generate circle shape using GPS coordinates
     }
 
     return mission;
@@ -519,6 +552,17 @@ nav_msgs::Path SimpleControl::CircleShape(lcar_msgs::Target target_point){
 
 void SimpleControl::Run()
 {
+    geometry_msgs::Pose pose_cur;
+
+    if(position_mode = local){
+        pose_cur = pose_local;
+    }
+    else{
+        pose_cur.position.x = pos_global.latitude;
+        pose_cur.position.y = pos_global.longitude;
+        pose_cur.position.z = pos_global.altitude;
+    }
+
     //Sanity Checks
     if(battery.remaining < BATTERY_MIN && battery.remaining != -1){
         //Land if battery is starting to get low
@@ -529,7 +573,7 @@ void SimpleControl::Run()
         //Collision Imminent! Land.
         ROS_ERROR_STREAM_DELAYED_THROTTLE(5, "Collision Imminent!");
         if(goal != hold_pose){
-            pose_previous = pose_local;
+            pose_previous = pose_cur;
             goal_prev = goal;
             goal = hold_pose;
         }
@@ -541,17 +585,17 @@ void SimpleControl::Run()
     }
 
     if(goal == travel){
-        if(ComparePosition(pose_local, pose_target) == 0){
+        if(ComparePosition(pose_cur, pose_target) == 0){
             //Vehicle is at target location => Scout Building
-            pose_previous = pose_local;
+            pose_previous = pose_cur;
             goal = scout;
             ROS_DEBUG_STREAM_ONCE("Scouting Building.");
         }
-        else if(std::abs(std::abs(pose_local.position.z) - std::abs(pose_target.position.z)) <= THRESHOLD_Z){
+        else if(CompareAltitude(pose_cur, pose_target)){
             //Achieved the proper altitude => Go to target location
             this->SetPosition(pose_target);
 
-            pose_previous = pose_local; //Update previous position for fixing the altitude
+            pose_previous = pose_cur; //Update previous position for fixing the altitude
         }
         else{
             //Ascend to the proper altitude first at the current location
@@ -584,20 +628,20 @@ void SimpleControl::Run()
         }
     }
     else if(goal == rtl){
-        if(ComparePosition(pose_local, pose_home) == 0){
+        if(ComparePosition(pose_cur, pose_home) == 0){
             goal = land;
         }
-        else if(abs(pose_local.position.z - ALT_RTL) <= THRESHOLD_Z){
+        else if(abs(pose_cur.position.z - ALT_RTL) <= THRESHOLD_Z){
             //Achieved the proper altitude => Go to target location
             this->SetPosition(pose_home.position.x, pose_home.position.y, ALT_RTL);
-            pose_previous = pose_local;
+            pose_previous = pose_cur;
         }
         else{
             this->SetPosition(pose_previous.position.x, pose_previous.position.y, ALT_RTL);
         }
     }
     else if(goal == land){
-        if(pose_local.position.z <= THRESHOLD_Z){
+        if(pose_cur.position.z <= THRESHOLD_Z){
             goal = disarm;
             ROS_INFO_STREAM_ONCE("Landed Safely.");
         }

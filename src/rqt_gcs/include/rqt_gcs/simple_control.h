@@ -46,6 +46,8 @@
 #define THRESHOLD_XY 0.08
 #define THRESHOLD_Z 0.08
 #define THRESHOLD_YAW 0.1
+#define THRESHOLD_GPS 0.001        //Lat & Lon tolerances
+#define THRESHOLD_ALT 1            //Altitude tolerance for GPS
 #define THRESHOLD_DEPTH 2
 #define ALT_RTL 2
 #define BATTERY_MIN 0.10  //Minimum battery level for RTL
@@ -61,6 +63,11 @@ enum Mode{
     disarm,
     idle,
     null
+};
+
+enum PositionMode{
+    local,
+    global
 };
 
 //Structs
@@ -283,6 +290,14 @@ private:
     int ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2);
 
     /**
+      Compare two geometry_msgs::Point objects within a threshold value. Only looks at altitude.
+
+      @param point1  First point to compare
+      @param point2  Second point to compare
+    */
+    int CompareAltitude(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2);
+
+    /**
       Calculate the distance between two points.
 
       @param point1  First point
@@ -414,6 +429,7 @@ private:
                                     object_distance;
     Mode                            goal = idle,
                                     goal_prev = null;
+    PositionMode                    position_mode = local;
     ros::Time                       last_request;
     std::vector<AccessPoint>        access_pts;
     std::vector<lcar_msgs::DoorPtr> queries_door;
