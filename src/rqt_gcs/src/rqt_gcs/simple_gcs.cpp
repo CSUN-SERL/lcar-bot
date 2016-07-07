@@ -225,7 +225,7 @@ namespace rqt_gcs
             {
                 delete deleted_uavs[uav.first];
                 deleted_uavs[uav.first] = nullptr;
-                ROS_WARN_STREAM("purging UAV with id: " uav.first);
+                ROS_WARN_STREAM("purging UAV with id: " << uav.first);
             }
         }
     }

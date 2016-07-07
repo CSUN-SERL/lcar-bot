@@ -39,6 +39,8 @@ const Size & img_size_ = Size(128, 256);
 int door_count = 0;
 int img_iterator = 0;
 
+bool gray_scale = false;
+
 static std::string object_types_ [] = {"door", "window", "hole"};
 std::map< std::string, std::vector<Mat> > hist_map_;
       /*eg.    "door", <vector of door images>
@@ -46,6 +48,7 @@ std::map< std::string, std::vector<Mat> > hist_map_;
        *     ... TODO: handle other types of opening types
        */
       
+bool compareHistograms(cv::Mat&, std::string);
 
 /////////////////////////////////////////////////////////////////////////////
 void HogFeatureExtraction(Mat ImgMat) {
@@ -103,7 +106,7 @@ void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image) {
                 ,weights
                 ,0.8         // hit threshold
                 ,Size(16,16) // step size
-                ,Size(8,8) // padding
+                ,Size(4,4) // padding
                 ,1.1       // scale factor
                 ,2       // final threshold
                 ,false // use mean shift grouping?
@@ -149,9 +152,61 @@ void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image) {
                 door_query.query = true;
             }
 
-            pub_query_.publish(door_query);                
+            bool similar = compareHistograms(color_image, "door");
+            if(!similar)
+                pub_query_.publish(door_query);                
         }
     }
+}
+
+bool compareHistograms(cv::Mat& src, std::string object_type)
+{   
+    cv::Mat hist;
+    ROS_INFO_STREAM("////////////////");
+    if(!gray_scale)
+    {
+        cv::Mat hsv;
+        src.convertTo(hsv, CV_32F);
+        cv::cvtColor(hsv, hsv, cv::COLOR_BGR2HSV);
+        // Quantize the hue to 30 levels
+        // and the saturation to 32 levels
+        int hbins = 30, sbins = 32;
+        int histSize[] = {hbins, sbins};
+        // hue varies from 0 to 179, see cvtColor
+        float hranges[] = { 0, 180 };
+        // saturation varies from 0 (black-gray-white) to
+        // 255 (pure spectrum color)
+        float sranges[] = { 0, 256 };
+        const float* ranges[] = { hranges, sranges };
+        //Mat hist;
+        // we compute the histogram from the 0-th and 1-st channels
+        int channels[] = {0, 1};
+
+        cv::calcHist( &hsv, 1, channels, Mat(), // do not use mask
+                 hist, 2, histSize, ranges,
+                 true, // the histogram is uniform
+                 false );
+    }
+    else
+    {
+        cv::equalizeHist(src,hist);
+        hist.convertTo(hist,CV_32F);
+    }
+    
+    normalize( hist, hist, 0, 1, NORM_MINMAX, -1, Mat() );
+    
+    std::vector<Mat>* stream = &hist_map_[object_type];
+    for(int i = 0; i < stream->size(); i++)
+    {
+        double result = cv::compareHist(hist, stream->at(i), CV_COMP_CHISQR);
+        ROS_WARN_STREAM(result);
+        if(result < 3)
+            return true; 
+    }
+    
+    stream->push_back(hist);
+    ROS_WARN_STREAM("size: " << stream->size());
+    return false;
 }
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
@@ -160,7 +215,14 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
   {
     cv::Mat gray_image = cv_bridge::toCvShare(msg, "mono8")->image;
     //don't change my colorspace! (bgr8))
-    cv::Mat color_image = cv_bridge::toCvCopy(msg, "bgr8")->image;
+    cv::Mat color_image;
+    if(msg->encoding == "mono8")
+    {
+        gray_scale = true;
+        color_image = gray_image;
+    }
+    else
+        color_image = cv_bridge::toCvCopy(msg, "bgr8")->image;
     ObjectCategorize(gray_image, color_image);
   }
   catch (cv_bridge::Exception& e)
