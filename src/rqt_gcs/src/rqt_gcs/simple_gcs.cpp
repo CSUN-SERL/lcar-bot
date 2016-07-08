@@ -153,6 +153,8 @@ namespace rqt_gcs
         
         if(status == UavStatus::purged)   
         {
+            saveUavQueries(uav);
+            saveUavAccessPoints(uav);
             delete uav;
             deleted_uavs.erase(uav_id);
         }
@@ -215,6 +217,43 @@ namespace rqt_gcs
 
        num_uav_changed.wakeAll();
        uav_mutex.unlock();
+    }
+    
+    void SimpleGCS::saveUavQueries(SimpleControl * uav)
+    {
+        std::string path = image_root_path_.toStdString() + "/unanswered/door/";
+        path += "uav_" + std::to_string(uav->id);
+        std::vector<lcar_msgs::DoorPtr>* queries = uav->GetDoorQueries();
+        for(int i = 0, j = 0; i < queries->size(); i++, j+=2)
+        {
+            lcar_msgs::DoorPtr query = queries->at(i);
+            
+            sensor_msgs::Image * ros_image = &query->original_picture;
+            cv::Mat image = cv_bridge::toCvCopy(*ros_image,"rgb8")->image;
+            std::string file = "img_" + std::to_string(j) + ".jpg";
+            saveImage(path, file, image);
+            
+            ros_image = &query->framed_picture; 
+            image = cv_bridge::toCvCopy(*ros_image, "rgb8")->image;
+            file = "img_" + std::to_string(j+1) + ".jpg";
+            saveImage(path, file, image);
+        }
+    }
+    
+    void SimpleGCS::saveUavAccessPoints(SimpleControl* uav)
+    {
+        std::string path = image_root_path_.toStdString() + "/access_points/door/";
+        path += "uav_" + std::to_string(uav->id);
+        std::vector<AccessPoint> * ap_vector = uav->GetRefAccessPoints();
+        for(int i = 0; i < ap_vector->size(); i++)
+        {
+            std::string file = "img_" + std::to_string(i) + ".jpg";
+            
+            AccessPoint ap = ap_vector->at(i);
+            sensor_msgs::Image ros_image = ap.GetImage();
+            cv::Mat image = cv_bridge::toCvCopy(ros_image, "rgb8")->image;
+            saveImage(path, file, image);
+        }
     }
     
     void SimpleGCS::PurgeDeletedUavs()
@@ -404,6 +443,7 @@ namespace rqt_gcs
             file = "img_" + std::to_string(uav->rejected_images++) + ".jpg";
         }
         
+        //dont change my colorspace! (rgb8)
         saveImage(path, file,
             cv_bridge::toCvCopy((sensor_msgs::Image)door->original_picture, "rgb8")->image);
 

@@ -29,7 +29,7 @@ public:
     void SetType(ObjectType type){ this->type = type; }
 
     //Getter Functions
-    sensor_msgs::Image  GetImage(){ return image; }
+    sensor_msgs::Image GetImage() const { return image; }
     sensor_msgs::NavSatFix GetLocation(){ return capture_location; }
     std_msgs::Float64 GetHeading(){ return compass_heading; }
     std_msgs::Float64 GetAltitude(){ return altitude; }

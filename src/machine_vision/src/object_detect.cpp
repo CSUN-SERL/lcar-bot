@@ -51,6 +51,7 @@ std::map< std::string, std::vector<Mat> > hist_map_;
 bool compareHistograms(cv::Mat&, std::string);
 
 /////////////////////////////////////////////////////////////////////////////
+
 void HogFeatureExtraction(Mat ImgMat) {
     HOGDescriptor d;
     d.winSize = img_size_;
@@ -84,14 +85,11 @@ void ConvertToMl(const std::vector< cv::Mat > & train_samples, cv::Mat& trainDat
 }
 
 //Draw detected objects on a window
-void DrawLocations(cv::Mat & img, const std::vector< Rect > & found, const vector<double> weights, const Scalar & color) {
-       std::vector< Rect >::const_iterator loc = found.begin(); // Rect for detectMultiscale(), Point for detect()
-       std::vector< Rect >::const_iterator end = found.end();   // same as above
-
-       for (int i = 0; loc != end; ++loc) {
+void DrawLocations(cv::Mat& img, const std::vector< Rect > & found, const Scalar & color) {
+       for (auto const& loc : found) {
                //Rect implementation used with hog.detectMultiScale
-               rectangle(img, *loc, color, 2); 
-        }
+               rectangle(img, loc, color, 2); 
+       }
 }
 
 void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image) {
@@ -131,11 +129,10 @@ void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image) {
         }
         
         cv::Mat framed_image = color_image.clone();
-        DrawLocations(framed_image, door_objects, door_weights, Scalar(0, 255, 0));
+        DrawLocations(framed_image, door_objects, Scalar(0, 255, 0));
         //imshow("view", image);
         //waitKey(1);
         if(door_objects.size() > 0){
-            door_count++;
             sensor_msgs::ImagePtr door_img = cv_bridge::CvImage(std_msgs::Header()
                                                        ,"bgr8", color_image).toImageMsg();
             sensor_msgs::ImagePtr framed_img = cv_bridge::CvImage(std_msgs::Header()
@@ -154,7 +151,10 @@ void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image) {
 
             bool similar = compareHistograms(color_image, "door");
             if(!similar)
-                pub_query_.publish(door_query);                
+            {
+                pub_query_.publish(door_query);         
+                door_count++;
+            }
         }
     }
 }
@@ -193,7 +193,7 @@ bool compareHistograms(cv::Mat& src, std::string object_type)
         cv::cvtColor(mat, mat, cv::COLOR_BGR2GRAY);
 
         int histSize = 32;    // bin size
-        float range[] = { 0, 255 };
+        float range[] = { 0, 256 };
         const float *ranges[] = { range };
         
         cv::calcHist( &mat, 1, 0, Mat(), 
@@ -234,7 +234,6 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
   {
     ROS_ERROR("Error in image subscriber callback: %s", e.what());
   }
-  
 }
 
 //extract svm weights and store in a float vector

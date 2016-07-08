@@ -123,6 +123,8 @@ namespace rqt_gcs{
     void initializeHelperThread();
     void addAccessPoint(int);
     void answerDoorQuery(QWidget *, bool);
+    void saveUavQueries(SimpleControl *);
+    void saveUavAccessPoints(SimpleControl *);
     
     int cur_uav;
     int timeCounter;
