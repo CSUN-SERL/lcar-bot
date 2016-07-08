@@ -118,7 +118,7 @@ namespace rqt_gcs{
     void clearAccessPoints();
     void clearImageView();
     lcar_msgs::Target GetMission(std::string fileName);
-    void saveImage(bool, std::string, const cv::Mat&);
+    void saveImage(std::string, std::string, const cv::Mat&);
     void selectQuad(int);
     void initializeHelperThread();
     void addAccessPoint(int);

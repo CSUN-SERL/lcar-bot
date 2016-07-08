@@ -161,8 +161,9 @@ void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image) {
 
 bool compareHistograms(cv::Mat& src, std::string object_type)
 {   
-    cv::Mat hist;
     ROS_INFO_STREAM("////////////////");
+    
+    cv::Mat hist;
     if(!gray_scale)
     {
         cv::Mat hsv;
@@ -170,7 +171,7 @@ bool compareHistograms(cv::Mat& src, std::string object_type)
         cv::cvtColor(hsv, hsv, cv::COLOR_BGR2HSV);
         // Quantize the hue to 30 levels
         // and the saturation to 32 levels
-        int hbins = 30, sbins = 32;
+        int hbins = 60, sbins = 64;
         int histSize[] = {hbins, sbins};
         // hue varies from 0 to 179, see cvtColor
         float hranges[] = { 0, 180 };
@@ -178,10 +179,9 @@ bool compareHistograms(cv::Mat& src, std::string object_type)
         // 255 (pure spectrum color)
         float sranges[] = { 0, 256 };
         const float* ranges[] = { hranges, sranges };
-        //Mat hist;
         // we compute the histogram from the 0-th and 1-st channels
         int channels[] = {0, 1};
-
+        
         cv::calcHist( &hsv, 1, channels, Mat(), // do not use mask
                  hist, 2, histSize, ranges,
                  true, // the histogram is uniform
@@ -189,23 +189,31 @@ bool compareHistograms(cv::Mat& src, std::string object_type)
     }
     else
     {
-        cv::equalizeHist(src,hist);
-        hist.convertTo(hist,CV_32F);
+        cv::Mat mat = src.clone();
+        cv::cvtColor(mat, mat, cv::COLOR_BGR2GRAY);
+
+        int histSize = 32;    // bin size
+        float range[] = { 0, 255 };
+        const float *ranges[] = { range };
+        
+        cv::calcHist( &mat, 1, 0, Mat(), 
+                      hist, 1, &histSize, 
+                      ranges, true, false );
     }
     
     normalize( hist, hist, 0, 1, NORM_MINMAX, -1, Mat() );
     
     std::vector<Mat>* stream = &hist_map_[object_type];
+    ROS_WARN_STREAM("size: " << stream->size());
     for(int i = 0; i < stream->size(); i++)
     {
         double result = cv::compareHist(hist, stream->at(i), CV_COMP_CHISQR);
-        ROS_WARN_STREAM(result);
+        //ROS_WARN_STREAM(result);
         if(result < 3)
             return true; 
     }
     
     stream->push_back(hist);
-    ROS_WARN_STREAM("size: " << stream->size());
     return false;
 }
 
@@ -213,16 +221,13 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
   {
+    if(msg->encoding == "mono8")
+        gray_scale = true;
+      
     cv::Mat gray_image = cv_bridge::toCvShare(msg, "mono8")->image;
     //don't change my colorspace! (bgr8))
-    cv::Mat color_image;
-    if(msg->encoding == "mono8")
-    {
-        gray_scale = true;
-        color_image = gray_image;
-    }
-    else
-        color_image = cv_bridge::toCvCopy(msg, "bgr8")->image;
+    cv::Mat color_image = cv_bridge::toCvCopy(msg, "bgr8")->image;
+    
     ObjectCategorize(gray_image, color_image);
   }
   catch (cv_bridge::Exception& e)
@@ -257,7 +262,7 @@ int main (int argc, char** argv){
   //cv::namedWindow("view");
   //cv::startWindowThread();
   image_transport::ImageTransport it(nh);
-
+  
   std::string svmPath = ros::package::getPath("machine_vision");
   svm_ = StatModel::load<SVM>( svmPath + "/LinearHOG.xml" );
 

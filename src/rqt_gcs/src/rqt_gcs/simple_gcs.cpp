@@ -219,12 +219,13 @@ namespace rqt_gcs
     
     void SimpleGCS::PurgeDeletedUavs()
     {
-        for (auto const& uav: all_uav_stat)
+        for (auto& uav : all_uav_stat)
         {
             if(uav.second == UavStatus::deleted)
             {
                 delete deleted_uavs[uav.first];
                 deleted_uavs[uav.first] = nullptr;
+                uav.second = UavStatus::purged;
                 ROS_WARN_STREAM("purging UAV with id: " << uav.first);
             }
         }
@@ -390,7 +391,20 @@ namespace rqt_gcs
         int index = central_ui_.PictureMsgLayout->indexOf(qw);
         lcar_msgs::DoorPtr door = (*pictureQueryVector)[index];
 
-        saveImage(accepted, "door",
+        SimpleControl* uav = active_uavs[cur_uav];
+        std::string path = image_root_path_.toStdString(), file;
+        if(accepted)
+        {
+            path += "/accepted/door/uav_" + std::to_string(uav->id);
+            file = "img_" + std::to_string(uav->accepted_images++) + ".jpg";
+        }
+        else
+        {
+            path += "/rejected/door/uav_" + std::to_string(uav->id);
+            file = "img_" + std::to_string(uav->rejected_images++) + ".jpg";
+        }
+        
+        saveImage(path, file,
             cv_bridge::toCvCopy((sensor_msgs::Image)door->original_picture, "rgb8")->image);
 
         pictureQueryVector->erase(pictureQueryVector->begin() + index);
@@ -409,25 +423,12 @@ namespace rqt_gcs
     }
 
     void SimpleGCS::RejectDoorQuery(QWidget * qw)
-    {
+    { 
         answerDoorQuery(qw, false);
     }
 
-    void SimpleGCS::saveImage(bool accepted, std::string ap_type, const cv::Mat& image)
+    void SimpleGCS::saveImage(std::string path, std::string file, const cv::Mat& image)
     {
-        std::string path = image_root_path_.toStdString(), file;
-        SimpleControl* uav = active_uavs[cur_uav];
-        if(accepted)
-        {
-            path += "/accepted/" + ap_type + "/uav_" + std::to_string(uav->id);
-            file = "img_" + std::to_string(uav->accepted_images++) + ".jpg";
-        }
-        else
-        {
-            path += "/rejected/" + ap_type + "/uav_" + std::to_string(uav->id);
-            file = "img_" + std::to_string(uav->rejected_images++) + ".jpg";
-        }
-
         if(!boost::filesystem::exists(path))
             boost::filesystem::create_directories(path);
 
@@ -943,7 +944,7 @@ namespace rqt_gcs
             {
                 if(uav_map.count(gcs->active_uavs[i]->id) == 0)
                 {
-                    emit deleteUav(i, UavStatus::deleted);
+                    emit deleteUav(i, UavStatus::purged);
                     i--;
                     gcs->num_uav_changed.wait(&gcs->uav_mutex);
                 }
