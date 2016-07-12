@@ -96,7 +96,7 @@ QPushButton{
 	padding:5px;
 	padding-top:4px;
 	padding-bottom:5px;
-    margin:3px
+    margin:3px;
 }
 </string>
   </property>

@@ -20,8 +20,14 @@
    <string>LCAR Bot Mission Control</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">color: rgb(240, 240, 240);
-background-color: rgb(48, 57, 80);</string>
+   <string notr="true">QWidget{
+color: rgb(240, 240, 240);
+background-color: rgb(48, 57, 80);
+}
+
+QPushButton{
+border-radius: 5px;
+}</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="1">

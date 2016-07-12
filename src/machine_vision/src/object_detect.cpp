@@ -209,7 +209,7 @@ bool compareHistograms(cv::Mat& src, std::string object_type)
     {
         double result = cv::compareHist(hist, stream->at(i), CV_COMP_CHISQR);
         //ROS_WARN_STREAM(result);
-        if(result < 3)
+        if(result < 2.5)
             return true; 
     }
     

@@ -80,6 +80,9 @@ color: rgb(236, 236, 236);
          <property name="text">
           <string/>
          </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
        <item row="1" column="0">
@@ -92,6 +95,9 @@ color: rgb(236, 236, 236);
          </property>
          <property name="text">
           <string/>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -121,6 +127,9 @@ color: rgb(236, 236, 236);
        <property name="text">
         <string>Building Name</string>
        </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item row="0" column="0">
@@ -144,6 +153,9 @@ color: rgb(236, 236, 236);
          <height>0</height>
         </size>
        </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item row="2" column="0">
@@ -161,6 +173,9 @@ color: rgb(236, 236, 236);
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item row="2" column="1">
@@ -171,14 +186,32 @@ color: rgb(236, 236, 236);
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item row="5" column="1">
       <widget class="QPushButton" name="deleteAccessPointButton">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>25</height>
+        </size>
+       </property>
        <property name="styleSheet">
         <string notr="true">background-color: rgb(161, 20, 40);
 color: rgb(240, 240, 240);
-</string>
+border-radius: 5px;</string>
        </property>
        <property name="text">
         <string>Delete Access Point</string>

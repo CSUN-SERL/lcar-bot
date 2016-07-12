@@ -122,7 +122,7 @@ namespace rqt_gcs{
     void selectQuad(int);
     void initializeHelperThread();
     void addAccessPoint(int);
-    void answerDoorQuery(QWidget *, bool);
+    void answerQuery(QWidget *, std::string ap_type, bool);
     void saveUavQueries(SimpleControl *);
     void saveUavAccessPoints(SimpleControl *);
     

@@ -221,7 +221,7 @@ namespace rqt_gcs
     
     void SimpleGCS::saveUavQueries(SimpleControl * uav)
     {
-        std::string path = image_root_path_.toStdString() + "/unanswered/door/";
+        std::string path = image_root_path_.toStdString() + "/queries/unanswered/door/";
         path += "uav_" + std::to_string(uav->id);
         std::vector<lcar_msgs::DoorPtr>* queries = uav->GetDoorQueries();
         for(int i = 0, j = 0; i < queries->size(); i++, j+=2)
@@ -425,21 +425,22 @@ namespace rqt_gcs
         num_queries_last = pqv_size;
     }
 
-    void SimpleGCS::answerDoorQuery(QWidget * qw, bool accepted)
+    void SimpleGCS::answerQuery(QWidget * qw, std::string ap_type, bool accepted)
     {
         int index = central_ui_.PictureMsgLayout->indexOf(qw);
         lcar_msgs::DoorPtr door = (*pictureQueryVector)[index];
 
         SimpleControl* uav = active_uavs[cur_uav];
-        std::string path = image_root_path_.toStdString(), file;
+        std::string path = image_root_path_.toStdString() + "/queries";
+        std::string file;
         if(accepted)
         {
-            path += "/accepted/door/uav_" + std::to_string(uav->id);
+            path += "/accepted/" + ap_type + "/uav_" + std::to_string(uav->id);
             file = "img_" + std::to_string(uav->accepted_images++) + ".jpg";
         }
         else
         {
-            path += "/rejected/door/uav_" + std::to_string(uav->id);
+            path += "/rejected/" + ap_type + "/uav_" + std::to_string(uav->id);
             file = "img_" + std::to_string(uav->rejected_images++) + ".jpg";
         }
         
@@ -459,12 +460,12 @@ namespace rqt_gcs
     
     void SimpleGCS::AcceptDoorQuery(QWidget *qw)
     {
-        answerDoorQuery(qw, true);
+        answerQuery(qw, "door", true);
     }
 
     void SimpleGCS::RejectDoorQuery(QWidget * qw)
     { 
-        answerDoorQuery(qw, false);
+        answerQuery(qw, "door", false);
     }
 
     void SimpleGCS::saveImage(std::string path, std::string file, const cv::Mat& image)
