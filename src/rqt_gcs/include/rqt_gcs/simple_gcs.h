@@ -1,6 +1,8 @@
 #ifndef rqt_gcs__SimpleGCS_H
 #define rqt_gcs__SimpleGCS_H
 
+//#pragma once
+
 #include <ros/ros.h>
 #include <ros/common.h>
 #include <rqt_gui_cpp/plugin.h>
@@ -60,13 +62,14 @@ namespace rqt_gcs{
   enum UavStatus { null = -1, active, deleted, purged };
   
   class SimpleGCSHelper;
-
+  class UnansweredQueries;
+  
   class SimpleGCS: public rqt_gui_cpp::Plugin
   {
   Q_OBJECT
   
   friend class SimpleGCSHelper;
-  
+  friend class UnansweredQueries;
   public:
     SimpleGCS();
     ros::Subscriber sub;

@@ -15,15 +15,29 @@
 #define _UNANSWEREDQUERIES_H
 
 #include "ui_UnansweredQueries.h"
+#include "simple_gcs.h"
+
+namespace rqt_gcs
+{
 
 class UnansweredQueries : public QWidget
 {
     Q_OBJECT
 public:
-    UnansweredQueries();
+    UnansweredQueries(SimpleGCS *);
     virtual ~UnansweredQueries();
+    void addQuery(cv::Mat&);
+    void addAllQueries();
+    void parseDirectory
+    void removeQuery(std::string);
+    void removeAllQueries();
+    
 private:
     Ui::UnansweredQueries widget;
+    
+    SimpleGCS * gcs;
 };
 
+
+}// namespace rqt_gcs
 #endif /* _UNANSWEREDQUERIES_H */
