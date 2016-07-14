@@ -12,6 +12,7 @@ namespace rqt_gcs
         //Constructor is called first before initPlugin function
         setObjectName("LCAR Bot GCS");
         qRegisterMetaType<UavStatus>("UavStatus");
+        qRegisterMetaType<UavStatus>("Mat");
     }
 
     void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)

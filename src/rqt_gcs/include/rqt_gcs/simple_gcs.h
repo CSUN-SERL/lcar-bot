@@ -104,6 +104,7 @@ namespace rqt_gcs{
     virtual void RejectDoorQuery(QWidget *);
     virtual void SettingsClicked();
     virtual void ShowAccessPoints();
+    void saveImage(std::string, std::string, const cv::Mat&);
     
     virtual void AddUav(int);
     virtual void DeleteUav(int, UavStatus);
@@ -121,7 +122,7 @@ namespace rqt_gcs{
     void clearAccessPoints();
     void clearImageView();
     lcar_msgs::Target GetMission(std::string fileName);
-    void saveImage(std::string, std::string, const cv::Mat&);
+    
     void selectQuad(int);
     void initializeHelperThread();
     void addAccessPoint(int);
@@ -219,4 +220,5 @@ namespace rqt_gcs{
     
 } // rqt_gcs name space
 Q_DECLARE_METATYPE(rqt_gcs::UavStatus);
+Q_DECLARE_METATYPE(cv::Mat);
 #endif //rqt_gcs__SimpleGCS_H
