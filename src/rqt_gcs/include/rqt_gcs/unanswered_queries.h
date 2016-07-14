@@ -16,6 +16,7 @@
 
 #include "ui_UnansweredQueries.h"
 #include <QDir>
+#include <QUrl>
 #include "simple_gcs.h"
 
 namespace rqt_gcs
@@ -28,12 +29,12 @@ public:
     struct QueryStat
     {
         int uav_id;
-        QImage image; 
+        QImage * image; 
     };
     
     UnansweredQueries(SimpleGCS *);
     virtual ~UnansweredQueries();
-    void addQuery(QueryStat *);
+    void addQuery(QueryStat*, std::string);
     void addUnansweredQueriesFromDisk();
     void parseDirectory();
     void removeQuery(std::string);
@@ -49,15 +50,15 @@ private:
     QSignalMapper accept_mapper;
     QSignalMapper reject_mapper;
     
-    int idFromDir(QString);
-    answerQuery(QWidget*);
+    int uavIdFromDirectory(QString);
+    void answerQuery(QWidget*, std::string, bool);
     
 signals:
-    saveImage(std::string path, std::string file, cv::Mat);
+   void saveImage(std::string path, std::string file, cv::Mat);
 
 public slots:
-    acceptQuery(QWidget*);
-    rejectQuery(QWidget*);
+    void acceptQuery(QWidget*);
+    void rejectQuery(QWidget*);
 };
 
 
