@@ -8,10 +8,15 @@ int main(int argc, char **argv)
     ros::Rate loop_rate(10); //10Hz
 
     lcar_msgs::Target target_pt;
-    target_pt.target_local.position.x = 0;
+    target_pt.global = true;
+    target_pt.target_global.latitude = 34.052234;
+    target_pt.target_global.longitude = -118.243685;
+
+    /*target_pt.target_local.position.x = 0;
     target_pt.target_local.position.y = 0;
-    target_pt.target_local.position.z = 2;
-    target_pt.radius = 2;
+    target_pt.target_local.position.z = 2;*/
+
+    target_pt.radius = 100;
 
     quad1.Arm(true);
     quad1.ScoutBuilding(target_pt);
@@ -249,7 +254,16 @@ void SimpleControl::ScoutBuilding(lcar_msgs::Target msg_target)
     //Update the target location
     path_mission = CircleShape(msg_target);
     pose_target = path_mission.poses.at(0).pose;
-    pose_previous = pose_local;
+
+    if (msg_target.global){
+        pose_previous.position.x = pos_global.latitude;
+        pose_previous.position.y = pos_global.longitude;
+        pose_previous.position.z = pos_global.altitude;
+    }
+    else{
+        pose_previous = pose_local;
+    }
+
     goal = travel;
     ROS_INFO_STREAM("Traveling to target location.");
 }
@@ -549,13 +563,18 @@ nav_msgs::Path SimpleControl::CircleShape(lcar_msgs::Target target_point){
         //Generate circle shape using GPS coordinates
         for(int angle = 0; angle < 360; angle++){
             pose_new.position.x = asin(sin(lat_center)*cos(radius/R_EARTH) + cos(lat_center)*sin(radius/R_EARTH)*cos(angles::from_degrees(angle)));
-            pose_new.position.y = lon_center + atan2(sin(angles::from_degrees(angle))*sin(radius/R_EARTH)*cos(lat_center), cos(radius/R_EARTH)-sin(lat_center)*sin(pose_new.position.x));
+            pose_new.position.y = lon_center + atan2(sin(angles::from_degrees(angle))*sin(radius/R_EARTH)*cos(lat_center),
+                                                     cos(radius/R_EARTH)-sin(lat_center)*sin(pose_new.position.x));
 
             //TODO: calculate yaw values
 
             pose_new_stamped.pose = pose_new;
             mission.poses.push_back(pose_new_stamped);
         }
+    }
+
+    for(geometry_msgs::PoseStamped pose: mission.poses) {
+       ROS_INFO_STREAM(pose.pose.position.x << "," << pose.pose.position.y);
     }
 
     return mission;
