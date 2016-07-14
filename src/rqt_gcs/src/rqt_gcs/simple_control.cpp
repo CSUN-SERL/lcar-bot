@@ -548,8 +548,8 @@ nav_msgs::Path SimpleControl::CircleShape(lcar_msgs::Target target_point){
     else{
         //Generate circle shape using GPS coordinates
         for(int angle = 0; angle < 360; angle++){
-            pose_new.position.x = asin(sin(lat_center)*cos(radius/R) + cos(lat_center)*sin(radius/R)*cos(angles::from_degrees(angle)));
-            pose_new.position.y = lon_center + atan2(sin(angles::from_degrees(angle))*sin(radius/R)*cos(lat_center), cos(radius/R)-sin(lat_center)*sin(pose_new.position.x));
+            pose_new.position.x = asin(sin(lat_center)*cos(radius/R_EARTH) + cos(lat_center)*sin(radius/R_EARTH)*cos(angles::from_degrees(angle)));
+            pose_new.position.y = lon_center + atan2(sin(angles::from_degrees(angle))*sin(radius/R_EARTH)*cos(lat_center), cos(radius/R_EARTH)-sin(lat_center)*sin(pose_new.position.x));
 
             //TODO: calculate yaw values
 
