@@ -50,8 +50,9 @@
 #define THRESHOLD_ALT 1            //Altitude tolerance for GPS
 #define THRESHOLD_DEPTH 2
 #define ALT_RTL 2
-#define BATTERY_MIN 0.10  //Minimum battery level for RTL
+#define BATTERY_MIN 0.10    //Minimum battery level for RTL
 #define DEF_NS "UAV"
+#define R       6371        //Earth's radiusin km
 
 //Enumerators
 enum Mode{

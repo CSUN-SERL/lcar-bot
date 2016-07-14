@@ -522,6 +522,8 @@ nav_msgs::Path SimpleControl::CircleShape(lcar_msgs::Target target_point){
     geometry_msgs::Point point_center = target_point.target_local.position;
     nav_msgs::Path mission;
     float yaw_angle, radius = target_point.radius;
+    float   lat_center = target_point.target_global.latitude,
+            lon_center = target_point.target_global.longitude;
 
     if(position_mode = local){
         //Generate the Mission
@@ -544,7 +546,16 @@ nav_msgs::Path SimpleControl::CircleShape(lcar_msgs::Target target_point){
         }
     }
     else{
-        //TODO: Generate circle shape using GPS coordinates
+        //Generate circle shape using GPS coordinates
+        for(int angle = 0; angle < 360; angle++){
+            pose_new.position.x = asin(sin(lat_center)*cos(radius/R) + cos(lat_center)*sin(radius/R)*cos(angles::from_degrees(angle)));
+            pose_new.position.y = lon_center + atan2(sin(angles::from_degrees(angle))*sin(radius/R)*cos(lat_center), cos(radius/R)-sin(lat_center)*sin(pose_new.position.x));
+
+            //TODO: calculate yaw values
+
+            pose_new_stamped.pose = pose_new;
+            mission.poses.push_back(pose_new_stamped);
+        }
     }
 
     return mission;
