@@ -33,7 +33,8 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
 #include <lcar_msgs/Door.h>
-#include <lcar_msgs/Target.h>
+#include <lcar_msgs/TargetLocal.h>
+#include <lcar_msgs/TargetGlobal.h>
 
 #include <rqt_gcs/access_point.h>
 
@@ -164,13 +165,22 @@ public:
       @param target_point query_msgs::Target building location
 
     */
-    void ScoutBuilding(lcar_msgs::Target msg_target);
+    void ScoutBuilding(lcar_msgs::TargetLocal msg_target);
+
+    /**
+      Executes proper instructions for running the Scout Building play
+
+      @param target_point query_msgs::Target building location
+
+    */
+    void ScoutBuilding(lcar_msgs::TargetGlobal msg_target);
 
     /**
       Send a list of waypoints (mission) to the UAV.
-      @param mission_file Name of the text file that contains the mision
+
+      @param mission List of waypoints contained in a mission object.
     */
-    void SendMission(std::string mission_file);
+    void SendMission(mavros_msgs::WaypointPush mission);
 
     /**
       Override the RC value of the transmitter.
@@ -314,14 +324,30 @@ private:
 
       @param target_point   Center point for target building path generation
     */
-    nav_msgs::Path CircleShape(lcar_msgs::Target target_point);
+    nav_msgs::Path CircleShape(lcar_msgs::TargetLocal target_point);
 
     /**
-      Manage the UAV and ensure that it completes the mission
+      Calculate a list of waypoints in a circular shape around the target GPS location
 
-      @param index The current point number the quad is traveling to.
+      @param target_point   Center point of the circle
+      @return Waypoint Mission item.
     */
-    nav_msgs::Path DiamondShape(lcar_msgs::Target target_point);
+    mavros_msgs::WaypointPush CircleShape(lcar_msgs::TargetGlobal target_point);
+
+    /**
+      Check critical sensor values
+    */
+    void SafetyCheck();
+
+    /**
+      Manage a local mission
+    */
+    void RunLocal();
+
+    /**
+      Manage a global mission
+    */
+    void RunGlobal();
 
     //Callback Prototypes
     void StateCallback(const mavros_msgs::State& msg_state) { state = msg_state; }

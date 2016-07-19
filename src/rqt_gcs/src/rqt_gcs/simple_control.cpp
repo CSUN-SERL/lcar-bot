@@ -7,11 +7,10 @@ int main(int argc, char **argv)
 
     ros::Rate loop_rate(10); //10Hz
 
-    lcar_msgs::Target target_pt;
-    target_pt.global = true;
-    target_pt.target_global.latitude = 34.052234;
-    target_pt.target_global.longitude = -118.243685;
-    target_pt.target_global.altitude = 10;
+    lcar_msgs::TargetGlobal target_pt;
+    target_pt.target.latitude = 34.052234;
+    target_pt.target.longitude = -118.243685;
+    target_pt.target.altitude = 10;
 
     /*target_pt.target_local.position.x = 0;
     target_pt.target_local.position.y = 0;
@@ -210,9 +209,9 @@ void SimpleControl::EnableOffboard()
     offb_set_mode.request.custom_mode = "OFFBOARD";
 
     geometry_msgs::PoseStamped pose;
-    pose.pose.position.x = pose_local.position.x;
-    pose.pose.position.y = pose_local.position.y;
-    pose.pose.position.z = pose_local.position.z;
+    pose.pose.position.x = pose_previous.position.x;
+    pose.pose.position.y = pose_previous.position.y;
+    pose.pose.position.z = pose_previous.position.z;
 
     mavros_msgs::CommandBool arm_cmd;
     arm_cmd.request.value = true;
@@ -249,68 +248,30 @@ std::string SimpleControl::GetLocation()
     return std::to_string(lat) + "," + std::to_string(lon);
 }
 
-void SimpleControl::ScoutBuilding(lcar_msgs::Target msg_target)
+void SimpleControl::ScoutBuilding(lcar_msgs::TargetLocal msg_target)
 {
-    this->EnableOffboard();
-
-    if (msg_target.global){
-        pose_previous.position.x = pos_global.latitude;
-        pose_previous.position.y = pos_global.longitude;
-        pose_previous.position.z = pos_global.altitude;
-
-        position_mode = global;
-    }
-    else{
-        pose_previous = pose_local;
-    }
-
     //Update the target location
     path_mission = CircleShape(msg_target);
     pose_target = path_mission.poses.at(0).pose;
+
+    pose_previous = pose_local;
+    this->EnableOffboard();
 
     goal = travel;
     ROS_INFO_STREAM("Traveling to target location.");
 }
 
-void SimpleControl::SendMission(std::string mission_file)
+void SimpleControl::ScoutBuilding(lcar_msgs::TargetGlobal msg_target)
 {
-    //Create a message for storing the the waypoint
-    mavros_msgs::WaypointPush msg_mission;
+    this->SendMission(CircleShape(msg_target));
+    this->Arm(true);
+    this->SetMode("AUTO.MISSION");
 
-    //TODO: Add ability to create waypoints from a text file.
-    mavros_msgs::Waypoint wp1;
-    wp1.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL;
-    wp1.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
-    wp1.is_current   = false;
-    wp1.autocontinue = true;
-    wp1.x_lat        = -35.3632621765;
-    wp1.y_long       = 149.165237427;
-    wp1.z_alt        = 585;
+    position_mode = global;
+}
 
-    mavros_msgs::Waypoint wp2;
-    wp2.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT;
-    wp2.command      = mavros_msgs::CommandCode::NAV_TAKEOFF;
-    wp2.is_current   = false;
-    wp2.autocontinue = true;
-    wp2.x_lat        = -35.3628807068;
-    wp2.y_long       = 149.165222168;
-    wp2.z_alt        = 20;
-
-    mavros_msgs::Waypoint wp3;
-    wp3.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT;
-    wp3.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
-    wp3.is_current   = false;
-    wp3.autocontinue = true;
-    wp3.x_lat        = -35.3646507263;
-    wp3.y_long       = 149.163497925;
-    wp3.z_alt        = 0;
-
-    //Update the message with the new waypoint
-    //NOTE: waypoints is a Vector object
-    msg_mission.request.waypoints.push_back(wp1);
-    msg_mission.request.waypoints.push_back(wp2);
-    msg_mission.request.waypoints.push_back(wp3);
-
+void SimpleControl::SendMission(mavros_msgs::WaypointPush msg_mission)
+{
     //Call the service
     if(sc_mission.call(msg_mission)){
         ROS_INFO_STREAM("Response from service: " << msg_mission.response);
@@ -473,37 +434,26 @@ FlightState SimpleControl::UpdateFlightState()
 {
     int result;
 
-    if(position_mode == local){
-        //Get the yaw values
-        double roll, pitch, yaw1, yaw2;
-        tf::Quaternion quaternion_tf1, quaternion_tf2;
+    //Get the yaw values
+    double roll, pitch, yaw1, yaw2;
+    tf::Quaternion quaternion_tf1, quaternion_tf2;
 
-        tf::quaternionMsgToTF(pose1.orientation, quaternion_tf1);
-        tf::Matrix3x3 m1{quaternion_tf1};
+    tf::quaternionMsgToTF(pose1.orientation, quaternion_tf1);
+    tf::Matrix3x3 m1{quaternion_tf1};
 
-        tf::quaternionMsgToTF(pose2.orientation, quaternion_tf2);
-        tf::Matrix3x3 m2{quaternion_tf2};
+    tf::quaternionMsgToTF(pose2.orientation, quaternion_tf2);
+    tf::Matrix3x3 m2{quaternion_tf2};
 
-        m1.getRPY(roll, pitch, yaw1);
-        m2.getRPY(roll, pitch, yaw2);
+    m1.getRPY(roll, pitch, yaw1);
+    m2.getRPY(roll, pitch, yaw2);
 
-        if( std::abs(pose2.position.x - pose1.position.x)   <= THRESHOLD_XY &&
-            std::abs(pose2.position.y - pose1.position.y)   <= THRESHOLD_XY &&
-            std::abs(pose2.position.z - pose1.position.z)   <= THRESHOLD_Z  &&
-            std::abs(yaw2 - yaw1)                           <= THRESHOLD_YAW){
-            result = 0;
-        }
-        else result = 1;
+    if( std::abs(pose2.position.x - pose1.position.x)   <= THRESHOLD_XY &&
+        std::abs(pose2.position.y - pose1.position.y)   <= THRESHOLD_XY &&
+        std::abs(pose2.position.z - pose1.position.z)   <= THRESHOLD_Z  &&
+        std::abs(yaw2 - yaw1)                           <= THRESHOLD_YAW){
+        result = 0;
     }
-    else{
-        //Compare global position
-        if( std::abs(pose2.position.x - pose1.position.x)   <= THRESHOLD_XY_GPS &&
-            std::abs(pose2.position.y - pose1.position.y)   <= THRESHOLD_XY_GPS &&
-            std::abs(pose2.position.z - pose1.position.z)   <= THRESHOLD_Z_GPS){
-            result = 0;
-        }
-        else result = 1;
-    }
+    else result = 1;
 
     return result;
 }
@@ -555,76 +505,71 @@ float SimpleControl::GetMissionProgress()
     return progress;
 }
 
-nav_msgs::Path SimpleControl::CircleShape(lcar_msgs::Target target_point){
-
+nav_msgs::Path SimpleControl::CircleShape(lcar_msgs::TargetLocal target_point)
+{
+    double yaw_angle, radius = target_point.radius;
     geometry_msgs::PoseStamped  pose_new_stamped;
     geometry_msgs::Pose         pose_new;
-    geometry_msgs::Point        point_center = target_point.target_local.position;
+    geometry_msgs::Point        point_center = target_point.target.position;
     nav_msgs::Path              mission;
 
-    double  yaw_angle, radius = target_point.radius;
-    double  lat_center = angles::from_degrees(target_point.target_global.latitude),
-            lon_center = angles::from_degrees(target_point.target_global.longitude);
+    //Generate the Mission
+    for(int angle = 0; angle <= 360; angle++){
+        //Generate a position from the angle
+        tf::pointEigenToMsg(Eigen::Vector3d(radius * (cos(angles::from_degrees(angle))),
+                                            radius * (sin(angles::from_degrees(angle))),
+                                            point_center.z),
+                            pose_new.position);
+        //Offset the center point to the target location
+        pose_new.position.x += point_center.x;
+        pose_new.position.y += point_center.y;
 
-    if(position_mode == local){
-        //Generate the Mission
-        for(int angle = 0; angle <= 360; angle++){
-            //Generate a position from the angle
-            tf::pointEigenToMsg(Eigen::Vector3d(radius * (cos(angles::from_degrees(angle))),
-                                                radius * (sin(angles::from_degrees(angle))),
-                                                point_center.z),
-                                pose_new.position);
-            //Offset the center point to the target location
-            pose_new.position.x += point_center.x;
-            pose_new.position.y += point_center.y;
+        //Create the yaw angle that points to the center of the circle
+        yaw_angle = angles::normalize_angle_positive(angles::from_degrees(angle + 180));
+        quaternionTFToMsg(tf::createQuaternionFromYaw(yaw_angle), pose_new.orientation);
 
-            //Create the yaw angle that points to the center of the circle
-            yaw_angle = angles::normalize_angle_positive(angles::from_degrees(angle + 180));
-            quaternionTFToMsg(tf::createQuaternionFromYaw(yaw_angle), pose_new.orientation);
-
-            pose_new_stamped.pose = pose_new;
-            mission.poses.push_back(pose_new_stamped);
-        }
-    }
-
-    else{
-        //Generate circle shape using GPS coordinates
-        for(int angle = 0; angle <= 360; angle+=20){
-            double lat_new = asin(sin(lat_center)*cos(radius/R_EARTH) + cos(lat_center)*sin(radius/R_EARTH)*cos(angles::from_degrees(angle)));
-            double lon_new = lon_center + atan2(sin(angles::from_degrees(angle))*sin(radius/R_EARTH)*cos(lat_center),
-                                               cos(radius/R_EARTH)-sin(lat_center)*sin(lat_new));
-
-            pose_new.position.x = angles::to_degrees(lat_new);
-            pose_new.position.y = angles::to_degrees(lon_new);
-            pose_new.position.z = target_point.target_global.altitude;
-
-            //TODO: calculate yaw values
-
-            pose_new_stamped.pose = pose_new;
-            mission.poses.push_back(pose_new_stamped);
-        }
-    }
-
-    for(geometry_msgs::PoseStamped pose: mission.poses) {
-       printf("%f,%f\n", pose.pose.position.x, pose.pose.position.y);
+        pose_new_stamped.pose = pose_new;
+        mission.poses.push_back(pose_new_stamped);
     }
 
     return mission;
 }
 
-void SimpleControl::Run()
+mavros_msgs::WaypointPush SimpleControl::CircleShape(lcar_msgs::TargetGlobal target_point)
 {
-    geometry_msgs::Pose pose_cur;
+    double  yaw_angle, radius = target_point.radius;
+    double  lat_center = angles::from_degrees(target_point.target.latitude),
+            lon_center = angles::from_degrees(target_point.target.longitude);
 
-    if(position_mode == local){
-        pose_cur = pose_local;
-    }
-    else{
-        pose_cur.position.x = pos_global.latitude;
-        pose_cur.position.y = pos_global.longitude;
-        pose_cur.position.z = pos_global.altitude;
+    mavros_msgs::Waypoint waypoint;
+    mavros_msgs::WaypointPush mission;
+
+    waypoint.frame        = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT;
+    waypoint.command      = mavros_msgs::CommandCode::NAV_WAYPOINT;
+    waypoint.is_current   = false;
+    waypoint.autocontinue = true;
+
+    //Generate circle shape using GPS coordinates
+    for(int angle = 0; angle <= 360; angle+=20){
+        double lat_new = asin(sin(lat_center)*cos(radius/R_EARTH) + cos(lat_center)*sin(radius/R_EARTH)*cos(angles::from_degrees(angle)));
+        double lon_new = lon_center + atan2(sin(angles::from_degrees(angle))*sin(radius/R_EARTH)*cos(lat_center),
+                                           cos(radius/R_EARTH)-sin(lat_center)*sin(lat_new));
+
+        waypoint.x_lat   = angles::to_degrees(lat_new);
+        waypoint.y_long  = angles::to_degrees(lon_new);
+        waypoint.z_alt   = target_point.target.altitude;
+
+        //Create the yaw angle that points to the center of the circle
+        waypoint.param4 = angles::normalize_angle_positive(angles::from_degrees(angle + 180));
+
+        mission.request.waypoints.push_back(waypoint);
     }
 
+    return mission;
+}
+
+void SimpleControl::SafetyCheck()
+{
     //Sanity Checks
     if(battery.remaining < BATTERY_MIN && battery.remaining != -1){
         //Land if battery is starting to get low
@@ -635,7 +580,7 @@ void SimpleControl::Run()
         //Collision Imminent! Land.
         ROS_ERROR_STREAM_DELAYED_THROTTLE(5, "Collision Imminent!");
         if(goal != hold_pose){
-            pose_previous = pose_cur;
+            pose_previous = pose_local;
             goal_prev = goal;
             goal = hold_pose;
         }
@@ -645,24 +590,36 @@ void SimpleControl::Run()
         goal = goal_prev;
         collision = false;
     }
+}
 
+void SimpleControl::Run()
+{
+    //Sanity Checks
+    this->SafetyCheck();
+
+    if(position_mode == local)this->RunLocal();
+    else this->RunGlobal();
+}
+
+void SimpleControl::RunLocal()
+{
     if(goal == travel){
-        if(ComparePosition(pose_cur, pose_target) == 0){
+        if(ComparePosition(pose_local, pose_target) == 0){
             //Vehicle is at target location => Scout Building
-            pose_previous = pose_cur;
+            pose_previous = pose_local;
             goal = scout;
             ROS_DEBUG_STREAM_ONCE("Scouting Building.");
         }
-        else /*if(CompareAltitude(pose_cur, pose_target))*/{
+        else if(std::abs(std::abs(pose_local.position.z) - std::abs(pose_target.position.z)) <= THRESHOLD_Z){
             //Achieved the proper altitude => Go to target location
             this->SetPosition(pose_target);
 
-            pose_previous = pose_cur; //Update previous position for fixing the altitude
+            pose_previous = pose_local; //Update previous position for fixing the altitude
         }
-        /*else{
+        else{
             //Ascend to the proper altitude first at the current location
             this->SetPosition(pose_previous.position.x, pose_previous.position.y, pose_target.position.z);
-        }*/
+        }
     }
     else if(goal == hold_pose){
         this->SetPosition(pose_previous);
@@ -690,20 +647,20 @@ void SimpleControl::Run()
         }
     }
     else if(goal == rtl){
-        if(ComparePosition(pose_cur, pose_home) == 0){
+        if(ComparePosition(pose_local, pose_home) == 0){
             goal = land;
         }
-        else if(abs(pose_cur.position.z - ALT_RTL) <= THRESHOLD_Z){
+        else if(abs(pose_local.position.z - ALT_RTL) <= THRESHOLD_Z){
             //Achieved the proper altitude => Go to target location
             this->SetPosition(pose_home.position.x, pose_home.position.y, ALT_RTL);
-            pose_previous = pose_cur;
+            pose_previous = pose_local;
         }
         else{
             this->SetPosition(pose_previous.position.x, pose_previous.position.y, ALT_RTL);
         }
     }
     else if(goal == land){
-        if(pose_cur.position.z <= THRESHOLD_Z){
+        if(pose_local.position.z <= THRESHOLD_Z){
             goal = disarm;
             ROS_INFO_STREAM_ONCE("Landed Safely.");
         }
@@ -720,4 +677,9 @@ void SimpleControl::Run()
     else if(goal == idle){
         //Wait for the goal to change
     }
+}
+
+void SimpleControl::RunGlobal()
+{
+
 }

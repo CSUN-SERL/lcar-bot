@@ -9,7 +9,8 @@
 #include <rqt_gcs/simple_control.h>
 #include <rqt_gcs/settings_widget.h>
 #include <lcar_msgs/Door.h>
-#include <lcar_msgs/Target.h>
+#include <lcar_msgs/TargetLocal.h>
+#include <lcar_msgs/TargetGlobal.h>
 #include <std_srvs/Empty.h>
 #include <pluginlib/class_list_macros.h>
 #include <iomanip>
@@ -121,7 +122,9 @@ namespace rqt_gcs{
     void clearQueries();
     void clearAccessPoints();
     void clearImageView();
-    lcar_msgs::Target GetMission(std::string fileName);
+    std::string GetMissionType(std::string file_name);
+    lcar_msgs::TargetLocal GetMissionLocal(std::string file_name);
+    lcar_msgs::TargetGlobal GetMissionGlobal(std::string file_name);
     
     void selectQuad(int);
     void initializeHelperThread();
