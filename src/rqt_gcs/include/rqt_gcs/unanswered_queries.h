@@ -14,22 +14,22 @@
 #ifndef _UNANSWEREDQUERIES_H
 #define _UNANSWEREDQUERIES_H
 
+
+#include <rqt_gcs/simple_gcs.h>
+
 #include "ui_UnansweredQueries.h"
 #include "ui_PictureMsg.h"
 
 #include <QSignalMapper>
+//#include <QDebug>
 #include <QDir>
 #include <QUrl>
 
-#include <rqt_gcs/simple_gcs.h>
 
 namespace rqt_gcs
 {
-
+    
 class SimpleGCS;
-
-namespace rqt_gcs
-{
     
 class UnansweredQueries : public QWidget
 {
@@ -66,14 +66,10 @@ private:
     void answerQuery(QWidget*, QString, bool);
     void saveImage(QString, QString, QImage *);
 
-
 public slots:
     void acceptQuery(QWidget*);
     void rejectQuery(QWidget*);
 };
-
-
-
 
 }// namespace rqt_gcs
 #endif /* _UNANSWEREDQUERIES_H */

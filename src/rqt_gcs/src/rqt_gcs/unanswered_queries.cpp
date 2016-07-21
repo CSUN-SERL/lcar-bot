@@ -7,14 +7,17 @@
 
 #include "rqt_gcs/unanswered_queries.h"
 
+
 namespace rqt_gcs
 {
     
 UnansweredQueries::UnansweredQueries(SimpleGCS * sgcs) :
 gcs(sgcs)
 {
+    //QLoggingCategory::setFilterRules("*.debug=true");
+    
     widget.setupUi(this);
- // todo
+
     accept_mapper = new QSignalMapper(this);
     reject_mapper = new QSignalMapper(this);
     connect(accept_mapper, SIGNAL(mapped(QWidget*)), this, SLOT(acceptQuery(QWidget*)));
@@ -53,6 +56,7 @@ void UnansweredQueries::addUnansweredQueriesFromDisk()
                 QueryStat * stat = new QueryStat();
                 stat->uav_id = uavIdFromDirectory(info.fileName());
                 QString image_path = images_list.at(j).absoluteFilePath();
+                qDebug() << image_path;
                 QUrl url(image_path);
                 if(url.isValid())
                 {
@@ -61,7 +65,6 @@ void UnansweredQueries::addUnansweredQueriesFromDisk()
                     image->load(url.fileName(), "jpg");
                     stat->image = image;
                     addQuery(stat, ap_type);
-
                 }
             }
         }

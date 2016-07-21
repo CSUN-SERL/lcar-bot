@@ -53,6 +53,8 @@
 #include <QSignalMapper>
 #include <QDesktopWidget>
 #include <QWaitCondition>
+#include <QDebug>
+//#include <QLoggingCategory>
 #include <QMetaType>
 
 #define MAX_UAV 100 // the total number of UAV's manageable by our system
@@ -122,8 +124,10 @@ namespace rqt_gcs{
     void clearQueries();
     void clearAccessPoints();
     void clearImageView();
-    lcar_msgs::Target GetMission(std::string fileName);
-
+    std::string GetMissionType(std::string file_name);		 
+    lcar_msgs::TargetLocal GetMissionLocal(std::string file_name);
+    lcar_msgs::TargetGlobal GetMissionGlobal(std::string file_name);
+     
     void selectQuad(int);
     void initializeHelperThread();
     void addAccessPoint(int);
