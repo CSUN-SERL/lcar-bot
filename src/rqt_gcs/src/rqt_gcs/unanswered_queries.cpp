@@ -9,9 +9,7 @@
 
 namespace rqt_gcs
 {
-
-//namespace fs = boost::filesystem;
-
+    
 UnansweredQueries::UnansweredQueries(SimpleGCS * sgcs) :
 gcs(sgcs)
 {
@@ -23,7 +21,6 @@ gcs(sgcs)
     connect(reject_mapper, SIGNAL(mapped(QWidget*)), this, SLOT(rejectQuery(QWidget*)));
 
     addUnansweredQueriesFromDisk();
-
 }
 
 UnansweredQueries::~UnansweredQueries()
@@ -50,7 +47,6 @@ void UnansweredQueries::addUnansweredQueriesFromDisk()
         {
             QFileInfo info = list.at(i);
             dir.cd(info.filePath());
-            std::cout << dir.absolutePath().toStdString();
             QFileInfoList images_list = dir.entryInfoList();
             for(int j = 0; j < images_list.size(); j++)
             {
@@ -65,11 +61,11 @@ void UnansweredQueries::addUnansweredQueriesFromDisk()
                     image->load(url.fileName(), "jpg");
                     stat->image = image;
                     addQuery(stat, ap_type);
+
                 }
             }
         }
     }
-
 }
 
 void UnansweredQueries::addQuery(QueryStat* stat, QString ap_type)
@@ -159,3 +155,4 @@ void UnansweredQueries::saveImage(QString path, QString file, QImage* image)
 
 
 }
+

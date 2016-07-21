@@ -12,7 +12,8 @@ add_message_files(
   DIRECTORY msg
   FILES
   Door.msg
-  Target.msg)
+  TargetLocal.msg
+  TargetGlobal.msg)
 
 generate_messages(DEPENDENCIES sensor_msgs geometry_msgs mavros_msgs)
 

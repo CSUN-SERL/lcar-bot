@@ -14,8 +14,6 @@
 #ifndef _UNANSWEREDQUERIES_H
 #define _UNANSWEREDQUERIES_H
 
-#pragma once
-
 #include "ui_UnansweredQueries.h"
 #include "ui_PictureMsg.h"
 
@@ -30,6 +28,9 @@ namespace rqt_gcs
 
 class SimpleGCS;
 
+namespace rqt_gcs
+{
+    
 class UnansweredQueries : public QWidget
 {
 Q_OBJECT
@@ -45,6 +46,7 @@ public:
     UnansweredQueries(SimpleGCS*);
     virtual ~UnansweredQueries();
     void addQuery(QueryStat*, QString);
+
     void addUnansweredQueriesFromDisk();
     void parseDirectory();
     void removeQuery(std::string);
@@ -63,6 +65,7 @@ private:
     int uavIdFromDirectory(QString);
     void answerQuery(QWidget*, QString, bool);
     void saveImage(QString, QString, QImage *);
+
 
 public slots:
     void acceptQuery(QWidget*);

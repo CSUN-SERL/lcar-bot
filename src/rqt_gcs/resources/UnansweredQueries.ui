@@ -1,17 +1,71 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>UnansweredQueries</class>
- <widget class="QWidget" name="UnansweredQueries" >
-  <property name="geometry" >
+ <widget class="QWidget" name="UnansweredQueries">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>390</width>
+    <height>694</height>
    </rect>
   </property>
-  <property name="windowTitle" >
-   <string>UnansweredQueries</string>
+  <property name="font">
+   <font>
+    <family>Ubuntu</family>
+   </font>
   </property>
+  <property name="windowTitle">
+   <string>Unanswered Queries</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget{
+	background-color:rgb(48,57,80);
+	color:rgb(240,240,240);
+}
+
+QLineEdit{
+	background-color:rgb(255,255,255);
+	color:rgb(0,0,0);
+}
+
+QPushButton{
+	border-radius: 5px;
+	padding:5px;
+    margin:3px;
+}
+</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>370</width>
+        <height>674</height>
+       </rect>
+      </property>
+      <widget class="QWidget" name="verticalLayoutWidget">
+       <property name="geometry">
+        <rect>
+         <x>9</x>
+         <y>9</y>
+         <width>351</width>
+         <height>661</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="queriesLayout"/>
+      </widget>
+     </widget>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>

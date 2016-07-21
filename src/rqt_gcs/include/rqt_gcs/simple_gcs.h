@@ -1,8 +1,6 @@
 #ifndef rqt_gcs__SimpleGCS_H
 #define rqt_gcs__SimpleGCS_H
 
-#pragma once
-
 #include <ros/ros.h>
 #include <ros/common.h>
 #include <rqt_gui_cpp/plugin.h>
@@ -10,7 +8,8 @@
 #include <rqt_gcs/unanswered_queries.h>
 #include <rqt_gcs/settings_widget.h>
 #include <lcar_msgs/Door.h>
-#include <lcar_msgs/Target.h>
+#include <lcar_msgs/TargetLocal.h>
+#include <lcar_msgs/TargetGlobal.h>
 #include <std_srvs/Empty.h>
 #include <pluginlib/class_list_macros.h>
 #include <iomanip>

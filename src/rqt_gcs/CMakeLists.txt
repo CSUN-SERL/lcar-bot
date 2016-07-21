@@ -71,7 +71,7 @@ set(rqt_gcs_UIS
   resources/MissionConfirm.ui
   resources/PictureMsg.ui
   resources/SettingsWidget.ui
-  #resources/UnansweredQueries.ui
+  resources/UnansweredQueries.ui
 )
 
 set(rqt_gcs_RCCS resources/qfi.qrc)

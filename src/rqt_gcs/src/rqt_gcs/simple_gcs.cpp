@@ -495,7 +495,9 @@ namespace rqt_gcs
                 std::string file_name = "building" + std::to_string(i + 1) + ".txt";
 
                 active_uavs[i]->Arm(true);
-                active_uavs[i]->ScoutBuilding(GetMission(file_name));
+                if(this->GetMissionType(file_name).compare("local") == 0) active_uavs[i]->ScoutBuilding(GetMissionLocal(file_name));
+                else active_uavs[i]->ScoutBuilding(GetMissionGlobal(file_name));
+
                 ROS_INFO_STREAM("Scouting Building " << i);
             }
         }
@@ -530,7 +532,9 @@ namespace rqt_gcs
         int building_index = mpUi_.buildingsComboBox->currentIndex() + 1;
         std::string file_name = "building" + std::to_string(building_index) + ".txt";
 
-        active_uavs[cur_uav]->ScoutBuilding(GetMission(file_name));
+        if(this->GetMissionType(file_name).compare("local") == 0) active_uavs[cur_uav]->ScoutBuilding(GetMissionLocal(file_name));
+        else active_uavs[cur_uav]->ScoutBuilding(GetMissionGlobal(file_name));
+
         ROS_INFO_STREAM("Scouting Building " << building_index);
     }
 
@@ -779,25 +783,61 @@ namespace rqt_gcs
         pfd_ui.widgetPFD->update();
     }
 
-    lcar_msgs::Target SimpleGCS::GetMission(std::string fileName)
+    std::string GetMissionType(std::string file_name)
+    {
+        std::string mission_type;
+        std::ifstream fileIn(file_name);
+
+        fileIn >> mission_type;
+
+        return mission_type;
+    }
+
+
+    lcar_msgs::TargetLocal SimpleGCS::GetMissionLocal(std::string file_name)
     {
         float pos_x, pos_y, pos_z, radius;
-        lcar_msgs::Target building;
-        std::ifstream fileIn(fileName);
+        std::string mission_type;
+
+        lcar_msgs::TargetLocal building_local;
+
+        std::ifstream fileIn(file_name);
+
+        fileIn >> mission_type;
         fileIn >> pos_x;
         fileIn >> pos_y;
         fileIn >> pos_z;
         fileIn >> radius;
-        //fileIn >> yaw;
 
-        building.target_local.position.x = pos_x;
-        building.target_local.position.y = pos_y;
-        building.target_local.position.z = pos_z;
-        building.radius = radius;
-        //building.orientation.w = yaw;
+        building_local.target.position.x = pos_x;
+        building_local.target.position.y = pos_y;
+        building_local.target.position.z = pos_z;
+        building_local.radius = radius;
 
-        return building;
+        return building_local;
     }
+
+    lcar_msgs::TargetGlobal SimpleGCS::GetMissionGlobal(std::string file_name)
+    {
+        float pos_x, pos_y, pos_z, radius;
+        lcar_msgs::TargetGlobal building_global;
+        std::string mission_type;
+
+        std::ifstream fileIn(file_name);
+
+        fileIn >> mission_type;
+        fileIn >> pos_x;
+        fileIn >> pos_y;
+        fileIn >> pos_z;
+        fileIn >> radius;
+
+        building_global.target.latitude = pos_x;
+        building_global.target.longitude = pos_y;
+        building_global.target.altitude = pos_z;
+
+        return building_global;
+    }
+
 
     void SimpleGCS::clearImageView()
     {
