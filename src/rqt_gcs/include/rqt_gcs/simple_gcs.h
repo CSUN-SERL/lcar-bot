@@ -1,12 +1,11 @@
 #ifndef rqt_gcs__SimpleGCS_H
 #define rqt_gcs__SimpleGCS_H
 
-//#pragma once
-
 #include <ros/ros.h>
 #include <ros/common.h>
 #include <rqt_gui_cpp/plugin.h>
 #include <rqt_gcs/simple_control.h>
+#include <rqt_gcs/unanswered_queries.h>
 #include <rqt_gcs/settings_widget.h>
 #include <lcar_msgs/Door.h>
 #include <lcar_msgs/TargetLocal.h>
@@ -61,16 +60,17 @@
 namespace rqt_gcs{
 
   enum UavStatus { null = -1, active, deleted, purged };
-  
+
   class SimpleGCSHelper;
   class UnansweredQueries;
-  
+
   class SimpleGCS: public rqt_gui_cpp::Plugin
   {
   Q_OBJECT
-  
+
   friend class SimpleGCSHelper;
   friend class UnansweredQueries;
+
   public:
     SimpleGCS();
     ros::Subscriber sub;
@@ -83,12 +83,12 @@ namespace rqt_gcs{
     void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
     void initializeSettings();
-    
+
     virtual void initPlugin(qt_gui_cpp::PluginContext& context);
     virtual void shutdownPlugin();
     virtual void saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const;
     virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings);
-    
+
   protected slots:
     virtual void TimedUpdate();
     virtual void ExecutePlay();
@@ -105,13 +105,13 @@ namespace rqt_gcs{
     virtual void RejectDoorQuery(QWidget *);
     virtual void SettingsClicked();
     virtual void ShowAccessPoints();
-    void saveImage(std::string, std::string, const cv::Mat&);
-    
+    virtual void saveImage(std::string, std::string, const cv::Mat&);
+
     virtual void AddUav(int);
     virtual void DeleteUav(int, UavStatus);
     virtual void PurgeDeletedUavs();
     virtual void UavConnectionToggled(int, int, bool);
-    
+
     //SETTINGS RELATED
     virtual void DestroySettingsWidget();
     virtual void ToggleMachineLearningMode(bool);
@@ -122,30 +122,28 @@ namespace rqt_gcs{
     void clearQueries();
     void clearAccessPoints();
     void clearImageView();
-    std::string GetMissionType(std::string file_name);
-    lcar_msgs::TargetLocal GetMissionLocal(std::string file_name);
-    lcar_msgs::TargetGlobal GetMissionGlobal(std::string file_name);
-    
+    lcar_msgs::Target GetMission(std::string fileName);
+
     void selectQuad(int);
     void initializeHelperThread();
     void addAccessPoint(int);
     void answerQuery(QWidget *, std::string ap_type, bool);
     void saveUavQueries(SimpleControl *);
     void saveUavAccessPoints(SimpleControl *);
-    
+
     int cur_uav;
     int timeCounter;
     int NUM_UAV; //Total number of UAV's in the system
     int num_queries_last;
     int num_access_points_last;
-    
+
     std::vector<SimpleControl*> active_uavs;
     std::map<int, UavStatus> all_uav_stat;
     std::map<int, SimpleControl*> deleted_uavs;
-    
+
     std::vector<AccessPoint> * accessPointVector;
     std::vector<lcar_msgs::DoorPtr> * pictureQueryVector;
-   
+
     cv::Mat conversion_mat_;
     image_transport::Subscriber sub_stereo;
     Ui::SimpleGCSWidget ui_;
@@ -182,45 +180,47 @@ namespace rqt_gcs{
     QSignalMapper* signal_mapper2;
     QSignalMapper* acceptDoorMapper;
     QSignalMapper* denyDoorMapper;
-    
+
     QSettings *settings_;
     QString image_root_path_;
-    
+
     QThread t_uav_monitor;
     SimpleGCSHelper * uav_monitor;
     QMutex uav_mutex;
     QWaitCondition num_uav_changed;
+
+    UnansweredQueries * unanswered_queries;
   };
-  
+
   class SimpleGCSHelper : public QObject
   {
   Q_OBJECT
-              
-  public:   
+
+  public:
       SimpleGCSHelper(SimpleGCS *);
       ~SimpleGCSHelper();
 
-  public slots:  
+  public slots:
       void monitor();
-     
+
   signals:
       void addUav(int); // uav_id
       void deleteUav(int, UavStatus);
       void toggleUavConnection(int, int, bool);
-      
+
   private:
-      SimpleGCS *gcs;
-      
+      SimpleGCS * gcs;
+
       int  binarySearch(int, int, int);
       void parseUavNamespace(std::map<int, int>&);
 
-      
+
       void monitorUavNamespace();
       void monitorConnections();
       void runUavs();
-            
+
   };
-    
+
 } // rqt_gcs name space
 Q_DECLARE_METATYPE(rqt_gcs::UavStatus);
 Q_DECLARE_METATYPE(cv::Mat);

@@ -4,8 +4,8 @@
  * and open the template in the editor.
  */
 
-/* 
- * File:   UnansweredQueries.h
+/*
+ * File:   unanswered_queries.h
  * Author: serl
  *
  * Created on July 11, 2016, 2:24 PM
@@ -15,46 +15,57 @@
 #define _UNANSWEREDQUERIES_H
 
 #include "ui_UnansweredQueries.h"
+#include "ui_PictureMsg.h"
+
+#include <QSignalMapper>
 #include <QDir>
 #include <QUrl>
-#include "simple_gcs.h"
+
+#include <rqt_gcs/simple_gcs.h>
+
+namespace rqt_gcs
+{
+
+class SimpleGCS;
 
 namespace rqt_gcs
 {
     
 class UnansweredQueries : public QWidget
 {
-    Q_OBJECT
+Q_OBJECT
 public:
+
     struct QueryStat
     {
         int uav_id;
-        QImage * image; 
+        QImage * image;
+        QString image_file_path;
     };
-    
-    UnansweredQueries(SimpleGCS *);
+
+    UnansweredQueries(SimpleGCS*);
     virtual ~UnansweredQueries();
-    void addQuery(QueryStat*, std::string);
+    void addQuery(QueryStat*, QString);
+
     void addUnansweredQueriesFromDisk();
     void parseDirectory();
     void removeQuery(std::string);
     void removeAllQueries();
-    
+
 private:
     Ui::UnansweredQueries widget;
-    
-    SimpleGCS * gcs;
-    std::map <std::string, std::vector<QueryStat*> > queries_map;
-    std::vector<QWidget *> query_widgets;
 
-    QSignalMapper accept_mapper;
-    QSignalMapper reject_mapper;
-    
+    SimpleGCS * gcs;
+    QMap <QString, QVector<QueryStat*> > queries_map;
+    QVector<QWidget *> query_widgets;
+
+    QSignalMapper * accept_mapper;
+    QSignalMapper * reject_mapper;
+
     int uavIdFromDirectory(QString);
-    void answerQuery(QWidget*, std::string, bool);
-    
-signals:
-   void saveImage(std::string path, std::string file, cv::Mat);
+    void answerQuery(QWidget*, QString, bool);
+    void saveImage(QString, QString, QImage *);
+
 
 public slots:
     void acceptQuery(QWidget*);

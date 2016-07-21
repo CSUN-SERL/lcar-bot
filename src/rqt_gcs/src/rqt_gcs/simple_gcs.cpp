@@ -3,7 +3,7 @@
 
 namespace rqt_gcs
 {
-    
+
     SimpleGCS::SimpleGCS()
     : rqt_gui_cpp::Plugin()
     , widget_(nullptr)
@@ -74,9 +74,11 @@ namespace rqt_gcs
         connect(signal_mapper2, SIGNAL(mapped(QWidget*)), this, SLOT(DeleteAccessPoint(QWidget*)));
         connect(acceptDoorMapper, SIGNAL(mapped(QWidget*)), this, SLOT(AcceptDoorQuery(QWidget*)));
         connect(denyDoorMapper, SIGNAL(mapped(QWidget*)), this, SLOT(RejectDoorQuery(QWidget*)));
-        
+
         initializeSettings();
         initializeHelperThread();
+        unanswered_queries = new UnansweredQueries(this);
+        unanswered_queries->setVisible(true);
 
         //Setup update timer
         update_timer = new QTimer(this);
@@ -101,11 +103,11 @@ namespace rqt_gcs
                     << "\n deleted_uavs[uav_id]=" << deleted_uavs[uav_id]);
             exit(1);
         }
-            
+
         all_uav_stat[uav_id] = UavStatus::active;
-        
+
         ROS_WARN_STREAM("Adding UAV with id: " << uav_id);
-        
+
         quad_id.setNum(uav_id);
         temp_data = "UAV " + quad_id;
 
@@ -148,11 +150,11 @@ namespace rqt_gcs
     void SimpleGCS::DeleteUav(int index, UavStatus status)
     {
         uav_mutex.lock();
-        
+
         SimpleControl * uav = active_uavs[index];
         int uav_id = uav->id;
-        
-        if(status == UavStatus::purged)   
+
+        if(status == UavStatus::purged)
         {
             saveUavQueries(uav);
             saveUavAccessPoints(uav);
@@ -160,7 +162,7 @@ namespace rqt_gcs
             deleted_uavs.erase(uav_id);
         }
         else if(status == UavStatus::deleted)
-        { 
+        {
             if(deleted_uavs.count(uav_id) == 0)
                 deleted_uavs.insert(std::pair<int, SimpleControl*>(uav_id, uav));
             else
@@ -168,19 +170,19 @@ namespace rqt_gcs
         }
         else
         {
-            ROS_ERROR_STREAM("invalid deletion status for uav: " << uav_id 
+            ROS_ERROR_STREAM("invalid deletion status for uav: " << uav_id
                     << " with deletion status: " << status);
             exit(1);
         }
         all_uav_stat[uav_id] = status;
-        
+
         ROS_WARN_STREAM("Deleting UAV with id: " << uav_id);
-        
+
         central_ui_.UAVListLayout->removeWidget(uavListWidgetArr[index]);
 
         delete uavCondWidgetArr[index];
         delete uavListWidgetArr[index];
-           
+
         uavCondWidgetArr.erase(uavCondWidgetArr.begin() + index);
         uavListWidgetArr.erase(uavListWidgetArr.begin() + index);
         active_uavs.erase(active_uavs.begin() + index);
@@ -189,7 +191,7 @@ namespace rqt_gcs
         {
             disconnect(uavCondWidgetArr[i]->VehicleSelectButton,
                     SIGNAL(clicked()), signal_mapper, SLOT(map()));
-            
+
             signal_mapper->setMapping(uavCondWidgetArr[i]->VehicleSelectButton, i);
             connect(uavCondWidgetArr[i]->VehicleSelectButton,
                     SIGNAL(clicked()), signal_mapper, SLOT(map()));
@@ -219,7 +221,7 @@ namespace rqt_gcs
        num_uav_changed.wakeAll();
        uav_mutex.unlock();
     }
-    
+
     void SimpleGCS::saveUavQueries(SimpleControl * uav)
     {
         std::string path = image_root_path_.toStdString() + "/queries/unanswered/door/";
@@ -228,19 +230,19 @@ namespace rqt_gcs
         for(int i = 0, j = 0; i < queries->size(); i++, j+=2)
         {
             lcar_msgs::DoorPtr query = queries->at(i);
-            
+
             sensor_msgs::Image * ros_image = &query->original_picture;
             cv::Mat image = cv_bridge::toCvCopy(*ros_image,"rgb8")->image;
             std::string file = "img_" + std::to_string(j) + ".jpg";
             saveImage(path, file, image);
-            
-            ros_image = &query->framed_picture; 
+
+            ros_image = &query->framed_picture;
             image = cv_bridge::toCvCopy(*ros_image, "rgb8")->image;
             file = "img_" + std::to_string(j+1) + ".jpg";
             saveImage(path, file, image);
         }
     }
-    
+
     void SimpleGCS::saveUavAccessPoints(SimpleControl* uav)
     {
         std::string path = image_root_path_.toStdString() + "/access_points/door/";
@@ -249,14 +251,14 @@ namespace rqt_gcs
         for(int i = 0; i < ap_vector->size(); i++)
         {
             std::string file = "img_" + std::to_string(i) + ".jpg";
-            
+
             AccessPoint ap = ap_vector->at(i);
             sensor_msgs::Image ros_image = ap.GetImage();
             cv::Mat image = cv_bridge::toCvCopy(ros_image, "rgb8")->image;
             saveImage(path, file, image);
         }
     }
-    
+
     void SimpleGCS::PurgeDeletedUavs()
     {
         for (auto& uav : all_uav_stat)
@@ -270,7 +272,7 @@ namespace rqt_gcs
             }
         }
     }
-    
+
     void SimpleGCS::UavConnectionToggled(int index, int uav_id, bool toggle)
     {
         if(index >= active_uavs.size() || active_uavs[index]->id != uav_id)
@@ -346,7 +348,7 @@ namespace rqt_gcs
         mpUi_.missionProgressBar->setValue(uav->GetMissionProgress()*100);
 
         this->UpdatePFD();
-       
+
         //Update Uav List widgets
         for(int i = 0; i < NUM_UAV; i++)
         {
@@ -365,7 +367,7 @@ namespace rqt_gcs
             delete pictureQueryWidgets_[i];
         }
         pictureQueryWidgets_.clear();
-        
+
         num_queries_last = 0;
     }
 
@@ -384,9 +386,9 @@ namespace rqt_gcs
             //retrieve Query msg for door image
             lcar_msgs::DoorPtr doorQuery = pictureQueryVector->at(i + num_queries_last);
 
-            QImage image(doorQuery->framed_picture.data.data(), 
+            QImage image(doorQuery->framed_picture.data.data(),
                          doorQuery->framed_picture.width,
-                         doorQuery->framed_picture.height, 
+                         doorQuery->framed_picture.height,
                          doorQuery->framed_picture.step,
                          QImage::Format_RGB888);
 
@@ -394,11 +396,11 @@ namespace rqt_gcs
             QWidget * pmWidget = new QWidget();
             Ui::PictureMsgWidget pmUiWidget;
             pmUiWidget.setupUi(pmWidget);
-            
+
             QWidget * imgWidget = new QWidget();
             Ui::ImageViewWidget imgUiWidget;
             imgUiWidget.setupUi(imgWidget);
-            
+
             // take care of the image
             imgUiWidget.image_frame->setImage(image);
             pmUiWidget.PictureLayout->addWidget(imgWidget);
@@ -422,7 +424,7 @@ namespace rqt_gcs
             //add to user interface
             central_ui_.PictureMsgLayout->addWidget(pictureQueryWidgets_[index]);
         }
-        
+
         num_queries_last = pqv_size;
     }
 
@@ -444,7 +446,7 @@ namespace rqt_gcs
             path += "/rejected/" + ap_type + "/uav_" + std::to_string(uav->id);
             file = "img_" + std::to_string(uav->rejected_images++) + ".jpg";
         }
-        
+
         //dont change my colorspace! (rgb8)
         saveImage(path, file,
             cv_bridge::toCvCopy((sensor_msgs::Image)door->original_picture, "rgb8")->image);
@@ -458,14 +460,14 @@ namespace rqt_gcs
         num_queries_last--;
         //UAVs[cur_uav]->SendDoorResponse(doormsg);
     }
-    
+
     void SimpleGCS::AcceptDoorQuery(QWidget *qw)
     {
         answerQuery(qw, "door", true);
     }
 
     void SimpleGCS::RejectDoorQuery(QWidget * qw)
-    { 
+    {
         answerQuery(qw, "door", false);
     }
 
@@ -526,7 +528,7 @@ namespace rqt_gcs
     {
         if(NUM_UAV == 0)
             return;
-        
+
         int building_index = mpUi_.buildingsComboBox->currentIndex() + 1;
         std::string file_name = "building" + std::to_string(building_index) + ".txt";
 
@@ -600,7 +602,7 @@ namespace rqt_gcs
             delete accessPointWidgets_[i];
         }
         accessPointWidgets_.clear();
-        
+
         num_access_points_last = 0;
     }
 
@@ -611,11 +613,11 @@ namespace rqt_gcs
 
         //retreive access points
         accessPointVector = active_uavs[cur_uav]->GetRefAccessPoints();
-        
+
         //Get our new number of Access points
         int apv_size = accessPointVector->size();
         int new_access_points = apv_size - num_access_points_last;
-        
+
         for(int i = 0; i < new_access_points; i++)
         {
             //retrieve access point
@@ -676,7 +678,7 @@ namespace rqt_gcs
             //finally, add it to the gui
             apmUi_.AccessPointMenuLayout->addWidget(accessPointWidgets_[index]);
         }
-        
+
         num_access_points_last = apv_size;
     }
 
@@ -697,7 +699,7 @@ namespace rqt_gcs
         accessPointWidgets_.erase(accessPointWidgets_.begin() + deleteIndex -1);
         apmUi_.AccessPointMenuLayout->removeWidget(w);
         delete w;
-        
+
         num_access_points_last--;
     }
 
@@ -860,19 +862,19 @@ namespace rqt_gcs
     }
 
     void SimpleGCS::initializeHelperThread()
-    {       
+    {
         uav_monitor = new SimpleGCSHelper(this);
         uav_monitor->moveToThread(&t_uav_monitor);
-        
+
         connect(&t_uav_monitor, &QThread::started,
                 uav_monitor, &SimpleGCSHelper::monitor);
-        
+
         connect(uav_monitor, &SimpleGCSHelper::addUav,
                 this, &SimpleGCS::AddUav);
-        
+
         connect(uav_monitor, &SimpleGCSHelper::deleteUav,
                 this, &SimpleGCS::DeleteUav);
-        
+
         connect(uav_monitor, &SimpleGCSHelper::toggleUavConnection,
                 this, &SimpleGCS::UavConnectionToggled);
 
@@ -971,7 +973,7 @@ namespace rqt_gcs
         else
             return binarySearch(target_id, low, index-1);
     }
-    
+
     void SimpleGCSHelper::parseUavNamespace(std::map<int, int>& map)
     {
         ros::V_string nodes;
@@ -1004,7 +1006,7 @@ namespace rqt_gcs
         parseUavNamespace(uav_map);
 
         gcs->uav_mutex.lock();
-        
+
         if(gcs->NUM_UAV < uav_map.size())
         {
             for(auto const& uav : uav_map)
@@ -1012,7 +1014,7 @@ namespace rqt_gcs
 //                if(binarySearch(uav.first, 0, gcs->NUM_UAV-1) == -1)
                 if(gcs->all_uav_stat.count(uav.first) == 0)
                     gcs->all_uav_stat.insert(std::pair<int, UavStatus>(uav.first, UavStatus::null));
-                
+
                 if(gcs->all_uav_stat[uav.first] != UavStatus::active)
                 {
                     emit addUav(uav.first);
@@ -1069,18 +1071,18 @@ namespace rqt_gcs
     }
 
     void SimpleGCSHelper::runUavs()
-    {  
+    {
         for(auto const& uav : gcs->active_uavs)
         {
             uav->Run();
         }
     }
-    
+
     void SimpleGCSHelper::monitor()
     {
         forever
         {
-            monitorUavNamespace();    
+            monitorUavNamespace();
             monitorConnections();
             runUavs();
         }
