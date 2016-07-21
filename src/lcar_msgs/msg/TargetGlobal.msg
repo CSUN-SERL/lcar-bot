@@ -1,0 +1,2 @@
+mavros_msgs/GlobalPositionTarget target
+float64 radius
