@@ -21,10 +21,10 @@
 #include "ui_PictureMsg.h"
 
 #include <QSignalMapper>
-//#include <QDebug>
-#include <QDir>
-#include <QUrl>
 
+#include <QDir>
+#include <QDirIterator>
+#include <QUrl>
 
 namespace rqt_gcs
 {

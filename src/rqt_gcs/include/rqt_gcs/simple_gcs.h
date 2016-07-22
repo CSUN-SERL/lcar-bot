@@ -44,7 +44,7 @@
 #include <ui_PictureMsg.h>
 
 #include <QWidget>
-#include <QLabel>
+#include <QLabel>  
 #include <QString>
 #include <QStringList>
 #include <QTimer>
@@ -54,7 +54,7 @@
 #include <QDesktopWidget>
 #include <QWaitCondition>
 #include <QDebug>
-//#include <QLoggingCategory>
+#include <QLoggingCategory>
 #include <QMetaType>
 
 #define MAX_UAV 100 // the total number of UAV's manageable by our system

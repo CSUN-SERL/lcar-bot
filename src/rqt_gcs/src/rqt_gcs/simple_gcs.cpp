@@ -1,5 +1,6 @@
 #include <rqt_gcs/simple_gcs.h>
 
+//Q_LOGGING_CATEGORY(rqt_gcsSimpleGcs, "rqt_gcs.simple_gcs")
 
 namespace rqt_gcs
 {
@@ -13,6 +14,7 @@ namespace rqt_gcs
         setObjectName("LCAR Bot GCS");
         qRegisterMetaType<UavStatus>("UavStatus");
         qRegisterMetaType<UavStatus>("Mat");
+        QLoggingCategory::setFilterRules("*.debug=true");
     }
 
     void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)

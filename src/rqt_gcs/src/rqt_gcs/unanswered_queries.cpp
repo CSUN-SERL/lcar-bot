@@ -7,6 +7,7 @@
 
 #include "rqt_gcs/unanswered_queries.h"
 
+//Q_LOGGING_CATEGORY(rqt_gcsUnansweredQueries, "rqt_gcs.unanswered_queries")
 
 namespace rqt_gcs
 {
@@ -14,8 +15,6 @@ namespace rqt_gcs
 UnansweredQueries::UnansweredQueries(SimpleGCS * sgcs) :
 gcs(sgcs)
 {
-    //QLoggingCategory::setFilterRules("*.debug=true");
-    
     widget.setupUi(this);
 
     accept_mapper = new QSignalMapper(this);
@@ -32,41 +31,34 @@ UnansweredQueries::~UnansweredQueries()
 }
 
 int UnansweredQueries::uavIdFromDirectory(QString s)
-{
-    QStringList list = s.split("_");
-    return list.takeLast().toInt();
+{  
+    int start = s.indexOf("/uav_");
+    QString temp = s.mid(start+5, 3);
+    int stop = temp .indexOf('/');
+    return temp.mid(0, stop).toInt();
 }
 
 void UnansweredQueries::addUnansweredQueriesFromDisk()
 {
-    QString path = gcs->image_root_path_;
+    QString path_root = gcs->image_root_path_ + "/queries/unanswered";         
     QVector<QString> ap_types = {"door", "window", "hole"};
-    for(auto const& ap_type : ap_types)
+    for(int i = 0; i < ap_types.size(); i++)
     {
-        QDir dir(path +  "/queries"  + "/unanswered/" +  ap_type);
-        dir.setFilter(QDir::NoDotAndDotDot | QDir::NoSymLinks);
-        QFileInfoList list = dir.entryInfoList();
-        for(int i = 0; i < list.size(); i++)
+        QString path = path_root + "/" + ap_types[i];
+        QDirIterator it(path, QDirIterator::Subdirectories);
+        for(; it.hasNext(); it.next())
         {
-            QFileInfo info = list.at(i);
-            dir.cd(info.filePath());
-            QFileInfoList images_list = dir.entryInfoList();
-            for(int j = 0; j < images_list.size(); j++)
+            if(it.fileName().contains(".jpg"))
             {
+                QString file_path = it.filePath();
+                QImage * image = new QImage(file_path);
                 QueryStat * stat = new QueryStat();
-                stat->uav_id = uavIdFromDirectory(info.fileName());
-                QString image_path = images_list.at(j).absoluteFilePath();
-                qDebug() << image_path;
-                QUrl url(image_path);
-                if(url.isValid())
-                {
-                    stat->image_file_path = image_path;
-                    QImage * image = new QImage();
-                    image->load(url.fileName(), "jpg");
-                    stat->image = image;
-                    addQuery(stat, ap_type);
-                }
+                stat->image = image;
+                stat->uav_id = uavIdFromDirectory(file_path);
+                stat->image_file_path = file_path;
+                addQuery(stat, ap_types[i]);
             }
+
         }
     }
 }
@@ -84,11 +76,11 @@ void UnansweredQueries::addQuery(QueryStat* stat, QString ap_type)
     Ui::ImageViewWidget imgUiWidget;
     imgUiWidget.setupUi(imgWidget);
 
-    query_widgets.push_back(pmWidget);
-
     // take care of the image
     imgUiWidget.image_frame->setImage(*stat->image);
     widget.verticalLayout->addWidget(pmWidget);
+    
+    query_widgets.push_back(pmWidget);
 
     // handle button clicks
     int index = query_widgets.size() - 1;
