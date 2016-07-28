@@ -51,7 +51,10 @@ public:
     void parseDirectory();
     void removeQuery(std::string);
     void removeAllQueries();
-
+    int numImagesInDir(QString);
+    int uavIdFromDir(QString);
+    void saveImage(QString, QString, QImage *);
+    
 private:
     Ui::UnansweredQueries widget;
 
@@ -62,10 +65,8 @@ private:
     QSignalMapper * accept_mapper;
     QSignalMapper * reject_mapper;
 
-    int uavIdFromDirectory(QString);
     void answerQuery(QWidget*, QString, bool);
-    void saveImage(QString, QString, QImage *);
-
+    
 public slots:
     void acceptQuery(QWidget*);
     void rejectQuery(QWidget*);

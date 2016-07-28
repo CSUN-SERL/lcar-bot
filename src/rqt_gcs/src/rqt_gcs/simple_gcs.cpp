@@ -13,8 +13,8 @@ namespace rqt_gcs
         //Constructor is called first before initPlugin function
         setObjectName("LCAR Bot GCS");
         qRegisterMetaType<UavStatus>("UavStatus");
-        qRegisterMetaType<UavStatus>("Mat");
-        QLoggingCategory::setFilterRules("*.debug=true");
+//        qRegisterMetaType<UavStatus>("Mat");
+//        QLoggingCategory::setFilterRules("*.debug=true");
     }
 
     void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
@@ -81,6 +81,8 @@ namespace rqt_gcs
         initializeHelperThread();
         unanswered_queries = new UnansweredQueries(this);
         unanswered_queries->setVisible(true);
+        
+        QString path = image_root_path_;
 
         //Setup update timer
         update_timer = new QTimer(this);

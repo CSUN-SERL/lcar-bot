@@ -227,5 +227,5 @@ namespace rqt_gcs{
 
 } // rqt_gcs name space
 Q_DECLARE_METATYPE(rqt_gcs::UavStatus);
-Q_DECLARE_METATYPE(cv::Mat);
+//Q_DECLARE_METATYPE(cv::Mat);
 #endif //rqt_gcs__SimpleGCS_H

@@ -29,7 +29,7 @@ lcar-kill()
 }
 
 if [ -z "$1" ]; then 
-    printf "    usage: lcar-fleet { kill <number> <larger-number> } | { <number> [<larger-number>] [mono] }\n\n"
+    printf "    usage: lcar-fleet { kill <number> [<larger-number>] } | { <number> [<larger-number>] [mono] }\n\n"
     printf "       eg: lcar-fleet kill 10     | kills 10 lcar-bots with id's 0 - 9\n"
     printf "           lcar-fleet kill 10 20  | kills 10 lcar-bots with id's 10 - 19\n"
     printf "           lcar-fleet 10          | launches 10 lcar-bots with id's 0 - 9 with stereo_cams\n"

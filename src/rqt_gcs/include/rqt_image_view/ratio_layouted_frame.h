@@ -82,6 +82,8 @@ signals:
 
 protected:
 
+//  void center();
+    
   void setAspectRatio(unsigned short width, unsigned short height);
 
   void paintEvent(QPaintEvent* event);

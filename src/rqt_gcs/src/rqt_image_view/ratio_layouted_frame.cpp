@@ -123,6 +123,11 @@ void RatioLayoutedFrame::setAspectRatio(unsigned short width, unsigned short hei
 {
   int divisor = greatestCommonDivisor(width, height);
   if (divisor != 0) {
+    if(width < 320 || height < 240)
+    {
+        width = 320;
+        height = 240;
+    }
     aspect_ratio_.setWidth(width / divisor);
     aspect_ratio_.setHeight(height / divisor);
   }
@@ -138,6 +143,7 @@ void RatioLayoutedFrame::paintEvent(QPaintEvent* event)
     // TODO: check if full draw is really necessary
     //QPaintEvent* paint_event = dynamic_cast<QPaintEvent*>(event);
     //painter.drawImage(paint_event->rect(), qimage_);
+    //center();
     painter.drawImage(contentsRect(), qimage_);
   } else {
     // default image with gradient
@@ -149,6 +155,15 @@ void RatioLayoutedFrame::paintEvent(QPaintEvent* event)
   }
   qimage_mutex_.unlock();
 }
+
+//void RatioLayoutedFrame::center()
+//{
+//  int w = this->width();
+//  int h = this->height();
+//  int x = w / 2;
+//  int y = h / 2;
+//  this->setGeometry(-x, -y, w, h);
+//}
 
 int RatioLayoutedFrame::greatestCommonDivisor(int a, int b)
 {

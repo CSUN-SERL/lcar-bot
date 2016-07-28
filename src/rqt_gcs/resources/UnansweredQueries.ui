@@ -51,17 +51,11 @@ QPushButton{
         <height>674</height>
        </rect>
       </property>
-      <widget class="QWidget" name="verticalLayoutWidget">
-       <property name="geometry">
-        <rect>
-         <x>9</x>
-         <y>9</y>
-         <width>351</width>
-         <height>661</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="queriesLayout"/>
-      </widget>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
+        <layout class="QVBoxLayout" name="queriesLayout"/>
+       </item>
+      </layout>
      </widget>
     </widget>
    </item>
