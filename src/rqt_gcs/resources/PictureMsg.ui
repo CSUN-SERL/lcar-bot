@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>316</width>
-    <height>318</height>
+    <width>296</width>
+    <height>280</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -19,7 +19,13 @@
   <property name="minimumSize">
    <size>
     <width>200</width>
-    <height>300</height>
+    <height>280</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>312</width>
+    <height>5000</height>
    </size>
   </property>
   <property name="palette">
@@ -360,61 +366,59 @@
    <string>Picture Msg</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: rgb(48, 57, 80);
+   <string notr="true">QPushButton{
+	border-radius: 5px;
+	padding-top:5px;
+	padding-bottom:5px
+};
+
+background-color: rgb(48, 57, 80);
 color: rgb(240, 240, 240);
-/*border-radius: 5px;*/</string>
+</string>
   </property>
-  <widget class="QPushButton" name="yesButton">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>230</y>
-     <width>99</width>
-     <height>27</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgb(64, 89, 145);
-color: rgb(240, 240, 240);</string>
-   </property>
-   <property name="text">
-    <string>Accept</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="rejectButton">
-   <property name="geometry">
-    <rect>
-     <x>170</x>
-     <y>230</y>
-     <width>99</width>
-     <height>27</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgb(161, 20, 40);
-color: rgb(240, 240, 240);
-my_combo_box-&gt;setStyleSheet(&quot;background:#ff0000&quot;);</string>
-   </property>
-   <property name="text">
-    <string>Reject</string>
-   </property>
-  </widget>
   <widget class="QFrame" name="frame">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>10</y>
-     <width>271</width>
-     <height>211</height>
+     <x>9</x>
+     <y>9</y>
+     <width>280</width>
+     <height>210</height>
     </rect>
    </property>
+   <property name="minimumSize">
+    <size>
+     <width>280</width>
+     <height>210</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>480</width>
+     <height>360</height>
+    </size>
+   </property>
    <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
+    <enum>QFrame::NoFrame</enum>
    </property>
    <property name="frameShadow">
     <enum>QFrame::Raised</enum>
    </property>
    <layout class="QGridLayout" name="gridLayout">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <property name="spacing">
+     <number>0</number>
+    </property>
     <item row="0" column="0">
      <layout class="QVBoxLayout" name="PictureLayout"/>
     </item>
@@ -423,15 +427,52 @@ my_combo_box-&gt;setStyleSheet(&quot;background:#ff0000&quot;);</string>
   <widget class="Line" name="line">
    <property name="geometry">
     <rect>
-     <x>17</x>
-     <y>280</y>
-     <width>281</width>
+     <x>9</x>
+     <y>264</y>
+     <width>280</width>
      <height>20</height>
     </rect>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Raised</enum>
    </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
    </property>
+  </widget>
+  <widget class="QWidget" name="horizontalLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>230</y>
+     <width>278</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QPushButton" name="yesButton">
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(64, 89, 145);
+color: rgb(240, 240, 240);</string>
+      </property>
+      <property name="text">
+       <string>Accept</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="rejectButton">
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(161, 20, 40);
+color: rgb(240, 240, 240);</string>
+      </property>
+      <property name="text">
+       <string>Reject</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>

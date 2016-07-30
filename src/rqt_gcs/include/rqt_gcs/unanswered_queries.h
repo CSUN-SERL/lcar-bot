@@ -41,14 +41,17 @@ public:
         int uav_id;
         QImage * image;
         QString image_file_path;
+        
+        ~QueryStat()
+        {
+            delete image;
+        }
     };
-
+    
     UnansweredQueries(SimpleGCS*);
     virtual ~UnansweredQueries();
-    void addQuery(QueryStat*, QString);
-
+    void addQueryWidget(QueryStat*, QString);
     void addUnansweredQueriesFromDisk();
-    void parseDirectory();
     void removeQuery(std::string);
     void removeAllQueries();
     int numImagesInDir(QString);
@@ -57,10 +60,10 @@ public:
     
 private:
     Ui::UnansweredQueries widget;
+    QMap<QString, QVBoxLayout*> layout_by_ap_type;
 
     SimpleGCS * gcs;
     QMap <QString, QVector<QueryStat*> > queries_map;
-    QVector<QWidget *> query_widgets;
 
     QSignalMapper * accept_mapper;
     QSignalMapper * reject_mapper;
@@ -73,4 +76,5 @@ public slots:
 };
 
 }// namespace rqt_gcs
+//Q_DECLARE_METATYPE(rqt_gcs::UnansweredQueries::QueryStat)
 #endif /* _UNANSWEREDQUERIES_H */

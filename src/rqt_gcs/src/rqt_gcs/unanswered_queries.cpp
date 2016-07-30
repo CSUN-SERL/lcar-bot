@@ -15,12 +15,16 @@ namespace rqt_gcs
 UnansweredQueries::UnansweredQueries(SimpleGCS * sgcs) :
 gcs(sgcs)
 {
+    
     widget.setupUi(this);
-
+    layout_by_ap_type.insert("door", widget.queriesLayoutDoor); 
+    //TODO layout_by_ap_type for window and hole, 
+    //and adding the layouts and tab widget container in qtdesigner
+    
     accept_mapper = new QSignalMapper(this);
     reject_mapper = new QSignalMapper(this);
-    connect(accept_mapper, SIGNAL(mapped(QWidget*)), this, SLOT(acceptQuery(QWidget*)));
-    connect(reject_mapper, SIGNAL(mapped(QWidget*)), this, SLOT(rejectQuery(QWidget*)));
+    connect(accept_mapper, SIGNAL(mapped(QWidget *)), this, SLOT(acceptQuery(QWidget *)));
+    connect(reject_mapper, SIGNAL(mapped(QWidget *)), this, SLOT(rejectQuery(QWidget *)));
 
     addUnansweredQueriesFromDisk();
 }
@@ -30,43 +34,34 @@ UnansweredQueries::~UnansweredQueries()
     gcs = nullptr;
 }
 
-int UnansweredQueries::uavIdFromDir(QString s)
-{  
-    int start = s.indexOf("/uav_");
-    QString temp = s.mid(start+5, 3);
-    int stop = temp .indexOf('/');
-    return temp.mid(0, stop).toInt();
-}
-
 void UnansweredQueries::addUnansweredQueriesFromDisk()
 {
     QString path_root = gcs->image_root_path_ + "/queries/unanswered";         
     QVector<QString> ap_types = {"door", "window", "hole"};
     for(int i = 0; i < ap_types.size(); i++)
     {
-        QString path = path_root + "/" + ap_types[i];
-        QDirIterator it(path, QDirIterator::Subdirectories);
+        QDir path(path_root + "/" + ap_types[i]);
+        path.setSorting(QDir::Time);
+        QDirIterator it(path ,QDirIterator::Subdirectories);
         for(; it.hasNext(); it.next())
         {
-            if(it.fileName().contains(".jpg"))
+            QString file_name = it.fileName();
+            if(file_name.contains(".jpg"))
             {
-                QString file_path = it.filePath();
+                QString file_path = it.fileInfo().absoluteFilePath();
                 QImage * image = new QImage(file_path);
                 QueryStat * stat = new QueryStat();
-                stat->image = image;
                 stat->uav_id = uavIdFromDir(file_path);
+                stat->image = image;
                 stat->image_file_path = file_path;
-                addQuery(stat, ap_types[i]);
+                addQueryWidget(stat, ap_types[i]);
             }
-
         }
     }
 }
 
-void UnansweredQueries::addQuery(QueryStat* stat, QString ap_type)
-{
-    queries_map[ap_type].push_back(stat);
-
+void UnansweredQueries::addQueryWidget(QueryStat* stat, QString ap_type)
+{   
     //create the widget
     QWidget * pmWidget = new QWidget();
     Ui::PictureMsgWidget pmUiWidget;
@@ -78,17 +73,19 @@ void UnansweredQueries::addQuery(QueryStat* stat, QString ap_type)
 
     // take care of the image
     imgUiWidget.image_frame->setImage(*stat->image);
-    widget.verticalLayout->addWidget(pmWidget);
+    pmUiWidget.PictureLayout->addWidget(imgWidget);
     
-    query_widgets.push_back(pmWidget);
+    QVector<QueryStat*> * ap_vec = &queries_map[ap_type];
+    ap_vec->push_back(stat);
 
-    // handle button clicks
-    int index = query_widgets.size() - 1;
-    accept_mapper->setMapping(pmUiWidget.yesButton, query_widgets[index]);
+    accept_mapper->setMapping(pmUiWidget.yesButton, pmWidget);
     connect(pmUiWidget.yesButton, SIGNAL(clicked()), accept_mapper, SLOT(map()));
 
-    reject_mapper->setMapping(pmUiWidget.rejectButton, query_widgets[index]);
-    connect(pmUiWidget.rejectButton, SIGNAL(clicked()), accept_mapper, SLOT(map()));
+    reject_mapper->setMapping(pmUiWidget.rejectButton, pmWidget);
+    connect(pmUiWidget.rejectButton, SIGNAL(clicked()), reject_mapper, SLOT(map()));
+    
+    layout_by_ap_type[ap_type]->addWidget(pmWidget);
+    this->resize(pmWidget->width() + 15, this->height());
 }
 
 void UnansweredQueries::acceptQuery(QWidget* w)
@@ -101,15 +98,15 @@ void UnansweredQueries::rejectQuery(QWidget* w)
     answerQuery(w, "door", false);
 }
 
-void UnansweredQueries::answerQuery(QWidget* w, QString ap_type, bool accepted)
+void UnansweredQueries::answerQuery(QWidget * w, QString ap_type, bool accepted)
 {
-    int index = widget.queriesLayout->indexOf(w);
-    QueryStat* stat = queries_map[ap_type][index];
+    int index = layout_by_ap_type[ap_type]->indexOf(w);
+    
+    QueryStat * stat = queries_map[ap_type][index];
     QImage * image = stat->image;
 
-    SimpleControl* uav = nullptr;
-    int i = 0;
-    while(i < gcs->active_uavs.size())
+    SimpleControl * uav = nullptr;
+    for(int i = 0; i < gcs->active_uavs.size(); i++)
     {
         if(gcs->active_uavs[i]->id == stat->uav_id)
         {
@@ -122,15 +119,15 @@ void UnansweredQueries::answerQuery(QWidget* w, QString ap_type, bool accepted)
     QString file;
     if(accepted)
     {
-            path.append("/accepted/" + ap_type + "/uav_" + QString::number(stat->uav_id));
-            int num_images = numImagesInDir(path);
-            file = "img_" + QString::number(num_images) + ".jpg";
-            if(uav != nullptr)
-                uav->accepted_images++;
+        path.append("/accepted/" + ap_type + "/uav_" + QString::number(stat->uav_id));
+        int num_images = numImagesInDir(path);
+        file = "img_" + QString::number(num_images) + ".jpg";
+        if(uav != nullptr)
+            uav->accepted_images++;
     }
     else
     {
-        path = path + "/rejected/" + ap_type + "/uav_" + QString::number(stat->uav_id);
+        path.append("/rejected/" + ap_type + "/uav_" + QString::number(stat->uav_id));
         int num_images = numImagesInDir(path);
         file = "img_" + QString::number(num_images) + ".jpg";
         if(uav != nullptr)
@@ -138,9 +135,29 @@ void UnansweredQueries::answerQuery(QWidget* w, QString ap_type, bool accepted)
     }
 
     saveImage(path, file, image);
+    QDir().remove(stat->image_file_path);
+    
+    layout_by_ap_type[ap_type]->removeWidget(w);
+    QVector<QueryStat*> * ap_vector = &queries_map[ap_type];
+    ap_vector->erase(ap_vector->begin()+index); // removes w from vector
+    
+    delete stat; 
+    delete w;
+}
 
-    QDir image_file(stat->image_file_path);
-    image_file.remove(stat->image_file_path);
+int UnansweredQueries::numImagesInDir(QString dir_path)
+{
+    QDir dir(dir_path);
+    dir.setNameFilters(QStringList()<<"*.jpg");
+    return dir.entryList().size();
+}
+
+int UnansweredQueries::uavIdFromDir(QString s)
+{  
+    int start = s.indexOf("/uav_");
+    QString temp = s.mid(start+5, 3);
+    int stop = temp .indexOf('/');
+    return temp.mid(0, stop).toInt();
 }
 
 void UnansweredQueries::saveImage(QString path, QString file, QImage* image)
@@ -151,13 +168,6 @@ void UnansweredQueries::saveImage(QString path, QString file, QImage* image)
 
     QString full_path = dir.currentPath().append("/" + file);
     image->save(full_path, "jpg", -1);
-}
-
-int UnansweredQueries::numImagesInDir(QString dir_path)
-{
-    QDir dir(dir_path);
-    dir.setNameFilters(QStringList()<<"*.jpg");
-    return dir.entryList().size();
 }
 
 }

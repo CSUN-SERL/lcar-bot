@@ -132,8 +132,8 @@ namespace rqt_gcs{
     void initializeHelperThread();
     void addAccessPoint(int);
     void answerQuery(QWidget *, std::string ap_type, bool);
-    void saveUavQueries(SimpleControl *);
-    void saveUavAccessPoints(SimpleControl *);
+    void saveUavQueries(SimpleControl *, std::string ap_type);
+    void saveUavAccessPoints(SimpleControl *, std::string ap_type);
 
     int cur_uav;
     int timeCounter;

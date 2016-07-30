@@ -81,7 +81,7 @@ namespace rqt_gcs
         initializeHelperThread();
         unanswered_queries = new UnansweredQueries(this);
         unanswered_queries->setVisible(true);
-        
+
         QString path = image_root_path_;
 
         //Setup update timer
@@ -107,7 +107,12 @@ namespace rqt_gcs
                     << "\n deleted_uavs[uav_id]=" << deleted_uavs[uav_id]);
             exit(1);
         }
-
+        QString path = image_root_path_ + "/queries/accepted/door/uav_" + QString::number(uav_id);
+        uav->accepted_images = unanswered_queries->numImagesInDir(path);
+        
+        path = image_root_path_ + "/queries/unanswered/door/uav_" + QString::number(uav_id);
+        uav->rejected_images = unanswered_queries->numImagesInDir(path);
+        
         all_uav_stat[uav_id] = UavStatus::active;
 
         ROS_WARN_STREAM("Adding UAV with id: " << uav_id);
@@ -157,11 +162,12 @@ namespace rqt_gcs
 
         SimpleControl * uav = active_uavs[index];
         int uav_id = uav->id;
-
+        
         if(status == UavStatus::purged)
         {
-            saveUavQueries(uav);
-            saveUavAccessPoints(uav);
+            //TODO loop through all the query types: door, window, hole
+            saveUavQueries(uav, "door");
+            saveUavAccessPoints(uav, "door");
             delete uav;
             deleted_uavs.erase(uav_id);
         }
@@ -226,31 +232,35 @@ namespace rqt_gcs
        uav_mutex.unlock();
     }
 
-    void SimpleGCS::saveUavQueries(SimpleControl * uav)
+    void SimpleGCS::saveUavQueries(SimpleControl * uav, std::string ap_type)
     {
-        std::string path = image_root_path_.toStdString() + "/queries/unanswered/door/";
-        path += "uav_" + std::to_string(uav->id);
+        std::string path = image_root_path_.toStdString() + "/queries/unanswered/" + ap_type;
+        path += "/uav_" + std::to_string(uav->id);
         std::vector<lcar_msgs::DoorPtr>* queries = uav->GetDoorQueries();
-        for(int i = 0, j = 0; i < queries->size(); i++, j+=2)
+        for(int i = 0; i < queries->size(); i++)
         {
             lcar_msgs::DoorPtr query = queries->at(i);
 
             sensor_msgs::Image * ros_image = &query->original_picture;
             cv::Mat image = cv_bridge::toCvCopy(*ros_image,"rgb8")->image;
-            std::string file = "img_" + std::to_string(j) + ".jpg";
+            
+            int num_images = unanswered_queries->numImagesInDir(QString(path.c_str()));
+            ROS_ERROR_STREAM(num_images);   
+            
+            std::string file = "img_" + std::to_string(num_images) + ".jpg";
             saveImage(path, file, image);
 
             ros_image = &query->framed_picture;
             image = cv_bridge::toCvCopy(*ros_image, "rgb8")->image;
-            file = "img_" + std::to_string(j+1) + ".jpg";
+            file = "img_" + std::to_string(num_images+1) + ".jpg";
             saveImage(path, file, image);
         }
     }
 
-    void SimpleGCS::saveUavAccessPoints(SimpleControl* uav)
+    void SimpleGCS::saveUavAccessPoints(SimpleControl* uav, std::string ap_type)
     {
-        std::string path = image_root_path_.toStdString() + "/access_points/door/";
-        path += "uav_" + std::to_string(uav->id);
+        std::string path = image_root_path_.toStdString() + "/access_points/" +ap_type;
+        path += "/uav_" + std::to_string(uav->id);
         std::vector<AccessPoint> * ap_vector = uav->GetRefAccessPoints();
         for(int i = 0; i < ap_vector->size(); i++)
         {
