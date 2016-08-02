@@ -39,12 +39,15 @@ public:
     struct QueryStat
     {
         int uav_id;
-        QImage * image;
-        QString image_file_path;
+        QImage * original_img;
+        QImage * framed_img;
+        QString og_img_file_path;
+        QString fr_img_file_path;
         
         ~QueryStat()
         {
-            delete image;
+            delete original_img;
+            delete framed_img;
         }
     };
     
@@ -56,7 +59,9 @@ public:
     void removeAllQueries();
     int numImagesInDir(QString);
     int uavIdFromDir(QString);
-    void saveImage(QString, QString, QImage *);
+    int imgNumFromFile(QString);
+    QString getImgBasePath(QString);
+    bool saveImage(QString, QString, QImage *);
     
 private:
     Ui::UnansweredQueries widget;

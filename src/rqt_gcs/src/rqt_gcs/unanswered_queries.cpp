@@ -15,7 +15,6 @@ namespace rqt_gcs
 UnansweredQueries::UnansweredQueries(SimpleGCS * sgcs) :
 gcs(sgcs)
 {
-    
     widget.setupUi(this);
     layout_by_ap_type.insert("door", widget.queriesLayoutDoor); 
     //TODO layout_by_ap_type for window and hole, 
@@ -36,25 +35,40 @@ UnansweredQueries::~UnansweredQueries()
 
 void UnansweredQueries::addUnansweredQueriesFromDisk()
 {
-    QString path_root = gcs->image_root_path_ + "/queries/unanswered";         
+    QString path_root = gcs->image_root_path_ % "/queries/unanswered";         
     QVector<QString> ap_types = {"door", "window", "hole"};
     for(int i = 0; i < ap_types.size(); i++)
     {
-        QDir path(path_root + "/" + ap_types[i]);
-        path.setSorting(QDir::Time);
-        QDirIterator it(path ,QDirIterator::Subdirectories);
-        for(; it.hasNext(); it.next())
+        QDir path(path_root % "/" % ap_types[i]);
+        path.setNameFilters(QStringList()<<"uav_*");
+        QFileInfoList uav_list = path.entryInfoList();
+        int num_uavs = uav_list.size();
+        for(int u = 0; u < num_uavs; u++)
         {
-            QString file_name = it.fileName();
-            if(file_name.contains(".jpg"))
+            QDir uav_path(uav_list[u].canonicalFilePath()); // <path>/uav_x
+            uav_path.setNameFilters(QStringList()<<"*.jpg");
+            QFileInfoList img_list = uav_path.entryInfoList(); 
+            int num_imgs = img_list.size();
+            for(int j = 0; j < num_imgs; j++)
             {
-                QString file_path = it.fileInfo().absoluteFilePath();
-                QImage * image = new QImage(file_path);
-                QueryStat * stat = new QueryStat();
-                stat->uav_id = uavIdFromDir(file_path);
-                stat->image = image;
-                stat->image_file_path = file_path;
-                addQueryWidget(stat, ap_types[i]);
+                QString file_name = img_list[j].fileName();
+                    int img_num = imgNumFromFile(file_name);
+                    if(img_num % 2 == 0)
+                    {
+                        QString img_path = img_list[j].canonicalFilePath(); // <path>/uav_x/img_x.jpg
+                        QueryStat * stat = new QueryStat();
+                        stat->uav_id = uavIdFromDir(img_path);
+                        stat->original_img = new QImage(img_path);
+                        QString base_path = getImgBasePath(img_path);
+
+                        QString framed_img_path = base_path % "/img_" 
+                                % QString::number(img_num+1) % ".jpg";
+                        stat->framed_img = new QImage(framed_img_path);
+
+                        stat->og_img_file_path = img_path;
+                        stat->fr_img_file_path = framed_img_path;
+                        addQueryWidget(stat, ap_types[i]);
+                    }
             }
         }
     }
@@ -72,7 +86,7 @@ void UnansweredQueries::addQueryWidget(QueryStat* stat, QString ap_type)
     imgUiWidget.setupUi(imgWidget);
 
     // take care of the image
-    imgUiWidget.image_frame->setImage(*stat->image);
+    imgUiWidget.image_frame->setImage(*stat->framed_img);
     pmUiWidget.PictureLayout->addWidget(imgWidget);
     
     QVector<QueryStat*> * ap_vec = &queries_map[ap_type];
@@ -101,41 +115,41 @@ void UnansweredQueries::rejectQuery(QWidget* w)
 void UnansweredQueries::answerQuery(QWidget * w, QString ap_type, bool accepted)
 {
     int index = layout_by_ap_type[ap_type]->indexOf(w);
+    std::cout << "index " << index << "\n";
     
     QueryStat * stat = queries_map[ap_type][index];
-    QImage * image = stat->image;
+    QImage * img = stat->original_img;
 
     SimpleControl * uav = nullptr;
-    for(int i = 0; i < gcs->active_uavs.size(); i++)
-    {
-        if(gcs->active_uavs[i]->id == stat->uav_id)
-        {
-            uav = gcs->active_uavs[i];
-            break;
-        }
-    }
+
+    if(gcs->all_uav_stat.count(stat->uav_id) > 0)
+        uav = gcs->all_uav_stat[stat->uav_id]->uav;
     
-    QString path = gcs->image_root_path_ + "/queries";
+    QString path = gcs->image_root_path_ % "/queries";
     QString file;
     if(accepted)
     {
-        path.append("/accepted/" + ap_type + "/uav_" + QString::number(stat->uav_id));
+        path.append("/accepted/" % ap_type % "/uav_" % QString::number(stat->uav_id));
         int num_images = numImagesInDir(path);
-        file = "img_" + QString::number(num_images) + ".jpg";
+        file = "img_" % QString::number(num_images) % ".jpg";
         if(uav != nullptr)
             uav->accepted_images++;
     }
     else
     {
-        path.append("/rejected/" + ap_type + "/uav_" + QString::number(stat->uav_id));
+        path.append("/rejected/" % ap_type % "/uav_" % QString::number(stat->uav_id));
         int num_images = numImagesInDir(path);
-        file = "img_" + QString::number(num_images) + ".jpg";
+        file = "img_" % QString::number(num_images) % ".jpg";
         if(uav != nullptr)
             uav->rejected_images++;
     }
 
-    saveImage(path, file, image);
-    QDir().remove(stat->image_file_path);
+    if(!saveImage(path, file, img))
+        std::cout << "couldnt save image to path: " << path.append("/"%file).toStdString()<< "\n";
+    
+    QDir dir;
+    dir.remove(stat->og_img_file_path);
+    dir.remove(stat->fr_img_file_path);
     
     layout_by_ap_type[ap_type]->removeWidget(w);
     QVector<QueryStat*> * ap_vector = &queries_map[ap_type];
@@ -152,22 +166,37 @@ int UnansweredQueries::numImagesInDir(QString dir_path)
     return dir.entryList().size();
 }
 
-int UnansweredQueries::uavIdFromDir(QString s)
+int UnansweredQueries::uavIdFromDir(QString dir)
 {  
-    int start = s.indexOf("/uav_");
-    QString temp = s.mid(start+5, 3);
-    int stop = temp .indexOf('/');
+    int start = dir.indexOf("/uav_");
+    QString temp = dir.mid(start+5, 4);
+    int stop = temp.indexOf('/');
     return temp.mid(0, stop).toInt();
 }
 
-void UnansweredQueries::saveImage(QString path, QString file, QImage* image)
+int UnansweredQueries::imgNumFromFile(QString file)
+{
+    int start = file.indexOf("img_");
+    QString temp = file.mid(start+4,4);
+    int stop = temp.indexOf(".");
+    return temp.mid(0, stop).toInt();
+}
+
+QString UnansweredQueries::getImgBasePath(QString file_path)
+{
+    int start = file_path.indexOf("/img_");
+    return file_path.mid(0,start);
+}
+
+bool UnansweredQueries::saveImage(QString path, QString file, QImage* image)
 {
     QDir dir(path);
     if(!dir.exists())
         dir.mkdir(path);
 
-    QString full_path = dir.currentPath().append("/" + file);
-    image->save(full_path, "jpg", -1);
+    QString full_path = dir.canonicalPath().append("/" % file);
+    std::cout << "ful_path in saveImage(): " << full_path.toStdString() << "\n";
+    return image->save(full_path, "jpg", -1);
 }
 
 }

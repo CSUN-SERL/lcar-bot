@@ -96,9 +96,10 @@ namespace rqt_gcs
         uav_mutex.lock();
 
         SimpleControl * uav;
-        if(all_uav_stat[uav_id] == UavStatus::null || all_uav_stat[uav_id] == UavStatus::purged)
+        UavStatus status = all_uav_stat[uav_id]->status;
+        if(status == UavStatus::null || status == UavStatus::purged)
             uav = new SimpleControl(uav_id);
-        else if(all_uav_stat[uav_id] == UavStatus::deleted && deleted_uavs[uav_id] != nullptr)
+        else if(status == UavStatus::deleted && deleted_uavs[uav_id] != nullptr)
             uav = deleted_uavs[uav_id];
         else
         {
@@ -107,14 +108,16 @@ namespace rqt_gcs
                     << "\n deleted_uavs[uav_id]=" << deleted_uavs[uav_id]);
             exit(1);
         }
+        
         QString path = image_root_path_ + "/queries/accepted/door/uav_" + QString::number(uav_id);
         uav->accepted_images = unanswered_queries->numImagesInDir(path);
         
         path = image_root_path_ + "/queries/unanswered/door/uav_" + QString::number(uav_id);
         uav->rejected_images = unanswered_queries->numImagesInDir(path);
         
-        all_uav_stat[uav_id] = UavStatus::active;
-
+        all_uav_stat[uav_id]->status = status;
+        all_uav_stat[uav_id]->uav = uav;
+        
         ROS_WARN_STREAM("Adding UAV with id: " << uav_id);
 
         quad_id.setNum(uav_id);
@@ -169,14 +172,11 @@ namespace rqt_gcs
             saveUavQueries(uav, "door");
             saveUavAccessPoints(uav, "door");
             delete uav;
-            deleted_uavs.erase(uav_id);
+            deleted_uavs.remove(uav_id);
         }
         else if(status == UavStatus::deleted)
         {
-            if(deleted_uavs.count(uav_id) == 0)
-                deleted_uavs.insert(std::pair<int, SimpleControl*>(uav_id, uav));
-            else
-                deleted_uavs[uav_id] = uav;
+            deleted_uavs[uav_id] = uav;
         }
         else
         {
@@ -184,7 +184,8 @@ namespace rqt_gcs
                     << " with deletion status: " << status);
             exit(1);
         }
-        all_uav_stat[uav_id] = status;
+        all_uav_stat[uav_id]->status = status;
+        all_uav_stat[uav_id]->uav = nullptr;
 
         ROS_WARN_STREAM("Deleting UAV with id: " << uav_id);
 
@@ -245,7 +246,6 @@ namespace rqt_gcs
             cv::Mat image = cv_bridge::toCvCopy(*ros_image,"rgb8")->image;
             
             int num_images = unanswered_queries->numImagesInDir(QString(path.c_str()));
-            ROS_ERROR_STREAM(num_images);   
             
             std::string file = "img_" + std::to_string(num_images) + ".jpg";
             saveImage(path, file, image);
@@ -275,13 +275,15 @@ namespace rqt_gcs
 
     void SimpleGCS::PurgeDeletedUavs()
     {
-        for (auto& uav : all_uav_stat)
+        std::map<int, UAV*> map = all_uav_stat.toStdMap();
+        std::map<int, SimpleControl*> delete_map = deleted_uavs.toStdMap();
+        for (auto& uav : map)
         {
-            if(uav.second == UavStatus::deleted)
+            if(uav.second->status == UavStatus::deleted)
             {
                 delete deleted_uavs[uav.first];
                 deleted_uavs[uav.first] = nullptr;
-                uav.second = UavStatus::purged;
+                uav.second->status = UavStatus::purged;
                 ROS_WARN_STREAM("purging UAV with id: " << uav.first);
             }
         }
@@ -1027,9 +1029,9 @@ namespace rqt_gcs
             {
 //                if(binarySearch(uav.first, 0, gcs->NUM_UAV-1) == -1)
                 if(gcs->all_uav_stat.count(uav.first) == 0)
-                    gcs->all_uav_stat.insert(std::pair<int, UavStatus>(uav.first, UavStatus::null));
+                    gcs->all_uav_stat.insert(uav.first, new SimpleGCS::UAV(nullptr, UavStatus::null));
 
-                if(gcs->all_uav_stat[uav.first] != UavStatus::active)
+                if(gcs->all_uav_stat[uav.first]->status != UavStatus::active)
                 {
                     emit addUav(uav.first);
                     gcs->num_uav_changed.wait(&gcs->uav_mutex);

@@ -45,16 +45,19 @@
 
 #include <QWidget>
 #include <QLabel>  
-#include <QString>
+#include <QStringBuilder>
 #include <QStringList>
 #include <QTimer>
 #include <QThread>
 #include <QMainWindow>
+#include <QMenuBar>
+#include <QMap>
+#include <QVector>
 #include <QSignalMapper>
 #include <QDesktopWidget>
 #include <QWaitCondition>
-#include <QDebug>
-#include <QLoggingCategory>
+//#include <QDebug>
+//#include <QLoggingCategory>
 #include <QMetaType>
 
 #define MAX_UAV 100 // the total number of UAV's manageable by our system
@@ -74,6 +77,20 @@ namespace rqt_gcs{
   friend class UnansweredQueries;
 
   public:
+      
+    struct UAV
+    {
+        UAV(SimpleControl * sc, UavStatus stat)
+        {
+            uav = sc;
+            status = stat;
+        }
+                
+        ~UAV(){ }
+        SimpleControl* uav;
+        UavStatus status;
+    };
+      
     SimpleGCS();
     ros::Subscriber sub;
     ros::Publisher pub;
@@ -134,16 +151,16 @@ namespace rqt_gcs{
     void answerQuery(QWidget *, std::string ap_type, bool);
     void saveUavQueries(SimpleControl *, std::string ap_type);
     void saveUavAccessPoints(SimpleControl *, std::string ap_type);
-
+    
     int cur_uav;
     int timeCounter;
     int NUM_UAV; //Total number of UAV's in the system
     int num_queries_last;
     int num_access_points_last;
 
-    std::vector<SimpleControl*> active_uavs;
-    std::map<int, UavStatus> all_uav_stat;
-    std::map<int, SimpleControl*> deleted_uavs;
+    QVector<SimpleControl*> active_uavs;
+    QMap<int, UAV*> all_uav_stat;
+    QMap<int, SimpleControl*> deleted_uavs;
 
     std::vector<AccessPoint> * accessPointVector;
     std::vector<lcar_msgs::DoorPtr> * pictureQueryVector;
