@@ -8,15 +8,15 @@ int main(int argc, char **argv)
     ros::Rate loop_rate(10); //10Hz
 
     lcar_msgs::TargetGlobal target_pt;
-    target_pt.target.latitude = 34.052234;
-    target_pt.target.longitude = -118.243685;
+    target_pt.target.latitude = 47.3977255;
+    target_pt.target.longitude = 8.5456603;
     target_pt.target.altitude = 10;
 
     /*target_pt.target_local.position.x = 0;
     target_pt.target_local.position.y = 0;
     target_pt.target_local.position.z = 2;*/
 
-    target_pt.radius = 0.005;
+    target_pt.radius = 0.01;
 
     quad1.Arm(true);
     quad1.ScoutBuilding(target_pt);
@@ -550,7 +550,7 @@ mavros_msgs::WaypointPush SimpleControl::CircleShape(lcar_msgs::TargetGlobal tar
     waypoint.autocontinue = true;
 
     //Generate circle shape using GPS coordinates
-    for(int angle = 0; angle <= 360; angle+=20){
+    for(int angle = 0; angle <= 360; angle+=5){
         double lat_new = asin(sin(lat_center)*cos(radius/R_EARTH) + cos(lat_center)*sin(radius/R_EARTH)*cos(angles::from_degrees(angle)));
         double lon_new = lon_center + atan2(sin(angles::from_degrees(angle))*sin(radius/R_EARTH)*cos(lat_center),
                                            cos(radius/R_EARTH)-sin(lat_center)*sin(lat_new));
@@ -560,7 +560,7 @@ mavros_msgs::WaypointPush SimpleControl::CircleShape(lcar_msgs::TargetGlobal tar
         waypoint.z_alt   = target_point.target.altitude;
 
         //Create the yaw angle that points to the center of the circle
-        waypoint.param4 = angles::normalize_angle_positive(angles::from_degrees(angle + 180));
+        waypoint.param4 = angles::to_degrees(angles::normalize_angle_positive(angles::from_degrees(angle + 180)));
 
         mission.request.waypoints.push_back(waypoint);
     }
