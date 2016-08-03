@@ -56,9 +56,8 @@
 #include <QSignalMapper>
 #include <QDesktopWidget>
 #include <QWaitCondition>
-//#include <QDebug>
-//#include <QLoggingCategory>
 #include <QMetaType>
+#include <QWebView>
 
 #define MAX_UAV 100 // the total number of UAV's manageable by our system
 
@@ -69,7 +68,7 @@ namespace rqt_gcs{
   class SimpleGCSHelper;
   class UnansweredQueries;
 
-  class SimpleGCS: public rqt_gui_cpp::Plugin
+  class SimpleGCS : public rqt_gui_cpp::Plugin
   {
   Q_OBJECT
 
@@ -147,6 +146,7 @@ namespace rqt_gcs{
      
     void selectQuad(int);
     void initializeHelperThread();
+    void initializeMenuBar();
     void addAccessPoint(int);
     void answerQuery(QWidget *, std::string ap_type, bool);
     void saveUavQueries(SimpleControl *, std::string ap_type);
@@ -178,13 +178,20 @@ namespace rqt_gcs{
     Ui::AccessPointsMenuWidget apmUi_;
     Ui::PictureMsgWidget pmUi_;
 
+    QMenuBar * menu_bar_;
+    QMenu * file_menu;
+    QMenu * view_menu;
+    QMenu * tools_menu;
+    
+    QAction* settings_act;
+            
     QWidget* widget_;
     QWidget* missionProgressWidget_;
     QWidget* uavQuestionWidget_;
     QWidget* uavStatWidget_;
     QWidget* imageViewWidget_;
-    std::vector<QWidget*> uavListWidgetArr;
-    QWidget* PFDQWidget;
+    std::vector<QWidget*> uavListWidgetArr_;
+    QWidget* PFDQWidget_;
     QWidget* apmQWidget_;
     QWidget* settings_widget_;
 
@@ -197,8 +204,8 @@ namespace rqt_gcs{
     QString quad_id;
     QString access_point_temp_data;
     QString access_point_id;
-    QSignalMapper* signal_mapper;
-    QSignalMapper* signal_mapper2;
+    QSignalMapper* quad_select_mapper;
+    QSignalMapper* access_point_mapper;
     QSignalMapper* acceptDoorMapper;
     QSignalMapper* denyDoorMapper;
 

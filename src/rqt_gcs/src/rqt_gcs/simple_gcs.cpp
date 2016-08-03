@@ -9,12 +9,11 @@ namespace rqt_gcs
     : rqt_gui_cpp::Plugin()
     , widget_(nullptr)
     , settings_widget_(nullptr)
+    , unanswered_queries(nullptr)
     {
         //Constructor is called first before initPlugin function
         setObjectName("LCAR Bot GCS");
         qRegisterMetaType<UavStatus>("UavStatus");
-//        qRegisterMetaType<UavStatus>("Mat");
-//        QLoggingCategory::setFilterRules("*.debug=true");
     }
 
     void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
@@ -27,7 +26,7 @@ namespace rqt_gcs
         uavQuestionWidget_     = new QWidget();
         uavStatWidget_         = new QWidget();
         imageViewWidget_       = new QWidget();
-        PFDQWidget             = new QWidget();
+        PFDQWidget_             = new QWidget();
         apmQWidget_            = new QWidget();
 
         NUM_UAV = 0;
@@ -42,14 +41,14 @@ namespace rqt_gcs
         uqUi_.setupUi(uavQuestionWidget_);
         usUi_.setupUi(uavStatWidget_);
         ivUi_.setupUi(imageViewWidget_);
-        pfd_ui.setupUi(PFDQWidget);
+        pfd_ui.setupUi(PFDQWidget_);
         apmUi_.setupUi(apmQWidget_);
 
         //Add widgets to the Main UI
         context.addWidget(widget_);
         central_ui_.MissionLayout->addWidget(missionProgressWidget_);
         central_ui_.OverviewLayout->addWidget(uavStatWidget_);
-        central_ui_.PFDLayout->addWidget(PFDQWidget);
+        central_ui_.PFDLayout->addWidget(PFDQWidget_);
         central_ui_.CameraLayout->addWidget(imageViewWidget_);
 
         //Setup mission progress widgets
@@ -67,18 +66,19 @@ namespace rqt_gcs
         connect(mpUi_.disarmButton, SIGNAL(clicked()), this, SLOT(DisarmSelectedQuad()));
 
         //Setup UAV lists select functions
-        signal_mapper = new QSignalMapper(this);
-        signal_mapper2 = new QSignalMapper(this);
+        quad_select_mapper = new QSignalMapper(this);
+        access_point_mapper = new QSignalMapper(this);
         acceptDoorMapper = new QSignalMapper(this);
         denyDoorMapper = new QSignalMapper(this);
 
-        connect(signal_mapper, SIGNAL(mapped(int)), this, SLOT(QuadSelected(int)));
-        connect(signal_mapper2, SIGNAL(mapped(QWidget*)), this, SLOT(DeleteAccessPoint(QWidget*)));
+        connect(quad_select_mapper, SIGNAL(mapped(int)), this, SLOT(QuadSelected(int)));
+        connect(access_point_mapper, SIGNAL(mapped(QWidget*)), this, SLOT(DeleteAccessPoint(QWidget*)));
         connect(acceptDoorMapper, SIGNAL(mapped(QWidget*)), this, SLOT(AcceptDoorQuery(QWidget*)));
         connect(denyDoorMapper, SIGNAL(mapped(QWidget*)), this, SLOT(RejectDoorQuery(QWidget*)));
 
         initializeSettings();
         initializeHelperThread();
+        initializeMenuBar();
         unanswered_queries = new UnansweredQueries(this);
         unanswered_queries->setVisible(true);
 
@@ -89,6 +89,8 @@ namespace rqt_gcs
         connect(update_timer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
         //30 hz :1000/30 = 33.33...
         update_timer->start(33);
+        
+        central_ui_.frame_3->setVisible(false);
     }
 
     void SimpleGCS::AddUav(int uav_id)
@@ -129,25 +131,25 @@ namespace rqt_gcs
 
         active_uavs.insert(active_uavs.begin() + index, uav);
         uavCondWidgetArr.insert(uavCondWidgetArr.begin() + index, new Ui::UAVConditionWidget());
-        uavListWidgetArr.insert(uavListWidgetArr.begin() + index, new QWidget());
+        uavListWidgetArr_.insert(uavListWidgetArr_.begin() + index, new QWidget());
 
-        uavCondWidgetArr[index]->setupUi(uavListWidgetArr[index]);
+        uavCondWidgetArr[index]->setupUi(uavListWidgetArr_[index]);
         uavCondWidgetArr[index]->VehicleSelectButton->setText(std::to_string(uav_id).c_str());
         uavCondWidgetArr[index]->VehicleNameLine->setText(temp_data);
 
         for(int i = index; i < NUM_UAV; i++)
         {
-            central_ui_.UAVListLayout->removeWidget(uavListWidgetArr[i]);
+            central_ui_.UAVListLayout->removeWidget(uavListWidgetArr_[i]);
             disconnect(uavCondWidgetArr[i]->VehicleSelectButton,
-                    SIGNAL(clicked()), signal_mapper, SLOT(map()));
+                    SIGNAL(clicked()), quad_select_mapper, SLOT(map()));
         }
 
         for(int i = index; i < active_uavs.size(); i++)
         {
-            central_ui_.UAVListLayout->addWidget(uavListWidgetArr[i]);
-            signal_mapper->setMapping(uavCondWidgetArr[i]->VehicleSelectButton, i);
+            central_ui_.UAVListLayout->addWidget(uavListWidgetArr_[i]);
+            quad_select_mapper->setMapping(uavCondWidgetArr[i]->VehicleSelectButton, i);
             connect(uavCondWidgetArr[i]->VehicleSelectButton, SIGNAL(clicked()),
-                    signal_mapper, SLOT(map()));
+                    quad_select_mapper, SLOT(map()));
         }
 
         NUM_UAV++;
@@ -189,23 +191,23 @@ namespace rqt_gcs
 
         ROS_WARN_STREAM("Deleting UAV with id: " << uav_id);
 
-        central_ui_.UAVListLayout->removeWidget(uavListWidgetArr[index]);
+        central_ui_.UAVListLayout->removeWidget(uavListWidgetArr_[index]);
 
         delete uavCondWidgetArr[index];
-        delete uavListWidgetArr[index];
+        delete uavListWidgetArr_[index];
 
         uavCondWidgetArr.erase(uavCondWidgetArr.begin() + index);
-        uavListWidgetArr.erase(uavListWidgetArr.begin() + index);
+        uavListWidgetArr_.erase(uavListWidgetArr_.begin() + index);
         active_uavs.erase(active_uavs.begin() + index);
 
         for(int i = index; i < active_uavs.size(); i++)
         {
             disconnect(uavCondWidgetArr[i]->VehicleSelectButton,
-                    SIGNAL(clicked()), signal_mapper, SLOT(map()));
+                    SIGNAL(clicked()), quad_select_mapper, SLOT(map()));
 
-            signal_mapper->setMapping(uavCondWidgetArr[i]->VehicleSelectButton, i);
+            quad_select_mapper->setMapping(uavCondWidgetArr[i]->VehicleSelectButton, i);
             connect(uavCondWidgetArr[i]->VehicleSelectButton,
-                    SIGNAL(clicked()), signal_mapper, SLOT(map()));
+                    SIGNAL(clicked()), quad_select_mapper, SLOT(map()));
         }
 
         if(cur_uav == index)
@@ -685,11 +687,11 @@ namespace rqt_gcs
             apUiWidget.captureTimeLineEdit->setText(access_point_temp_data);
 
             //map signal to the delete button
-            signal_mapper2->setMapping(apUiWidget.deleteAccessPointButton,
+            access_point_mapper->setMapping(apUiWidget.deleteAccessPointButton,
                                        accessPointWidgets_[index]);
 
             connect(apUiWidget.deleteAccessPointButton, SIGNAL(clicked()),
-                    signal_mapper2, SLOT(map()));
+                    access_point_mapper, SLOT(map()));
 
             //finally, add it to the gui
             apmUi_.AccessPointMenuLayout->addWidget(accessPointWidgets_[index]);
@@ -896,6 +898,20 @@ namespace rqt_gcs
 
         t_uav_monitor.start();
     }
+    
+    void SimpleGCS::initializeMenuBar()
+    {
+       menu_bar_ = new QMenuBar(widget_);
+
+       file_menu = menu_bar_->addMenu("&File");
+       view_menu = menu_bar_->addMenu("&View");
+       tools_menu = menu_bar_->addMenu("&Tools");
+       
+       settings_act = tools_menu->addAction("&Settings");
+       connect(settings_act, &QAction::triggered, this, &SimpleGCS::SettingsClicked); 
+       menu_bar_->adjustSize();
+       menu_bar_->setVisible(true);
+    }
 
     // SettingsWidget and QSettings related stuff
     void SimpleGCS::initializeSettings()
@@ -916,10 +932,6 @@ namespace rqt_gcs
         ROS_INFO_STREAM("images root directory: " << image_root_path_.toStdString());
 
         settings_->endGroup();
-
-        //connect settings button to settings widget
-        connect(central_ui_.settingsButton, SIGNAL(clicked()),
-                this, SLOT(SettingsClicked()));
     }
 
 
