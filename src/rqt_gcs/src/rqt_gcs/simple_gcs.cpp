@@ -9,7 +9,7 @@ namespace rqt_gcs
     : rqt_gui_cpp::Plugin()
     , widget_(nullptr)
     , settings_widget_(nullptr)
-    , unanswered_queries(nullptr)
+    , unanswered_queries_widget_(nullptr)
     {
         //Constructor is called first before initPlugin function
         setObjectName("LCAR Bot GCS");
@@ -26,7 +26,7 @@ namespace rqt_gcs
         uavQuestionWidget_     = new QWidget();
         uavStatWidget_         = new QWidget();
         imageViewWidget_       = new QWidget();
-        PFDQWidget_             = new QWidget();
+        PFDQWidget_            = new QWidget();
         apmQWidget_            = new QWidget();
 
         NUM_UAV = 0;
@@ -79,8 +79,6 @@ namespace rqt_gcs
         initializeSettings();
         initializeHelperThread();
         initializeMenuBar();
-        unanswered_queries = new UnansweredQueries(this);
-        unanswered_queries->setVisible(true);
 
         QString path = image_root_path_;
 
@@ -112,10 +110,10 @@ namespace rqt_gcs
         }
         
         QString path = image_root_path_ + "/queries/accepted/door/uav_" + QString::number(uav_id);
-        uav->accepted_images = unanswered_queries->numImagesInDir(path);
+        uav->accepted_images = unanswered_queries_widget_->numImagesInDir(path);
         
         path = image_root_path_ + "/queries/unanswered/door/uav_" + QString::number(uav_id);
-        uav->rejected_images = unanswered_queries->numImagesInDir(path);
+        uav->rejected_images = unanswered_queries_widget_->numImagesInDir(path);
         
         all_uav_stat[uav_id]->status = status;
         all_uav_stat[uav_id]->uav = uav;
@@ -247,7 +245,7 @@ namespace rqt_gcs
             sensor_msgs::Image * ros_image = &query->original_picture;
             cv::Mat image = cv_bridge::toCvCopy(*ros_image,"rgb8")->image;
             
-            int num_images = unanswered_queries->numImagesInDir(QString(path.c_str()));
+            int num_images = unanswered_queries_widget_->numImagesInDir(QString(path.c_str()));
             
             std::string file = "img_" + std::to_string(num_images) + ".jpg";
             saveImage(path, file, image);
@@ -449,7 +447,7 @@ namespace rqt_gcs
     void SimpleGCS::answerQuery(QWidget * qw, std::string ap_type, bool accepted)
     {
         int index = central_ui_.PictureMsgLayout->indexOf(qw);
-        lcar_msgs::DoorPtr door = (*pictureQueryVector)[index];
+        lcar_msgs::DoorPtr door = pictureQueryVector->at(index);
 
         SimpleControl* uav = active_uavs[cur_uav];
         std::string path = image_root_path_.toStdString() + "/queries";
@@ -614,7 +612,8 @@ namespace rqt_gcs
     void SimpleGCS::clearAccessPoints()
     {
         //clear out old list of Access points widgets
-        for(int i = accessPointWidgets_.size()-1; i >= 0; i--)
+        int size = accessPointWidgets_.size();
+        for(int i = size-1; i >= 0; i--)
         {
             apmUi_.AccessPointMenuLayout->removeWidget(accessPointWidgets_[i]);
             delete accessPointWidgets_[i];
@@ -904,11 +903,17 @@ namespace rqt_gcs
        menu_bar_ = new QMenuBar(widget_);
 
        file_menu = menu_bar_->addMenu("&File");
-       view_menu = menu_bar_->addMenu("&View");
-       tools_menu = menu_bar_->addMenu("&Tools");
        
+       view_menu = menu_bar_->addMenu("&View");
+       unanswered_queries_act = view_menu->addAction("&Unanswered Queries");
+       connect(unanswered_queries_act, &QAction::triggered, 
+               this, &SimpleGCS::unansweredQueriesTriggered);
+       
+       tools_menu = menu_bar_->addMenu("&Tools");
        settings_act = tools_menu->addAction("&Settings");
-       connect(settings_act, &QAction::triggered, this, &SimpleGCS::SettingsClicked); 
+       connect(settings_act, &QAction::triggered, 
+               this, &SimpleGCS::SettingsTriggered); 
+       
        menu_bar_->adjustSize();
        menu_bar_->setVisible(true);
     }
@@ -934,8 +939,7 @@ namespace rqt_gcs
         settings_->endGroup();
     }
 
-
-    void SimpleGCS::SettingsClicked()
+    void SimpleGCS::SettingsTriggered()
     {
         if(settings_widget_ == nullptr)
         {
@@ -957,6 +961,25 @@ namespace rqt_gcs
         {
             settings_widget_->showNormal();
             settings_widget_->activateWindow();
+        }
+    }
+    
+    void SimpleGCS::unansweredQueriesTriggered()
+    {
+        if(unanswered_queries_widget_ == nullptr)
+        {
+            unanswered_queries_widget_ = new UnansweredQueries(this);
+            
+            QRect window = widget_->window()->geometry();
+            int x = (widget_->width() / 2) - (unanswered_queries_widget_->width() / 2);
+            int y = (widget_->height() / 2) - (unanswered_queries_widget_->height() / 2);
+            unanswered_queries_widget_->move(window.x() + x, window.y() + y);
+            unanswered_queries_widget_->setVisible(true);
+        }
+        else
+        {
+            unanswered_queries_widget_->showNormal();
+            unanswered_queries_widget_->activateWindow();
         }
     }
 
@@ -1039,7 +1062,6 @@ namespace rqt_gcs
         {
             for(auto const& uav : uav_map)
             {
-//                if(binarySearch(uav.first, 0, gcs->NUM_UAV-1) == -1)
                 if(gcs->all_uav_stat.count(uav.first) == 0)
                     gcs->all_uav_stat.insert(uav.first, new SimpleGCS::UAV(nullptr, UavStatus::null));
 

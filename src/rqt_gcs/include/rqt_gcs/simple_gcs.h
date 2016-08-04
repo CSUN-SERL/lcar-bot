@@ -121,10 +121,12 @@ namespace rqt_gcs{
     virtual void DisarmSelectedQuad();
     virtual void AcceptDoorQuery(QWidget *);
     virtual void RejectDoorQuery(QWidget *);
-    virtual void SettingsClicked();
     virtual void ShowAccessPoints();
     virtual void saveImage(std::string, std::string, const cv::Mat&);
-
+    
+    virtual void SettingsTriggered();
+    virtual void unansweredQueriesTriggered();
+    
     virtual void AddUav(int);
     virtual void DeleteUav(int, UavStatus);
     virtual void PurgeDeletedUavs();
@@ -184,6 +186,7 @@ namespace rqt_gcs{
     QMenu * tools_menu;
     
     QAction* settings_act;
+    QAction* unanswered_queries_act;
             
     QWidget* widget_;
     QWidget* missionProgressWidget_;
@@ -217,7 +220,7 @@ namespace rqt_gcs{
     QMutex uav_mutex;
     QWaitCondition num_uav_changed;
 
-    UnansweredQueries * unanswered_queries;
+    UnansweredQueries * unanswered_queries_widget_;
   };
 
   class SimpleGCSHelper : public QObject
