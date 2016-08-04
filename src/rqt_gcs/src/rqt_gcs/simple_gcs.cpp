@@ -109,13 +109,15 @@ namespace rqt_gcs
             exit(1);
         }
         
+        //todo loop and get num_image for each acess point type;
+        //create separate accepted and rejected counts for each ap_type
         QString path = image_root_path_ + "/queries/accepted/door/uav_" + QString::number(uav_id);
         uav->accepted_images = unanswered_queries_widget_->numImagesInDir(path);
         
         path = image_root_path_ + "/queries/unanswered/door/uav_" + QString::number(uav_id);
         uav->rejected_images = unanswered_queries_widget_->numImagesInDir(path);
         
-        all_uav_stat[uav_id]->status = status;
+        all_uav_stat[uav_id]->status = UavStatus::active;
         all_uav_stat[uav_id]->uav = uav;
         
         ROS_WARN_STREAM("Adding UAV with id: " << uav_id);
@@ -884,7 +886,7 @@ namespace rqt_gcs
         uav_monitor->moveToThread(&t_uav_monitor);
 
         connect(&t_uav_monitor, &QThread::started,
-                uav_monitor, &SimpleGCSHelper::monitor);
+                uav_monitor, &SimpleGCSHelper::monitorUavs);
 
         connect(uav_monitor, &SimpleGCSHelper::addUav,
                 this, &SimpleGCS::AddUav);
@@ -907,7 +909,7 @@ namespace rqt_gcs
        view_menu = menu_bar_->addMenu("&View");
        unanswered_queries_act = view_menu->addAction("&Unanswered Queries");
        connect(unanswered_queries_act, &QAction::triggered, 
-               this, &SimpleGCS::unansweredQueriesTriggered);
+               this, &SimpleGCS::UnansweredQueriesTriggered);
        
        tools_menu = menu_bar_->addMenu("&Tools");
        settings_act = tools_menu->addAction("&Settings");
@@ -926,7 +928,7 @@ namespace rqt_gcs
 
         settings_->beginGroup("general_tab");
 
-        if(settings_->value("machine_learning","online").toString() == "online")
+        if(settings_->value("machine_learning", "online").toString() == "online")
             ToggleMachineLearningMode(true);
         else
             ToggleMachineLearningMode(false);
@@ -964,7 +966,7 @@ namespace rqt_gcs
         }
     }
     
-    void SimpleGCS::unansweredQueriesTriggered()
+    void SimpleGCS::UnansweredQueriesTriggered()
     {
         if(unanswered_queries_widget_ == nullptr)
         {
@@ -992,7 +994,7 @@ namespace rqt_gcs
     void SimpleGCS::ToggleMachineLearningMode(bool toggle)
     {
         central_ui_.uavQueriesFame->setVisible(toggle);
-        central_ui_.uavQueriesFame->setEnabled(toggle);
+//        central_ui_.uavQueriesFame->setEnabled(toggle);
 
         for(int i = 0; i < NUM_UAV; i++)
             active_uavs[i]->setOnlineMode(toggle);
@@ -1062,9 +1064,12 @@ namespace rqt_gcs
         {
             for(auto const& uav : uav_map)
             {
+                std::cout << "id: " << uav.first << " count: " << gcs->all_uav_stat.count(uav.first) << "\n";
                 if(gcs->all_uav_stat.count(uav.first) == 0)
                     gcs->all_uav_stat.insert(uav.first, new SimpleGCS::UAV(nullptr, UavStatus::null));
-
+                
+                UavStatus status = gcs->all_uav_stat[uav.first]->status;
+                std::cout << "Uav Status for uav_id: " << status << "\n";
                 if(gcs->all_uav_stat[uav.first]->status != UavStatus::active)
                 {
                     emit addUav(uav.first);
@@ -1088,7 +1093,7 @@ namespace rqt_gcs
         gcs->uav_mutex.unlock();
     }
 
-    void SimpleGCSHelper::monitorConnections()
+    void SimpleGCSHelper::monitorUavConnections()
     {
         /*
          * under normal conditions (recieved a heartbeat), button stylesheet is:
@@ -1128,12 +1133,12 @@ namespace rqt_gcs
         }
     }
 
-    void SimpleGCSHelper::monitor()
+    void SimpleGCSHelper::monitorUavs()
     {
         forever
         {
             monitorUavNamespace();
-            monitorConnections();
+            monitorUavConnections();
             runUavs();
         }
     }

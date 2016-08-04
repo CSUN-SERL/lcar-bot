@@ -125,7 +125,7 @@ namespace rqt_gcs{
     virtual void saveImage(std::string, std::string, const cv::Mat&);
     
     virtual void SettingsTriggered();
-    virtual void unansweredQueriesTriggered();
+    virtual void UnansweredQueriesTriggered();
     
     virtual void AddUav(int);
     virtual void DeleteUav(int, UavStatus);
@@ -232,7 +232,7 @@ namespace rqt_gcs{
       ~SimpleGCSHelper();
 
   public slots:
-      void monitor();
+      void monitorUavs();
 
   signals:
       void addUav(int); // uav_id
@@ -247,7 +247,7 @@ namespace rqt_gcs{
 
 
       void monitorUavNamespace();
-      void monitorConnections();
+      void monitorUavConnections();
       void runUavs();
 
   };
