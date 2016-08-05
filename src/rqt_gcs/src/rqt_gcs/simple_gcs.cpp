@@ -96,7 +96,7 @@ namespace rqt_gcs
         uav_mutex.lock();
 
         SimpleControl * uav;
-        UavStatus status = all_uav_stat[uav_id]->status;
+        UavStatus status = uav_db[uav_id]->status;
         if(status == UavStatus::null || status == UavStatus::purged)
             uav = new SimpleControl(uav_id);
         else if(status == UavStatus::deleted && deleted_uavs[uav_id] != nullptr)
@@ -104,7 +104,7 @@ namespace rqt_gcs
         else
         {
             ROS_ERROR_STREAM("Error adding UAV with id:" << uav_id
-                    << "\n all_uavs[uav_id]=" << all_uav_stat[uav_id]
+                    << "\n all_uavs[uav_id]=" << uav_db[uav_id]
                     << "\n deleted_uavs[uav_id]=" << deleted_uavs[uav_id]);
             exit(1);
         }
@@ -117,8 +117,8 @@ namespace rqt_gcs
         path = image_root_path_ + "/queries/unanswered/door/uav_" + QString::number(uav_id);
         uav->rejected_images = unanswered_queries_widget_->numImagesInDir(path);
         
-        all_uav_stat[uav_id]->status = UavStatus::active;
-        all_uav_stat[uav_id]->uav = uav;
+        uav_db[uav_id]->status = UavStatus::active;
+        uav_db[uav_id]->uav = uav;
         
         ROS_WARN_STREAM("Adding UAV with id: " << uav_id);
 
@@ -186,8 +186,8 @@ namespace rqt_gcs
                     << " with deletion status: " << status);
             exit(1);
         }
-        all_uav_stat[uav_id]->status = status;
-        all_uav_stat[uav_id]->uav = nullptr;
+        uav_db[uav_id]->status = status;
+        uav_db[uav_id]->uav = nullptr;
 
         ROS_WARN_STREAM("Deleting UAV with id: " << uav_id);
 
@@ -277,7 +277,7 @@ namespace rqt_gcs
 
     void SimpleGCS::PurgeDeletedUavs()
     {
-        std::map<int, UAV*> map = all_uav_stat.toStdMap();
+        std::map<int, UAV*> map = uav_db.toStdMap();
         std::map<int, SimpleControl*> delete_map = deleted_uavs.toStdMap();
         for (auto& uav : map)
         {
@@ -1064,13 +1064,13 @@ namespace rqt_gcs
         {
             for(auto const& uav : uav_map)
             {
-                std::cout << "id: " << uav.first << " count: " << gcs->all_uav_stat.count(uav.first) << "\n";
-                if(gcs->all_uav_stat.count(uav.first) == 0)
-                    gcs->all_uav_stat.insert(uav.first, new SimpleGCS::UAV(nullptr, UavStatus::null));
+                std::cout << "id: " << uav.first << " count: " << gcs->uav_db.count(uav.first) << "\n";
+                if(gcs->uav_db.count(uav.first) == 0)
+                    gcs->uav_db.insert(uav.first, new SimpleGCS::UAV(nullptr, UavStatus::null));
                 
-                UavStatus status = gcs->all_uav_stat[uav.first]->status;
+                UavStatus status = gcs->uav_db[uav.first]->status;
                 std::cout << "Uav Status for uav_id: " << status << "\n";
-                if(gcs->all_uav_stat[uav.first]->status != UavStatus::active)
+                if(gcs->uav_db[uav.first]->status != UavStatus::active)
                 {
                     emit addUav(uav.first);
                     gcs->num_uav_changed.wait(&gcs->uav_mutex);

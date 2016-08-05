@@ -97,7 +97,7 @@ void UnansweredQueries::addQueryWidget(QueryStat* stat, QString ap_type)
 
     reject_mapper->setMapping(pmUiWidget.rejectButton, pmWidget);
     connect(pmUiWidget.rejectButton, SIGNAL(clicked()), reject_mapper, SLOT(map()));
-    
+     
     layout_by_ap_type[ap_type]->addWidget(pmWidget);
     this->resize(pmWidget->width() + 15, this->height());
 }
@@ -122,8 +122,8 @@ void UnansweredQueries::answerQuery(QWidget * w, QString ap_type, bool accepted)
 
     SimpleControl * uav = nullptr;
 
-    if(gcs->all_uav_stat.count(stat->uav_id) > 0)
-        uav = gcs->all_uav_stat[stat->uav_id]->uav;
+    if(gcs->uav_db.count(stat->uav_id) > 0)
+        uav = gcs->uav_db[stat->uav_id]->uav;
     
     QString path = gcs->image_root_path_ % "/queries";
     QString file;

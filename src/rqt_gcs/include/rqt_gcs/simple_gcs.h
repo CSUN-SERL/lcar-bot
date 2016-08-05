@@ -161,12 +161,14 @@ namespace rqt_gcs{
     int num_access_points_last;
 
     QVector<SimpleControl*> active_uavs;
-    QMap<int, UAV*> all_uav_stat;
+    QMap<int, UAV*> uav_db;
     QMap<int, SimpleControl*> deleted_uavs;
 
     std::vector<AccessPoint> * accessPointVector;
     std::vector<lcar_msgs::DoorPtr> * pictureQueryVector;
 
+    QWebView * web_view_;
+    
     cv::Mat conversion_mat_;
     image_transport::Subscriber sub_stereo;
     Ui::SimpleGCSWidget ui_;
