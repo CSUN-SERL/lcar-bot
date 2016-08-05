@@ -905,16 +905,30 @@ namespace rqt_gcs
        menu_bar_ = new QMenuBar(widget_);
 
        file_menu = menu_bar_->addMenu("&File");
+       start_uav_act = file_menu->addAction("&Start UAV");
+       start_uav_group_act = file_menu->addAction("&Start UAV Group");
+       shutdown_uav_act = file_menu->addAction("&Shutdown UAV");
+       shutdown_uav_group_act = file_menu->addAction("Shutdown UAV Group");
+       
        
        view_menu = menu_bar_->addMenu("&View");
        unanswered_queries_act = view_menu->addAction("&Unanswered Queries");
        connect(unanswered_queries_act, &QAction::triggered, 
                this, &SimpleGCS::UnansweredQueriesTriggered);
        
+       
        tools_menu = menu_bar_->addMenu("&Tools");
        settings_act = tools_menu->addAction("&Settings");
        connect(settings_act, &QAction::triggered, 
                this, &SimpleGCS::SettingsTriggered); 
+       
+       
+       help_menu = menu_bar_->addMenu("&Help");
+       lcar_bot_act = help_menu->addAction("&Learning Classifying And Recognizing Bot (LCAR-Bot)");
+       ros_act      = help_menu->addAction("&Robot Operating System (ROS)");
+       opencv_act   = help_menu->addAction("&Open Computer Vision (OpenCV)");
+       qt_act       = help_menu->addAction("&Qt");
+       about_act    = help_menu->addSection("&About");
        
        menu_bar_->adjustSize();
        menu_bar_->setVisible(true);

@@ -45,7 +45,7 @@ static std::string object_types_ [] = {"door", "window", "hole"};
 std::map< std::string, std::vector<Mat> > hist_map_;
       /*eg.    "door", <vector of door images>
        *     "window", <vector of window images>
-       *     ... TODO: handle other types of opening types
+       *     ... TODO: handle other access point types
        */
       
 bool compareHistograms(cv::Mat&, std::string);

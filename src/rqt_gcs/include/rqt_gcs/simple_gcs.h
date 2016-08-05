@@ -183,19 +183,33 @@ namespace rqt_gcs{
     Ui::PictureMsgWidget pmUi_;
 
     QMenuBar * menu_bar_;
-    QMenu * file_menu;
-    QMenu * view_menu;
-    QMenu * tools_menu;
     
-    QAction* settings_act;
+    QMenu * file_menu;
+    QAction * start_uav_act;
+    QAction * start_uav_group_act;
+    QAction * shutdown_uav_act;
+    QAction * shutdown_uav_group_act;
+    
+    QMenu * view_menu;
     QAction* unanswered_queries_act;
+    QAction* web_view_act;
+    
+    QMenu * tools_menu;
+    QAction* settings_act;
+    
+    QMenu * help_menu;
+    QAction * about_act;
+    QAction * lcar_bot_act;
+    QAction * ros_act;
+    QAction * qt_act;
+    QAction * opencv_act;
             
     QWidget* widget_;
     QWidget* missionProgressWidget_;
     QWidget* uavQuestionWidget_;
     QWidget* uavStatWidget_;
     QWidget* imageViewWidget_;
-    std::vector<QWidget*> uavListWidgetArr_;
+    QVector<QWidget*> uavListWidgetArr_;
     QWidget* PFDQWidget_;
     QWidget* apmQWidget_;
     QWidget* settings_widget_;
