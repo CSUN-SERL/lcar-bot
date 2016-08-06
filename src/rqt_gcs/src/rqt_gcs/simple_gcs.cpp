@@ -76,10 +76,10 @@ namespace rqt_gcs
         connect(acceptDoorMapper, SIGNAL(mapped(QWidget*)), this, SLOT(AcceptDoorQuery(QWidget*)));
         connect(denyDoorMapper, SIGNAL(mapped(QWidget*)), this, SLOT(RejectDoorQuery(QWidget*)));
 
+        initializeMenuBar();
         initializeSettings();
         initializeHelperThread();
-        initializeMenuBar();
-
+       
         QString path = image_root_path_;
 
         //Setup update timer
@@ -88,7 +88,7 @@ namespace rqt_gcs
         //30 hz :1000/30 = 33.33...
         update_timer->start(33);
         
-        central_ui_.frame_3->setVisible(false);
+        //central_ui_.frame_3->setVisible(false);
     }
 
     void SimpleGCS::AddUav(int uav_id)
