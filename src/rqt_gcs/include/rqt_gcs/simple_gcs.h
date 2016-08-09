@@ -98,9 +98,8 @@ namespace rqt_gcs{
     lcar_msgs::Door msg;
 
     image_transport::ImageTransport it_stereo{nh};
-    void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
+   void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
-    void initializeSettings();
 
     virtual void initPlugin(qt_gui_cpp::PluginContext& context);
     virtual void shutdownPlugin();
@@ -109,12 +108,13 @@ namespace rqt_gcs{
 
   protected slots:
     virtual void TimedUpdate();
+    
+    //////////// Buttons
     virtual void ExecutePlay();
     virtual void CancelPlay();
     virtual void ScoutBuilding();
     virtual void StopQuad();
     virtual void ChangeFlightMode();
-    virtual void UpdateAccessPoints();
     virtual void DeleteAccessPoint(QWidget*);
     virtual void QuadSelected(int);
     virtual void ArmSelectedQuad();
@@ -122,10 +122,9 @@ namespace rqt_gcs{
     virtual void AcceptDoorQuery(QWidget *);
     virtual void RejectDoorQuery(QWidget *);
     virtual void ShowAccessPoints();
-    virtual void saveImage(std::string, std::string, const cv::Mat&);
-    
     virtual void SettingsTriggered();
     virtual void UnansweredQueriesTriggered();
+    virtual void MapTriggered();
     
     virtual void AddUav(int);
     virtual void DeleteUav(int, UavStatus);
@@ -137,22 +136,28 @@ namespace rqt_gcs{
     virtual void ToggleMachineLearningMode(bool);
 
   private:
+    void initMenuBar();
+    void initSettings();
+    void initHelperThread();
+      
+    void selectQuad(int);  
     void UpdatePFD();
-    void UpdateQueries();
-    void clearQueries();
-    void clearAccessPoints();
     void clearImageView();
+    void saveImage(std::string, std::string, const cv::Mat&);
+    
+    void updateQueries();
+    void clearQueries();
+    void saveUavQueries(SimpleControl *, std::string ap_type);
+    void answerQuery(QWidget *, std::string ap_type, bool);
+    
+    void updateAccessPoints();
+    void clearAccessPoints();
+    void saveUavAccessPoints(SimpleControl *, std::string ap_type);
+    
     std::string GetMissionType(std::string file_name);		 
     lcar_msgs::TargetLocal GetMissionLocal(std::string file_name);
     lcar_msgs::TargetGlobal GetMissionGlobal(std::string file_name);
-     
-    void selectQuad(int);
-    void initializeHelperThread();
-    void initializeMenuBar();
-    void addAccessPoint(int);
-    void answerQuery(QWidget *, std::string ap_type, bool);
-    void saveUavQueries(SimpleControl *, std::string ap_type);
-    void saveUavAccessPoints(SimpleControl *, std::string ap_type);
+    
     
     int cur_uav;
     int timeCounter;
@@ -191,8 +196,8 @@ namespace rqt_gcs{
     QAction * shutdown_uav_group_act;
     
     QMenu * view_menu;
-    QAction* unanswered_queries_act;
-    QAction* web_view_act;
+    QAction * unanswered_queries_act;
+    QAction * web_view_act;
     
     QMenu * tools_menu;
     QAction* settings_act;
@@ -229,7 +234,8 @@ namespace rqt_gcs{
     QSignalMapper* denyDoorMapper;
 
     QSettings *settings_;
-    QString image_root_path_;
+    QString image_root_dir_;
+    QString app_root_dir_;
 
     QThread t_uav_monitor;
     SimpleGCSHelper * uav_monitor;

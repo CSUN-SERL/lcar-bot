@@ -35,7 +35,7 @@ UnansweredQueries::~UnansweredQueries()
 
 void UnansweredQueries::addUnansweredQueriesFromDisk()
 {
-    QString path_root = gcs->image_root_path_ % "/queries/unanswered";         
+    QString path_root = gcs->image_root_dir_ % "/queries/unanswered";         
     QVector<QString> ap_types = {"door", "window", "hole"};
     for(int i = 0; i < ap_types.size(); i++)
     {
@@ -125,7 +125,7 @@ void UnansweredQueries::answerQuery(QWidget * w, QString ap_type, bool accepted)
     if(gcs->uav_db.count(stat->uav_id) > 0)
         uav = gcs->uav_db[stat->uav_id]->uav;
     
-    QString path = gcs->image_root_path_ % "/queries";
+    QString path = gcs->image_root_dir_ % "/queries";
     QString file;
     if(accepted)
     {

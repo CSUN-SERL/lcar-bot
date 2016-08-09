@@ -19,7 +19,10 @@ namespace rqt_gcs
     void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
     {
         // access standalone command line arguments
-        QStringList argv = context.argv();
+        //QStringList argv = context.argv();
+        
+        QString app_src = QDir().currentPath();
+        app_root_dir_ = app_src.mid(0, app_src.indexOf("/src"));
 
         widget_                = new QWidget();
         missionProgressWidget_ = new QWidget();
@@ -76,11 +79,11 @@ namespace rqt_gcs
         connect(acceptDoorMapper, SIGNAL(mapped(QWidget*)), this, SLOT(AcceptDoorQuery(QWidget*)));
         connect(denyDoorMapper, SIGNAL(mapped(QWidget*)), this, SLOT(RejectDoorQuery(QWidget*)));
 
-        initializeMenuBar();
-        initializeSettings();
-        initializeHelperThread();
+        initMenuBar();
+        initSettings();
+        initHelperThread();
        
-        QString path = image_root_path_;
+        QString path = image_root_dir_;
 
         //Setup update timer
         update_timer = new QTimer(this);
@@ -111,10 +114,10 @@ namespace rqt_gcs
         
         //todo loop and get num_image for each acess point type;
         //create separate accepted and rejected counts for each ap_type
-        QString path = image_root_path_ + "/queries/accepted/door/uav_" + QString::number(uav_id);
+        QString path = image_root_dir_ + "/queries/accepted/door/uav_" + QString::number(uav_id);
         uav->accepted_images = unanswered_queries_widget_->numImagesInDir(path);
         
-        path = image_root_path_ + "/queries/unanswered/door/uav_" + QString::number(uav_id);
+        path = image_root_dir_ + "/queries/unanswered/door/uav_" + QString::number(uav_id);
         uav->rejected_images = unanswered_queries_widget_->numImagesInDir(path);
         
         uav_db[uav_id]->status = UavStatus::active;
@@ -237,7 +240,7 @@ namespace rqt_gcs
 
     void SimpleGCS::saveUavQueries(SimpleControl * uav, std::string ap_type)
     {
-        std::string path = image_root_path_.toStdString() + "/queries/unanswered/" + ap_type;
+        std::string path = image_root_dir_.toStdString() + "/queries/unanswered/" + ap_type;
         path += "/uav_" + std::to_string(uav->id);
         std::vector<lcar_msgs::DoorPtr>* queries = uav->GetDoorQueries();
         for(int i = 0; i < queries->size(); i++)
@@ -261,7 +264,7 @@ namespace rqt_gcs
 
     void SimpleGCS::saveUavAccessPoints(SimpleControl* uav, std::string ap_type)
     {
-        std::string path = image_root_path_.toStdString() + "/access_points/" +ap_type;
+        std::string path = image_root_dir_.toStdString() + "/access_points/" +ap_type;
         path += "/uav_" + std::to_string(uav->id);
         std::vector<AccessPoint> * ap_vector = uav->GetRefAccessPoints();
         for(int i = 0; i < ap_vector->size(); i++)
@@ -318,8 +321,8 @@ namespace rqt_gcs
         if(timeCounter++ >= 30)
         {
             //ROS_INFO_STREAM("MSGs UPdated");
-            UpdateQueries();
-            UpdateAccessPoints();
+            updateQueries();
+            updateAccessPoints();
             timeCounter = 0;
         }
 
@@ -390,7 +393,7 @@ namespace rqt_gcs
     }
 
 
-    void SimpleGCS::UpdateQueries()
+    void SimpleGCS::updateQueries()
     {
         if(NUM_UAV == 0 || !central_ui_.uavQueriesFame->isEnabled())
             return;
@@ -452,7 +455,7 @@ namespace rqt_gcs
         lcar_msgs::DoorPtr door = pictureQueryVector->at(index);
 
         SimpleControl* uav = active_uavs[cur_uav];
-        std::string path = image_root_path_.toStdString() + "/queries";
+        std::string path = image_root_dir_.toStdString() + "/queries";
         std::string file;
         if(accepted)
         {
@@ -625,7 +628,7 @@ namespace rqt_gcs
         num_access_points_last = 0;
     }
 
-    void SimpleGCS::UpdateAccessPoints()
+    void SimpleGCS::updateAccessPoints()
     {
         if(NUM_UAV == 0  || !apmQWidget_->isVisible())
             return;
@@ -880,7 +883,7 @@ namespace rqt_gcs
         }
     }
 
-    void SimpleGCS::initializeHelperThread()
+    void SimpleGCS::initHelperThread()
     {
         uav_monitor = new SimpleGCSHelper(this);
         uav_monitor->moveToThread(&t_uav_monitor);
@@ -900,42 +903,67 @@ namespace rqt_gcs
         t_uav_monitor.start();
     }
     
-    void SimpleGCS::initializeMenuBar()
+    void SimpleGCS::MapTriggered()
+    {   
+        if(web_view_ == nullptr)
+        {
+            QString map_url = "file://" % app_root_dir_ % "/src/rqt_gcs/map/uavmap.html";
+            web_view_ = new QWebView(0);
+            web_view_->load(QUrl(map_url));
+        }
+        
+        if(web_view_act->isChecked())
+            web_view_->show();
+        else
+            web_view_->hide();
+    }
+    
+    void SimpleGCS::initMenuBar()
     {
        menu_bar_ = new QMenuBar(widget_);
 
-       file_menu = menu_bar_->addMenu("&File");
-       start_uav_act = file_menu->addAction("&Start UAV");
-       start_uav_group_act = file_menu->addAction("&Start UAV Group");
-       shutdown_uav_act = file_menu->addAction("&Shutdown UAV");
+       //file menu
+       file_menu = menu_bar_->addMenu("File");
+       start_uav_act = file_menu->addAction("Start UAV");
+       start_uav_group_act = file_menu->addAction("Start UAV Group");
+       shutdown_uav_act = file_menu->addAction("Shutdown UAV");
        shutdown_uav_group_act = file_menu->addAction("Shutdown UAV Group");
        
-       
-       view_menu = menu_bar_->addMenu("&View");
-       unanswered_queries_act = view_menu->addAction("&Unanswered Queries");
+       //view menu
+       view_menu = menu_bar_->addMenu("View");
+       unanswered_queries_act = view_menu->addAction("Unanswered Queries");
        connect(unanswered_queries_act, &QAction::triggered, 
                this, &SimpleGCS::UnansweredQueriesTriggered);
        
+       web_view_act = view_menu->addAction("UAV Map");
+       web_view_act->setCheckable(true);
+       //todo setChecked() based on last run
+       web_view_act->setChecked(false); 
+       connect(web_view_act, &QAction::triggered, 
+               this, &SimpleGCS::MapTriggered);
        
-       tools_menu = menu_bar_->addMenu("&Tools");
-       settings_act = tools_menu->addAction("&Settings");
+       
+       //tools menu
+       tools_menu = menu_bar_->addMenu("Tools");
+       settings_act = tools_menu->addAction("Settings");
        connect(settings_act, &QAction::triggered, 
                this, &SimpleGCS::SettingsTriggered); 
        
        
-       help_menu = menu_bar_->addMenu("&Help");
-       lcar_bot_act = help_menu->addAction("&Learning Classifying And Recognizing Bot (LCAR-Bot)");
-       ros_act      = help_menu->addAction("&Robot Operating System (ROS)");
-       opencv_act   = help_menu->addAction("&Open Computer Vision (OpenCV)");
-       qt_act       = help_menu->addAction("&Qt");
-       about_act    = help_menu->addSection("&About");
+       //help menu
+       help_menu = menu_bar_->addMenu("Help");
+       lcar_bot_act = help_menu->addAction("Learning Classifying And Recognizing Bot (LCAR-Bot)");
+       ros_act      = help_menu->addAction("Robot Operating System (ROS)");
+       opencv_act   = help_menu->addAction("Open Computer Vision (OpenCV)");
+       qt_act       = help_menu->addAction("Qt");
+       about_act    = help_menu->addSection("About");
        
        menu_bar_->adjustSize();
        menu_bar_->setVisible(true);
     }
 
     // SettingsWidget and QSettings related stuff
-    void SimpleGCS::initializeSettings()
+    void SimpleGCS::initSettings()
     {
         //initialize settings and uav queries display
         settings_ = new QSettings("SERL", "LCAR_Bot");
@@ -949,8 +977,8 @@ namespace rqt_gcs
 
         QString path = getenv("HOME");
         path += "/Pictures/LCAR_Bot";
-        image_root_path_ = settings_->value("machine_learning/save_path", path).toString();
-        ROS_INFO_STREAM("images root directory: " << image_root_path_.toStdString());
+        image_root_dir_ = settings_->value("machine_learning/save_path", path).toString();
+        ROS_INFO_STREAM("images root directory: " << image_root_dir_.toStdString());
 
         settings_->endGroup();
     }

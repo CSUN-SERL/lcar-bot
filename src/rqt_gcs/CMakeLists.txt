@@ -20,7 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5Svg REQUIRED)
-#find_package(Qt5WebKit REQUIRED)
+find_package(Qt5WebKit REQUIRED)
 find_package(Qt5WebKitWidgets REQUIRED)
 
 find_package(Boost REQUIRED COMPONENTS thread)
@@ -29,7 +29,7 @@ find_package(OpenCV REQUIRED)
 include_directories(${Qt5Core_INCLUDE_DIRS}
                     ${Qt5Gui_INCLUDE_DIRS}
                     ${Qt5Svg_INCLUDE_DIRS}
-                    #${Qt5WebKit_INCLUDE_DIRS}
+                    ${Qt5WebKit_INCLUDE_DIRS}
                     ${Qt5WebKitWidgets_INCLUDE_DIRS}
                     
 )
@@ -137,6 +137,7 @@ target_link_libraries(  ${PROJECT_NAME}
                         ${Qt5Gui_LIBRARIES}
                         ${Qt5Svg_LIBRARIES}
                         ${Qt5WebKit_LIBRARIES}
+                        ${Qt5WebKitWidgets_LIBRARIES}
                         ${OpenCV_LIBRARIES}
 )
 
