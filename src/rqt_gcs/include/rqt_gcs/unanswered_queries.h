@@ -53,7 +53,7 @@ public:
     
     UnansweredQueries(SimpleGCS*);
     virtual ~UnansweredQueries();
-    void addQueryWidget(QueryStat*, QString);
+    void  addQueryWidget(QueryStat*, QString);
     void addUnansweredQueriesFromDisk();
     void removeQuery(std::string);
     void removeAllQueries();

@@ -46,8 +46,8 @@ image[num] = {
 function showPosition() {
 //  console.log('latitude ' + longitude);
   // console.log('longitude ' + latitude);
-  latlon = new google.maps.LatLng(longitude, latitude)
-  mapholder = document.getElementById('mapholder')
+  latlon = new google.maps.LatLng(longitude, latitude);
+  mapholder = document.getElementById('mapholder');
   mapholder.style.height = '950px';
   mapholder.style.width = '100%';
   var myOptions = {
@@ -55,7 +55,7 @@ function showPosition() {
     mapTypeId:google.maps.MapTypeId.SATELLITE,
     mapTypeControl:true,
     navigationControlOptions:{style:google.maps.NavigationControlStyle.SMALL}
-  }
+  };
   map = new google.maps.Map(document.getElementById("mapholder"), myOptions);
   marker[num] = new google.maps.Marker({position:latlon,map:map,
     title:"UAV " + num,
@@ -128,16 +128,16 @@ function update() {
       focus =true; //only the current UAV should be updated
     }
     else{
-    focus = false; //every UAV should be updated now
+      focus = false; //every UAV should be updated now
     }
     outmessage.innerHTML = num + "  " + la ;
     uavName.innerHTML = "UAV " + checked;
     if( !focus){ //if not focused then check next UAV
-    num++
-    if(num >= 2){
-      num = 1;
+        num++;
+        if(num >= 2){
+            num = 1;
+        }
     }
-  }
     // Call the autoUpdate() function every k seconds
     setTimeout(update, 70);
   }
