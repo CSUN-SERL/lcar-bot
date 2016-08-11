@@ -51,8 +51,9 @@ namespace rqt_gcs
         context.addWidget(widget_);
         central_ui_.MissionLayout->addWidget(missionProgressWidget_);
         central_ui_.OverviewLayout->addWidget(uavStatWidget_);
+        //central_ui_.PFDLayout->addWidget(imageViewWidget_);
         central_ui_.PFDLayout->addWidget(PFDQWidget_);
-        central_ui_.CameraLayout->addWidget(imageViewWidget_);
+        central_ui_.CameraMapLayout->addWidget(imageViewWidget_);
 
         //Setup mission progress widgets
         uavStatWidget_->setWindowTitle("Flight State");
@@ -73,7 +74,7 @@ namespace rqt_gcs
         access_point_mapper = new QSignalMapper(this);
         acceptDoorMapper = new QSignalMapper(this);
         denyDoorMapper = new QSignalMapper(this);
-
+        
         connect(quad_select_mapper, SIGNAL(mapped(int)), this, SLOT(QuadSelected(int)));
         connect(access_point_mapper, SIGNAL(mapped(QWidget*)), this, SLOT(DeleteAccessPoint(QWidget*)));
         connect(acceptDoorMapper, SIGNAL(mapped(QWidget*)), this, SLOT(AcceptDoorQuery(QWidget*)));
@@ -217,7 +218,7 @@ namespace rqt_gcs
         {
             if(apmQWidget_->isVisible())
                 clearAccessPoints();
-            if(central_ui_.uavQueriesFame->isVisible())
+            if(central_ui_.frameQueries->isVisible())
                 clearQueries();
         }
 
@@ -395,7 +396,7 @@ namespace rqt_gcs
 
     void SimpleGCS::updateQueries()
     {
-        if(NUM_UAV == 0 || !central_ui_.uavQueriesFame->isEnabled())
+        if(NUM_UAV == 0 || !central_ui_.frameQueries->isEnabled())
             return;
 
         pictureQueryVector = active_uavs[cur_uav]->GetDoorQueries();
@@ -1035,8 +1036,8 @@ namespace rqt_gcs
 
     void SimpleGCS::ToggleMachineLearningMode(bool toggle)
     {
-        central_ui_.uavQueriesFame->setVisible(toggle);
-//        central_ui_.uavQueriesFame->setEnabled(toggle);
+        central_ui_.frameQueries->setVisible(toggle);
+//        central_ui_.frameQueries->setEnabled(toggle);
 
         for(int i = 0; i < NUM_UAV; i++)
             active_uavs[i]->setOnlineMode(toggle);
