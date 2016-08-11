@@ -73,8 +73,7 @@ void ConvertToMl(const std::vector< cv::Mat > & train_samples, cv::Mat& trainDat
     vector< Mat >::const_iterator itr = train_samples.begin();
     vector< Mat >::const_iterator end = train_samples.end();
     for (int i = 0; itr != end; ++itr, ++i) {
-        CV_Assert(itr->cols == 1 ||
-                itr->rows == 1);
+        CV_Assert(itr->cols == 1 || itr->rows == 1);
         if (itr->cols == 1) {
             transpose(*(itr), tmp);
             tmp.copyTo(trainData.row(i));

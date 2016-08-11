@@ -49,12 +49,16 @@ namespace rqt_gcs
 
         //Add widgets to the Main UI
         context.addWidget(widget_);
-        central_ui_.MissionLayout->addWidget(missionProgressWidget_);
+        central_ui_.CenterLayout->addWidget(imageViewWidget_, 1, 0);
+        central_ui_.CenterLayout->addWidget(missionProgressWidget_);
         central_ui_.OverviewLayout->addWidget(uavStatWidget_);
         //central_ui_.PFDLayout->addWidget(imageViewWidget_);
         central_ui_.PFDLayout->addWidget(PFDQWidget_);
-        central_ui_.CameraMapLayout->addWidget(imageViewWidget_);
+        
+        //central_ui_.CameraMapLayout->addWidget(imageViewWidget_, 2, 0);
+        
 
+        
         //Setup mission progress widgets
         uavStatWidget_->setWindowTitle("Flight State");
         missionProgressWidget_->setWindowTitle("Mission Control");
