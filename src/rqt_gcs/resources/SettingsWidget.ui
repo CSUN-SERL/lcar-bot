@@ -101,7 +101,7 @@ QPushButton{
       <string notr="true"/>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="general_tab">
       <attribute name="title">
@@ -198,7 +198,18 @@ QPushButton{
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
-           <widget class="QLineEdit" name="line_edit_images_dir"/>
+           <widget class="QLineEdit" name="line_edit_images_dir">
+            <property name="font">
+             <font>
+              <pointsize>11</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="frame">
+             <bool>true</bool>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -374,6 +385,9 @@ QPushButton{
                <property name="bottomMargin">
                 <number>6</number>
                </property>
+               <property name="verticalSpacing">
+                <number>6</number>
+               </property>
                <item row="2" column="0">
                 <widget class="QRadioButton" name="random_btn">
                  <property name="text">
@@ -394,6 +408,9 @@ QPushButton{
                    <width>45</width>
                    <height>25</height>
                   </size>
+                 </property>
+                 <property name="frame">
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -452,10 +469,98 @@ QPushButton{
           <string>Tuning Parameters</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_10">
+          <property name="verticalSpacing">
+           <number>6</number>
+          </property>
+          <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <property name="leftMargin">
+             <number>3</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblMeanShiftGrouping">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>25</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Mean Shift Grouping</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radio_on_mean_shift">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>60</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>On</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radio_off_mean_shift">
+              <property name="minimumSize">
+               <size>
+                <width>60</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Off</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
           <item row="0" column="0">
            <layout class="QGridLayout" name="gridLayout_7">
+            <property name="horizontalSpacing">
+             <number>6</number>
+            </property>
+            <property name="verticalSpacing">
+             <number>0</number>
+            </property>
             <item row="1" column="1">
              <widget class="QSlider" name="sl_step_size">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>1</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -463,6 +568,12 @@ QPushButton{
             </item>
             <item row="0" column="1">
              <widget class="QSlider" name="sl_hit_thresh">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>1</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -470,6 +581,12 @@ QPushButton{
             </item>
             <item row="3" column="1">
              <widget class="QSlider" name="sl_scale_factor">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>1</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -477,79 +594,134 @@ QPushButton{
             </item>
             <item row="2" column="1">
              <widget class="QSlider" name="sl_padding">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>1</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
              </widget>
             </item>
             <item row="0" column="0" alignment="Qt::AlignLeft">
-             <widget class="QLabel" name="LblHitThreshold">
+             <widget class="QLabel" name="lblHitThreshold">
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string/>
+              </property>
+              <property name="toolTipDuration">
+               <number>-1</number>
+              </property>
+              <property name="statusTip">
+               <string extracomment="testing status"/>
+              </property>
+              <property name="whatsThis">
+               <string extracomment="TESTING"/>
+              </property>
               <property name="text">
                <string>Hit Threshold</string>
               </property>
              </widget>
             </item>
-            <item row="4" column="1">
-             <layout class="QHBoxLayout" name="horizontalLayout_2">
-              <item>
-               <widget class="QRadioButton" name="radio_on_mean_shift">
-                <property name="minimumSize">
-                 <size>
-                  <width>58</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>On</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="radio_off_mean_shift">
-                <property name="minimumSize">
-                 <size>
-                  <width>60</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Off</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item row="4" column="0">
-             <widget class="QLabel" name="LblMeanShiftGrouping">
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>25</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Mean Shift Grouping</string>
-              </property>
-             </widget>
-            </item>
             <item row="2" column="0" alignment="Qt::AlignLeft">
-             <widget class="QLabel" name="LblPadding">
+             <widget class="QLabel" name="lblPadding">
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
               <property name="text">
                <string>Padding</string>
               </property>
              </widget>
             </item>
             <item row="3" column="0" alignment="Qt::AlignLeft">
-             <widget class="QLabel" name="LblScaleFactor">
+             <widget class="QLabel" name="lblScaleFactor">
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
               <property name="text">
                <string>Scale Factor</string>
               </property>
              </widget>
             </item>
             <item row="1" column="0" alignment="Qt::AlignLeft">
-             <widget class="QLabel" name="LblStepSize">
+             <widget class="QLabel" name="lblStepSize">
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
               <property name="text">
                <string>Step Size</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QLineEdit" name="line_edit_hit_thresh">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>45</width>
+                <height>25</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <widget class="QLineEdit" name="line_edit_step_size">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>45</width>
+                <height>25</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="2">
+             <widget class="QLineEdit" name="line_edit_padding">
+              <property name="maximumSize">
+               <size>
+                <width>45</width>
+                <height>25</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="2">
+             <widget class="QLineEdit" name="line_edit_scale_factor">
+              <property name="maximumSize">
+               <size>
+                <width>45</width>
+                <height>25</height>
+               </size>
               </property>
              </widget>
             </item>
@@ -581,6 +753,13 @@ QPushButton{
            <layout class="QVBoxLayout" name="verticalLayout">
             <item>
              <widget class="QRadioButton" name="radioButton">
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
               <property name="text">
                <string>UAV</string>
               </property>
@@ -588,6 +767,13 @@ QPushButton{
             </item>
             <item>
              <widget class="QRadioButton" name="radioButton_2">
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
               <property name="text">
                <string>GCS</string>
               </property>

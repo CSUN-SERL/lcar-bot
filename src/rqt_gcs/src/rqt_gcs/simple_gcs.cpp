@@ -51,9 +51,11 @@ namespace rqt_gcs
         context.addWidget(widget_);
         central_ui_.CenterLayout->addWidget(imageViewWidget_, 1, 0);
         central_ui_.CenterLayout->addWidget(missionProgressWidget_);
-        central_ui_.OverviewLayout->addWidget(uavStatWidget_);
+        
+        central_ui_.LeftLayout->addWidget(PFDQWidget_, 1, 0);
+        central_ui_.LeftLayout->addWidget(uavStatWidget_);
         //central_ui_.PFDLayout->addWidget(imageViewWidget_);
-        central_ui_.PFDLayout->addWidget(PFDQWidget_);
+        
         
         //central_ui_.CameraMapLayout->addWidget(imageViewWidget_, 2, 0);
         
@@ -95,8 +97,7 @@ namespace rqt_gcs
         connect(update_timer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
         //30 hz :1000/30 = 33.33...
         update_timer->start(33);
-        
-        //central_ui_.frame_3->setVisible(false);
+
     }
 
     void SimpleGCS::AddUav(int uav_id)
@@ -147,14 +148,14 @@ namespace rqt_gcs
 
         for(int i = index; i < NUM_UAV; i++)
         {
-            central_ui_.UAVListLayout->removeWidget(uavListWidgetArr_[i]);
+            central_ui_.layoutUavList->removeWidget(uavListWidgetArr_[i]);
             disconnect(uavCondWidgetArr[i]->VehicleSelectButton,
                     SIGNAL(clicked()), quad_select_mapper, SLOT(map()));
         }
 
         for(int i = index; i < active_uavs.size(); i++)
         {
-            central_ui_.UAVListLayout->addWidget(uavListWidgetArr_[i]);
+            central_ui_.layoutUavList->addWidget(uavListWidgetArr_[i]);
             quad_select_mapper->setMapping(uavCondWidgetArr[i]->VehicleSelectButton, i);
             connect(uavCondWidgetArr[i]->VehicleSelectButton, SIGNAL(clicked()),
                     quad_select_mapper, SLOT(map()));
@@ -199,7 +200,7 @@ namespace rqt_gcs
 
         ROS_WARN_STREAM("Deleting UAV with id: " << uav_id);
 
-        central_ui_.UAVListLayout->removeWidget(uavListWidgetArr_[index]);
+        central_ui_.layoutUavList->removeWidget(uavListWidgetArr_[index]);
 
         delete uavCondWidgetArr[index];
         delete uavListWidgetArr_[index];
@@ -389,7 +390,7 @@ namespace rqt_gcs
     {
         for(int i = pictureQueryWidgets_.size() - 1; i >= 0; i--)
         {
-            central_ui_.PictureMsgLayout->removeWidget(pictureQueryWidgets_[i]);
+            central_ui_.layoutQueries->removeWidget(pictureQueryWidgets_[i]);
             delete pictureQueryWidgets_[i];
         }
         pictureQueryWidgets_.clear();
@@ -448,7 +449,7 @@ namespace rqt_gcs
                     denyDoorMapper, SLOT(map()));
 
             //add to user interface
-            central_ui_.PictureMsgLayout->addWidget(pictureQueryWidgets_[index]);
+            central_ui_.layoutQueries->addWidget(pictureQueryWidgets_[index]);
         }
 
         num_queries_last = pqv_size;
@@ -456,7 +457,7 @@ namespace rqt_gcs
 
     void SimpleGCS::answerQuery(QWidget * qw, std::string ap_type, bool accepted)
     {
-        int index = central_ui_.PictureMsgLayout->indexOf(qw);
+        int index = central_ui_.layoutQueries->indexOf(qw);
         lcar_msgs::DoorPtr door = pictureQueryVector->at(index);
 
         SimpleControl* uav = active_uavs[cur_uav];
@@ -479,7 +480,7 @@ namespace rqt_gcs
 
         pictureQueryVector->erase(pictureQueryVector->begin() + index);
         pictureQueryWidgets_.erase(pictureQueryWidgets_.begin() + index);
-        central_ui_.PictureMsgLayout->removeWidget(qw);
+        central_ui_.layoutQueries->removeWidget(qw);
         delete qw;
 
         door->accepted = accepted;
@@ -992,7 +993,7 @@ namespace rqt_gcs
     {
         if(settings_widget_ == nullptr)
         {
-            settings_widget_ = new SettingsWidget(settings_);
+            settings_widget_ = new SettingsWidget(this);
 
             QRect window = widget_->window()->geometry();
             int x = (widget_->width() / 2) - (settings_widget_->width() / 2);
@@ -1047,7 +1048,13 @@ namespace rqt_gcs
             active_uavs[i]->setOnlineMode(toggle);
     }
 
+    
+    void SimpleGCS::publishHitThreshold(double thresh)
 
+    {
+        //todo create publisher and publish hit threshold setting
+    }
+    
     //////////////////////////  SimpleGCSHelper  ///////////////////////////////
 
     SimpleGCSHelper::SimpleGCSHelper(SimpleGCS * sgcs) :

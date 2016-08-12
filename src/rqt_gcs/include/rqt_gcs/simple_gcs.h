@@ -58,6 +58,7 @@
 #include <QWaitCondition>
 #include <QMetaType>
 #include <QWebView>
+#include <QSettings>
 
 #define MAX_UAV 100 // the total number of UAV's manageable by our system
 
@@ -67,13 +68,15 @@ namespace rqt_gcs{
 
   class SimpleGCSHelper;
   class UnansweredQueries;
-
+  class SettingsWidget;
+  
   class SimpleGCS : public rqt_gui_cpp::Plugin
   {
   Q_OBJECT
 
   friend class SimpleGCSHelper;
   friend class UnansweredQueries;
+  friend class SettingsWidget;
 
   public:
       
@@ -106,6 +109,10 @@ namespace rqt_gcs{
     virtual void saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const;
     virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings);
 
+    
+    //methods for publishing object detection paramerter updates
+    void publishHitThreshold(double thresh);
+    
   protected slots:
     virtual void TimedUpdate();
     
@@ -157,7 +164,6 @@ namespace rqt_gcs{
     std::string GetMissionType(std::string file_name);		 
     lcar_msgs::TargetLocal GetMissionLocal(std::string file_name);
     lcar_msgs::TargetGlobal GetMissionGlobal(std::string file_name);
-    
     
     int cur_uav;
     int timeCounter;

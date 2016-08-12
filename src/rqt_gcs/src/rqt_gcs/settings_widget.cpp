@@ -12,10 +12,10 @@
 namespace rqt_gcs
 {
 
-    SettingsWidget::SettingsWidget(QSettings *settings) :
-    settings_(settings)
+    SettingsWidget::SettingsWidget(SimpleGCS * sgcs) :
+    gcs(sgcs)
     {
-        assert(settings != NULL && settings != nullptr);
+        //assert(settings != NULL && settings != nullptr);
 
         widget_.setupUi(this);
 
@@ -49,7 +49,19 @@ namespace rqt_gcs
         connect(widget_.length_check_box, SIGNAL(clicked()),
                 this, SLOT(toggleLengthTextBox()));
 
-
+        
+        widget_.sl_hit_thresh->setMinimum(0);
+        widget_.sl_hit_thresh->setMaximum(90);
+        
+        connect(widget_.sl_hit_thresh, &QSlider::valueChanged, 
+                this, &SettingsWidget::onHitThresholdSliderChange);
+        
+        connect(widget_.line_edit_hit_thresh, &QLineEdit::textChanged,
+                this, &SettingsWidget::onHitThresholdLineChange);
+        
+        
+        setToolTips();
+        
         readGeneralSettings();
 
         //TODO
@@ -58,15 +70,39 @@ namespace rqt_gcs
 
     SettingsWidget::~SettingsWidget()
     {
-        // don't delete this because SimpleGCS needs it. just derefence it.
-        settings_ = nullptr;
+       gcs = nullptr;
     }
 
+    void SettingsWidget::setToolTips()
+    {
+        widget_.lblHitThreshold->setToolTip("Controls the maximum Euclidian distance between the input HOG\n"
+                                            "features and the classifying plane of the Support Vector Machine.\n"
+                                            "Range: 0.0 - 0.9");
+        widget_.lblHitThreshold->setToolTipDuration(10000);
+        
+        widget_.lblStepSize->setToolTip("Controls the number of pixels that the detection window jumps forward.\n"
+                                        "Range: 4, 8, or 16");
+        widget_.lblStepSize->setToolTipDuration(10000);
+        
+        widget_.lblPadding->setToolTip("Controls the amount of padding around the region of interest that will\n"
+                                       "be added before feature extraction.\n"
+                                       "Range: 0, 4, or 8");
+        widget_.lblPadding->setToolTipDuration(10000);
+        
+        widget_.lblScaleFactor->setToolTip("Controls the percentage by which the image is shrunk on subsequent object detection passes.\n"
+                                           "Range: 1.05 - 1.3");
+        widget_.lblScaleFactor->setToolTipDuration(10000);
+        
+        widget_.lblMeanShiftGrouping->setToolTip("Controls overlapping bounding boxes to decide if the\n"
+                                                 "common space between boxes is an object of interest.");
+        widget_.lblMeanShiftGrouping->setToolTipDuration(10000);
+    }
+    
     void SettingsWidget::readGeneralSettings()
     {
-        settings_->beginGroup("general_tab");
+        gcs->settings_->beginGroup("general_tab");
 
-        QString ml = settings_->value("machine_learning", "online").toString();
+        QString ml = gcs->settings_->value("machine_learning", "online").toString();
         if(ml == "online")
             widget_.online_btn->setChecked(true);
         else
@@ -74,7 +110,7 @@ namespace rqt_gcs
         
         ml_state_ = ml;
         
-        QString vehicle_link = settings_->value("connection_drop/vehicle_gcs_link",
+        QString vehicle_link = gcs->settings_->value("connection_drop/vehicle_gcs_link",
                                                 "marginal").toString();
         if(vehicle_link == "nominal")
             widget_.nominal_btn->setChecked(true);
@@ -90,11 +126,11 @@ namespace rqt_gcs
 
         QString conn_freq = "connection_drop/frequency";
 
-        QString frequency = settings_->value(conn_freq, "random").toString();
+        QString frequency = gcs->settings_->value(conn_freq, "random").toString();
         if(frequency == "interval")
         {
             widget_.interval_btn->setChecked(true);
-            QVariant interval = settings_->value(conn_freq + "/interval_text");
+            QVariant interval = gcs->settings_->value(conn_freq + "/interval_text");
             if(!interval.isNull())
                 widget_.interval_text_box->setText(interval.toString());
 
@@ -106,11 +142,11 @@ namespace rqt_gcs
             widget_.interval_text_box->setEnabled(false);
         }
 
-        bool length_specified = settings_->value(conn_freq + "/length_box_checked",
+        bool length_specified = gcs->settings_->value(conn_freq + "/length_box_checked",
                                                  false).toBool();
         if(length_specified)
         {
-            QVariant length = settings_->value(conn_freq + "/length_text");
+            QVariant length = gcs->settings_->value(conn_freq + "/length_text");
             if(!length.isNull())
                 widget_.length_text_box->setText(length.toString());
 
@@ -122,12 +158,12 @@ namespace rqt_gcs
             widget_.length_text_box->setEnabled(false);
         }
         
-        settings_->endGroup();
+        gcs->settings_->endGroup();
     }
 
     void SettingsWidget::writeGeneralSettings()
     {
-        settings_->beginGroup("general_tab");
+        gcs->settings_->beginGroup("general_tab");
         
         QString ml;
         if(widget_.online_btn->isChecked())
@@ -136,7 +172,7 @@ namespace rqt_gcs
             ml = "offline";
         
         ml_state_ = ml;
-        settings_->setValue("machine_learning", ml);
+        gcs->settings_->setValue("machine_learning", ml);
 
         
         QString conn = "connection_drop";
@@ -149,7 +185,7 @@ namespace rqt_gcs
         else
             vehicle_link = "poor";
         
-        settings_->setValue(conn + "/vehicle_gcs_link", vehicle_link);
+        gcs->settings_->setValue(conn + "/vehicle_gcs_link", vehicle_link);
         
         QString conn_freq = "connection_drop/frequency";
         if(vehicle_link != "nominal") // write frequency settings to config
@@ -159,31 +195,31 @@ namespace rqt_gcs
                 frequency = "interval";
             else
                 frequency = "random";
-            settings_->setValue(conn_freq, frequency);
+            gcs->settings_->setValue(conn_freq, frequency);
             
             if(frequency == "interval")
             {   //already guaranteed text is valid in validateGeneralSettings()
                 QString interval_text = widget_.interval_text_box->text();
-                settings_->setValue(conn_freq + "/interval_text", interval_text);
+                gcs->settings_->setValue(conn_freq + "/interval_text", interval_text);
             }
             else
-                settings_->remove(conn_freq + "/interval_text");
+                gcs->settings_->remove(conn_freq + "/interval_text");
                
             bool length_specified = widget_.length_check_box->isChecked();
-            settings_->setValue(conn_freq + "/length_box_checked", length_specified);
+            gcs->settings_->setValue(conn_freq + "/length_box_checked", length_specified);
 
             if(length_specified)
             {   //already guaranteed text is valid in validateGeneralSettings()
                 QString length_text = widget_.length_text_box->text();
-                settings_->setValue(conn_freq + "/length_text", length_text);
+                gcs->settings_->setValue(conn_freq + "/length_text", length_text);
             }
             else
-                settings_->remove(conn_freq + "/length_text");
+                gcs->settings_->remove(conn_freq + "/length_text");
         }
         else // remove all frequency related settings from config
-            settings_->remove(conn_freq);
+            gcs->settings_->remove(conn_freq);
         
-        settings_->endGroup(); //general_tab
+        gcs->settings_->endGroup(); //general_tab
     }
 
 //    void SettingsWidget::writeObjectDetectionSettings()
@@ -251,16 +287,9 @@ namespace rqt_gcs
     }
 
     //bool SettingsWidget::validateObjectDetectionSettings() { }
-    
-    void SettingsWidget::applyClicked()
-    {
-        if(settings_ == nullptr)
-        {
-            std::cout << "SettingsWidget contains a nullptr settings object"
-                    << std::endl;
-            return;
-        }
         
+    void SettingsWidget::applyClicked()
+    {   
         QString ml_state_previous = ml_state_;
         
         if(!validateGeneralSettings()
@@ -309,5 +338,42 @@ namespace rqt_gcs
                 << (widget_.length_check_box->isEnabled() ? "enabled" : "disabled")
                 << std::endl;
     }
+    
+    void SettingsWidget::onHitThresholdSliderChange(int new_thresh)
+    {
+        //hit threshold is actually a decimal point number so we need to map to a double
+        
+        //update line edit, since slider was changed by user
+        double thresh = ( ((double)new_thresh) / 100 );
+        widget_.line_edit_hit_thresh->setText(QString::number(thresh, 'f', 2));
+        
+        obj_params.hit_thresh = new_thresh;
+        gcs->publishHitThreshold(new_thresh);
+        
+    }
+    
+    void SettingsWidget::onHitThresholdLineChange(QString new_thresh)
+    {
+        bool ok;
+        double thresh = new_thresh.toDouble(&ok);
+        if(!ok || thresh < 0 || thresh > 0.9)
+        {
+            widget_.line_edit_hit_thresh->setText(QString::number(obj_params.hit_thresh, 'f', 2));
+            std::cout << "tried to enter invalid decimal point number: " 
+                      << new_thresh.toStdString() << "\n";
+            return;
+        }
+        
+        if(thresh < 0)
+            thresh = 0;
+        if(thresh > 0.9)
+            thresh = 0.0;
+        
+        widget_.sl_hit_thresh->setValue(thresh * 100);
+        
+        obj_params.hit_thresh = thresh;
+        gcs->publishHitThreshold(thresh);
+    }
+
     
 }// end name space

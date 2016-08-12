@@ -124,17 +124,7 @@ QMenuBar::item:pressed {
         <number>0</number>
        </property>
        <item>
-        <layout class="QVBoxLayout" name="PFDLayout">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-        </layout>
-       </item>
-       <item>
-        <layout class="QVBoxLayout" name="OverviewLayout">
+        <layout class="QVBoxLayout" name="LeftLayout">
          <property name="spacing">
           <number>0</number>
          </property>
@@ -151,7 +141,7 @@ QMenuBar::item:pressed {
      <widget class="QFrame" name="frameCenter">
       <property name="minimumSize">
        <size>
-        <width>300</width>
+        <width>600</width>
         <height>0</height>
        </size>
       </property>
@@ -184,7 +174,7 @@ QMenuBar::item:pressed {
         <number>0</number>
        </property>
        <item>
-        <layout class="QVBoxLayout" name="CenterLayout" stretch=""/>
+        <layout class="QVBoxLayout" name="CenterLayout"/>
        </item>
       </layout>
      </widget>
@@ -314,7 +304,7 @@ QMenuBar::item:pressed {
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>492</width>
+                <width>278</width>
                 <height>299</height>
                </rect>
               </property>
@@ -340,7 +330,7 @@ QMenuBar::item:pressed {
                   <number>0</number>
                  </property>
                  <item>
-                  <layout class="QVBoxLayout" name="PictureMsgLayout">
+                  <layout class="QVBoxLayout" name="layoutQueries">
                    <property name="spacing">
                     <number>3</number>
                    </property>
@@ -435,7 +425,7 @@ QMenuBar::item:pressed {
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>492</width>
+                <width>278</width>
                 <height>298</height>
                </rect>
               </property>
@@ -470,7 +460,7 @@ QMenuBar::item:pressed {
                   <number>0</number>
                  </property>
                  <item>
-                  <layout class="QVBoxLayout" name="UAVListLayout">
+                  <layout class="QVBoxLayout" name="layoutUavList">
                    <property name="spacing">
                     <number>3</number>
                    </property>
