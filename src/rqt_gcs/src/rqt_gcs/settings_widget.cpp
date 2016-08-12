@@ -22,6 +22,9 @@ namespace rqt_gcs
         //apply and cancel buttons
         connect(widget_.apply_btn, SIGNAL(clicked()),
                 this, SLOT(applyClicked()));
+        
+        connect(widget_.ok_btn, SIGNAL(clicked()),
+                this, SLOT(okClicked()));
 
         connect(widget_.cancel_btn, SIGNAL(clicked()),
                 this, SLOT(cancelClicked()));
@@ -50,15 +53,53 @@ namespace rqt_gcs
                 this, SLOT(toggleLengthTextBox()));
 
         
-        widget_.sl_hit_thresh->setMinimum(0);
+        //object detection parameter inits and slider/line_edit connections
+        //hit threshold
+        widget_.sl_hit_thresh->setMinimum(0); // divided by 100 to get actual value
         widget_.sl_hit_thresh->setMaximum(90);
         
         connect(widget_.sl_hit_thresh, &QSlider::valueChanged, 
                 this, &SettingsWidget::onHitThresholdSliderChange);
         
-        connect(widget_.line_edit_hit_thresh, &QLineEdit::textChanged,
+        connect(widget_.line_edit_hit_thresh, &QLineEdit::returnPressed,
                 this, &SettingsWidget::onHitThresholdLineChange);
         
+        //step size
+        widget_.sl_step_size->setMinimum(1); // multipied by 4 to get actual value
+        widget_.sl_step_size->setMaximum(4);
+        
+        connect(widget_.sl_step_size, &QSlider::valueChanged,
+                this, &SettingsWidget::onStepSizeSliderChange);
+        
+        connect(widget_.line_edit_step_size, &QLineEdit::returnPressed,
+                this, &SettingsWidget::onStepSizeLineChange);
+        
+        //padding
+        widget_.sl_padding->setMinimum(0); // multiplied by 8 to get actual value
+        widget_.sl_padding->setMaximum(4);
+        
+        connect(widget_.sl_padding, &QSlider::valueChanged,
+                this, &SettingsWidget::onPaddingSliderChange);
+        
+        connect(widget_.line_edit_padding, &QLineEdit::returnPressed,
+                this, &SettingsWidget::onPaddingLineChange);
+        
+        //scale factor
+        widget_.sl_scale_factor->setMinimum(105); // divided by 100 to get actual value
+        widget_.sl_scale_factor->setMaximum(130);
+        
+        connect(widget_.sl_scale_factor, &QSlider::valueChanged,
+                this, &SettingsWidget::onScaleFactorSliderChange);
+        
+        connect(widget_.line_edit_scale_factor, &QLineEdit::returnPressed,
+                this, &SettingsWidget::onScaleFactorLineChange);
+        
+        //mean shift grouping
+        connect(widget_.radio_on_mean_shift, &QRadioButton::clicked,
+                this, &SettingsWidget::onMeanShiftRadioChange);
+        
+        connect(widget_.radio_off_mean_shift, &QRadioButton::clicked,
+                this, &SettingsWidget::onMeanShiftRadioChange);
         
         setToolTips();
         
@@ -75,18 +116,22 @@ namespace rqt_gcs
 
     void SettingsWidget::setToolTips()
     {
+        widget_.group_obj_dtct_params->setToolTip("These parameters affect the behavior of the object detection node associated with each UAV.\n"
+                                                  "Mouse over each one for a description.");
+        widget_.group_obj_dtct_params->setToolTipDuration(10000);
+        
         widget_.lblHitThreshold->setToolTip("Controls the maximum Euclidian distance between the input HOG\n"
                                             "features and the classifying plane of the Support Vector Machine.\n"
                                             "Range: 0.0 - 0.9");
         widget_.lblHitThreshold->setToolTipDuration(10000);
         
         widget_.lblStepSize->setToolTip("Controls the number of pixels that the detection window jumps forward.\n"
-                                        "Range: 4, 8, or 16");
+                                        "Range: 4, 8, 12 or 16");
         widget_.lblStepSize->setToolTipDuration(10000);
         
         widget_.lblPadding->setToolTip("Controls the amount of padding around the region of interest that will\n"
                                        "be added before feature extraction.\n"
-                                       "Range: 0, 4, or 8");
+                                       "Range: 0, 8, 16 or 32");
         widget_.lblPadding->setToolTipDuration(10000);
         
         widget_.lblScaleFactor->setToolTip("Controls the percentage by which the image is shrunk on subsequent object detection passes.\n"
@@ -96,6 +141,18 @@ namespace rqt_gcs
         widget_.lblMeanShiftGrouping->setToolTip("Controls overlapping bounding boxes to decide if the\n"
                                                  "common space between boxes is an object of interest.");
         widget_.lblMeanShiftGrouping->setToolTipDuration(10000);
+        
+        widget_.line_edit_hit_thresh->setToolTip("Press Enter to apply changes");
+        widget_.line_edit_hit_thresh->setToolTipDuration(5000);
+        
+        widget_.line_edit_step_size->setToolTip("Press Enter to apply changes");
+        widget_.line_edit_step_size->setToolTipDuration(5000);
+        
+        widget_.line_edit_padding->setToolTip("Press Enter to apply changes");
+        widget_.line_edit_padding->setToolTipDuration(5000);
+        
+        widget_.line_edit_scale_factor->setToolTip("Press Enter to apply changes");
+        widget_.line_edit_scale_factor->setToolTipDuration(5000);
     }
     
     void SettingsWidget::readGeneralSettings()
@@ -303,7 +360,11 @@ namespace rqt_gcs
         
         if(ml_state_ != ml_state_previous)
             emit machineLearningModeToggled(widget_.online_btn->isChecked());
+    }
     
+    void SettingsWidget::okClicked()
+    {
+        applyClicked();
         emit dismissMe();
     }
 
@@ -339,41 +400,165 @@ namespace rqt_gcs
                 << std::endl;
     }
     
+    
+    // object detection parameter adjustments
+    
     void SettingsWidget::onHitThresholdSliderChange(int new_thresh)
     {
-        //hit threshold is actually a decimal point number so we need to map to a double
-        
-        //update line edit, since slider was changed by user
         double thresh = ( ((double)new_thresh) / 100 );
-        widget_.line_edit_hit_thresh->setText(QString::number(thresh, 'f', 2));
-        
-        obj_params.hit_thresh = new_thresh;
-        gcs->publishHitThreshold(new_thresh);
-        
+        if(od_params.hit_thresh != thresh)
+        {
+            od_params.hit_thresh = thresh;
+            widget_.line_edit_hit_thresh->setText(QString::number(thresh, 'f', 2));
+            gcs->publishHitThreshold(thresh);
+        }
     }
     
-    void SettingsWidget::onHitThresholdLineChange(QString new_thresh)
+    void SettingsWidget::onHitThresholdLineChange()
     {
+        QString s = widget_.line_edit_hit_thresh->text();
+        
         bool ok;
-        double thresh = new_thresh.toDouble(&ok);
-        if(!ok || thresh < 0 || thresh > 0.9)
+        double thresh = s.toDouble(&ok);
+        if(!ok)
         {
-            widget_.line_edit_hit_thresh->setText(QString::number(obj_params.hit_thresh, 'f', 2));
-            std::cout << "tried to enter invalid decimal point number: " 
-                      << new_thresh.toStdString() << "\n";
+            std::cout << "tried to enter invalid theshold value: " 
+                      << s.toStdString() << "\n";
             return;
         }
         
+        int thresh_old = thresh;
         if(thresh < 0)
             thresh = 0;
-        if(thresh > 0.9)
-            thresh = 0.0;
+        else if(thresh > 0.9)
+            thresh = 0.9;
         
+        if(thresh != thresh_old)
+             widget_.line_edit_hit_thresh->setText(QString::number(thresh, 'f', 2));
+        
+        od_params.hit_thresh = thresh;
         widget_.sl_hit_thresh->setValue(thresh * 100);
-        
-        obj_params.hit_thresh = thresh;
-        gcs->publishHitThreshold(thresh);
     }
-
+    
+    void SettingsWidget::onStepSizeSliderChange(int new_step)
+    {
+        new_step *= 4; // map to 4, 8, 12 or 16
+        if(od_params.step_size != new_step)
+        {
+            od_params.step_size = new_step;
+            widget_.line_edit_step_size->setText(QString::number(new_step));
+            gcs->publishStepSize(new_step);
+        }
+    }
+    
+    void SettingsWidget::onStepSizeLineChange()
+    {
+        QString s = widget_.line_edit_step_size->text();
+        
+        bool ok;
+        int step = s.toInt(&ok);
+        if(!ok || step % 4 != 0)
+        {
+            std::cout << "tried to enter invalid step size value: "
+                      << s.toStdString() << "\n";
+            return;
+        }
+        
+        int step_old = step;
+        if(step < 4)
+            step = 4;
+        else if(step > 16)
+            step = 16;
+        
+        if(step != step_old)
+             widget_.line_edit_step_size->setText(QString::number(step));
+        
+        od_params.step_size = step;
+        widget_.sl_step_size->setValue(step / 4);
+    }
+    
+    void SettingsWidget::onPaddingSliderChange(int new_padding)
+    {
+        new_padding *= 8; // map to 0, 8, 16, 24 or 32
+        if(od_params.padding != new_padding)
+        {
+            od_params.padding = new_padding;
+            widget_.line_edit_padding->setText(QString::number(new_padding));
+            gcs->publishPadding(new_padding);
+        }
+    }
+    
+    void SettingsWidget::onPaddingLineChange()
+    {
+        QString s = widget_.line_edit_padding->text();
+        
+        bool ok;
+        int padding = s.toInt(&ok);
+        if(!ok || padding % 8 != 0)
+        {
+            std::cout << "tried to enter invalid padding value: " 
+                      << s.toStdString() << "\n";
+            return;
+        }
+        
+        int padding_old = padding;
+        if(padding < 0)
+            padding = 0;
+        else if(padding > 32)
+            padding = 32;
+        
+        if(padding != padding_old)
+            widget_.line_edit_padding->setText(QString::number(padding));
+        
+        od_params.padding = padding;
+        widget_.sl_padding->setValue(padding / 8);
+    }
+    
+    void SettingsWidget::onScaleFactorSliderChange(int new_scale)
+    {
+        double scale = (((double)new_scale) / 100);
+        if(od_params.scale_factor != scale)
+        {
+            od_params.scale_factor = scale;
+            widget_.line_edit_scale_factor->setText(QString::number(scale, 'f', 2));
+            gcs->publishScaleFactor(scale);
+        }
+    }
+    
+    void SettingsWidget::onScaleFactorLineChange()
+    {   
+        QString s = widget_.line_edit_scale_factor->text();
+        
+        bool ok;
+        double scale = s.toDouble(&ok);
+        if(!ok)
+        {
+            std::cout << "tried to enter invalid scale value: " 
+                      << s.toStdString() << "\n";
+            return;
+        }
+        
+        int scale_old = scale;
+        if(scale < 1.05)
+            scale = 1.05;
+        else if(scale > 1.3)
+            scale = 1.3;
+       
+        if(scale != scale_old)
+            widget_.line_edit_scale_factor->setText(QString::number(scale, 'f', 2));
+        
+        od_params.scale_factor = scale;
+        widget_.sl_scale_factor->setValue(scale * 100);
+    }
+    
+    void SettingsWidget::onMeanShiftRadioChange()
+    {
+        bool on = widget_.radio_on_mean_shift->isChecked();
+        if(od_params.mean_shift != on)
+        {
+            od_params.mean_shift = on;
+            gcs->publishMeanShift(on);
+        }
+    }
     
 }// end name space

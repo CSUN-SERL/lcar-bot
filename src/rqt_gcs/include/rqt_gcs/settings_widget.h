@@ -11,6 +11,7 @@
 #include<rqt_gcs/simple_gcs.h>
 #include "ui_SettingsWidget.h"
 #include <QtCore/QSettings>
+#include <QtCore/qmath.h>
 
 
 namespace rqt_gcs
@@ -33,12 +34,13 @@ namespace rqt_gcs
         
         struct ObjectDetectionParams // object detection parameters
         {
-            double hit_thresh; // displayed as a decimal
-            int step_size;
-            int padding;
-            double scale_factor; // displayed as a decimal
-            bool mean_shift;
-        } obj_params;
+            //defaults
+            double hit_thresh = 0.45; // displayed as a decimal
+            int step_size = 8;
+            int padding = 0;
+            double scale_factor = 1.15; // displayed as a decimal
+            bool mean_shift = true;
+        } od_params;
         
         void setToolTips();
         
@@ -50,8 +52,6 @@ namespace rqt_gcs
         
         bool validateGeneralSettings();
         //bool validateObjectDetectionSettings();
-
-        void updateHitThreshold(double);
         
     signals:
         void dismissMe();
@@ -59,21 +59,26 @@ namespace rqt_gcs
 
     private slots:
         void applyClicked();
+        void okClicked();
         void cancelClicked();
         void toggleFrequencyGroup();
         void toggleIntervalTextBox();
         void toggleLengthTextBox();
         
         //object detection tab sliders
-        void onHitThresholdSliderChange(int); // convert to double
-        void onHitThresholdLineChange(QString);
+        void onHitThresholdSliderChange(int);
+        void onHitThresholdLineChange();
         
         void onStepSizeSliderChange(int);
-        void onStepSizeLineChange(QString);
+        void onStepSizeLineChange();
         
-        void updatePadding(int);
-        void updateScaleFactor(int); // convert to double
-        void updateMeanShiftGrouping(bool);
+        void onPaddingSliderChange(int);
+        void onPaddingLineChange();
+        
+        void onScaleFactorSliderChange(int);
+        void onScaleFactorLineChange();
+        
+        void onMeanShiftRadioChange();
 
     };
 

@@ -112,6 +112,10 @@ namespace rqt_gcs{
     
     //methods for publishing object detection paramerter updates
     void publishHitThreshold(double thresh);
+    void publishStepSize(int step);
+    void publishPadding(int padding);
+    void publishScaleFactor(double scale);
+    void publishMeanShift(bool on);
     
   protected slots:
     virtual void TimedUpdate();

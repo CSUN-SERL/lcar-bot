@@ -52,23 +52,23 @@ void UnansweredQueries::addUnansweredQueriesFromDisk()
             for(int j = 0; j < num_imgs; j++)
             {
                 QString file_name = img_list[j].fileName();
-                    int img_num = imgNumFromFile(file_name);
-                    if(img_num % 2 == 0)
-                    {
-                        QString img_path = img_list[j].canonicalFilePath(); // <path>/uav_x/img_x.jpg
-                        QueryStat * stat = new QueryStat();
-                        stat->uav_id = uavIdFromDir(img_path);
-                        stat->original_img = new QImage(img_path);
-                        QString base_path = getImgBasePath(img_path);
+                int img_num = imgNumFromFile(file_name);
+                if(img_num % 2 == 0)
+                {
+                    QString img_path = img_list[j].canonicalFilePath(); // <path>/uav_x/img_x.jpg
+                    QueryStat * stat = new QueryStat();
+                    stat->uav_id = uavIdFromDir(img_path);
+                    stat->original_img = new QImage(img_path);
+                    QString base_path = getImgBasePath(img_path);
 
-                        QString framed_img_path = base_path % "/img_" 
-                                % QString::number(img_num+1) % ".jpg";
-                        stat->framed_img = new QImage(framed_img_path);
+                    QString framed_img_path = base_path % "/img_" 
+                            % QString::number(img_num+1) % ".jpg";
+                    stat->framed_img = new QImage(framed_img_path);
 
-                        stat->og_img_file_path = img_path;
-                        stat->fr_img_file_path = framed_img_path;
-                        addQueryWidget(stat, ap_types[i]);
-                    }
+                    stat->og_img_file_path = img_path;
+                    stat->fr_img_file_path = framed_img_path;
+                    addQueryWidget(stat, ap_types[i]);
+                }
             }
         }
     }

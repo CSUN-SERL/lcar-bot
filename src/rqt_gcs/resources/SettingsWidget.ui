@@ -687,6 +687,13 @@ QPushButton{
                 <height>25</height>
                </size>
               </property>
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
              </widget>
             </item>
             <item row="1" column="2">
@@ -703,6 +710,13 @@ QPushButton{
                 <height>25</height>
                </size>
               </property>
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
              </widget>
             </item>
             <item row="2" column="2">
@@ -713,6 +727,13 @@ QPushButton{
                 <height>25</height>
                </size>
               </property>
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
              </widget>
             </item>
             <item row="3" column="2">
@@ -722,6 +743,13 @@ QPushButton{
                 <width>45</width>
                 <height>25</height>
                </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
               </property>
              </widget>
             </item>
@@ -827,6 +855,12 @@ QPushButton{
      </item>
      <item>
       <widget class="QPushButton" name="apply_btn">
+       <property name="minimumSize">
+        <size>
+         <width>62</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="maximumSize">
         <size>
          <width>100</width>
@@ -842,6 +876,23 @@ color: rgb(240, 240, 240);</string>
        </property>
        <property name="checkable">
         <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="ok_btn">
+       <property name="minimumSize">
+        <size>
+         <width>62</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(64, 89, 145);
+color: rgb(240, 240, 240);</string>
+       </property>
+       <property name="text">
+        <string>OK</string>
        </property>
       </widget>
      </item>

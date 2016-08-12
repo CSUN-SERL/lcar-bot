@@ -1048,11 +1048,30 @@ namespace rqt_gcs
             active_uavs[i]->setOnlineMode(toggle);
     }
 
-    
     void SimpleGCS::publishHitThreshold(double thresh)
 
     {
         //todo create publisher and publish hit threshold setting
+    }
+    
+    void SimpleGCS::publishStepSize(int step)
+    {
+        //todo create stepsize publisher
+    }
+    
+    void SimpleGCS::publishPadding(int padding)
+    {
+        //todo
+    }
+    
+    void SimpleGCS::publishScaleFactor(double scale)
+    {
+        //todo
+    }
+    
+    void SimpleGCS::publishMeanShift(bool on)
+    {
+        //todo
     }
     
     //////////////////////////  SimpleGCSHelper  ///////////////////////////////
