@@ -94,14 +94,23 @@ namespace rqt_gcs{
     };
       
     SimpleGCS();
-    ros::Subscriber sub;
-    ros::Publisher pub;
+    //ros::Subscriber sub;
+    
+    struct ObjectDetectionPublishers
+    {
+        ros::Publisher pub_hit_thresh;
+        ros::Publisher pub_step_size;
+        ros::Publisher pub_padding;
+        ros::Publisher pub_scale_factor;
+        ros::Publisher pub_mean_shift;
+    } od_pubs;
+    
     ros::NodeHandle nh;
     ros::ServiceServer server;
     lcar_msgs::Door msg;
 
     image_transport::ImageTransport it_stereo{nh};
-   void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
+    void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
 
     virtual void initPlugin(qt_gui_cpp::PluginContext& context);
@@ -264,7 +273,7 @@ namespace rqt_gcs{
       ~SimpleGCSHelper();
 
   public slots:
-      void monitorUavs();
+      void help();
 
   signals:
       void addUav(int); // uav_id

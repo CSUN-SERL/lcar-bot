@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>460</width>
-    <height>590</height>
+    <width>450</width>
+    <height>550</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>460</width>
-    <height>590</height>
+    <width>0</width>
+    <height>0</height>
    </size>
   </property>
   <property name="maximumSize">
@@ -101,7 +101,7 @@ QPushButton{
       <string notr="true"/>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="general_tab">
       <attribute name="title">
@@ -356,7 +356,7 @@ QPushButton{
                 <widget class="QLabel" name="length_mins_lbl">
                  <property name="maximumSize">
                   <size>
-                   <width>60</width>
+                   <width>16777215</width>
                    <height>20</height>
                   </size>
                  </property>
@@ -364,19 +364,6 @@ QPushButton{
                   <string>minutes</string>
                  </property>
                 </widget>
-               </item>
-               <item>
-                <spacer name="horizontalSpacer">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
                </item>
               </layout>
              </item>
@@ -416,6 +403,12 @@ QPushButton{
                </item>
                <item row="1" column="0">
                 <widget class="QRadioButton" name="interval_btn">
+                 <property name="maximumSize">
+                  <size>
+                   <width>132</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="text">
                   <string>Interval:  every</string>
                  </property>
@@ -427,19 +420,6 @@ QPushButton{
                   <string>minutes</string>
                  </property>
                 </widget>
-               </item>
-               <item row="1" column="3">
-                <spacer name="horizontalSpacer_2">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
                </item>
               </layout>
              </item>
@@ -780,7 +760,7 @@ QPushButton{
           <item row="0" column="0">
            <layout class="QVBoxLayout" name="verticalLayout">
             <item>
-             <widget class="QRadioButton" name="radioButton">
+             <widget class="QRadioButton" name="uav_btn">
               <property name="font">
                <font>
                 <pointsize>11</pointsize>
@@ -794,7 +774,7 @@ QPushButton{
              </widget>
             </item>
             <item>
-             <widget class="QRadioButton" name="radioButton_2">
+             <widget class="QRadioButton" name="gcs_btn">
               <property name="font">
                <font>
                 <pointsize>11</pointsize>
@@ -928,6 +908,35 @@ color: rgb(240, 240, 240);
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>online_btn</tabstop>
+  <tabstop>offline_btn</tabstop>
+  <tabstop>nominal_btn</tabstop>
+  <tabstop>marginal_btn</tabstop>
+  <tabstop>poor_btn</tabstop>
+  <tabstop>interval_btn</tabstop>
+  <tabstop>random_btn</tabstop>
+  <tabstop>interval_text_box</tabstop>
+  <tabstop>length_check_box</tabstop>
+  <tabstop>length_text_box</tabstop>
+  <tabstop>line_edit_images_dir</tabstop>
+  <tabstop>tab_widget</tabstop>
+  <tabstop>uav_btn</tabstop>
+  <tabstop>gcs_btn</tabstop>
+  <tabstop>sl_hit_thresh</tabstop>
+  <tabstop>sl_step_size</tabstop>
+  <tabstop>sl_padding</tabstop>
+  <tabstop>sl_scale_factor</tabstop>
+  <tabstop>line_edit_hit_thresh</tabstop>
+  <tabstop>line_edit_step_size</tabstop>
+  <tabstop>line_edit_padding</tabstop>
+  <tabstop>line_edit_scale_factor</tabstop>
+  <tabstop>radio_off_mean_shift</tabstop>
+  <tabstop>radio_on_mean_shift</tabstop>
+  <tabstop>apply_btn</tabstop>
+  <tabstop>ok_btn</tabstop>
+  <tabstop>cancel_btn</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -45,27 +45,26 @@ namespace rqt_gcs
         void setToolTips();
         
         void readGeneralSettings();
-        //void readObjectDetectionSettings();
-        
         void writeGeneralSettings();
-        //void writeObjectDetectionSettings();
-        
         bool validateGeneralSettings();
-        //bool validateObjectDetectionSettings();
+        
+        void readObjectDetectionSettings();
+        void writeObjectDetectionSettings();
+        
         
     signals:
         void dismissMe();
         void machineLearningModeToggled(bool);
 
     private slots:
-        void applyClicked();
-        void okClicked();
-        void cancelClicked();
-        void toggleFrequencyGroup();
-        void toggleIntervalTextBox();
-        void toggleLengthTextBox();
+        bool onApplyClicked();
+        void onOkClicked();
+        void onCancelClicked();
+        void onToggleFrequencyGroup();
+        void onToggleIntervalLine();
+        void onToggleLengthLine();
         
-        //object detection tab sliders
+        //object detection tab sliders and line_edits
         void onHitThresholdSliderChange(int);
         void onHitThresholdLineChange();
         

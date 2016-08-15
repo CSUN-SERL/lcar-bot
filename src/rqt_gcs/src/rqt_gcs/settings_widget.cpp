@@ -20,37 +20,37 @@ namespace rqt_gcs
         widget_.setupUi(this);
 
         //apply and cancel buttons
-        connect(widget_.apply_btn, SIGNAL(clicked()),
-                this, SLOT(applyClicked()));
+        connect(widget_.apply_btn, &QPushButton::clicked,
+                this, &SettingsWidget::onApplyClicked);
         
-        connect(widget_.ok_btn, SIGNAL(clicked()),
-                this, SLOT(okClicked()));
+        connect(widget_.ok_btn, &QPushButton::clicked,
+                this, &SettingsWidget::onOkClicked);
 
-        connect(widget_.cancel_btn, SIGNAL(clicked()),
-                this, SLOT(cancelClicked()));
+        connect(widget_.cancel_btn, &QPushButton::clicked,
+                this, &SettingsWidget::onCancelClicked);
 
         //nominal, marginal, poor radio buttons enable or disable frequency group
-        connect(widget_.nominal_btn, SIGNAL(clicked()),
-                this, SLOT(toggleFrequencyGroup()));
+        connect(widget_.nominal_btn, &QRadioButton::clicked,
+                this, &SettingsWidget::onToggleFrequencyGroup);
 
-        connect(widget_.marginal_btn, SIGNAL(clicked()),
-                this, SLOT(toggleFrequencyGroup()));
+        connect(widget_.marginal_btn, &QRadioButton::clicked,
+                this,&SettingsWidget::onToggleFrequencyGroup);
 
-        connect(widget_.poor_btn, SIGNAL(clicked()),
-                this, SLOT(toggleFrequencyGroup()));
+        connect(widget_.poor_btn, &QRadioButton::clicked,
+                this, &SettingsWidget::onToggleFrequencyGroup);
 
 
         //interval, random radio buttons enable or disable interval text edit field
-        connect(widget_.interval_btn, SIGNAL(clicked()),
-                this, SLOT(toggleIntervalTextBox()));
+        connect(widget_.interval_btn, &QRadioButton::clicked,
+                this, &SettingsWidget::onToggleIntervalLine);
 
-        connect(widget_.random_btn, SIGNAL(clicked()),
-                this, SLOT(toggleIntervalTextBox()));
+        connect(widget_.random_btn, &QRadioButton::clicked,
+                this, &SettingsWidget::onToggleIntervalLine);
 
 
         //frequency/length check box enables the length text edit field
-        connect(widget_.length_check_box, SIGNAL(clicked()),
-                this, SLOT(toggleLengthTextBox()));
+        connect(widget_.length_check_box, &QRadioButton::clicked,
+                this, &SettingsWidget::onToggleLengthLine);
 
         
         //object detection parameter inits and slider/line_edit connections
@@ -102,11 +102,8 @@ namespace rqt_gcs
                 this, &SettingsWidget::onMeanShiftRadioChange);
         
         setToolTips();
-        
         readGeneralSettings();
-
-        //TODO
-        //setObjectDetectionTabDefaults();
+        readObjectDetectionSettings();
     }
 
     SettingsWidget::~SettingsWidget()
@@ -215,6 +212,9 @@ namespace rqt_gcs
             widget_.length_text_box->setEnabled(false);
         }
         
+        QString img_dir = gcs->settings_->value("images_root_directory", gcs->image_root_dir_).toString();
+        widget_.line_edit_images_dir->setText(img_dir);
+        
         gcs->settings_->endGroup();
     }
 
@@ -242,7 +242,7 @@ namespace rqt_gcs
         else
             vehicle_link = "poor";
         
-        gcs->settings_->setValue(conn + "/vehicle_gcs_link", vehicle_link);
+        gcs->settings_->setValue(conn % "/vehicle_gcs_link", vehicle_link);
         
         QString conn_freq = "connection_drop/frequency";
         if(vehicle_link != "nominal") // write frequency settings to config
@@ -257,44 +257,33 @@ namespace rqt_gcs
             if(frequency == "interval")
             {   //already guaranteed text is valid in validateGeneralSettings()
                 QString interval_text = widget_.interval_text_box->text();
-                gcs->settings_->setValue(conn_freq + "/interval_text", interval_text);
+                gcs->settings_->setValue(conn_freq % "/interval_text", interval_text);
             }
             else
-                gcs->settings_->remove(conn_freq + "/interval_text");
+                gcs->settings_->remove(conn_freq % "/interval_text");
                
             bool length_specified = widget_.length_check_box->isChecked();
-            gcs->settings_->setValue(conn_freq + "/length_box_checked", length_specified);
+            gcs->settings_->setValue(conn_freq % "/length_box_checked", length_specified);
 
             if(length_specified)
             {   //already guaranteed text is valid in validateGeneralSettings()
                 QString length_text = widget_.length_text_box->text();
-                gcs->settings_->setValue(conn_freq + "/length_text", length_text);
+                gcs->settings_->setValue(conn_freq % "/length_text", length_text);
             }
             else
-                gcs->settings_->remove(conn_freq + "/length_text");
+                gcs->settings_->remove(conn_freq % "/length_text");
         }
         else // remove all frequency related settings from config
             gcs->settings_->remove(conn_freq);
         
+        QString img_dir = widget_.line_edit_images_dir->text();
+        if(!img_dir.isNull())
+            gcs->settings_->setValue("images_root_directory", img_dir);
+        
         gcs->settings_->endGroup(); //general_tab
     }
-
-//    void SettingsWidget::writeObjectDetectionSettings()
-//    {
-//        settings_->beginGroup("object_detection_tab");
-//        //TODO
-//        settings_->endGroup();
-//        return false;
-//    }
-
-//    void SettingsWidget::readObjectDetectionSettings()
-//    {
-//        settings_->beginGroup("object_detection_tab");
-//        //TODO
-//        settings_->endGroup();
-//    }
-
-    bool SettingsWidget::validateGeneralSettings()
+    
+        bool SettingsWidget::validateGeneralSettings()
     {
         //assure that text inputs are either enabled and not empty, or not enabled.
         //write settins only if the are disabled or are enabled and have valid input.
@@ -338,42 +327,110 @@ namespace rqt_gcs
                     return false;
                 }
             }
-        } // end if nominal button not checked
+        }
+        
+        QString img_dir = widget_.line_edit_images_dir->text();
+        if(!img_dir.isEmpty())
+        {
+            if(!img_dir.startsWith('/'))
+            {
+                std::cout << "image root directory MUST be an absolute path\n";
+                return false;
+            }   
+        }
         
         return true;
     }
 
-    //bool SettingsWidget::validateObjectDetectionSettings() { }
+    void SettingsWidget::readObjectDetectionSettings()
+    {
+        gcs->settings_->beginGroup("object_detection_tab");
         
-    void SettingsWidget::applyClicked()
+        QString node_loc = gcs->settings_->value("node_location", "gcs").toString();
+        if(node_loc == "gcs")
+            widget_.gcs_btn->setChecked(true);
+        else
+            widget_.uav_btn->setChecked(true);
+        // todo apply logic for determining where node will be run
+        
+        QString params = "tuning_paramaters";
+        od_params.hit_thresh = gcs->settings_->value(params % "/hit_threshold", 0.45).toDouble();    
+        od_params.step_size = gcs->settings_->value(params % "/step_size", 8).toInt();
+        od_params.padding = gcs->settings_->value(params % "/padding", 4).toInt();
+        od_params.scale_factor = gcs->settings_->value(params % "/scale_factor", 1.15).toDouble();
+        od_params.mean_shift = gcs->settings_->value(params % "/mean_shift_grouping", true).toBool();
+        
+        widget_.line_edit_hit_thresh->setText(QString::number(od_params.hit_thresh, 'f', 2));
+        widget_.sl_hit_thresh->setValue(od_params.hit_thresh * 100);
+        
+        widget_.line_edit_step_size->setText(QString::number(od_params.step_size));
+        widget_.sl_step_size->setValue(od_params.step_size / 4);
+        
+        widget_.line_edit_padding->setText(QString::number(od_params.padding));
+        widget_.sl_padding->setValue(od_params.padding / 8);
+        
+        widget_.line_edit_scale_factor->setText(QString::number(od_params.scale_factor, 'f', 2));
+        widget_.sl_scale_factor->setValue(od_params.scale_factor * 100);
+        
+        if(od_params.mean_shift == true)
+            widget_.radio_on_mean_shift->setChecked(true);
+        else 
+            widget_.radio_off_mean_shift->setChecked(true);
+        onMeanShiftRadioChange();
+        
+        gcs->settings_->endGroup();
+    }
+    
+    void SettingsWidget::writeObjectDetectionSettings()
+    {
+        gcs->settings_->beginGroup("object_detection_tab");
+        
+        if(widget_.uav_btn->isChecked())
+            gcs->settings_->setValue("node_location", "uav");
+        else if(widget_.gcs_btn->isChecked())
+            gcs->settings_->setValue("node_location", "gcs");
+        
+        QString params = "tuning_paramaters";
+        QString thresh = QString::number(od_params.hit_thresh,'f', 2);
+        gcs->settings_->setValue(params % "/hit_threshold", thresh);
+        gcs->settings_->setValue(params % "/step_size", od_params.step_size);
+        gcs->settings_->setValue(params % "/padding", od_params.padding);
+        QString scale = QString::number(od_params.scale_factor, 'f', 2);
+        gcs->settings_->setValue(params % "/scale_factor", scale);
+        gcs->settings_->setValue(params % "/mean_shift_grouping", od_params.mean_shift);
+        
+        gcs->settings_->endGroup();
+    }
+        
+    bool SettingsWidget::onApplyClicked()
     {   
         QString ml_state_previous = ml_state_;
         
-        if(!validateGeneralSettings()
-         /*&& !validateObjectDetectionTabSettings()*/) // TODO
-            return;
+        writeObjectDetectionSettings();
+        
+        if(!validateGeneralSettings()) 
+            return false;
         
         writeGeneralSettings();
         
-        //TODO
-        //writeObjectDetectionTabSettings();
-        
         if(ml_state_ != ml_state_previous)
             emit machineLearningModeToggled(widget_.online_btn->isChecked());
+        
+        return true;
     }
     
-    void SettingsWidget::okClicked()
+    void SettingsWidget::onOkClicked()
     {
-        applyClicked();
-        emit dismissMe();
+        if(onApplyClicked())
+            emit dismissMe();
     }
 
-    void SettingsWidget::cancelClicked()
+    void SettingsWidget::onCancelClicked()
     {
        emit dismissMe();
     }
 
-    void SettingsWidget::toggleFrequencyGroup()
+    void SettingsWidget::onToggleFrequencyGroup()
     {
         widget_.frequency_groupbox->setEnabled(!widget_.nominal_btn->isChecked());
 
@@ -382,7 +439,7 @@ namespace rqt_gcs
                 << std::endl;
     }
 
-    void SettingsWidget::toggleIntervalTextBox()
+    void SettingsWidget::onToggleIntervalLine()
     {
         widget_.interval_text_box->setEnabled(widget_.interval_btn->isChecked()); 
 
@@ -391,7 +448,7 @@ namespace rqt_gcs
                 << std::endl;
     }
 
-    void SettingsWidget::toggleLengthTextBox()
+    void SettingsWidget::onToggleLengthLine()
     {
         widget_.length_text_box->setEnabled(widget_.length_check_box->isChecked());
 
@@ -417,13 +474,16 @@ namespace rqt_gcs
     void SettingsWidget::onHitThresholdLineChange()
     {
         QString s = widget_.line_edit_hit_thresh->text();
+        if(s.startsWith('.'))
+            s = "0" % s;
         
         bool ok;
         double thresh = s.toDouble(&ok);
         if(!ok)
         {
-            std::cout << "tried to enter invalid theshold value: " 
+            std::cout << "tried to enter invalid threshold value: " 
                       << s.toStdString() << "\n";
+            widget_.line_edit_hit_thresh->setText("");
             return;
         }
         
@@ -461,6 +521,7 @@ namespace rqt_gcs
         {
             std::cout << "tried to enter invalid step size value: "
                       << s.toStdString() << "\n";
+            widget_.line_edit_step_size->setText("");
             return;
         }
         
@@ -498,6 +559,7 @@ namespace rqt_gcs
         {
             std::cout << "tried to enter invalid padding value: " 
                       << s.toStdString() << "\n";
+            widget_.line_edit_padding->setText("");
             return;
         }
         
@@ -528,6 +590,8 @@ namespace rqt_gcs
     void SettingsWidget::onScaleFactorLineChange()
     {   
         QString s = widget_.line_edit_scale_factor->text();
+        if(s.startsWith('.'))
+            s = "1" % s;
         
         bool ok;
         double scale = s.toDouble(&ok);
@@ -535,6 +599,7 @@ namespace rqt_gcs
         {
             std::cout << "tried to enter invalid scale value: " 
                       << s.toStdString() << "\n";
+            widget_.line_edit_scale_factor->setText("");
             return;
         }
         

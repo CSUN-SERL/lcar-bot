@@ -52,14 +52,9 @@ namespace rqt_gcs
         central_ui_.CenterLayout->addWidget(imageViewWidget_, 1, 0);
         central_ui_.CenterLayout->addWidget(missionProgressWidget_);
         
-        central_ui_.LeftLayout->addWidget(PFDQWidget_, 1, 0);
+        //central_ui_.LeftLayout->addWidget(imageViewWidget_, 1, 0);
+        central_ui_.LeftLayout->addWidget(PFDQWidget_);
         central_ui_.LeftLayout->addWidget(uavStatWidget_);
-        //central_ui_.PFDLayout->addWidget(imageViewWidget_);
-        
-        
-        //central_ui_.CameraMapLayout->addWidget(imageViewWidget_, 2, 0);
-        
-
         
         //Setup mission progress widgets
         uavStatWidget_->setWindowTitle("Flight State");
@@ -89,9 +84,13 @@ namespace rqt_gcs
         initMenuBar();
         initSettings();
         initHelperThread();
-       
-        QString path = image_root_dir_;
 
+        od_pubs.pub_hit_thresh = nh.advertise<std_msgs::Float64>("/object_detection/hit_threshold", 1);
+        od_pubs.pub_step_size = nh.advertise<std_msgs::Int32>("/object_detection/step_size", 1);
+        od_pubs.pub_padding = nh.advertise<std_msgs::Int32>("/object_detection/padding", 1);
+        od_pubs.pub_scale_factor = nh.advertise<std_msgs::Float64>("/object_detection/scale_factor", 1);
+        od_pubs.pub_mean_shift = nh.advertise<std_msgs::Int32>("/object_detection/mean_shift_grouping", 1);
+        
         //Setup update timer
         update_timer = new QTimer(this);
         connect(update_timer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
@@ -895,7 +894,7 @@ namespace rqt_gcs
         uav_monitor->moveToThread(&t_uav_monitor);
 
         connect(&t_uav_monitor, &QThread::started,
-                uav_monitor, &SimpleGCSHelper::monitorUavs);
+                uav_monitor, &SimpleGCSHelper::help);
 
         connect(uav_monitor, &SimpleGCSHelper::addUav,
                 this, &SimpleGCS::AddUav);
@@ -983,7 +982,7 @@ namespace rqt_gcs
 
         QString path = getenv("HOME");
         path += "/Pictures/LCAR_Bot";
-        image_root_dir_ = settings_->value("machine_learning/save_path", path).toString();
+        image_root_dir_ = settings_->value("images_root_directory", path).toString();
         ROS_INFO_STREAM("images root directory: " << image_root_dir_.toStdString());
 
         settings_->endGroup();
@@ -1042,36 +1041,45 @@ namespace rqt_gcs
     void SimpleGCS::ToggleMachineLearningMode(bool toggle)
     {
         central_ui_.frameQueries->setVisible(toggle);
-//        central_ui_.frameQueries->setEnabled(toggle);
+        central_ui_.frameQueries->setEnabled(toggle);
 
         for(int i = 0; i < NUM_UAV; i++)
             active_uavs[i]->setOnlineMode(toggle);
     }
 
     void SimpleGCS::publishHitThreshold(double thresh)
-
     {
-        //todo create publisher and publish hit threshold setting
+        std_msgs::Float64 msg;
+        msg.data = thresh;
+        od_pubs.pub_hit_thresh.publish(msg);
     }
     
     void SimpleGCS::publishStepSize(int step)
     {
-        //todo create stepsize publisher
+        std_msgs::Int32 msg;
+        msg.data = step;
+        od_pubs.pub_step_size.publish(msg);
     }
     
     void SimpleGCS::publishPadding(int padding)
     {
-        //todo
+        std_msgs::Int32 msg;
+        msg.data = padding;
+        od_pubs.pub_padding.publish(msg);
     }
     
     void SimpleGCS::publishScaleFactor(double scale)
     {
-        //todo
+        std_msgs::Float64 msg;
+        msg.data = scale;
+        od_pubs.pub_scale_factor.publish(msg);
     }
     
     void SimpleGCS::publishMeanShift(bool on)
     {
-        //todo
+        std_msgs::Int32 msg;
+        msg.data = on;
+        od_pubs.pub_mean_shift.publish(msg); 
     }
     
     //////////////////////////  SimpleGCSHelper  ///////////////////////////////
@@ -1105,7 +1113,7 @@ namespace rqt_gcs
         ros::V_string nodes;
         ros::master::getNodes(nodes);
 
-        for(auto const& node : nodes)
+        for(const std::string & node : nodes)
         {
             int index = node.find("/UAV");
             if(index == node.npos)
@@ -1206,7 +1214,7 @@ namespace rqt_gcs
         }
     }
 
-    void SimpleGCSHelper::monitorUavs()
+    void SimpleGCSHelper::help()
     {
         forever
         {

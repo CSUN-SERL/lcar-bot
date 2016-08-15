@@ -13,6 +13,8 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <ros/package.h>
+#include <std_msgs/Int32.h>
+#include <std_msgs/Float64.h>
 
 #include <iostream>
 #include <map>
@@ -26,6 +28,24 @@ using namespace cv::ml;
 
 ros::Publisher pub_mat_;
 ros::Publisher pub_query_;
+
+struct ObjectDetectionSubscribers
+{
+    ros::Subscriber sub_hit_thresh;
+    ros::Subscriber sub_step_size;
+    ros::Subscriber sub_padding;
+    ros::Subscriber sub_scale_factor;
+    ros::Subscriber sub_mean_shift;
+} od_subs;
+
+struct ObjectDetectionParams
+{
+  double hit_thresh = 0.45;
+  int step_size = 8;
+  int padding = 4;
+  double scale_factor = 1.15;
+  bool mean_shift = true;
+} od_params;
 
 Ptr<SVM> svm_;
 vector< float > hog_detector_;
@@ -101,12 +121,12 @@ void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image) {
                 gray_image,
                 detected_objects
                 ,weights
-                ,0.8         // hit threshold
-                ,Size(16,16) // step size
-                ,Size(4,4) // padding
-                ,1.1       // scale factor
-                ,2       // final threshold
-                ,false // use mean shift grouping?
+                ,od_params.hit_thresh                           // hit threshold
+                ,Size(od_params.step_size, od_params.step_size) // step size
+                ,Size(od_params.padding, od_params.padding)     // padding
+                ,od_params.scale_factor                         // scale factor
+                ,2                                            // final threshold
+                ,od_params.mean_shift                // use mean shift grouping?
                 );
         
         for (int i = 0; i < detected_objects.size(); i++) {
@@ -252,6 +272,36 @@ void GetSvmDetector(const Ptr<SVM>& svm, vector< float > & hog_detector) {
 }
 ///
 
+void hitThresholdCallback(const std_msgs::Float64& msg)
+{
+    od_params.hit_thresh = msg.data;
+    ROS_INFO_STREAM("received new hit threshold: " << msg.data);
+}
+
+void stepSizeCallback(const std_msgs::Int32& msg)
+{
+    od_params.step_size = msg.data;
+    ROS_INFO_STREAM("received new step size: " << msg.data);
+}
+
+void paddingCallback(const std_msgs::Int32& msg)
+{
+    od_params.padding = msg.data;
+    ROS_INFO_STREAM("received new padding: " << msg.data);
+}
+
+void scaleFactorCallback(const std_msgs::Float64& msg)
+{
+    od_params.scale_factor = msg.data;
+    ROS_INFO_STREAM("received scale factor: " << msg.data);
+}
+
+void meanShiftCallback(const std_msgs::Int32& msg)
+{
+    od_params.mean_shift = msg.data;
+    ROS_INFO_STREAM("received mean shift value: " << msg.data);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 int main (int argc, char** argv){
   ros::init(argc, argv, "object_detection" /*, ros::init_options::AnonymousName*/ );
@@ -262,7 +312,7 @@ int main (int argc, char** argv){
   image_transport::ImageTransport it(nh);
   
   std::string svmPath = ros::package::getPath("machine_vision");
-  svm_ = StatModel::load<SVM>( svmPath + "/LinearHOG.xml" );
+  svm_ = StatModel::load<SVM>( svmPath + "/LinearHOG.xml");
 
   GetSvmDetector(svm_, hog_detector_);
 
@@ -276,6 +326,12 @@ int main (int argc, char** argv){
   std::string topic = "stereo_cam/left/image_rect";
   
   image_transport::Subscriber sub = it.subscribe(topic, 1, imageCallback);
+  
+  od_subs.sub_hit_thresh = nh.subscribe("/object_detection/hit_threshold", 1, hitThresholdCallback);
+  od_subs.sub_step_size = nh.subscribe("/object_detection/step_size", 1, stepSizeCallback);
+  od_subs.sub_padding = nh.subscribe("/object_detection/padding", 1, paddingCallback);
+  od_subs.sub_scale_factor = nh.subscribe("/object_detection/scale_factor", 1, scaleFactorCallback);
+  od_subs.sub_mean_shift = nh.subscribe("/object_detection/mean_shift_grouping", 1, meanShiftCallback);
   
   ROS_INFO_STREAM("node: " << ros::this_node::getName() << 
                   " is subscribed to topic: " << ns + "/" + topic);
