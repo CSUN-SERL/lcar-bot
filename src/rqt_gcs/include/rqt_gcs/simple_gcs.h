@@ -96,15 +96,6 @@ namespace rqt_gcs{
     SimpleGCS();
     //ros::Subscriber sub;
     
-    struct ObjectDetectionPublishers
-    {
-        ros::Publisher pub_hit_thresh;
-        ros::Publisher pub_step_size;
-        ros::Publisher pub_padding;
-        ros::Publisher pub_scale_factor;
-        ros::Publisher pub_mean_shift;
-    } od_pubs;
-    
     ros::NodeHandle nh;
     ros::ServiceServer server;
     lcar_msgs::Door msg;
@@ -156,6 +147,16 @@ namespace rqt_gcs{
     virtual void ToggleMachineLearningMode(bool);
 
   private:
+      
+    struct ObjectDetectionPublishers
+    {
+        ros::Publisher pub_hit_thresh;
+        ros::Publisher pub_step_size;
+        ros::Publisher pub_padding;
+        ros::Publisher pub_scale_factor;
+        ros::Publisher pub_mean_shift;
+    } od_pubs;
+      
     void initMenuBar();
     void initSettings();
     void initHelperThread();
@@ -252,7 +253,7 @@ namespace rqt_gcs{
     QSignalMapper* acceptDoorMapper;
     QSignalMapper* denyDoorMapper;
 
-    QSettings *settings_;
+    QSettings* settings_;
     QString image_root_dir_;
     QString app_root_dir_;
 
