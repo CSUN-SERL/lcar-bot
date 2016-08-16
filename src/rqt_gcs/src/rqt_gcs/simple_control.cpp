@@ -95,7 +95,7 @@ void SimpleControl::InitialSetup()
     quaternionTFToMsg(tf::createQuaternionFromYaw(0), pose_home.orientation);
 
     object_distance.data = 100;
-    battery.remaining = -1;
+    battery.percentage = -1;
 }
 
 void SimpleControl::Arm(bool value)
@@ -571,7 +571,7 @@ mavros_msgs::WaypointPush SimpleControl::CircleShape(lcar_msgs::TargetGlobal tar
 void SimpleControl::SafetyCheck()
 {
     //Sanity Checks
-    if(battery.remaining < BATTERY_MIN && battery.remaining != -1){
+    if(battery.percentage < BATTERY_MIN && battery.percentage != -1){
         //Land if battery is starting to get low
         goal = land;
     }
