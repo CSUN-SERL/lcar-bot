@@ -16,6 +16,8 @@ UnansweredQueries::UnansweredQueries(SimpleGCS * sgcs) :
 gcs(sgcs)
 {
     widget.setupUi(this);
+    this->setAttribute(Qt::WA_DeleteOnClose);
+    
     layout_by_ap_type.insert("door", widget.queriesLayoutDoor); 
     //TODO layout_by_ap_type for window and hole, 
     //and adding the layouts and tab widget container in qtdesigner
@@ -31,6 +33,12 @@ gcs(sgcs)
 UnansweredQueries::~UnansweredQueries()
 {
     gcs = nullptr;
+}
+
+void UnansweredQueries::closeEvent(QCloseEvent* event)
+{
+    gcs->widgets_.unanswered_queries_ = nullptr;
+    event->accept();
 }
 
 void UnansweredQueries::addUnansweredQueriesFromDisk()

@@ -26,6 +26,9 @@ namespace rqt_gcs
         SettingsWidget(SimpleGCS *);
         virtual ~SettingsWidget();
 
+    protected:
+        void closeEvent(QCloseEvent * event) Q_DECL_OVERRIDE;
+        
     private:
         Ui::SettingsWidget widget_;
         //QSettings *settings_;
@@ -53,7 +56,6 @@ namespace rqt_gcs
         
         
     signals:
-        void dismissMe();
         void machineLearningModeToggled(bool);
 
     private slots:

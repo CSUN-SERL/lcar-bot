@@ -15,8 +15,8 @@ namespace rqt_gcs
     SettingsWidget::SettingsWidget(SimpleGCS * sgcs) :
     gcs(sgcs)
     {
-        //assert(settings != NULL && settings != nullptr);
-
+        this->setAttribute(Qt::WA_DeleteOnClose);
+        
         widget_.setupUi(this);
 
         //apply and cancel buttons
@@ -104,6 +104,12 @@ namespace rqt_gcs
         setToolTips();
         readGeneralSettings();
         readObjectDetectionSettings();
+    }
+    
+    void SettingsWidget::closeEvent(QCloseEvent* event)
+    {
+        gcs->widgets_.settings_ = nullptr;
+        event->accept();
     }
 
     SettingsWidget::~SettingsWidget()
@@ -422,12 +428,12 @@ namespace rqt_gcs
     void SettingsWidget::onOkClicked()
     {
         if(onApplyClicked())
-            emit dismissMe();
+            this->close();
     }
 
     void SettingsWidget::onCancelClicked()
     {
-       emit dismissMe();
+        this->close();
     }
 
     void SettingsWidget::onToggleFrequencyGroup()
@@ -578,7 +584,7 @@ namespace rqt_gcs
     
     void SettingsWidget::onScaleFactorSliderChange(int new_scale)
     {
-        double scale = (((double)new_scale) / 100);
+        double scale = ( ((double)new_scale) / 100 );
         if(od_params.scale_factor != scale)
         {
             od_params.scale_factor = scale;

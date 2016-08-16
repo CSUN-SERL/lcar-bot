@@ -59,6 +59,7 @@
 #include <QMetaType>
 #include <QWebView>
 #include <QSettings>
+#include <QCloseEvent>
 
 #define MAX_UAV 100 // the total number of UAV's manageable by our system
 
@@ -148,15 +149,6 @@ namespace rqt_gcs{
 
   private:
       
-    struct ObjectDetectionPublishers
-    {
-        ros::Publisher pub_hit_thresh;
-        ros::Publisher pub_step_size;
-        ros::Publisher pub_padding;
-        ros::Publisher pub_scale_factor;
-        ros::Publisher pub_mean_shift;
-    } od_pubs;
-      
     void initMenuBar();
     void initSettings();
     void initHelperThread();
@@ -178,12 +170,29 @@ namespace rqt_gcs{
     std::string GetMissionType(std::string file_name);		 
     lcar_msgs::TargetLocal GetMissionLocal(std::string file_name);
     lcar_msgs::TargetGlobal GetMissionGlobal(std::string file_name);
-    
+          
     int cur_uav;
     int timeCounter;
     int NUM_UAV; //Total number of UAV's in the system
     int num_queries_last;
     int num_access_points_last;
+    
+    struct ObjectDetectionPublishers
+    {
+        ros::Publisher pub_hit_thresh;
+        ros::Publisher pub_step_size;
+        ros::Publisher pub_padding;
+        ros::Publisher pub_scale_factor;
+        ros::Publisher pub_mean_shift;
+    } od_pubs;
+    
+    struct FloatingWidgets 
+    {
+        QWebView * web_view_ = nullptr;
+        SettingsWidget * settings_ = nullptr;
+        UnansweredQueries * unanswered_queries_ = nullptr;
+    } widgets_;
+    
 
     QVector<SimpleControl*> active_uavs;
     QMap<int, UAV*> uav_db;
@@ -192,8 +201,6 @@ namespace rqt_gcs{
     std::vector<AccessPoint> * accessPointVector;
     std::vector<lcar_msgs::DoorPtr> * pictureQueryVector;
 
-    QWebView * web_view_;
-    
     cv::Mat conversion_mat_;
     image_transport::Subscriber sub_stereo;
     Ui::SimpleGCSWidget ui_;
@@ -229,7 +236,7 @@ namespace rqt_gcs{
     QAction * qt_act;
     QAction * opencv_act;
             
-    QWidget* widget_;
+    QWidget* widget_main_;
     QWidget* missionProgressWidget_;
     QWidget* uavQuestionWidget_;
     QWidget* uavStatWidget_;
@@ -237,7 +244,6 @@ namespace rqt_gcs{
     QVector<QWidget*> uavListWidgetArr_;
     QWidget* PFDQWidget_;
     QWidget* apmQWidget_;
-    QWidget* settings_widget_;
 
     std::vector<QWidget*> accessPointWidgets_;
     std::vector<QWidget*> pictureQueryWidgets_;
@@ -261,8 +267,6 @@ namespace rqt_gcs{
     SimpleGCSHelper * uav_monitor;
     QMutex uav_mutex;
     QWaitCondition num_uav_changed;
-
-    UnansweredQueries * unanswered_queries_widget_;
   };
 
   class SimpleGCSHelper : public QObject

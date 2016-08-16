@@ -57,11 +57,14 @@ public:
     void addUnansweredQueriesFromDisk();
     void removeQuery(std::string);
     void removeAllQueries();
-    int numImagesInDir(QString);
+    static int numImagesInDir(QString);
     int uavIdFromDir(QString);
     int imgNumFromFile(QString);
     QString getImgBasePath(QString);
     bool saveImage(QString, QString, QImage *);
+    
+protected:
+   void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE;
     
 private:
     Ui::UnansweredQueries widget;

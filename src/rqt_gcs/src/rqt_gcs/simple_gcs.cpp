@@ -7,9 +7,7 @@ namespace rqt_gcs
 
     SimpleGCS::SimpleGCS()
     : rqt_gui_cpp::Plugin()
-    , widget_(nullptr)
-    , settings_widget_(nullptr)
-    , unanswered_queries_widget_(nullptr)
+    , widget_main_(nullptr)
     {
         //Constructor is called first before initPlugin function
         setObjectName("LCAR Bot GCS");
@@ -24,7 +22,7 @@ namespace rqt_gcs
         QString app_src = QDir().currentPath();
         app_root_dir_ = app_src.mid(0, app_src.indexOf("/src"));
 
-        widget_                = new QWidget();
+        widget_main_           = new QWidget();
         missionProgressWidget_ = new QWidget();
         uavQuestionWidget_     = new QWidget();
         uavStatWidget_         = new QWidget();
@@ -39,7 +37,7 @@ namespace rqt_gcs
         num_access_points_last = 0;
 
         //Setup the UI objects with the widgets
-        central_ui_.setupUi(widget_);
+        central_ui_.setupUi(widget_main_);
         mpUi_.setupUi(missionProgressWidget_);
         uqUi_.setupUi(uavQuestionWidget_);
         usUi_.setupUi(uavStatWidget_);
@@ -48,7 +46,7 @@ namespace rqt_gcs
         apmUi_.setupUi(apmQWidget_);
 
         //Add widgets to the Main UI
-        context.addWidget(widget_);
+        context.addWidget(widget_main_);
         central_ui_.CenterLayout->addWidget(imageViewWidget_, 1, 0);
         central_ui_.CenterLayout->addWidget(missionProgressWidget_);
         
@@ -120,10 +118,10 @@ namespace rqt_gcs
         //todo loop and get num_image for each acess point type;
         //create separate accepted and rejected counts for each ap_type
         QString path = image_root_dir_ + "/queries/accepted/door/uav_" + QString::number(uav_id);
-        uav->accepted_images = unanswered_queries_widget_->numImagesInDir(path);
+        uav->accepted_images = UnansweredQueries::numImagesInDir(path);
         
         path = image_root_dir_ + "/queries/unanswered/door/uav_" + QString::number(uav_id);
-        uav->rejected_images = unanswered_queries_widget_->numImagesInDir(path);
+        uav->rejected_images = UnansweredQueries::numImagesInDir(path);
         
         uav_db[uav_id]->status = UavStatus::active;
         uav_db[uav_id]->uav = uav;
@@ -255,7 +253,7 @@ namespace rqt_gcs
             sensor_msgs::Image * ros_image = &query->original_picture;
             cv::Mat image = cv_bridge::toCvCopy(*ros_image,"rgb8")->image;
             
-            int num_images = unanswered_queries_widget_->numImagesInDir(QString(path.c_str()));
+            int num_images = UnansweredQueries::numImagesInDir(QString(path.c_str()));
             
             std::string file = "img_" + std::to_string(num_images) + ".jpg";
             saveImage(path, file, image);
@@ -910,22 +908,24 @@ namespace rqt_gcs
     
     void SimpleGCS::MapTriggered()
     {   
-        if(web_view_ == nullptr)
+        if(widgets_.web_view_ == nullptr)
         {
             QString map_url = "file://" % app_root_dir_ % "/src/rqt_gcs/map/uavmap.html";
-            web_view_ = new QWebView(0);
-            web_view_->load(QUrl(map_url));
+            widgets_.web_view_ = new QWebView(0);
+//            widgets_.web_view_->setAttribute(Qt::WA_DeleteOnClose);
+            widgets_.web_view_->load(QUrl(map_url));
         }
         
         if(web_view_act->isChecked())
-            web_view_->show();
+            widgets_.web_view_->show();
         else
-            web_view_->hide();
+            widgets_.web_view_->hide();
+        
     }
     
     void SimpleGCS::initMenuBar()
     {
-       menu_bar_ = new QMenuBar(widget_);
+       menu_bar_ = new QMenuBar(widget_main_);
 
        //file menu
        file_menu = menu_bar_->addMenu("File");
@@ -990,52 +990,54 @@ namespace rqt_gcs
 
     void SimpleGCS::SettingsTriggered()
     {
-        if(settings_widget_ == nullptr)
+        if(widgets_.settings_ == nullptr)
         {
-            settings_widget_ = new SettingsWidget(this);
+            widgets_.settings_ = new SettingsWidget(this);
+            
+            QRect window = widget_main_->window()->geometry();
+            int x = (widget_main_->width() / 2) - (widgets_.settings_->width() / 2);
+            int y = (widget_main_->height() / 2) - (widgets_.settings_->height() / 2);
+            widgets_.settings_->move(window.x() + x, window.y() + y);
+            widgets_.settings_->setVisible(true);
 
-            QRect window = widget_->window()->geometry();
-            int x = (widget_->width() / 2) - (settings_widget_->width() / 2);
-            int y = (widget_->height() / 2) - (settings_widget_->height() / 2);
-            settings_widget_->move(window.x() + x, window.y() + y);
-            settings_widget_->setVisible(true);
+//            connect(settings_widget_, SIGNAL(dismissMe()),
+//                    this, SLOT(DestroySettingsWidget()));
 
-            connect(settings_widget_, SIGNAL(dismissMe()),
-                    this, SLOT(DestroySettingsWidget()));
-
-            connect(settings_widget_, SIGNAL(machineLearningModeToggled(bool)),
+            connect(widgets_.settings_, SIGNAL(machineLearningModeToggled(bool)),
                     this, SLOT(ToggleMachineLearningMode(bool)));
         }
         else
         {
-            settings_widget_->showNormal();
-            settings_widget_->activateWindow();
+            widgets_.settings_->showNormal();
+            widgets_.settings_->activateWindow();
         }
     }
     
     void SimpleGCS::UnansweredQueriesTriggered()
     {
-        if(unanswered_queries_widget_ == nullptr)
+        if(widgets_.unanswered_queries_ == nullptr)
         {
-            unanswered_queries_widget_ = new UnansweredQueries(this);
+            widgets_.unanswered_queries_ = new UnansweredQueries(this);
             
-            QRect window = widget_->window()->geometry();
-            int x = (widget_->width() / 2) - (unanswered_queries_widget_->width() / 2);
-            int y = (widget_->height() / 2) - (unanswered_queries_widget_->height() / 2);
-            unanswered_queries_widget_->move(window.x() + x, window.y() + y);
-            unanswered_queries_widget_->setVisible(true);
+            QRect window = widget_main_->window()->geometry();
+            int x = (widget_main_->width() / 2) - (widgets_.unanswered_queries_->width() / 2);
+            int y = (widget_main_->height() / 2) - (widgets_.unanswered_queries_->height() / 2);
+            widgets_.unanswered_queries_->move(window.x() + x, window.y() + y);
+            widgets_.unanswered_queries_->setVisible(true);
+            
+//           / connect(unanswered_queries_widget_, &QWidget::)
         }
         else
         {
-            unanswered_queries_widget_->showNormal();
-            unanswered_queries_widget_->activateWindow();
+            widgets_.unanswered_queries_->showNormal();
+            widgets_.unanswered_queries_->activateWindow();
         }
     }
 
     void SimpleGCS::DestroySettingsWidget()
     {
-        delete settings_widget_;
-        settings_widget_ = nullptr;
+//        delete settings_widget_;
+//        settings_widget_ = nullptr;
     }
 
     void SimpleGCS::ToggleMachineLearningMode(bool toggle)
