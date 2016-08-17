@@ -361,7 +361,7 @@ namespace rqt_gcs
         temp_data.setNum(uav->GetDistanceToWP());
         usUi_.waypointDisplay->setText(temp_data);
 
-        temp_data.setNum(uav->GetBatteryStatus().remaining * 100);
+        temp_data.setNum(uav->GetBatteryState().percentage * 100);
         usUi_.batteryProgressBar->setValue(temp_data.toInt());
 
         quad_id.setNum(uav->id);
@@ -376,7 +376,7 @@ namespace rqt_gcs
         //Update Uav List widgets
         for(int i = 0; i < NUM_UAV; i++)
         {
-            temp_data.setNum(active_uavs[i]->GetBatteryStatus().remaining * 100);
+            temp_data.setNum(active_uavs[i]->GetBatteryState().percentage * 100);
             uavCondWidgetArr[i]->VehicleBatteryLine->setText(temp_data);
             temp_data = active_uavs[i]->GetState().mode.c_str();
             uavCondWidgetArr[i]->VehicleConditionLine->setText(temp_data);

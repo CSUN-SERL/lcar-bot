@@ -16,7 +16,6 @@
 #include <mavros_msgs/CommandTOL.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
-#include <mavros_msgs/BatteryStatus.h>
 #include <mavros_msgs/OverrideRCIn.h>
 #include <mavros_msgs/Waypoint.h>
 #include <mavros_msgs/CommandCode.h>
@@ -25,6 +24,7 @@
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <sensor_msgs/Image.h>
+#include <sensor_msgs/BatteryState.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/Float64.h>
 #include <nav_msgs/Path.h>
@@ -280,7 +280,7 @@ public:
     //Getter Functions
     int GetId() { return id; }
     mavros_msgs::State GetState() { return state; }
-    mavros_msgs::BatteryStatus GetBatteryStatus() { return battery; }
+    sensor_msgs::BatteryState GetBatteryState() { return battery; }
     sensor_msgs::Imu  GetImu() { return imu; }
     FlightState GetFlightState() { return UpdateFlightState(); }
     int GetDistanceToWP() { return CalculateDistance(pose_target, pose_local); }
@@ -351,7 +351,7 @@ private:
 
     //Callback Prototypes
     void StateCallback(const mavros_msgs::State& msg_state) { state = msg_state; }
-    void BatteryCallback(const mavros_msgs::BatteryStatus& msg_battery) { battery = msg_battery; }
+    void BatteryCallback(const sensor_msgs::BatteryState& msg_battery) { battery = msg_battery; }
     void ImuCallback(const sensor_msgs::Imu& msg_imu) { imu = msg_imu; }
     void RelAltitudeCallback(const std_msgs::Float64& msg_altitude) { altitude_rel = msg_altitude; }
     void HeadingCallback(const std_msgs::Float64& msg_heading) { heading_deg = msg_heading; }
@@ -444,7 +444,7 @@ private:
     //UAV State Variables
     std::string                     ns;
     mavros_msgs::State              state;
-    mavros_msgs::BatteryStatus      battery;
+    sensor_msgs::BatteryState       battery;
     sensor_msgs::Imu                imu;
     sensor_msgs::NavSatFix          pos_global;
     geometry_msgs::TwistStamped     velocity;
