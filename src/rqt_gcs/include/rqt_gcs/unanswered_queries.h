@@ -53,15 +53,15 @@ public:
     
     UnansweredQueries(SimpleGCS*);
     virtual ~UnansweredQueries();
-    void  addQueryWidget(QueryStat*, QString);
+    void  addQueryWidget(QueryStat*, QString&);
     void addUnansweredQueriesFromDisk();
     void removeQuery(std::string);
     void removeAllQueries();
     static int numImagesInDir(QString);
-    int uavIdFromDir(QString);
-    int imgNumFromFile(QString);
-    QString getImgBasePath(QString);
-    bool saveImage(QString, QString, QImage *);
+    int uavIdFromDir(QString&);
+    int imgNumFromFile(QString&);
+    QString getImgBasePath(QString&);
+    bool saveImage(QString&, QString&, QImage *);
     
 protected:
    void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE;

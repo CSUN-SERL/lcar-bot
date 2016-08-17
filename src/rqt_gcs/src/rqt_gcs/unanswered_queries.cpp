@@ -82,7 +82,7 @@ void UnansweredQueries::addUnansweredQueriesFromDisk()
     }
 }
 
-void UnansweredQueries::addQueryWidget(QueryStat* stat, QString ap_type)
+void UnansweredQueries::addQueryWidget(QueryStat* stat, QString& ap_type)
 {   
     //create the widget
     QWidget * pmWidget = new QWidget();
@@ -170,11 +170,11 @@ void UnansweredQueries::answerQuery(QWidget * w, QString ap_type, bool accepted)
 int UnansweredQueries::numImagesInDir(QString dir_path)
 {
     QDir dir(dir_path);
-    dir.setNameFilters(QStringList()<<"*.jpg");
+    dir.setNameFilters(QStringList() << "*.jpg");
     return dir.entryList().size();
 }
 
-int UnansweredQueries::uavIdFromDir(QString dir)
+int UnansweredQueries::uavIdFromDir(QString& dir)
 {  
     int start = dir.indexOf("/uav_");
     QString temp = dir.mid(start+5, 4);
@@ -182,7 +182,7 @@ int UnansweredQueries::uavIdFromDir(QString dir)
     return temp.mid(0, stop).toInt();
 }
 
-int UnansweredQueries::imgNumFromFile(QString file)
+int UnansweredQueries::imgNumFromFile(QString& file)
 {
     int start = file.indexOf("img_");
     QString temp = file.mid(start+4,4);
@@ -190,20 +190,19 @@ int UnansweredQueries::imgNumFromFile(QString file)
     return temp.mid(0, stop).toInt();
 }
 
-QString UnansweredQueries::getImgBasePath(QString file_path)
+QString UnansweredQueries::getImgBasePath(QString& file_path)
 {
     int start = file_path.indexOf("/img_");
     return file_path.mid(0,start);
 }
 
-bool UnansweredQueries::saveImage(QString path, QString file, QImage* image)
+bool UnansweredQueries::saveImage(QString& path, QString& file, QImage* image)
 {
     QDir dir(path);
     if(!dir.exists())
         dir.mkdir(path);
 
     QString full_path = dir.canonicalPath().append("/" % file);
-    std::cout << "ful_path in saveImage(): " << full_path.toStdString() << "\n";
     return image->save(full_path, "jpg", -1);
 }
 
