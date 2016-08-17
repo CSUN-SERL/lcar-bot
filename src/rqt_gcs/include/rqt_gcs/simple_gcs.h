@@ -2,6 +2,7 @@
 #define rqt_gcs__SimpleGCS_H
 
 #include <ros/ros.h>
+#include <ros/package.h>
 #include <ros/common.h>
 #include <rqt_gui_cpp/plugin.h>
 #include <rqt_gcs/simple_control.h>
@@ -136,7 +137,7 @@ namespace rqt_gcs{
     virtual void ShowAccessPoints();
     virtual void SettingsTriggered();
     virtual void UnansweredQueriesTriggered();
-    virtual void MapTriggered();
+    void MapTriggered();
     
     virtual void AddUav(int);
     virtual void DeleteUav(int, UavStatus);
@@ -261,7 +262,7 @@ namespace rqt_gcs{
 
     QSettings* settings_;
     QString image_root_dir_;
-    QString app_root_dir_;
+    QString rqt_gcs_dir_;
 
     QThread t_uav_monitor;
     SimpleGCSHelper * uav_monitor;
