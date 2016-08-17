@@ -18,9 +18,6 @@ namespace rqt_gcs
     {
         // access standalone command line arguments
         //QStringList argv = context.argv();
-        
-        QString app_src = QDir().currentPath();
-        app_root_dir_ = app_src.mid(0, app_src.indexOf("/src"));
 
         widget_main_           = new QWidget();
         missionProgressWidget_ = new QWidget();
@@ -910,7 +907,8 @@ namespace rqt_gcs
     {   
         if(widgets_.web_view_ == nullptr)
         {
-            QString map_url = "file://" % app_root_dir_ % "/src/rqt_gcs/map/uavmap.html";
+            std::string s = ros::package::getPath("rqt_gcs");         
+            QString map_url = "file://" % QString(s.c_str()) % "/map/uavmap.html";
             widgets_.web_view_ = new QWebView(0);
 //            widgets_.web_view_->setAttribute(Qt::WA_DeleteOnClose);
             widgets_.web_view_->load(QUrl(map_url));
