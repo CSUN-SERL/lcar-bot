@@ -30,10 +30,11 @@ QWidget#scroll_area_queries{
 	background-color: rgb(48, 57, 80);
 }
 QWidget{
-color: rgb(240, 240, 240);
+color: rgb(236, 236, 236);
 background-color: rgb(39, 47,66);
 border-radius:5px;
 }
+
 
 QFrame{
 	background-color: rgb(48, 57, 80);
@@ -85,13 +86,11 @@ QComboBox::drop-down{
 	subcontrol-origin: padding;
     subcontrol-position: top right;
 }
-QComboBox::indicator{
-    background:transparent;
-    color:transparent;
-	width:0px;
+
+QComboBox QAbstractItemView {
+    border: 2px rgb(68, 80, 113);
+    selection-background-color: lightgray;
 }
-
-
 /*
 QComboBox::down-arrow {
      image: url(:/images/combobox-arrow.png);
@@ -125,7 +124,7 @@ QLabel{
      <property name="topMargin">
       <number>0</number>
      </property>
-     <item alignment="Qt::AlignLeft|Qt::AlignTop">
+     <item>
       <widget class="QFrame" name="frameControlPanel">
        <property name="minimumSize">
         <size>
@@ -147,10 +146,10 @@ QLabel{
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <property name="leftMargin">
-         <number>9</number>
+         <number>6</number>
         </property>
         <property name="topMargin">
-         <number>21</number>
+         <number>3</number>
         </property>
         <property name="rightMargin">
          <number>6</number>
@@ -210,6 +209,9 @@ QLabel{
             <height>4096</height>
            </size>
           </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
           <widget class="QFrame" name="framePFD">
            <property name="geometry">
             <rect>
@@ -224,6 +226,9 @@ QLabel{
              <width>330</width>
              <height>330</height>
             </size>
+           </property>
+           <property name="autoFillBackground">
+            <bool>false</bool>
            </property>
            <property name="styleSheet">
             <string notr="true">#framePFD
@@ -284,7 +289,7 @@ QLabel{
          </widget>
         </item>
         <item>
-         <widget class="QWidget" name="uav_stat_widget_" native="true">
+         <widget class="QWidget" name="widget_uav_stat" native="true">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -292,75 +297,129 @@ QLabel{
            </sizepolicy>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
+           <property name="spacing">
+            <number>9</number>
+           </property>
            <item>
             <layout class="QGridLayout" name="gridLayout_9">
-             <item row="1" column="1">
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="horizontalSpacing">
+              <number>0</number>
+             </property>
+             <item row="1" column="1" alignment="Qt::AlignHCenter">
               <widget class="QLabel" name="lbl_pitch_val">
                <property name="text">
                 <string>0.00</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="2">
+             <item row="0" column="2" alignment="Qt::AlignHCenter">
               <widget class="QLabel" name="lbl_yaw">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>2</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">color:rgb(120, 120, 140);</string>
+               </property>
                <property name="text">
                 <string>Yaw</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="2">
+             <item row="1" column="2" alignment="Qt::AlignHCenter">
               <widget class="QLabel" name="lbl_yaw_val">
                <property name="text">
                 <string>0.00</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="0">
+             <item row="0" column="0" alignment="Qt::AlignHCenter">
               <widget class="QLabel" name="lbl_roll">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>2</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">color:rgb(120, 120, 140);</string>
+               </property>
                <property name="text">
                 <string>Roll</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="4">
+             <item row="1" column="4" alignment="Qt::AlignHCenter">
               <widget class="QLabel" name="lbl_dist_wp_val">
                <property name="text">
                 <string>0.0 m</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="1">
+             <item row="0" column="1" alignment="Qt::AlignHCenter">
               <widget class="QLabel" name="lbl_pitch">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>2</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">color:rgb(120, 120, 140);</string>
+               </property>
                <property name="text">
                 <string>Pitch</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="3">
+             <item row="0" column="3" alignment="Qt::AlignHCenter">
               <widget class="QLabel" name="lbl_gnd_spd">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>3</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">color:rgb(120, 120, 140);</string>
+               </property>
                <property name="text">
                 <string>Gnd. Spd.</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="3">
+             <item row="1" column="3" alignment="Qt::AlignHCenter">
               <widget class="QLabel" name="lb_gnd_spd_val">
                <property name="text">
                 <string>0.00 m/s</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="0">
+             <item row="1" column="0" alignment="Qt::AlignHCenter">
               <widget class="QLabel" name="lbl_roll_val">
                <property name="text">
                 <string>0.00</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="4">
+             <item row="0" column="4" alignment="Qt::AlignHCenter">
               <widget class="QLabel" name="lbl_dist_wp">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>4</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">color:rgb(120, 120, 140);</string>
+               </property>
                <property name="text">
-                <string>Dist to WP</string>
+                <string>Dist. to WP</string>
                </property>
               </widget>
              </item>
@@ -368,12 +427,22 @@ QLabel{
            </item>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_6">
-             <property name="topMargin">
+             <property name="spacing">
               <number>6</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
              </property>
              <property name="bottomMargin">
               <number>0</number>
              </property>
+             <item>
+              <widget class="QLabel" name="lbl_battery">
+               <property name="text">
+                <string>BAT.</string>
+               </property>
+              </widget>
+             </item>
              <item alignment="Qt::AlignLeft">
               <widget class="QProgressBar" name="progress_bar_battery">
                <property name="minimumSize">
@@ -396,7 +465,7 @@ QLabel{
                </property>
               </widget>
              </item>
-             <item>
+             <item alignment="Qt::AlignLeft">
               <widget class="QComboBox" name="flightModeComboBox">
                <property name="minimumSize">
                 <size>
@@ -423,14 +492,26 @@ QLabel{
                 <number>2147483645</number>
                </property>
                <property name="sizeAdjustPolicy">
-                <enum>QComboBox::AdjustToContents</enum>
+                <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+               </property>
+               <property name="minimumContentsLength">
+                <number>8</number>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>16</width>
+                 <height>16</height>
+                </size>
+               </property>
+               <property name="frame">
+                <bool>false</bool>
                </property>
                <property name="modelColumn">
                 <number>0</number>
                </property>
                <item>
                 <property name="text">
-                 <string>Stablilize</string>
+                 <string>Stabilize</string>
                 </property>
                </item>
                <item>
@@ -455,7 +536,7 @@ QLabel{
                </item>
                <item>
                 <property name="text">
-                 <string comment="Flight">Return-to-Launch</string>
+                 <string comment="Flight">Return to Launch</string>
                 </property>
                </item>
                <item>
@@ -470,8 +551,14 @@ QLabel{
                </item>
               </widget>
              </item>
-             <item>
+             <item alignment="Qt::AlignRight">
               <widget class="QPushButton" name="armButton">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="minimumSize">
                 <size>
                  <width>80</width>
@@ -487,6 +574,161 @@ color: rgb(240, 240, 240);</string>
                </property>
                <property name="text">
                 <string>Arm</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QWidget" name="widget_mission_progress" native="true">
+          <layout class="QVBoxLayout" name="verticalLayout_5">
+           <item>
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>No missions in progress</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QProgressBar" name="progressBar">
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <property name="spacing">
+              <number>15</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>6</number>
+             </property>
+             <item alignment="Qt::AlignLeft">
+              <widget class="QComboBox" name="buildingsComboBox">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>30</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Flight Mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="accessibleName">
+                <string/>
+               </property>
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
+               <property name="editable">
+                <bool>false</bool>
+               </property>
+               <property name="currentIndex">
+                <number>0</number>
+               </property>
+               <property name="maxCount">
+                <number>2147483645</number>
+               </property>
+               <property name="sizeAdjustPolicy">
+                <enum>QComboBox::AdjustToContents</enum>
+               </property>
+               <property name="minimumContentsLength">
+                <number>10</number>
+               </property>
+               <property name="modelColumn">
+                <number>0</number>
+               </property>
+               <item>
+                <property name="text">
+                 <string>Building 1</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string comment="Flight">Building 2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string comment="Flight">Building 3</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Building 4</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item alignment="Qt::AlignRight">
+              <widget class="QPushButton" name="btn_scout">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>30</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>150</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="cursor">
+                <cursorShape>PointingHandCursor</cursorShape>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background:transparent;
+</string>
+               </property>
+               <property name="text">
+                <string>| |</string>
+               </property>
+              </widget>
+             </item>
+             <item alignment="Qt::AlignRight|Qt::AlignVCenter">
+              <widget class="QPushButton" name="btn_stop_scout">
+               <property name="minimumSize">
+                <size>
+                 <width>15</width>
+                 <height>15</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>150</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="cursor">
+                <cursorShape>PointingHandCursor</cursorShape>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background-color:rgb(236,236,236);
+border-radius:0px;</string>
+               </property>
+               <property name="text">
+                <string>[ ]</string>
                </property>
               </widget>
              </item>
@@ -532,19 +774,19 @@ color: rgb(240, 240, 240);</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_6">
         <property name="spacing">
-         <number>0</number>
+         <number>6</number>
         </property>
         <property name="leftMargin">
-         <number>0</number>
+         <number>6</number>
         </property>
         <property name="topMargin">
-         <number>0</number>
+         <number>6</number>
         </property>
         <property name="rightMargin">
-         <number>0</number>
+         <number>6</number>
         </property>
         <property name="bottomMargin">
-         <number>0</number>
+         <number>6</number>
         </property>
         <item>
          <widget class="QScrollArea" name="scroll_area_uav">
@@ -577,8 +819,8 @@ color: rgb(240, 240, 240);</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>388</width>
-             <height>584</height>
+             <width>363</width>
+             <height>468</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -592,7 +834,7 @@ color: rgb(240, 240, 240);</string>
              <number>0</number>
             </property>
             <property name="topMargin">
-             <number>15</number>
+             <number>0</number>
             </property>
             <property name="rightMargin">
              <number>0</number>
@@ -651,6 +893,52 @@ color: rgb(240, 240, 240);</string>
       <number>0</number>
      </property>
      <item>
+      <widget class="QWidget" name="widget_img_view" native="true">
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="rqt_image_view::RatioLayoutedFrame" name="image_frame_2">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>370</width>
+            <height>277</height>
+           </size>
+          </property>
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
       <widget class="QFrame" name="framePlaybook">
        <property name="minimumSize">
         <size>
@@ -665,6 +953,18 @@ color: rgb(240, 240, 240);</string>
         <enum>QFrame::Raised</enum>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
+        <property name="leftMargin">
+         <number>6</number>
+        </property>
+        <property name="topMargin">
+         <number>6</number>
+        </property>
+        <property name="rightMargin">
+         <number>6</number>
+        </property>
+        <property name="bottomMargin">
+         <number>6</number>
+        </property>
         <item row="1" column="0">
          <widget class="QWidget" name="playBook" native="true">
           <property name="sizePolicy">
@@ -681,13 +981,13 @@ color: rgb(240, 240, 240);</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
            <property name="leftMargin">
-            <number>9</number>
+            <number>6</number>
            </property>
            <property name="topMargin">
             <number>6</number>
            </property>
            <property name="rightMargin">
-            <number>9</number>
+            <number>6</number>
            </property>
            <property name="bottomMargin">
             <number>6</number>
@@ -765,6 +1065,9 @@ color: rgb(240, 240, 240);</string>
                <property name="sizeAdjustPolicy">
                 <enum>QComboBox::AdjustToContents</enum>
                </property>
+               <property name="minimumContentsLength">
+                <number>10</number>
+               </property>
                <property name="frame">
                 <bool>true</bool>
                </property>
@@ -835,122 +1138,130 @@ color: rgb(240, 240, 240);</string>
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
-       <layout class="QGridLayout" name="gridLayout_6">
-        <item row="0" column="0">
-         <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout">
+       <layout class="QVBoxLayout" name="verticalLayout_7">
+        <property name="leftMargin">
+         <number>6</number>
+        </property>
+        <property name="topMargin">
+         <number>6</number>
+        </property>
+        <property name="rightMargin">
+         <number>6</number>
+        </property>
+        <property name="bottomMargin">
+         <number>6</number>
+        </property>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <item alignment="Qt::AlignLeft|Qt::AlignTop">
+           <widget class="QLabel" name="labelQueries">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>25</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>14</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Queries</string>
+            </property>
+            <property name="textFormat">
+             <enum>Qt::AutoText</enum>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignRight">
+           <widget class="QPushButton" name="viewAccessPointsButton">
+            <property name="minimumSize">
+             <size>
+              <width>150</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>150</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="cursor">
+             <cursorShape>PointingHandCursor</cursorShape>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(64, 89, 145);
+color: rgb(240, 240, 240);</string>
+            </property>
+            <property name="text">
+             <string>View Access Points</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QScrollArea" name="scrollArea">
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
+          <property name="lineWidth">
+           <number>1</number>
+          </property>
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="scroll_area_queries">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>388</width>
+             <height>622</height>
+            </rect>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_3">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
             <property name="topMargin">
              <number>0</number>
             </property>
-            <item alignment="Qt::AlignLeft|Qt::AlignTop">
-             <widget class="QLabel" name="labelQueries">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>25</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>14</pointsize>
-                <weight>50</weight>
-                <bold>false</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Queries</string>
-              </property>
-              <property name="textFormat">
-               <enum>Qt::AutoText</enum>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item alignment="Qt::AlignRight">
-             <widget class="QPushButton" name="viewAccessPointsButton">
-              <property name="minimumSize">
-               <size>
-                <width>150</width>
-                <height>30</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>150</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="cursor">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">background-color: rgb(64, 89, 145);
-color: rgb(240, 240, 240);</string>
-              </property>
-              <property name="text">
-               <string>View Access Points</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QScrollArea" name="scrollArea">
-            <property name="frameShape">
-             <enum>QFrame::NoFrame</enum>
+            <property name="rightMargin">
+             <number>0</number>
             </property>
-            <property name="lineWidth">
-             <number>1</number>
+            <property name="bottomMargin">
+             <number>0</number>
             </property>
-            <property name="widgetResizable">
-             <bool>true</bool>
-            </property>
-            <widget class="QWidget" name="scroll_area_queries">
-             <property name="geometry">
-              <rect>
-               <x>0</x>
-               <y>0</y>
-               <width>380</width>
-               <height>888</height>
-              </rect>
-             </property>
-             <layout class="QGridLayout" name="gridLayout_3">
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
+            <item row="1" column="0">
+             <layout class="QVBoxLayout" name="layoutScrollContainerQueries">
+              <property name="spacing">
                <number>0</number>
               </property>
               <property name="bottomMargin">
                <number>0</number>
               </property>
-              <item row="1" column="0">
-               <layout class="QVBoxLayout" name="layoutScrollContainerQueries">
+              <item>
+               <layout class="QVBoxLayout" name="layoutQueries">
                 <property name="spacing">
-                 <number>0</number>
+                 <number>3</number>
                 </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <layout class="QVBoxLayout" name="layoutQueries">
-                  <property name="spacing">
-                   <number>3</number>
-                  </property>
-                 </layout>
-                </item>
                 <item>
                  <spacer name="verticalSpacer_2">
                   <property name="orientation">
@@ -967,14 +1278,12 @@ color: rgb(240, 240, 240);</string>
                </layout>
               </item>
              </layout>
-            </widget>
-           </widget>
-          </item>
-         </layout>
+            </item>
+           </layout>
+          </widget>
+         </widget>
         </item>
        </layout>
-       <zorder>verticalLayoutWidget</zorder>
-       <zorder>verticalLayoutWidget</zorder>
       </widget>
      </item>
     </layout>
@@ -986,6 +1295,9 @@ color: rgb(240, 240, 240);</string>
        <horstretch>1</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
      </property>
      <property name="url">
       <url>
@@ -1005,7 +1317,13 @@ color: rgb(240, 240, 240);</string>
   <customwidget>
    <class>qfi_PFD</class>
    <extends>QGraphicsView</extends>
-   <header>../../src/rqt_gcs/include/rqt_gcs/PlayBook.h</header>
+   <header>../../src/rqt_gcs/include/FIS/qfi_PFD.h</header>
+  </customwidget>
+  <customwidget>
+   <class>rqt_image_view::RatioLayoutedFrame</class>
+   <extends>QFrame</extends>
+   <header>../../src/rqt_gcs/include/rqt_image_view/ratio_layouted_frame.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>
