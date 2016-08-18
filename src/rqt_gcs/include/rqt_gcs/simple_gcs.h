@@ -29,20 +29,21 @@
 #include <cv_bridge/cv_bridge.h>
 
 #include <ui_gcs.h>
-#include <ui_MissionCancel.h>
-#include <ui_MissionProgress.h>
-#include <ui_MissionSelect.h>
-#include <ui_UavQuestion.h>
-#include <ui_UavStat.h>
-#include <ui_QuadStats.h>
 #include <ui_UAVCondition.h>
-#include <ui_WidgetMain.h>
+#include <ui_WidgetMainMap.h>
 #include <ui_PFDWidget_custom.h>
 #include <ui_ImageView.h>
-#include <ui_MissionConfirm.h>
-#include <ui_AccessPointsMenu.h>
 #include <ui_AccessPointStats.h>
 #include <ui_PictureMsg.h>
+#include <ui_AccessPointsMenu.h>
+
+//#include <ui_MissionSelect.h>
+//#include <ui_MissionCancel.h>
+//#include <ui_MissionProgress.h>
+//#include <ui_UavStat.h>
+//#include <ui_UavQuestion.h>
+//#include <ui_QuadStats.h>
+//#include <ui_MissionConfirm.h>
 
 #include <QWidget>
 #include <QLabel>  
@@ -96,13 +97,11 @@ namespace rqt_gcs{
     };
       
     SimpleGCS();
-    //ros::Subscriber sub;
     
     ros::NodeHandle nh;
+    //ros::Subscriber sub;
     ros::ServiceServer server;
     lcar_msgs::Door msg;
-
-    QLabel uav_lbl;
    
     image_transport::ImageTransport it_stereo{nh};
     void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
@@ -129,17 +128,16 @@ namespace rqt_gcs{
     virtual void CancelPlay();
     virtual void ScoutBuilding();
     virtual void StopQuad();
-    virtual void ChangeFlightMode();
+    virtual void ChangeFlightMode(int);
     virtual void DeleteAccessPoint(QWidget*);
     virtual void QuadSelected(int);
-    virtual void ArmSelectedQuad();
-    virtual void DisarmSelectedQuad();
+    virtual void ArmOrDisarmSelectedQuad();
+//    virtual void DisarmSelectedQuad();
     virtual void AcceptDoorQuery(QWidget *);
     virtual void RejectDoorQuery(QWidget *);
     virtual void ShowAccessPoints();
     virtual void SettingsTriggered();
     virtual void UnansweredQueriesTriggered();
-    void MapTriggered();
     
     virtual void AddUav(int);
     virtual void DeleteUav(int, UavStatus);
@@ -151,7 +149,8 @@ namespace rqt_gcs{
     virtual void ToggleMachineLearningMode(bool);
 
   private:
-      
+    
+    void initMap();
     void initMenuBar();
     void initSettings();
     void initHelperThread();
@@ -191,7 +190,6 @@ namespace rqt_gcs{
     
     struct FloatingWidgets 
     {
-        QWebView * web_view_ = nullptr;
         SettingsWidget * settings_ = nullptr;
         UnansweredQueries * unanswered_queries_ = nullptr;
     } widgets_;
@@ -204,14 +202,8 @@ namespace rqt_gcs{
     std::vector<AccessPoint> * accessPointVector;
     std::vector<lcar_msgs::DoorPtr> * pictureQueryVector;
 
-    cv::Mat conversion_mat_;
     image_transport::Subscriber sub_stereo;
     Ui::SimpleGCSWidget ui_;
-    Ui::MissionProgressWidget mpUi_;
-    Ui::UavQuestionWidget uqUi_;
-    Ui::UavStatWidget usUi_;
-    Ui::ImageViewWidget ivUi_;
-    Ui::PFDWidget pfd_ui;
     Ui::centralWidget central_ui_;
     std::vector<Ui::UAVConditionWidget*> uavCondWidgetArr;
     Ui::AccessPointsMenuWidget apmUi_;
@@ -227,7 +219,6 @@ namespace rqt_gcs{
     
     QMenu * view_menu;
     QAction * unanswered_queries_act;
-    QAction * web_view_act;
     
     QMenu * tools_menu;
     QAction* settings_act;

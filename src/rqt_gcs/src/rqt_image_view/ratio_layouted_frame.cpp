@@ -123,11 +123,11 @@ void RatioLayoutedFrame::setAspectRatio(unsigned short width, unsigned short hei
 {
   int divisor = greatestCommonDivisor(width, height);
   if (divisor != 0) {
-    if(width < 320 || height < 240)
-    {
-        width = 320;
-        height = 240;
-    }
+//    if(width < 320 || height < 240)
+//    {
+//        width = 320;
+//        height = 240;
+//    }
     aspect_ratio_.setWidth(width / divisor);
     aspect_ratio_.setHeight(height / divisor);
   }

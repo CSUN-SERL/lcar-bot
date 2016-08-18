@@ -149,7 +149,7 @@ QLabel{
          <number>6</number>
         </property>
         <property name="topMargin">
-         <number>3</number>
+         <number>21</number>
         </property>
         <property name="rightMargin">
          <number>6</number>
@@ -196,7 +196,7 @@ QLabel{
          </widget>
         </item>
         <item alignment="Qt::AlignHCenter|Qt::AlignTop">
-         <widget class="QWidget" name="PFDQWidget_" native="true">
+         <widget class="QWidget" name="widget_PFD" native="true">
           <property name="minimumSize">
            <size>
             <width>330</width>
@@ -409,7 +409,7 @@ QLabel{
               </widget>
              </item>
              <item row="1" column="3" alignment="Qt::AlignHCenter|Qt::AlignTop">
-              <widget class="QLabel" name="lb_gnd_spd_val">
+              <widget class="QLabel" name="lbl_gnd_spd_val">
                <property name="text">
                 <string>0.00 m/s</string>
                </property>
@@ -459,7 +459,7 @@ QLabel{
               </widget>
              </item>
              <item alignment="Qt::AlignLeft">
-              <widget class="QProgressBar" name="prgrss_bar_battery">
+              <widget class="QProgressBar" name="pgs_bar_battery">
                <property name="minimumSize">
                 <size>
                  <width>125</width>
@@ -623,7 +623,7 @@ color: rgb(240, 240, 240);</string>
             </widget>
            </item>
            <item>
-            <widget class="QProgressBar" name="progressBar">
+            <widget class="QProgressBar" name="pgs_bar_mission">
              <property name="value">
               <number>24</number>
              </property>
@@ -641,7 +641,7 @@ color: rgb(240, 240, 240);</string>
               <number>6</number>
              </property>
              <item alignment="Qt::AlignLeft">
-              <widget class="QComboBox" name="buildingsComboBox">
+              <widget class="QComboBox" name="cmbo_box_buildings">
                <property name="minimumSize">
                 <size>
                  <width>0</width>
@@ -851,7 +851,7 @@ padding-top:2px;</string>
              <x>0</x>
              <y>0</y>
              <width>348</width>
-             <height>477</height>
+             <height>459</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -885,7 +885,7 @@ padding-top:2px;</string>
                <number>0</number>
               </property>
               <item>
-               <layout class="QVBoxLayout" name="layoutUavList_2">
+               <layout class="QVBoxLayout" name="layout_uavs">
                 <property name="spacing">
                  <number>3</number>
                 </property>
@@ -943,7 +943,7 @@ padding-top:2px;</string>
      </property>
      <item>
       <widget class="QWidget" name="widget_img_view" native="true">
-       <layout class="QVBoxLayout" name="verticalLayout">
+       <layout class="QGridLayout" name="gridLayout">
         <property name="leftMargin">
          <number>0</number>
         </property>
@@ -956,31 +956,22 @@ padding-top:2px;</string>
         <property name="bottomMargin">
          <number>0</number>
         </property>
-        <item>
-         <widget class="rqt_image_view::RatioLayoutedFrame" name="image_frame">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <item row="0" column="0">
+         <widget class="QLabel" name="image_frame">
           <property name="minimumSize">
            <size>
-            <width>375</width>
-            <height>281</height>
+            <width>400</width>
+            <height>301</height>
            </size>
           </property>
-          <property name="layoutDirection">
-           <enum>Qt::LeftToRight</enum>
-          </property>
           <property name="styleSheet">
-           <string notr="true"/>
+           <string notr="true">background:transparent;</string>
           </property>
-          <property name="frameShape">
-           <enum>QFrame::StyledPanel</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Raised</enum>
+          <property name="text">
+           <string/>
           </property>
          </widget>
         </item>
@@ -1024,7 +1015,7 @@ padding-top:2px;</string>
           </property>
           <property name="minimumSize">
            <size>
-            <width>32</width>
+            <width>0</width>
             <height>0</height>
            </size>
           </property>
@@ -1052,7 +1043,7 @@ padding-top:2px;</string>
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>30</height>
+               <height>0</height>
               </size>
              </property>
              <property name="font">
@@ -1071,7 +1062,7 @@ padding-top:2px;</string>
             </widget>
            </item>
            <item>
-            <widget class="QProgressBar" name="prgrss_bar_master_control">
+            <widget class="QProgressBar" name="pgs_bar_play_book">
              <property name="value">
               <number>24</number>
              </property>
@@ -1086,7 +1077,7 @@ padding-top:2px;</string>
               <number>0</number>
              </property>
              <item alignment="Qt::AlignLeft">
-              <widget class="QComboBox" name="playComboBox_2">
+              <widget class="QComboBox" name="cmbo_box_play_book">
                <property name="minimumSize">
                 <size>
                  <width>0</width>
@@ -1146,7 +1137,7 @@ padding-top:2px;</string>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="executePlayButton_2">
+              <widget class="QPushButton" name="btn_exec_play">
                <property name="minimumSize">
                 <size>
                  <width>150</width>
@@ -1282,7 +1273,7 @@ color: rgb(240, 240, 240);</string>
              <x>0</x>
              <y>0</y>
              <width>388</width>
-             <height>618</height>
+             <height>598</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout_3">
@@ -1311,20 +1302,20 @@ color: rgb(240, 240, 240);</string>
                 <property name="spacing">
                  <number>3</number>
                 </property>
+                <item>
+                 <spacer name="verticalSpacer_2">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
                </layout>
-              </item>
-              <item>
-               <spacer name="verticalSpacer_2">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
               </item>
              </layout>
             </item>
@@ -1349,12 +1340,6 @@ color: rgb(240, 240, 240);</string>
    <class>qfi_PFD</class>
    <extends>QGraphicsView</extends>
    <header>../../src/rqt_gcs/include/FIS/qfi_PFD.h</header>
-  </customwidget>
-  <customwidget>
-   <class>rqt_image_view::RatioLayoutedFrame</class>
-   <extends>QFrame</extends>
-   <header>../../src/rqt_gcs/include/rqt_image_view/ratio_layouted_frame.h</header>
-   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

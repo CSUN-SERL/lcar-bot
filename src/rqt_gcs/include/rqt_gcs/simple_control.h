@@ -110,7 +110,7 @@ public:
       @param value Pass true for arm, false for disarm
     */
     void Arm(bool value);
-
+    
     /**
       Takeoff to a set altitude. Requires the UAV to be first armed and then
       put into Guided mode.
