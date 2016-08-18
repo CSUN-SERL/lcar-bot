@@ -91,6 +91,10 @@ namespace rqt_gcs
         connect(update_timer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
         //30 hz :1000/30 = 33.33...
         update_timer->start(33);
+        
+          uav_lbl.setParent(PFDQWidget_);
+//        uav_lbl.setText("UAV 1");
+    
 
     }
 

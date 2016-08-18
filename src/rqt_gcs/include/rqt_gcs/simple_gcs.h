@@ -102,6 +102,8 @@ namespace rqt_gcs{
     ros::ServiceServer server;
     lcar_msgs::Door msg;
 
+    QLabel uav_lbl;
+   
     image_transport::ImageTransport it_stereo{nh};
     void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
