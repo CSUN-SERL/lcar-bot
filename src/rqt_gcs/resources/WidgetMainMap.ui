@@ -298,7 +298,19 @@ QLabel{
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
            <property name="spacing">
-            <number>9</number>
+            <number>15</number>
+           </property>
+           <property name="leftMargin">
+            <number>6</number>
+           </property>
+           <property name="topMargin">
+            <number>6</number>
+           </property>
+           <property name="rightMargin">
+            <number>6</number>
+           </property>
+           <property name="bottomMargin">
+            <number>6</number>
            </property>
            <item>
             <layout class="QGridLayout" name="gridLayout_9">
@@ -308,14 +320,17 @@ QLabel{
              <property name="horizontalSpacing">
               <number>0</number>
              </property>
-             <item row="1" column="1" alignment="Qt::AlignHCenter">
+             <property name="verticalSpacing">
+              <number>3</number>
+             </property>
+             <item row="1" column="1" alignment="Qt::AlignHCenter|Qt::AlignTop">
               <widget class="QLabel" name="lbl_pitch_val">
                <property name="text">
                 <string>0.00</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="2" alignment="Qt::AlignHCenter">
+             <item row="0" column="2" alignment="Qt::AlignHCenter|Qt::AlignTop">
               <widget class="QLabel" name="lbl_yaw">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -331,14 +346,14 @@ QLabel{
                </property>
               </widget>
              </item>
-             <item row="1" column="2" alignment="Qt::AlignHCenter">
+             <item row="1" column="2" alignment="Qt::AlignHCenter|Qt::AlignTop">
               <widget class="QLabel" name="lbl_yaw_val">
                <property name="text">
                 <string>0.00</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="0" alignment="Qt::AlignHCenter">
+             <item row="0" column="0" alignment="Qt::AlignHCenter|Qt::AlignTop">
               <widget class="QLabel" name="lbl_roll">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -354,14 +369,14 @@ QLabel{
                </property>
               </widget>
              </item>
-             <item row="1" column="4" alignment="Qt::AlignHCenter">
+             <item row="1" column="4" alignment="Qt::AlignHCenter|Qt::AlignTop">
               <widget class="QLabel" name="lbl_dist_wp_val">
                <property name="text">
                 <string>0.0 m</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="1" alignment="Qt::AlignHCenter">
+             <item row="0" column="1" alignment="Qt::AlignHCenter|Qt::AlignTop">
               <widget class="QLabel" name="lbl_pitch">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -377,7 +392,7 @@ QLabel{
                </property>
               </widget>
              </item>
-             <item row="0" column="3" alignment="Qt::AlignHCenter">
+             <item row="0" column="3" alignment="Qt::AlignHCenter|Qt::AlignTop">
               <widget class="QLabel" name="lbl_gnd_spd">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -393,21 +408,21 @@ QLabel{
                </property>
               </widget>
              </item>
-             <item row="1" column="3" alignment="Qt::AlignHCenter">
+             <item row="1" column="3" alignment="Qt::AlignHCenter|Qt::AlignTop">
               <widget class="QLabel" name="lb_gnd_spd_val">
                <property name="text">
                 <string>0.00 m/s</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="0" alignment="Qt::AlignHCenter">
+             <item row="1" column="0" alignment="Qt::AlignHCenter|Qt::AlignTop">
               <widget class="QLabel" name="lbl_roll_val">
                <property name="text">
                 <string>0.00</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="4" alignment="Qt::AlignHCenter">
+             <item row="0" column="4" alignment="Qt::AlignHCenter|Qt::AlignTop">
               <widget class="QLabel" name="lbl_dist_wp">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -428,7 +443,7 @@ QLabel{
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_6">
              <property name="spacing">
-              <number>6</number>
+              <number>3</number>
              </property>
              <property name="topMargin">
               <number>0</number>
@@ -585,6 +600,21 @@ color: rgb(240, 240, 240);</string>
         <item>
          <widget class="QWidget" name="widget_mission_progress" native="true">
           <layout class="QVBoxLayout" name="verticalLayout_5">
+           <property name="spacing">
+            <number>6</number>
+           </property>
+           <property name="leftMargin">
+            <number>6</number>
+           </property>
+           <property name="topMargin">
+            <number>6</number>
+           </property>
+           <property name="rightMargin">
+            <number>6</number>
+           </property>
+           <property name="bottomMargin">
+            <number>6</number>
+           </property>
            <item>
             <widget class="QLabel" name="label">
              <property name="text">
@@ -820,8 +850,8 @@ padding-top:2px;</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>363</width>
-             <height>468</height>
+             <width>348</width>
+             <height>477</height>
             </rect>
            </property>
            <property name="sizePolicy">
