@@ -20,13 +20,16 @@
    <string>LCAR Bot Mission Control</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QWidget#centralWidget{
+   <string notr="true">#centralWidget{
 background-color: rgb(68, 80, 113);
 }
-QWidget#scroll_area_uavs{
+#scroll_area_uavs{
 	background-color: rgb(48, 57, 80);
 }
-QWidget#scroll_area_queries{
+#scroll_area_queries{
+	background-color: rgb(48, 57, 80);
+}
+#image_frame{
 	background-color: rgb(48, 57, 80);
 }
 QWidget{
@@ -85,16 +88,20 @@ QComboBox {
 QComboBox::drop-down{
 	subcontrol-origin: padding;
     subcontrol-position: top right;
+	border:0px;
+}
+
+QComboBox::down-arrow {
+     image:  url(:/icons/icons/angle_down.png);
+	 color:rgb(236,236,236);
+     width: 0.8em;
+     height: 0.8em; 
 }
 
 QComboBox QAbstractItemView {
     border: 2px rgb(68, 80, 113);
     selection-background-color: lightgray;
 }
-/*
-QComboBox::down-arrow {
-     image: url(:/images/combobox-arrow.png);
-}*/
  
 QLabel{
 	background:transparent;
@@ -445,6 +452,9 @@ QLabel{
              <property name="spacing">
               <number>3</number>
              </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
              <property name="topMargin">
               <number>0</number>
              </property>
@@ -452,9 +462,22 @@ QLabel{
               <number>0</number>
              </property>
              <item>
-              <widget class="QLabel" name="lbl_battery">
+              <widget class="QPushButton" name="pushButton">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
-                <string>BAT.</string>
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="qfi.qrc">
+                 <normaloff>:/icons/icons/battery.png</normaloff>:/icons/icons/battery.png</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>25</width>
+                 <height>30</height>
+                </size>
                </property>
               </widget>
              </item>
@@ -514,8 +537,8 @@ QLabel{
                </property>
                <property name="iconSize">
                 <size>
-                 <width>16</width>
-                 <height>16</height>
+                 <width>1</width>
+                 <height>1</height>
                 </size>
                </property>
                <property name="frame">
@@ -632,7 +655,7 @@ color: rgb(240, 240, 240);</string>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
              <property name="spacing">
-              <number>15</number>
+              <number>6</number>
              </property>
              <property name="rightMargin">
               <number>0</number>
@@ -671,6 +694,12 @@ color: rgb(240, 240, 240);</string>
                </property>
                <property name="minimumContentsLength">
                 <number>10</number>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>1</width>
+                 <height>1</height>
+                </size>
                </property>
                <property name="modelColumn">
                 <number>0</number>
@@ -711,7 +740,7 @@ color: rgb(240, 240, 240);</string>
               </spacer>
              </item>
              <item alignment="Qt::AlignRight">
-              <widget class="QPushButton" name="btn_scout">
+              <widget class="QPushButton" name="btn_scout_play_pause">
                <property name="minimumSize">
                 <size>
                  <width>0</width>
@@ -732,11 +761,21 @@ color: rgb(240, 240, 240);</string>
 </string>
                </property>
                <property name="text">
-                <string>| |</string>
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="qfi.qrc">
+                 <normaloff>:/icons/icons/pause.png</normaloff>:/icons/icons/pause.png</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>25</width>
+                 <height>25</height>
+                </size>
                </property>
               </widget>
              </item>
-             <item alignment="Qt::AlignRight|Qt::AlignVCenter">
+             <item>
               <widget class="QPushButton" name="btn_stop_scout">
                <property name="minimumSize">
                 <size>
@@ -754,12 +793,21 @@ color: rgb(240, 240, 240);</string>
                 <cursorShape>PointingHandCursor</cursorShape>
                </property>
                <property name="styleSheet">
-                <string notr="true">background-color:rgb(236,236,236);
-border-radius:0px;
-padding-top:2px;</string>
+                <string notr="true">
+border-radius:0px;</string>
                </property>
                <property name="text">
-                <string>[ ]</string>
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="qfi.qrc">
+                 <normaloff>:/icons/icons/stop.png</normaloff>:/icons/icons/stop.png</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>25</width>
+                 <height>25</height>
+                </size>
                </property>
               </widget>
              </item>
@@ -850,7 +898,7 @@ padding-top:2px;</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>348</width>
+             <width>347</width>
              <height>459</height>
             </rect>
            </property>
@@ -941,48 +989,33 @@ padding-top:2px;</string>
      <property name="topMargin">
       <number>0</number>
      </property>
-     <item>
-      <widget class="QWidget" name="widget_img_view" native="true">
-       <layout class="QGridLayout" name="gridLayout">
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
-         <number>0</number>
-        </property>
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <item row="0" column="0">
-         <widget class="QLabel" name="image_frame">
-          <property name="minimumSize">
-           <size>
-            <width>400</width>
-            <height>301</height>
-           </size>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">background:transparent;</string>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-       </layout>
+     <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+      <widget class="QLabel" name="image_frame">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>360</width>
+         <height>270</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
       </widget>
      </item>
      <item>
       <widget class="QFrame" name="frame_play_book_cntnr">
        <property name="minimumSize">
         <size>
-         <width>400</width>
+         <width>0</width>
          <height>0</height>
         </size>
        </property>
@@ -1063,6 +1096,12 @@ padding-top:2px;</string>
            </item>
            <item>
             <widget class="QProgressBar" name="pgs_bar_play_book">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="value">
               <number>24</number>
              </property>
@@ -1107,6 +1146,12 @@ padding-top:2px;</string>
                </property>
                <property name="minimumContentsLength">
                 <number>10</number>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>1</width>
+                 <height>1</height>
+                </size>
                </property>
                <property name="frame">
                 <bool>true</bool>
@@ -1272,8 +1317,8 @@ color: rgb(240, 240, 240);</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>388</width>
-             <height>598</height>
+             <width>348</width>
+             <height>642</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout_3">
@@ -1302,20 +1347,20 @@ color: rgb(240, 240, 240);</string>
                 <property name="spacing">
                  <number>3</number>
                 </property>
-                <item>
-                 <spacer name="verticalSpacer_2">
-                  <property name="orientation">
-                   <enum>Qt::Vertical</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>20</width>
-                    <height>40</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
                </layout>
+              </item>
+              <item>
+               <spacer name="verticalSpacer_2">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
              </layout>
             </item>
@@ -1342,6 +1387,8 @@ color: rgb(240, 240, 240);</string>
    <header>../../src/rqt_gcs/include/FIS/qfi_PFD.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="qfi.qrc"/>
+ </resources>
  <connections/>
 </ui>

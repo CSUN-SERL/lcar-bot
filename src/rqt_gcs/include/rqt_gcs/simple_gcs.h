@@ -208,7 +208,7 @@ namespace rqt_gcs{
     std::vector<Ui::UAVConditionWidget*> uavCondWidgetArr;
     Ui::AccessPointsMenuWidget apmUi_;
     Ui::PictureMsgWidget pmUi_;
-
+     
     QMenuBar * menu_bar_;
     
     QMenu * file_menu;

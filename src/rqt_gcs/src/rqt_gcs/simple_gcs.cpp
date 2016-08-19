@@ -19,11 +19,7 @@ namespace rqt_gcs
         //QStringList argv = context.argv();
 
         widget_main_           = new QWidget();
-//        missionProgressWidget_ = new QWidget();
         uavQuestionWidget_     = new QWidget();
-//        uavStatWidget_         = new QWidget();
-//        imageViewWidget_       = new QWidget();
-//        PFDQWidget_            = new QWidget();
         apmQWidget_            = new QWidget();
 
         NUM_UAV = 0;
@@ -41,7 +37,7 @@ namespace rqt_gcs
 
         //setup button logic for the widgets
         connect(central_ui_.btn_exec_play, SIGNAL(clicked()), this, SLOT(ExecutePlay()));
-        connect(central_ui_.btn_scout, SIGNAL(clicked()), this, SLOT(ScoutBuilding()));
+        connect(central_ui_.btn_scout_play_pause, SIGNAL(clicked()), this, SLOT(ScoutBuilding()));
         connect(central_ui_.btn_stop_scout, SIGNAL(clicked()), this, SLOT(StopQuad()));
         connect(central_ui_.cmbo_box_flight_mode, SIGNAL(currentIndexChanged(int)), this, SLOT(ChangeFlightMode(int)));
         connect(central_ui_.btn_view_acess_points, SIGNAL(clicked()), this, SLOT(ShowAccessPoints()));
@@ -74,6 +70,7 @@ namespace rqt_gcs
         connect(update_timer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
         //30 hz :1000/30 = 33.33...
         update_timer->start(33);
+                
     }
 
     void SimpleGCS::AddUav(int uav_id)
@@ -224,8 +221,8 @@ namespace rqt_gcs
 
     void SimpleGCS::saveUavQueries(SimpleControl * uav, std::string ap_type)
     {
-        std::string path = image_root_dir_.toStdString() + "/queries/unanswered/" + ap_type;
-        path += "/uav_" + std::to_string(uav->id);
+        std::string path = image_root_dir_.toStdString() + "/queries/unanswered/" 
+            + ap_type + "/uav_" + std::to_string(uav->id);
         std::vector<lcar_msgs::DoorPtr>* queries = uav->GetDoorQueries();
         for(int i = 0; i < queries->size(); i++)
         {
@@ -609,7 +606,7 @@ namespace rqt_gcs
 
         //retreive access points
         accessPointVector = active_uavs[cur_uav]->GetRefAccessPoints();
-
+        
         //Get our new number of Access points
         int apv_size = accessPointVector->size();
         int new_access_points = apv_size - num_access_points_last;
@@ -715,7 +712,7 @@ namespace rqt_gcs
         int uav_id = active_uavs[cur_uav]->id;
         sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav_id) + "/stereo_cam/left/image_rect",
                                          30, &SimpleGCS::ImageCallback, this);
-        
+
         central_ui_.image_frame->setPixmap(QPixmap::fromImage(QImage()));
 
         clearAccessPoints();
@@ -728,7 +725,13 @@ namespace rqt_gcs
             return;
         
         bool armed = active_uavs[cur_uav]->GetState().armed;
-        active_uavs[cur_uav]->Arm(!armed);
+        
+        if(armed)
+            central_ui_.btn_arm_uav->setText("Disarm");
+        else
+            central_ui_.btn_arm_uav->setText("Arm");
+        
+        active_uavs[cur_uav]->Arm(!armed);        
     }
 
     void SimpleGCS::shutdownPlugin()
@@ -841,13 +844,15 @@ namespace rqt_gcs
         {
             //don't change my colorspace! (bgr8)
             cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(msg, "bgr8");
-            cv::Mat mat= cv_ptr->image;
+            const cv::Mat mat= cv_ptr->image;
             QImage image(mat.data, mat.cols, mat.rows, mat.step[0],
                          QImage::Format_RGB888);
             
-           // ROS_WARN_STREAM("image width: " << image.width() << "  image height " << image.height());
-            central_ui_.image_frame->setPixmap(QPixmap::fromImage(image).scaled(400,301,Qt::KeepAspectRatio));
-            //central_ui_.image_frame->setImage(image);;
+            int w = central_ui_.image_frame->width();
+            int h = central_ui_.image_frame->height();
+            central_ui_.image_frame->setPixmap(QPixmap::fromImage(image)
+                                                .scaled(w,h,Qt::KeepAspectRatio)
+                                               );
         }
         catch(cv_bridge::Exception& e)
         {
@@ -952,9 +957,6 @@ namespace rqt_gcs
             widgets_.settings_->move(window.x() + x, window.y() + y);
             widgets_.settings_->setVisible(true);
 
-//            connect(settings_widget_, SIGNAL(dismissMe()),
-//                    this, SLOT(DestroySettingsWidget()));
-
             connect(widgets_.settings_, SIGNAL(machineLearningModeToggled(bool)),
                     this, SLOT(ToggleMachineLearningMode(bool)));
         }
@@ -976,8 +978,6 @@ namespace rqt_gcs
             int y = (widget_main_->height() / 2) - (widgets_.unanswered_queries_->height() / 2);
             widgets_.unanswered_queries_->move(window.x() + x, window.y() + y);
             widgets_.unanswered_queries_->setVisible(true);
-            
-//           / connect(unanswered_queries_widget_, &QWidget::)
         }
         else
         {
