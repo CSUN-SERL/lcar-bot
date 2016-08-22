@@ -30,8 +30,7 @@ include_directories(${Qt5Core_INCLUDE_DIRS}
                     ${Qt5Gui_INCLUDE_DIRS}
                     ${Qt5Svg_INCLUDE_DIRS}
                     ${Qt5WebKit_INCLUDE_DIRS}
-                    ${Qt5WebKitWidgets_INCLUDE_DIRS}
-                    
+                    ${Qt5WebKitWidgets_INCLUDE_DIRS}                
 )
 
 include(EnableCXX11)
@@ -69,7 +68,6 @@ set(rqt_gcs_UIS
   resources/PictureMsg.ui
   resources/SettingsWidget.ui
   resources/UnansweredQueries.ui
-
   resources/ImageView.ui
 #  resources/MissionSelect.ui
 #  resources/MissionCancel.ui
@@ -80,9 +78,7 @@ set(rqt_gcs_UIS
 #  resources/MissionConfirm.ui
 )
 
-set(rqt_gcs_RCCS resources/qfi.qrc
-                 resources/icons.qrc
-)
+set(rqt_gcs_RCCS resources/qfi.qrc)
 
 set(rqt_gcs_INCLUDE_DIRECTORIES include
   ${CMAKE_CURRENT_BINARY_DIR}

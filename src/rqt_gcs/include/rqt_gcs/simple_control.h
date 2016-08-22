@@ -288,7 +288,7 @@ public:
     std::vector<AccessPoint>* GetRefAccessPoints() { return &access_pts; }
     std::vector<lcar_msgs::DoorPtr>* GetDoorQueries() { return &queries_door; }
     bool RecievedHeartbeat() { return heartbeat_recieved; }
-    
+    Mode getMode(){ return goal; }
 
 private:
     void InitialSetup();

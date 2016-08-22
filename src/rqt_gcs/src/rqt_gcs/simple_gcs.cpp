@@ -37,7 +37,8 @@ namespace rqt_gcs
 
         //setup button logic for the widgets
         connect(central_ui_.btn_exec_play, SIGNAL(clicked()), this, SLOT(ExecutePlay()));
-        connect(central_ui_.btn_scout_play_pause, SIGNAL(clicked()), this, SLOT(ScoutBuilding()));
+        connect(central_ui_.btn_scout_play_pause, SIGNAL(clicked()), this, SLOT(PauseOrResumeScout()));
+        connect(central_ui_.cmbo_box_buildings, SIGNAL(currentIndexChanged(int)), this, SLOT(ScoutBuilding()));
         connect(central_ui_.btn_stop_scout, SIGNAL(clicked()), this, SLOT(StopQuad()));
         connect(central_ui_.cmbo_box_flight_mode, SIGNAL(currentIndexChanged(int)), this, SLOT(ChangeFlightMode(int)));
         connect(central_ui_.btn_view_acess_points, SIGNAL(clicked()), this, SLOT(ShowAccessPoints()));
@@ -71,6 +72,9 @@ namespace rqt_gcs
         //30 hz :1000/30 = 33.33...
         update_timer->start(33);
                 
+        
+        central_ui_.btn_scout_play_pause->setVisible(false);
+        central_ui_.btn_stop_scout->setVisible(false);
     }
 
     void SimpleGCS::AddUav(int uav_id)
@@ -524,12 +528,41 @@ namespace rqt_gcs
         int building_index = central_ui_.cmbo_box_buildings->currentIndex() + 1;
         std::string file_name = "building" + std::to_string(building_index) + ".txt";
 
-        if(this->GetMissionType(file_name).compare("local") == 0) active_uavs[cur_uav]->ScoutBuilding(GetMissionLocal(file_name));
-        else active_uavs[cur_uav]->ScoutBuilding(GetMissionGlobal(file_name));
+        if(this->GetMissionType(file_name).compare("local") == 0) 
+            active_uavs[cur_uav]->ScoutBuilding(GetMissionLocal(file_name));
+        else 
+            active_uavs[cur_uav]->ScoutBuilding(GetMissionGlobal(file_name));
 
+        central_ui_.btn_scout_play_pause->setVisible(true);
+        central_ui_.btn_stop_scout->setVisible(true);
+        
         ROS_INFO_STREAM("Scouting Building " << building_index);
     }
 
+    void SimpleGCS::PauseOrResumeScout()
+    {
+        if (NUM_UAV == 0)
+            return;
+        
+        Mode m = active_uavs[cur_uav]->getMode();
+        if(m != Mode::scout || m != Mode::travel)
+        {
+            ROS_INFO_STREAM("No uav play in progress");
+            return;
+        }
+        
+        if(m == Mode::hold_pose)
+        {
+            ScoutBuilding();
+            central_ui_.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/pause.png"));
+        }
+        else
+        {
+            central_ui_.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/play.png"));
+            ChangeFlightMode(4);
+        }
+    }    
+    
     void SimpleGCS::StopQuad()
     {
         if(NUM_UAV == 0)
@@ -711,7 +744,7 @@ namespace rqt_gcs
         cur_uav = quadNumber;
         int uav_id = active_uavs[cur_uav]->id;
         sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav_id) + "/stereo_cam/left/image_rect",
-                                         30, &SimpleGCS::ImageCallback, this);
+                                         5, &SimpleGCS::ImageCallback, this);
 
         central_ui_.image_frame->setPixmap(QPixmap::fromImage(QImage()));
 
@@ -776,7 +809,7 @@ namespace rqt_gcs
         central_ui_.graphicsPFD->update();
     }
 
-    std::string GetMissionType(std::string file_name)
+    std::string SimpleGCS::GetMissionType(std::string file_name)
     {   
         ROS_WARN_STREAM("in get mission");
         std::string mission_type;

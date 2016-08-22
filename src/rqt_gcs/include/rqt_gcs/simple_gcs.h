@@ -120,6 +120,10 @@ namespace rqt_gcs{
     void publishScaleFactor(double scale);
     void publishMeanShift(bool on);
     
+    std::string GetMissionType(std::string file_name);		 
+    lcar_msgs::TargetLocal GetMissionLocal(std::string file_name);
+    lcar_msgs::TargetGlobal GetMissionGlobal(std::string file_name);
+    
   protected slots:
     virtual void TimedUpdate();
     
@@ -132,6 +136,7 @@ namespace rqt_gcs{
     virtual void DeleteAccessPoint(QWidget*);
     virtual void QuadSelected(int);
     virtual void ArmOrDisarmSelectedQuad();
+    virtual void PauseOrResumeScout();
 //    virtual void DisarmSelectedQuad();
     virtual void AcceptDoorQuery(QWidget *);
     virtual void RejectDoorQuery(QWidget *);
@@ -168,10 +173,6 @@ namespace rqt_gcs{
     void updateAccessPoints();
     void clearAccessPoints();
     void saveUavAccessPoints(SimpleControl *, std::string ap_type);
-    
-    std::string GetMissionType(std::string file_name);		 
-    lcar_msgs::TargetLocal GetMissionLocal(std::string file_name);
-    lcar_msgs::TargetGlobal GetMissionGlobal(std::string file_name);
           
     int cur_uav;
     int timeCounter;
@@ -284,7 +285,6 @@ namespace rqt_gcs{
 
       int  binarySearch(int, int, int);
       void parseUavNamespace(std::map<int, int>&);
-
 
       void monitorUavNamespace();
       void monitorUavConnections();
