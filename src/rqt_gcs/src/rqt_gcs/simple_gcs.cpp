@@ -545,12 +545,12 @@ namespace rqt_gcs
         
         if(active_uavs[cur_uav]->GetMissionMode() == MissionMode::active)
         {
-            active_uavs[cur_uav]->pauseMission();
+            active_uavs[cur_uav]->PauseMission();
             central_ui_.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/play.png"));
         }
         else
         {
-            active_uavs[cur_uav]->resumeMission();
+            active_uavs[cur_uav]->ResumeMission();
             central_ui_.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/pause.png"));
         }
     }    
@@ -560,7 +560,7 @@ namespace rqt_gcs
         if(NUM_UAV == 0)
             return;
 
-        active_uavs[cur_uav]->stopMission();
+        active_uavs[cur_uav]->StopMission();
         
         this->toggleScoutButtons(true);
     }
@@ -1063,7 +1063,7 @@ namespace rqt_gcs
         central_ui_.frame_queries_cntnr->setEnabled(toggle);
 
         for(int i = 0; i < NUM_UAV; i++)
-            active_uavs[i]->setOnlineMode(toggle);
+            active_uavs[i]->SetOnlineMode(toggle);
     }
 
     void SimpleGCS::publishHitThreshold(double thresh)

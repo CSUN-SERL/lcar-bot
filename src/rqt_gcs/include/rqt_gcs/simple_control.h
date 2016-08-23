@@ -60,7 +60,7 @@
 //Enumerators
 enum Mode{
     travel,
-    hold_pose,
+    hold,
     scout,
     rtl,
     land,
@@ -100,24 +100,20 @@ public:
     int accepted_images = 0,
         rejected_images = 0;
     
-    
-    void pauseMission(){mission_mode = paused;}
-    void resumeMission(){mission_mode = active;}
-    void stopMission(){mission_mode = stopped;}
-    
     /**
-     * set online mode on or off
+     * \brief Set online mode on or off
      * 
      * @param value: pass true for online, false for offline
      */
-    bool setOnlineMode(bool value)
+    bool SetOnlineMode(bool value)
     {
        online_mode = value;
     }
-    /**
-      Arm or disarm the UAV.
 
-      @param value Pass true for arm, false for disarm
+    /**
+    * \brief Arm or disarm the UAV.
+    *
+    * @param value Pass true for arm, false for disarm
     */
     void Arm(bool value);
     
@@ -170,17 +166,17 @@ public:
     void SetWayPoint(std::string waypoint);
 
     /**
-      Executes proper instructions for running the Scout Building play
+      Executes a Scout Building play using local coordinates
 
-      @param target_point query_msgs::Target building location
+      @param target_point lcar_msgs::TargetLocal building location
 
     */
     void ScoutBuilding(lcar_msgs::TargetLocal msg_target);
 
     /**
-      Executes proper instructions for running the Scout Building play
+      Executes a Scout Building play using global coordinates
 
-      @param target_point query_msgs::Target building location
+      @param target_point lcar_msgs::TargetGlobal building location
 
     */
     void ScoutBuilding(lcar_msgs::TargetGlobal msg_target);
@@ -282,10 +278,40 @@ public:
     */
     void SendDoorResponse(lcar_msgs::Door msg_answer) { pub_door_answer.publish(msg_answer); }
 
+    /*!
+     * \brief Manages heartbeat emission
+     * \param drop_connection True or false
+     *
+     * Simulates a drop in connection to the ground control station and stops
+     * emitting heartbeats.
+     */
     void DropConnection(bool drop_connection)
     {
         connection_dropped = drop_connection;
     }
+
+    /*!
+     * \brief Pause the current mission
+     *
+     * Stops the UAV at its current location and waits for a command from the
+     * GCS to resume the mission.
+     */
+    void PauseMission();
+
+    /*!
+     * \brief Resumes the previously paused mission.
+     *
+     * Starts the mission that was previously paused. If there was no previously
+     * paused mission, does nothing.
+     */
+    void ResumeMission();
+
+    /*!
+     * \brief Cancels the current mission
+     *
+     * Cancels the current mission and commands the UAV to return base.
+     */
+    void StopMission();
     
     //Getter Functions
     int GetId() { return id; }

@@ -581,10 +581,10 @@ void SimpleControl::SafetyCheck()
     if(object_distance.data < THRESHOLD_DEPTH){
         //Collision Imminent! Land.
         ROS_ERROR_STREAM_DELAYED_THROTTLE(5, "Collision Imminent!");
-        if(goal != hold_pose){
+        if(goal != hold){
             pose_previous = pose_local;
             goal_prev = goal;
-            goal = hold_pose;
+            goal = hold;
         }
         collision = true;
     }
@@ -599,8 +599,19 @@ void SimpleControl::Run()
     //Sanity Checks
     this->SafetyCheck();
 
+    //Run Specific Actions
     if(position_mode == local)this->RunLocal();
     else this->RunGlobal();
+
+    //Run Common Actions
+    if(goal == disarm){
+        //Disarm the vehicle if it's currently armed
+        if(state.armed) this->Arm(false);
+        goal = idle;
+    }
+    else if(goal == idle){
+        //Wait for the goal to change
+    }
 }
 
 void SimpleControl::RunLocal()
@@ -623,7 +634,7 @@ void SimpleControl::RunLocal()
             this->SetPosition(pose_previous.position.x, pose_previous.position.y, pose_target.position.z);
         }
     }
-    else if(goal == hold_pose){
+    else if(goal == hold){
         this->SetPosition(pose_previous);
     }
     else if(goal == scout){
@@ -671,17 +682,40 @@ void SimpleControl::RunLocal()
             this->SetPosition(pose_previous.position.x, pose_previous.position.y, 0);
         }
     }
-    else if(goal == disarm){
-        //Disarm the vehicle if it's currently armed
-        if(state.armed) this->Arm(false);
-        goal = idle;
-    }
-    else if(goal == idle){
-        //Wait for the goal to change
-    }
 }
 
 void SimpleControl::RunGlobal()
 {
+    if(goal == travel){
+        if(state.mode != "AUTO.MISSION"){
+            //Restore target point
+            this->SetMode("AUTO.MISSION");
+        }
+    }
+    else if(goal == hold){
+        //Save target waypoint
+        this->SetMode("AUTO.HOLD");
+    }
+    else if(goal == rtl){
+        this->SetMode("AUTO.RTL");
+    }
+}
 
+void SimpleControl::PauseMission()
+{
+    mission_mode = paused;
+    goal_prev = goal;
+    goal = hold;
+}
+
+void SimpleControl::ResumeMission()
+{
+    mission_mode = active;
+    goal = goal_prev;
+}
+
+void SimpleControl::StopMission()
+{
+    mission_mode = stopped;
+    goal = rtl;
 }
