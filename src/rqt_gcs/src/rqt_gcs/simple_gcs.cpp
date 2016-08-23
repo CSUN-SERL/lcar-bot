@@ -3,7 +3,7 @@
 //
 namespace rqt_gcs
 {
-//
+
     SimpleGCS::SimpleGCS()
     : rqt_gui_cpp::Plugin()
     , widget_main_(nullptr)
@@ -36,13 +36,13 @@ namespace rqt_gcs
         context.addWidget(widget_main_);
 
         //setup button logic for the widgets
-        connect(central_ui_.btn_exec_play, SIGNAL(clicked()), this, SLOT(ExecutePlay()));
-        connect(central_ui_.btn_scout_play_pause, SIGNAL(clicked()), this, SLOT(PauseOrResumeScout()));
-        connect(central_ui_.cmbo_box_buildings, SIGNAL(currentIndexChanged(int)), this, SLOT(ScoutBuilding()));
-        connect(central_ui_.btn_stop_scout, SIGNAL(clicked()), this, SLOT(StopQuad()));
-        connect(central_ui_.cmbo_box_flight_mode, SIGNAL(currentIndexChanged(int)), this, SLOT(ChangeFlightMode(int)));
-        connect(central_ui_.btn_view_acess_points, SIGNAL(clicked()), this, SLOT(ShowAccessPoints()));
-        connect(central_ui_.btn_arm_uav, SIGNAL(clicked()), this, SLOT(ArmOrDisarmSelectedQuad()));
+        connect(central_ui_.btn_exec_play, SIGNAL(clicked()), this, SLOT(executePlay()));
+        connect(central_ui_.btn_scout, SIGNAL(clicked()), this, SLOT(scoutBuilding()));
+        connect(central_ui_.btn_scout_play_pause, SIGNAL(clicked()), this, SLOT(pauseOrResumeScout()));
+        connect(central_ui_.btn_scout_stop, SIGNAL(clicked()), this, SLOT(stopScout()));
+        connect(central_ui_.cmbo_box_flight_mode, SIGNAL(currentIndexChanged(int)), this, SLOT(changeFlightMode(int)));
+        connect(central_ui_.btn_view_acess_points, SIGNAL(clicked()), this, SLOT(showAccessPoints()));
+        connect(central_ui_.btn_arm_uav, SIGNAL(clicked()), this, SLOT(armOrDisarmSelectedUav()));
 
         //Setup UAV lists select functions
         quad_select_mapper = new QSignalMapper(this);
@@ -50,10 +50,10 @@ namespace rqt_gcs
         acceptDoorMapper = new QSignalMapper(this);
         denyDoorMapper = new QSignalMapper(this);
         
-        connect(quad_select_mapper, SIGNAL(mapped(int)), this, SLOT(QuadSelected(int)));
-        connect(access_point_mapper, SIGNAL(mapped(QWidget*)), this, SLOT(DeleteAccessPoint(QWidget*)));
-        connect(acceptDoorMapper, SIGNAL(mapped(QWidget*)), this, SLOT(AcceptDoorQuery(QWidget*)));
-        connect(denyDoorMapper, SIGNAL(mapped(QWidget*)), this, SLOT(RejectDoorQuery(QWidget*)));
+        connect(quad_select_mapper, SIGNAL(mapped(int)), this, SLOT(uavSelected(int)));
+        connect(access_point_mapper, SIGNAL(mapped(QWidget*)), this, SLOT(deleteAccessPoint(QWidget*)));
+        connect(acceptDoorMapper, SIGNAL(mapped(QWidget*)), this, SLOT(acceptDoorQuery(QWidget*)));
+        connect(denyDoorMapper, SIGNAL(mapped(QWidget*)), this, SLOT(rejectDoorQuery(QWidget*)));
 
         initMenuBar();
         initSettings();
@@ -66,18 +66,16 @@ namespace rqt_gcs
         od_pubs.pub_scale_factor = nh.advertise<std_msgs::Float64>("/object_detection/scale_factor", 1);
         od_pubs.pub_mean_shift = nh.advertise<std_msgs::Int32>("/object_detection/mean_shift_grouping", 1);
         
+        this->toggleScoutButtons(true);
+        
         //Setup update timer
         update_timer = new QTimer(this);
-        connect(update_timer, SIGNAL(timeout()), this, SLOT(TimedUpdate()));
+        connect(update_timer, SIGNAL(timeout()), this, SLOT(timedUpdate()));
         //30 hz :1000/30 = 33.33...
         update_timer->start(33);
-                
-        
-        central_ui_.btn_scout_play_pause->setVisible(false);
-        central_ui_.btn_stop_scout->setVisible(false);
     }
 
-    void SimpleGCS::AddUav(int uav_id)
+    void SimpleGCS::addUav(int uav_id)
     {
         uav_mutex.lock();
 
@@ -143,13 +141,13 @@ namespace rqt_gcs
         NUM_UAV++;
 
         if(NUM_UAV == 1)
-            selectQuad(0);
+            selectUav(0);
 
         num_uav_changed.wakeAll();
         uav_mutex.unlock();
     }
 
-    void SimpleGCS::DeleteUav(int index, UavStatus status)
+    void SimpleGCS::deleteUav(int index, UavStatus status)
     {
         uav_mutex.lock();
 
@@ -214,9 +212,9 @@ namespace rqt_gcs
             central_ui_.image_frame->setPixmap(QPixmap::fromImage(QImage()));
         }
         else if(NUM_UAV == 1 || (cur_uav == index && index == 0))
-            selectQuad(0); // default to only remaining uav/first in the list
+            selectUav(0); // default to only remaining uav/first in the list
         else if(NUM_UAV > 1 && cur_uav == index)
-            selectQuad(cur_uav-1);
+            selectUav(cur_uav-1);
             //if the currently selected uav was deleted, choose the one in front of it
 
        num_uav_changed.wakeAll();
@@ -263,7 +261,7 @@ namespace rqt_gcs
         }
     }
 
-    void SimpleGCS::PurgeDeletedUavs()
+    void SimpleGCS::purgeDeletedUavs()
     {
         std::map<int, UAV*> map = uav_db.toStdMap();
         std::map<int, SimpleControl*> delete_map = deleted_uavs.toStdMap();
@@ -279,7 +277,7 @@ namespace rqt_gcs
         }
     }
 
-    void SimpleGCS::UavConnectionToggled(int index, int uav_id, bool toggle)
+    void SimpleGCS::uavConnectionToggled(int index, int uav_id, bool toggle)
     {
         if(index >= active_uavs.size() || active_uavs[index]->id != uav_id)
             return;
@@ -295,7 +293,7 @@ namespace rqt_gcs
     }
 
     //Timed update of GCS gui
-    void SimpleGCS::TimedUpdate()
+    void SimpleGCS::timedUpdate()
     {
         if(NUM_UAV == 0 || cur_uav == -1)
         {
@@ -339,7 +337,7 @@ namespace rqt_gcs
 
         central_ui_.pgs_bar_mission->setValue(uav->GetMissionProgress() * 100);
 
-        this->UpdatePFD();
+        this->updatePFD();
 
         //Update Uav List widgets
         for(int i = 0; i < NUM_UAV; i++)
@@ -453,12 +451,12 @@ namespace rqt_gcs
         //UAVs[cur_uav]->SendDoorResponse(doormsg);
     }
 
-    void SimpleGCS::AcceptDoorQuery(QWidget *qw)
+    void SimpleGCS::acceptDoorQuery(QWidget *qw)
     {
         answerQuery(qw, "door", true);
     }
 
-    void SimpleGCS::RejectDoorQuery(QWidget * qw)
+    void SimpleGCS::rejectDoorQuery(QWidget * qw)
     {
         answerQuery(qw, "door", false);
     }
@@ -473,7 +471,7 @@ namespace rqt_gcs
                     << ". The directory might not exist?");
     }
 
-    void SimpleGCS::ExecutePlay()
+    void SimpleGCS::executePlay()
     {
         if(NUM_UAV == 0)
             return;
@@ -499,17 +497,17 @@ namespace rqt_gcs
         }
         else if(play_num == 1)
         {
-
+            //todo
         }
         else if(play_num == 2)
         {
-
+            //todo
         }
 
         ROS_INFO_STREAM("Play " << play_num << " initiated");
     }
 
-    void SimpleGCS::CancelPlay()
+    void SimpleGCS::cancelPlay()
     {
         if(NUM_UAV == 0)
             return;
@@ -518,9 +516,11 @@ namespace rqt_gcs
         {
             active_uavs[i]->SetRTL();
         }
+        
+        this->toggleScoutButtons(true);
     }
 
-    void SimpleGCS::ScoutBuilding()
+    void SimpleGCS::scoutBuilding()
     {
         if(NUM_UAV == 0)
             return;
@@ -533,45 +533,39 @@ namespace rqt_gcs
         else 
             active_uavs[cur_uav]->ScoutBuilding(GetMissionGlobal(file_name));
 
-        central_ui_.btn_scout_play_pause->setVisible(true);
-        central_ui_.btn_stop_scout->setVisible(true);
+        this->toggleScoutButtons(false);
         
         ROS_INFO_STREAM("Scouting Building " << building_index);
     }
 
-    void SimpleGCS::PauseOrResumeScout()
+    void SimpleGCS::pauseOrResumeScout()
     {
         if (NUM_UAV == 0)
             return;
         
-        Mode m = active_uavs[cur_uav]->getMode();
-        if(m != Mode::scout || m != Mode::travel)
+        if(active_uavs[cur_uav]->GetMissionMode() == MissionMode::active)
         {
-            ROS_INFO_STREAM("No uav play in progress");
-            return;
-        }
-        
-        if(m == Mode::hold_pose)
-        {
-            ScoutBuilding();
-            central_ui_.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/pause.png"));
+            active_uavs[cur_uav]->pauseMission();
+            central_ui_.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/play.png"));
         }
         else
         {
-            central_ui_.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/play.png"));
-            ChangeFlightMode(4);
+            active_uavs[cur_uav]->resumeMission();
+            central_ui_.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/pause.png"));
         }
     }    
     
-    void SimpleGCS::StopQuad()
+    void SimpleGCS::stopScout()
     {
         if(NUM_UAV == 0)
             return;
 
-        active_uavs[cur_uav]->SetRTL();
+        active_uavs[cur_uav]->stopMission();
+        
+        this->toggleScoutButtons(true);
     }
 
-    void SimpleGCS::ChangeFlightMode(int index)
+    void SimpleGCS::changeFlightMode(int index)
     {
         if(NUM_UAV == 0)
             return;
@@ -616,8 +610,20 @@ namespace rqt_gcs
             ROS_INFO_STREAM("Quadrotor Offboard");
             active_uavs[cur_uav]->SetMode("OFFBOARD");
         }
+        
+        if(active_uavs[cur_uav]->GetMissionMode() != MissionMode::stopped)
+        {
+            this->stopScout();
+        }
     }
 
+    void SimpleGCS::toggleScoutButtons(bool visible)
+    {
+        central_ui_.btn_scout->setVisible(visible);
+        central_ui_.btn_scout_play_pause->setVisible(!visible);
+        central_ui_.btn_scout_stop->setVisible(!visible);
+    }
+    
     void SimpleGCS::clearAccessPoints()
     {
         //clear out old list of Access points widgets
@@ -708,7 +714,7 @@ namespace rqt_gcs
         num_access_points_last = apv_size;
     }
 
-    void SimpleGCS::ShowAccessPoints()
+    void SimpleGCS::showAccessPoints()
     {
         quad_id.setNum(active_uavs[cur_uav]->id);
         temp_data = "UAV " + quad_id;
@@ -717,7 +723,7 @@ namespace rqt_gcs
         apmQWidget_->show();
     }
 
-    void SimpleGCS::DeleteAccessPoint(QWidget* w)
+    void SimpleGCS::deleteAccessPoint(QWidget* w)
     {
         int deleteIndex = apmUi_.AccessPointMenuLayout->indexOf(w);
         // not sure why deleteIndex - 1 is necessary
@@ -730,18 +736,18 @@ namespace rqt_gcs
     }
 
     // slot gets called when user click on a uav button
-    void SimpleGCS::QuadSelected(int quadNumber)
+    void SimpleGCS::uavSelected(int quadNumber)
     {
-        selectQuad(quadNumber);
+        selectUav(quadNumber);
     }
 
     //needed in addUav(int) and deleteUav(int)
-    void SimpleGCS::selectQuad(int quadNumber)
+    void SimpleGCS::selectUav(int uav_number)
     {
-        if(cur_uav == quadNumber)
+        if(cur_uav == uav_number)
             return;
 
-        cur_uav = quadNumber;
+        cur_uav = uav_number;
         int uav_id = active_uavs[cur_uav]->id;
         sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav_id) + "/stereo_cam/left/image_rect",
                                          5, &SimpleGCS::ImageCallback, this);
@@ -750,21 +756,41 @@ namespace rqt_gcs
 
         clearAccessPoints();
         clearQueries();
+        
+        MissionMode m = active_uavs[cur_uav]->GetMissionMode();
+        if(m == MissionMode::stopped)
+            this->toggleScoutButtons(true); 
+        else
+        {
+            this->toggleScoutButtons(false);
+            if(m == MissionMode::active)
+                central_ui_.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/pause.png"));
+            else
+                central_ui_.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/play.png"));
+        }
+        
+        this->toggleArmDisarmButton(active_uavs[cur_uav]->GetState().armed);
     }
 
-    void SimpleGCS::ArmOrDisarmSelectedQuad()
+
+    void SimpleGCS::armOrDisarmSelectedUav()
     {
         if(NUM_UAV == 0)
             return;
         
         bool armed = active_uavs[cur_uav]->GetState().armed;
+       
+        toggleArmDisarmButton(armed);
         
-        if(armed)
+        active_uavs[cur_uav]->Arm(!armed);        
+    }
+    
+    void SimpleGCS::toggleArmDisarmButton(bool arm)
+    {
+    if(arm)
             central_ui_.btn_arm_uav->setText("Disarm");
         else
             central_ui_.btn_arm_uav->setText("Arm");
-        
-        active_uavs[cur_uav]->Arm(!armed);        
     }
 
     void SimpleGCS::shutdownPlugin()
@@ -794,7 +820,7 @@ namespace rqt_gcs
       // Usually used to open a dialog to offer the user a set of configuration
     }*/
 
-    void SimpleGCS::UpdatePFD()
+    void SimpleGCS::updatePFD()
     {
         if(NUM_UAV == 0)
             return;
@@ -902,13 +928,13 @@ namespace rqt_gcs
                 uav_monitor, &SimpleGCSHelper::help);
 
         connect(uav_monitor, &SimpleGCSHelper::addUav,
-                this, &SimpleGCS::AddUav);
+                this, &SimpleGCS::addUav);
 
         connect(uav_monitor, &SimpleGCSHelper::deleteUav,
-                this, &SimpleGCS::DeleteUav);
+                this, &SimpleGCS::deleteUav);
 
         connect(uav_monitor, &SimpleGCSHelper::toggleUavConnection,
-                this, &SimpleGCS::UavConnectionToggled);
+                this, &SimpleGCS::uavConnectionToggled);
 
         t_uav_monitor.start();
     }
@@ -935,14 +961,14 @@ namespace rqt_gcs
        view_menu = menu_bar_->addMenu("View");
        unanswered_queries_act = view_menu->addAction("Unanswered Queries");
        connect(unanswered_queries_act, &QAction::triggered, 
-               this, &SimpleGCS::UnansweredQueriesTriggered);
+               this, &SimpleGCS::unansweredQueriesTriggered);
        
        
        //tools menu
        tools_menu = menu_bar_->addMenu("Tools");
        settings_act = tools_menu->addAction("Settings");
        connect(settings_act, &QAction::triggered, 
-               this, &SimpleGCS::SettingsTriggered); 
+               this, &SimpleGCS::settingsTriggered); 
        
        
        //help menu
@@ -966,9 +992,9 @@ namespace rqt_gcs
         settings_->beginGroup("general_tab");
 
         if(settings_->value("machine_learning", "online").toString() == "online")
-            ToggleMachineLearningMode(true);
+            toggleMachineLearningMode(true);
         else
-            ToggleMachineLearningMode(false);
+            toggleMachineLearningMode(false);
 
         QString path = getenv("HOME");
         path += "/Pictures/LCAR_Bot";
@@ -976,9 +1002,14 @@ namespace rqt_gcs
         ROS_INFO_STREAM("images root directory: " << image_root_dir_.toStdString());
 
         settings_->endGroup();
+        
+        settings_->beginGroup("object_detection_tab");
+         // todo: read object detectin settings and publish them
+        
+        settings_->endGroup();
     }
 
-    void SimpleGCS::SettingsTriggered()
+    void SimpleGCS::settingsTriggered()
     {
         if(widgets_.settings_ == nullptr)
         {
@@ -991,7 +1022,7 @@ namespace rqt_gcs
             widgets_.settings_->setVisible(true);
 
             connect(widgets_.settings_, SIGNAL(machineLearningModeToggled(bool)),
-                    this, SLOT(ToggleMachineLearningMode(bool)));
+                    this, SLOT(toggleMachineLearningMode(bool)));
         }
         else
         {
@@ -1000,7 +1031,7 @@ namespace rqt_gcs
         }
     }
     
-    void SimpleGCS::UnansweredQueriesTriggered()
+    void SimpleGCS::unansweredQueriesTriggered()
     {
         if(widgets_.unanswered_queries_ == nullptr)
         {
@@ -1019,13 +1050,14 @@ namespace rqt_gcs
         }
     }
 
-    void SimpleGCS::DestroySettingsWidget()
+    void SimpleGCS::destroySettingsWidget()
     {
 //        delete settings_widget_;
 //        settings_widget_ = nullptr;
     }
+        
 
-    void SimpleGCS::ToggleMachineLearningMode(bool toggle)
+    void SimpleGCS::toggleMachineLearningMode(bool toggle)
     {
         central_ui_.frame_queries_cntnr->setVisible(toggle);
         central_ui_.frame_queries_cntnr->setEnabled(toggle);

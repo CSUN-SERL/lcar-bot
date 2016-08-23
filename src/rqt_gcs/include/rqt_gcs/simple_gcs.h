@@ -125,33 +125,33 @@ namespace rqt_gcs{
     lcar_msgs::TargetGlobal GetMissionGlobal(std::string file_name);
     
   protected slots:
-    virtual void TimedUpdate();
+    virtual void timedUpdate();
     
     //////////// Buttons
-    virtual void ExecutePlay();
-    virtual void CancelPlay();
-    virtual void ScoutBuilding();
-    virtual void StopQuad();
-    virtual void ChangeFlightMode(int);
-    virtual void DeleteAccessPoint(QWidget*);
-    virtual void QuadSelected(int);
-    virtual void ArmOrDisarmSelectedQuad();
-    virtual void PauseOrResumeScout();
+    virtual void executePlay();
+    virtual void cancelPlay();
+    virtual void scoutBuilding();
+    virtual void stopScout();
+    virtual void changeFlightMode(int);
+    virtual void deleteAccessPoint(QWidget*);
+    virtual void uavSelected(int);
+    virtual void armOrDisarmSelectedUav();
+    virtual void pauseOrResumeScout();
 //    virtual void DisarmSelectedQuad();
-    virtual void AcceptDoorQuery(QWidget *);
-    virtual void RejectDoorQuery(QWidget *);
-    virtual void ShowAccessPoints();
-    virtual void SettingsTriggered();
-    virtual void UnansweredQueriesTriggered();
+    virtual void acceptDoorQuery(QWidget *);
+    virtual void rejectDoorQuery(QWidget *);
+    virtual void showAccessPoints();
+    virtual void settingsTriggered();
+    virtual void unansweredQueriesTriggered();
     
-    virtual void AddUav(int);
-    virtual void DeleteUav(int, UavStatus);
-    virtual void PurgeDeletedUavs();
-    virtual void UavConnectionToggled(int, int, bool);
+    virtual void addUav(int);
+    virtual void deleteUav(int, UavStatus);
+    virtual void purgeDeletedUavs();
+    virtual void uavConnectionToggled(int, int, bool);
 
     //SETTINGS RELATED
-    virtual void DestroySettingsWidget();
-    virtual void ToggleMachineLearningMode(bool);
+    virtual void destroySettingsWidget();
+    virtual void toggleMachineLearningMode(bool);
 
   private:
     
@@ -160,8 +160,8 @@ namespace rqt_gcs{
     void initSettings();
     void initHelperThread();
       
-    void selectQuad(int);  
-    void UpdatePFD();
+    void selectUav(int);  
+    void updatePFD();
     void clearImageView();
     void saveImage(std::string, std::string, const cv::Mat&);
     
@@ -173,7 +173,10 @@ namespace rqt_gcs{
     void updateAccessPoints();
     void clearAccessPoints();
     void saveUavAccessPoints(SimpleControl *, std::string ap_type);
-          
+    
+    void toggleScoutButtons(bool visible);
+    void toggleArmDisarmButton(bool arm);
+    
     int cur_uav;
     int timeCounter;
     int NUM_UAV; //Total number of UAV's in the system

@@ -74,6 +74,12 @@ enum PositionMode{
     global
 };
 
+enum MissionMode{
+    active,
+    paused,
+    stopped
+};
+
 //Structs
 struct FlightState {
     float roll, pitch, yaw;
@@ -94,6 +100,10 @@ public:
     int accepted_images = 0,
         rejected_images = 0;
     
+    
+    void pauseMission(){mission_mode = paused;}
+    void resumeMission(){mission_mode = active;}
+    void stopMission(){mission_mode = stopped;}
     
     /**
      * set online mode on or off
@@ -285,6 +295,7 @@ public:
     FlightState GetFlightState() { return UpdateFlightState(); }
     int GetDistanceToWP() { return CalculateDistance(pose_target, pose_local); }
     float GetMissionProgress();
+    MissionMode GetMissionMode(){return mission_mode;}
     std::vector<AccessPoint>* GetRefAccessPoints() { return &access_pts; }
     std::vector<lcar_msgs::DoorPtr>* GetDoorQueries() { return &queries_door; }
     bool RecievedHeartbeat() { return heartbeat_recieved; }
@@ -459,6 +470,7 @@ private:
     Mode                            goal = idle,
                                     goal_prev = null;
     PositionMode                    position_mode = local;
+    MissionMode                     mission_mode = stopped;
     ros::Time                       last_request;
     std::vector<AccessPoint>        access_pts;
     std::vector<lcar_msgs::DoorPtr> queries_door;

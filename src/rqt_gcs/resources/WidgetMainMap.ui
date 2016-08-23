@@ -485,7 +485,7 @@ QLabel{
               <widget class="QProgressBar" name="pgs_bar_battery">
                <property name="minimumSize">
                 <size>
-                 <width>125</width>
+                 <width>100</width>
                  <height>0</height>
                 </size>
                </property>
@@ -507,7 +507,7 @@ QLabel{
               <widget class="QComboBox" name="cmbo_box_flight_mode">
                <property name="minimumSize">
                 <size>
-                 <width>0</width>
+                 <width>118</width>
                  <height>25</height>
                 </size>
                </property>
@@ -599,7 +599,7 @@ QLabel{
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>80</width>
+                 <width>60</width>
                  <height>30</height>
                 </size>
                </property>
@@ -661,14 +661,14 @@ color: rgb(240, 240, 240);</string>
               <number>0</number>
              </property>
              <property name="bottomMargin">
-              <number>6</number>
+              <number>0</number>
              </property>
              <item alignment="Qt::AlignLeft">
               <widget class="QComboBox" name="cmbo_box_buildings">
                <property name="minimumSize">
                 <size>
                  <width>0</width>
-                 <height>30</height>
+                 <height>25</height>
                 </size>
                </property>
                <property name="toolTip">
@@ -727,6 +727,29 @@ color: rgb(240, 240, 240);</string>
               </widget>
              </item>
              <item>
+              <widget class="QPushButton" name="btn_scout">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>60</width>
+                 <height>30</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(64, 89, 145);
+color: rgb(240, 240, 240);</string>
+               </property>
+               <property name="text">
+                <string>Scout</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <spacer name="horizontalSpacer">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
@@ -776,11 +799,11 @@ color: rgb(240, 240, 240);</string>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="btn_stop_scout">
+              <widget class="QPushButton" name="btn_scout_stop">
                <property name="minimumSize">
                 <size>
-                 <width>15</width>
-                 <height>15</height>
+                 <width>0</width>
+                 <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
@@ -898,8 +921,8 @@ border-radius:0px;</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>347</width>
-             <height>459</height>
+             <width>330</width>
+             <height>464</height>
             </rect>
            </property>
            <property name="sizePolicy">

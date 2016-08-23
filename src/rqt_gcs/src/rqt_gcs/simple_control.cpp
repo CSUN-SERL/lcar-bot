@@ -258,6 +258,7 @@ void SimpleControl::ScoutBuilding(lcar_msgs::TargetLocal msg_target)
     this->EnableOffboard();
 
     goal = travel;
+    mission_mode = active;
     ROS_INFO_STREAM("Traveling to target location.");
 }
 
@@ -267,6 +268,7 @@ void SimpleControl::ScoutBuilding(lcar_msgs::TargetGlobal msg_target)
     this->Arm(true);
     this->SetMode("AUTO.MISSION");
 
+    mission_mode = active;
     position_mode = global;
 }
 
