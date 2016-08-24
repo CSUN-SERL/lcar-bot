@@ -1,4 +1,6 @@
 #include <rqt_gcs/simple_gcs.h>
+
+#include "rqt_gcs/access_points_menu.h"
 //
 //
 namespace rqt_gcs
@@ -20,7 +22,7 @@ namespace rqt_gcs
 
         widget_main_           = new QWidget();
         uavQuestionWidget_     = new QWidget();
-        apmQWidget_            = new QWidget();
+       // apmQWidget_            = new QWidget();
 
         NUM_UAV = 0;
         timeCounter = 0;
@@ -30,7 +32,7 @@ namespace rqt_gcs
 
         //Setup the UI objects with the widgets
         central_ui_.setupUi(widget_main_);
-        apmUi_.setupUi(apmQWidget_);
+        //apmUi_.setupUi(apmQWidget_);
 
         //Add widgets to the Main UI
         context.addWidget(widget_main_);
@@ -46,12 +48,12 @@ namespace rqt_gcs
 
         //Setup UAV lists select functions
         quad_select_mapper = new QSignalMapper(this);
-        access_point_mapper = new QSignalMapper(this);
+        //access_point_mapper = new QSignalMapper(this);
         acceptDoorMapper = new QSignalMapper(this);
         denyDoorMapper = new QSignalMapper(this);
         
         connect(quad_select_mapper, SIGNAL(mapped(int)), this, SLOT(uavSelected(int)));
-        connect(access_point_mapper, SIGNAL(mapped(QWidget*)), this, SLOT(deleteAccessPoint(QWidget*)));
+       // connect(access_point_mapper, SIGNAL(mapped(QWidget*)), this, SLOT(deleteAccessPoint(QWidget*)));
         connect(acceptDoorMapper, SIGNAL(mapped(QWidget*)), this, SLOT(acceptDoorQuery(QWidget*)));
         connect(denyDoorMapper, SIGNAL(mapped(QWidget*)), this, SLOT(rejectDoorQuery(QWidget*)));
 
@@ -158,7 +160,7 @@ namespace rqt_gcs
         {
             //TODO loop through all the query types: door, window, hole
             saveUavQueries(uav, "door");
-            saveUavAccessPoints(uav, "door");
+            //fl_widgets_.ap_menu->saveUavAccessPoints(uav, "door");
             delete uav;
             deleted_uavs.remove(uav_id);
         }
@@ -198,8 +200,8 @@ namespace rqt_gcs
 
         if(cur_uav == index)
         {
-            if(apmQWidget_->isVisible())
-                clearAccessPoints();
+            if(fl_widgets_.ap_menu->isVisible())
+                fl_widgets_.ap_menu->clearAccessPoints();
             if(central_ui_.frame_queries_cntnr->isVisible())
                 clearQueries();
         }
@@ -245,21 +247,21 @@ namespace rqt_gcs
         }
     }
 
-    void SimpleGCS::saveUavAccessPoints(SimpleControl* uav, std::string ap_type)
-    {
-        std::string path = image_root_dir_.toStdString() + "/access_points/" +ap_type;
-        path += "/uav_" + std::to_string(uav->id);
-        std::vector<AccessPoint> * ap_vector = uav->GetRefAccessPoints();
-        for(int i = 0; i < ap_vector->size(); i++)
-        {
-            std::string file = "img_" + std::to_string(i) + ".jpg";
-
-            AccessPoint ap = ap_vector->at(i);
-            sensor_msgs::Image ros_image = ap.GetImage();
-            cv::Mat image = cv_bridge::toCvCopy(ros_image, "rgb8")->image;
-            saveImage(path, file, image);
-        }
-    }
+//    void SimpleGCS::saveUavAccessPoints(SimpleControl* uav, std::string ap_type)
+//    {
+//        std::string path = image_root_dir_.toStdString() + "/access_points/" +ap_type;
+//        path += "/uav_" + std::to_string(uav->id);
+//        std::vector<AccessPoint> * ap_vector = uav->GetRefAccessPoints();
+//        for(int i = 0; i < ap_vector->size(); i++)
+//        {
+//            std::string file = "img_" + std::to_string(i) + ".jpg";
+//
+//            AccessPoint ap = ap_vector->at(i);
+//            sensor_msgs::Image ros_image = ap.GetImage();
+//            cv::Mat image = cv_bridge::toCvCopy(ros_image, "rgb8")->image;
+//            saveImage(path, file, image);
+//        }
+//    }
 
     void SimpleGCS::purgeDeletedUavs()
     {
@@ -301,14 +303,14 @@ namespace rqt_gcs
             return;
         }
 
+        SimpleControl* uav = active_uavs[cur_uav];
+        
         if(timeCounter++ >= 30)
         {
             updateQueries();
-            updateAccessPoints();
             timeCounter = 0;
         }
 
-        SimpleControl* uav = active_uavs[cur_uav];
         quad_id.setNum(uav->id);
 
         temp_data.setNum(uav->GetFlightState().yaw, 'f', 2);
@@ -623,116 +625,27 @@ namespace rqt_gcs
         central_ui_.btn_scout_play_pause->setVisible(!visible);
         central_ui_.btn_scout_stop->setVisible(!visible);
     }
-    
-    void SimpleGCS::clearAccessPoints()
-    {
-        //clear out old list of Access points widgets
-        int size = accessPointWidgets_.size();
-        for(int i = size-1; i >= 0; i--)
-        {
-            apmUi_.AccessPointMenuLayout->removeWidget(accessPointWidgets_[i]);
-            delete accessPointWidgets_[i];
-        }
-        accessPointWidgets_.clear();
-
-        num_access_points_last = 0;
-    }
-
-    void SimpleGCS::updateAccessPoints()
-    {
-        if(NUM_UAV == 0  || !apmQWidget_->isVisible())
-            return;
-
-        //retreive access points
-        accessPointVector = active_uavs[cur_uav]->GetRefAccessPoints();
-        
-        //Get our new number of Access points
-        int apv_size = accessPointVector->size();
-        int new_access_points = apv_size - num_access_points_last;
-
-        for(int i = 0; i < new_access_points; i++)
-        {
-            //retrieve access point
-            AccessPoint accessPoint = accessPointVector->at(i + num_access_points_last);
-            sensor_msgs::Image acImage = accessPoint.GetImage();
-
-            QImage image(acImage.data.data(), acImage.width, acImage.height,
-                         acImage.step, QImage::Format_RGB888);
-
-            QWidget * apWidget = new QWidget();
-            Ui::AccessPointStatsWidget apUiWidget;
-            apUiWidget.setupUi(apWidget);
-
-            QWidget * imageWidget = new QWidget();
-            Ui::ImageViewWidget imageUiWidget;
-            imageUiWidget.setupUi(imageWidget);
-
-             //image
-            imageUiWidget.image_frame->setImage(image);
-            apUiWidget.PictureLayout->addWidget(imageWidget);
-
-            //add widget to the list
-            accessPointWidgets_.push_back(apWidget);
-            int index = accessPointWidgets_.size() - 1;
-
-            //access point name
-            access_point_id.setNum(i + num_access_points_last + 1);
-            access_point_temp_data = "Access Point " + access_point_id;
-            apUiWidget.buildingNameLine->setText(access_point_temp_data);
-
-            //altitude
-            access_point_temp_data.setNum(accessPoint.GetAltitude().data, 'f', 2);
-            apUiWidget.altitudeLineEdit->setText(access_point_temp_data);
-
-            //heading
-            access_point_temp_data.setNum(accessPoint.GetHeading().data, 'f', 2);
-            apUiWidget.compassHeadingLineEdit->setText(access_point_temp_data);
-
-            //location longitude
-            access_point_temp_data.setNum(accessPoint.GetLocation().longitude, 'f', 2);
-            apUiWidget.longitudeLineEdit->setText(access_point_temp_data);
-
-            //location latitude
-            access_point_temp_data.setNum(accessPoint.GetLocation().latitude, 'f', 2);
-            apUiWidget.latitudeLineEdit->setText(access_point_temp_data);
-
-            //time
-            access_point_temp_data.setNum(accessPoint.GetTime().toSec(), 'f', 6);
-            apUiWidget.captureTimeLineEdit->setText(access_point_temp_data);
-
-            //map signal to the delete button
-            access_point_mapper->setMapping(apUiWidget.deleteAccessPointButton,
-                                       accessPointWidgets_[index]);
-
-            connect(apUiWidget.deleteAccessPointButton, SIGNAL(clicked()),
-                    access_point_mapper, SLOT(map()));
-
-            //finally, add it to the gui
-            apmUi_.AccessPointMenuLayout->addWidget(accessPointWidgets_[index]);
-        }
-
-        num_access_points_last = apv_size;
-    }
 
     void SimpleGCS::showAccessPoints()
     {
-        quad_id.setNum(active_uavs[cur_uav]->id);
-        temp_data = "UAV " + quad_id;
-        apmUi_.uavNameLineEdit->setText(temp_data);
-
-        apmQWidget_->show();
-    }
-
-    void SimpleGCS::deleteAccessPoint(QWidget* w)
-    {
-        int deleteIndex = apmUi_.AccessPointMenuLayout->indexOf(w);
-        // not sure why deleteIndex - 1 is necessary
-        accessPointVector->erase(accessPointVector->begin() + deleteIndex - 1);
-        accessPointWidgets_.erase(accessPointWidgets_.begin() + deleteIndex -1);
-        apmUi_.AccessPointMenuLayout->removeWidget(w);
-        delete w;
-
-        num_access_points_last--;
+        if(fl_widgets_.ap_menu == nullptr)
+        {
+            fl_widgets_.ap_menu = new AccessPointsMenu();
+           
+            QRect window = widget_main_->window()->geometry();
+            int x = (widget_main_->width() / 2) - (fl_widgets_.ap_menu->width() / 2);
+            int y = (widget_main_->height() / 2) - (fl_widgets_.ap_menu->height() / 2);
+            fl_widgets_.ap_menu->move(window.x() + x, window.y() + y);
+            fl_widgets_.ap_menu->setVisible(true);
+            
+            connect(fl_widgets_.ap_menu, &AccessPointsMenu::deleted, this,
+                    [=](){ fl_widgets_.ap_menu = nullptr; });
+        }
+        else
+        {
+            fl_widgets_.ap_menu->showNormal();
+            fl_widgets_.ap_menu->activateWindow();
+        }
     }
 
     // slot gets called when user click on a uav button
@@ -754,7 +667,11 @@ namespace rqt_gcs
 
         central_ui_.image_frame->setPixmap(QPixmap::fromImage(QImage()));
 
-        clearAccessPoints();
+        if(fl_widgets_.ap_menu != nullptr)
+        {
+            fl_widgets_.ap_menu->clearAccessPoints();
+            fl_widgets_.ap_menu->setUavTitle(active_uavs[cur_uav]->id);
+        }
         clearQueries();
         
         MissionMode m = active_uavs[cur_uav]->GetMissionMode();
@@ -1011,42 +928,42 @@ namespace rqt_gcs
 
     void SimpleGCS::settingsTriggered()
     {
-        if(widgets_.settings_ == nullptr)
+        if(fl_widgets_.settings == nullptr)
         {
-            widgets_.settings_ = new SettingsWidget(this);
+            fl_widgets_.settings = new SettingsWidget(this);
             
             QRect window = widget_main_->window()->geometry();
-            int x = (widget_main_->width() / 2) - (widgets_.settings_->width() / 2);
-            int y = (widget_main_->height() / 2) - (widgets_.settings_->height() / 2);
-            widgets_.settings_->move(window.x() + x, window.y() + y);
-            widgets_.settings_->setVisible(true);
+            int x = (widget_main_->width() / 2) - (fl_widgets_.settings->width() / 2);
+            int y = (widget_main_->height() / 2) - (fl_widgets_.settings->height() / 2);
+            fl_widgets_.settings->move(window.x() + x, window.y() + y);
+            fl_widgets_.settings->setVisible(true);
 
-            connect(widgets_.settings_, SIGNAL(machineLearningModeToggled(bool)),
+            connect(fl_widgets_.settings, SIGNAL(machineLearningModeToggled(bool)),
                     this, SLOT(toggleMachineLearningMode(bool)));
         }
         else
         {
-            widgets_.settings_->showNormal();
-            widgets_.settings_->activateWindow();
+            fl_widgets_.settings->showNormal();
+            fl_widgets_.settings->activateWindow();
         }
     }
     
     void SimpleGCS::unansweredQueriesTriggered()
     {
-        if(widgets_.unanswered_queries_ == nullptr)
+        if(fl_widgets_.unanswered_queries == nullptr)
         {
-            widgets_.unanswered_queries_ = new UnansweredQueries(this);
+            fl_widgets_.unanswered_queries = new UnansweredQueries(this);
             
             QRect window = widget_main_->window()->geometry();
-            int x = (widget_main_->width() / 2) - (widgets_.unanswered_queries_->width() / 2);
-            int y = (widget_main_->height() / 2) - (widgets_.unanswered_queries_->height() / 2);
-            widgets_.unanswered_queries_->move(window.x() + x, window.y() + y);
-            widgets_.unanswered_queries_->setVisible(true);
+            int x = (widget_main_->width() / 2) - (fl_widgets_.unanswered_queries->width() / 2);
+            int y = (widget_main_->height() / 2) - (fl_widgets_.unanswered_queries->height() / 2);
+            fl_widgets_.unanswered_queries->move(window.x() + x, window.y() + y);
+            fl_widgets_.unanswered_queries->setVisible(true);
         }
         else
         {
-            widgets_.unanswered_queries_->showNormal();
-            widgets_.unanswered_queries_->activateWindow();
+            fl_widgets_.unanswered_queries->showNormal();
+            fl_widgets_.unanswered_queries->activateWindow();
         }
     }
 

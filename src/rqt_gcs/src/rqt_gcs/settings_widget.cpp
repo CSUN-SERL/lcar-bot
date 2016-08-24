@@ -108,7 +108,7 @@ namespace rqt_gcs
     
     void SettingsWidget::closeEvent(QCloseEvent* event)
     {
-        gcs->widgets_.settings_ = nullptr;
+        gcs->fl_widgets_.settings = nullptr;
         event->accept();
     }
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AccessPointsMenuWidget</class>
- <widget class="QWidget" name="AccessPointsMenuWidget">
+ <class>AccessPointsMenu</class>
+ <widget class="QWidget" name="AccessPointsMenu">
   <property name="windowModality">
    <enum>Qt::ApplicationModal</enum>
   </property>
@@ -44,34 +44,34 @@ color: rgb(236, 236, 236);
       </property>
       <layout class="QGridLayout" name="gridLayout">
        <item row="0" column="0">
-        <layout class="QVBoxLayout" name="AccessPointMenuLayout">
+        <layout class="QVBoxLayout" name="layout_access_points">
          <property name="spacing">
           <number>6</number>
          </property>
          <property name="sizeConstraint">
           <enum>QLayout::SetDefaultConstraint</enum>
          </property>
-         <item>
-          <spacer name="verticalSpacer">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>17</width>
-             <height>37</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
         </layout>
+       </item>
+       <item row="1" column="0">
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>17</width>
+           <height>37</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
     </widget>
    </item>
    <item row="1" column="0">
-    <widget class="QLabel" name="uavNameLineEdit">
+    <widget class="QLabel" name="lbl_uav">
      <property name="font">
       <font>
        <weight>75</weight>

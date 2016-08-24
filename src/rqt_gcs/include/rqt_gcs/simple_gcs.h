@@ -8,6 +8,7 @@
 #include <rqt_gcs/simple_control.h>
 #include <rqt_gcs/unanswered_queries.h>
 #include <rqt_gcs/settings_widget.h>
+#include <rqt_gcs/access_points_menu.h>
 #include <lcar_msgs/Door.h>
 #include <lcar_msgs/TargetLocal.h>
 #include <lcar_msgs/TargetGlobal.h>
@@ -22,7 +23,7 @@
 #include <map>
 #include <algorithm>
 
-#include <boost/filesystem/operations.hpp>
+ #include <boost/filesystem/operations.hpp>
 
 #include <image_transport/image_transport.h>
 #include "opencv2/highgui.hpp"
@@ -35,7 +36,6 @@
 #include <ui_ImageView.h>
 #include <ui_AccessPointStats.h>
 #include <ui_PictureMsg.h>
-#include <ui_AccessPointsMenu.h>
 
 //#include <ui_MissionSelect.h>
 //#include <ui_MissionCancel.h>
@@ -80,7 +80,7 @@ namespace rqt_gcs{
   friend class SimpleGCSHelper;
   friend class UnansweredQueries;
   friend class SettingsWidget;
-
+  
   public:
       
     struct UAV
@@ -133,7 +133,6 @@ namespace rqt_gcs{
     virtual void scoutBuilding();
     virtual void stopScout();
     virtual void changeFlightMode(int);
-    virtual void deleteAccessPoint(QWidget*);
     virtual void uavSelected(int);
     virtual void armOrDisarmSelectedUav();
     virtual void pauseOrResumeScout();
@@ -170,9 +169,6 @@ namespace rqt_gcs{
     void saveUavQueries(SimpleControl *, std::string ap_type);
     void answerQuery(QWidget *, std::string ap_type, bool);
     
-    void updateAccessPoints();
-    void clearAccessPoints();
-    void saveUavAccessPoints(SimpleControl *, std::string ap_type);
     
     void toggleScoutButtons(bool visible);
     void toggleArmDisarmButton(bool arm);
@@ -194,9 +190,10 @@ namespace rqt_gcs{
     
     struct FloatingWidgets 
     {
-        SettingsWidget * settings_ = nullptr;
-        UnansweredQueries * unanswered_queries_ = nullptr;
-    } widgets_;
+        SettingsWidget * settings = nullptr;
+        UnansweredQueries * unanswered_queries = nullptr;
+        AccessPointsMenu * ap_menu = nullptr;
+    } fl_widgets_;
     
 
     QVector<SimpleControl*> active_uavs;
@@ -210,7 +207,7 @@ namespace rqt_gcs{
     Ui::SimpleGCSWidget ui_;
     Ui::centralWidget central_ui_;
     std::vector<Ui::UAVConditionWidget*> uavCondWidgetArr;
-    Ui::AccessPointsMenuWidget apmUi_;
+    //Ui::AccessPointsMenuWidget apmUi_;
     Ui::PictureMsgWidget pmUi_;
      
     QMenuBar * menu_bar_;
@@ -253,7 +250,6 @@ namespace rqt_gcs{
     QString access_point_temp_data;
     QString access_point_id;
     QSignalMapper* quad_select_mapper;
-    QSignalMapper* access_point_mapper;
     QSignalMapper* acceptDoorMapper;
     QSignalMapper* denyDoorMapper;
 

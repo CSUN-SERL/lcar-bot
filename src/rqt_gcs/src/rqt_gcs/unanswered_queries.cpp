@@ -37,7 +37,7 @@ UnansweredQueries::~UnansweredQueries()
 
 void UnansweredQueries::closeEvent(QCloseEvent* event)
 {
-    gcs->widgets_.unanswered_queries_ = nullptr;
+    gcs->fl_widgets_.unanswered_queries = nullptr;
     event->accept();
 }
 

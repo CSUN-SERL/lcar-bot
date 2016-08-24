@@ -40,6 +40,7 @@ set(rqt_gcs_SRCS
   src/rqt_gcs/simple_gcs.cpp
   src/rqt_gcs/simple_control.cpp
   src/rqt_gcs/settings_widget.cpp
+  src/rqt_gcs/access_points_menu.cpp
   src/rqt_gcs/unanswered_queries.cpp
   src/FIS/qfi_PFD.cpp
   src/FIW/LayoutSquare.cpp
@@ -51,6 +52,7 @@ set(rqt_gcs_HDRS
   include/rqt_gcs/simple_gcs.h
   include/rqt_gcs/settings_widget.h
   include/rqt_gcs/unanswered_queries.h
+  include/rqt_gcs/access_points_menu.h
   include/FIS/qfi_PFD.h
   include/FIW/LayoutSquare.h
   include/FIW/WidgetPFD.h
