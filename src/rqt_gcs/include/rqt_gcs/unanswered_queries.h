@@ -62,10 +62,7 @@ public:
     int imgNumFromFile(QString&);
     QString getImgBasePath(QString&);
     bool saveImage(QString&, QString&, QImage *);
-    
-protected:
-   void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE;
-    
+
 private:
     Ui::UnansweredQueries widget;
     QMap<QString, QVBoxLayout*> layout_by_ap_type;

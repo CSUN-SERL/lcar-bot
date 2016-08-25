@@ -35,12 +35,6 @@ UnansweredQueries::~UnansweredQueries()
     gcs = nullptr;
 }
 
-void UnansweredQueries::closeEvent(QCloseEvent* event)
-{
-    gcs->fl_widgets_.unanswered_queries = nullptr;
-    event->accept();
-}
-
 void UnansweredQueries::addUnansweredQueriesFromDisk()
 {
     QString path_root = gcs->image_root_dir_ % "/queries/unanswered";         

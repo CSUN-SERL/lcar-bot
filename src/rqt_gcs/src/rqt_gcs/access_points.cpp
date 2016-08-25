@@ -1,45 +1,53 @@
 
-#include "rqt_gcs/access_points_menu.h"
+#include "rqt_gcs/access_points.h"
+#include "rqt_gcs/simple_gcs.h"
 
 namespace rqt_gcs
 {
     
-AccessPointsMenu::AccessPointsMenu() :
-    mapper(new QSignalMapper(this))
+AccessPoints::AccessPoints() :
+    mapper(new QSignalMapper(this)),
+    timer(new QTimer(this))
 {
     widget_.setupUi(this);
     this->setAttribute(Qt::WA_DeleteOnClose);
+    connect(timer, &QTimer::timeout, 
+            this, &AccessPoints::updateAccessPoints);
+    timer->start(1000);
 }
 
-AccessPointsMenu::~AccessPointsMenu()
+AccessPoints::~AccessPoints()
 {
     clearAccessPoints();
-    emit deleted();
 }
 
-void AccessPointsMenu::setUavTitle(int uav_id)
+void AccessPoints::setUav(SimpleControl* uav)
 {
-    QString s = "UAV " % QString::number(uav_id);
-    widget_.lbl_uav->setText(s);
+    this->uav = uav;
+    if(uav != nullptr)
+        widget_.lbl_uav->setText("UAV " % QString::number(uav->id));
+    else
+        widget_.lbl_uav->setText("NO UAVS");
+    
+    clearAccessPoints();
 }
 
-void AccessPointsMenu::clearAccessPoints()
+void AccessPoints::clearAccessPoints()
 {
     //clear out old list of Access points widgets
     int size = ap_widgets.size();
-    for(int i = 0; i < size; i--)
+    for(int i = 0; i < size; i++)
     {
         widget_.layout_access_points->removeWidget(ap_widgets[i]);
         delete ap_widgets[i];
     }
     ap_widgets.clear();
-
     num_access_points_last = 0;
 }
 
-void AccessPointsMenu::updateAccessPoints(SimpleControl* uav)
+void AccessPoints::updateAccessPoints()
 {
-    if(!this->isVisible())
+    if(!this->isVisible() || uav == nullptr)
         return;
 
     //retreive access points
@@ -114,7 +122,7 @@ void AccessPointsMenu::updateAccessPoints(SimpleControl* uav)
     num_access_points_last = apv_size;
 }
 
-void AccessPointsMenu::deleteAccessPoint(QWidget* w)
+void AccessPoints::deleteAccessPoint(QWidget* w)
 {
     int deleteIndex = widget_.layout_access_points->indexOf(w);
     widget_.layout_access_points->removeWidget(w);
@@ -124,9 +132,9 @@ void AccessPointsMenu::deleteAccessPoint(QWidget* w)
 }
 
 
-void AccessPointsMenu::saveUavAccessPoints(SimpleControl* uav, QString& ap_type)
+void AccessPoints::saveUavAccessPoints(SimpleControl* uav, QString& ap_type)
 {
-//    QString path = image_root_dir_ % "/access_points/" % ap_type;
+//    QString path = SimpleGCS::image_root_dir_ % "/access_points/" % ap_type;
 //    path.append("/uav_" + QString::number(uav->id));
 //    std::vector<AccessPoint> * ap_vector = uav->GetRefAccessPoints();
 //    for(int i = 0; i < ap_vector->size(); i++)
@@ -137,18 +145,9 @@ void AccessPointsMenu::saveUavAccessPoints(SimpleControl* uav, QString& ap_type)
 //        sensor_msgs::Image ros_image = ap.GetImage();
 //        QImage image(ros_image.data.data(), ros_image.width, ros_image.height,
 //                     ros_image.step, QImage::Format_RGB888);
-//        saveImage(path, file, image);
+//        ImageHandler::saveImage(path, file, &image);
 //    }
 }
 
-bool AccessPointsMenu::saveImage(QString& path, QString& file, QImage* image)
-{
-    QDir dir(path);
-    if(!dir.exists())
-        dir.mkdir(path);
-
-    QString full_path = dir.canonicalPath().append("/" % file);
-    return image->save(full_path, "jpg", -1);
-}
 
 }

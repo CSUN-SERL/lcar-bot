@@ -1,35 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AccessPointsMenu</class>
- <widget class="QWidget" name="AccessPointsMenu">
-  <property name="windowModality">
-   <enum>Qt::ApplicationModal</enum>
-  </property>
+ <class>AccessPoints</class>
+ <widget class="QWidget" name="AccessPoints">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>814</width>
-    <height>590</height>
+    <width>868</width>
+    <height>592</height>
    </rect>
   </property>
-  <property name="focusPolicy">
-   <enum>Qt::ClickFocus</enum>
-  </property>
   <property name="windowTitle">
-   <string>Access Points Menu</string>
-  </property>
-  <property name="autoFillBackground">
-   <bool>false</bool>
+   <string>Access Points</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: rgb(39, 47, 66);
+   <string notr="true">QWidget{
+background-color: rgb(39, 47, 66);
 color: rgb(236, 236, 236);
-/*border-radius: 5px;*/</string>
+}
+
+QLabel{
+background:transparent;
+}
+</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_2">
-   <item row="2" column="0">
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item alignment="Qt::AlignHCenter">
+    <widget class="QLabel" name="lbl_uav">
+     <property name="text">
+      <string>NO UAVS</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QScrollArea" name="scrollArea">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
      <property name="horizontalScrollBarPolicy">
       <enum>Qt::ScrollBarAlwaysOff</enum>
      </property>
@@ -41,11 +48,11 @@ color: rgb(236, 236, 236);
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>794</width>
-        <height>545</height>
+        <width>850</width>
+        <height>551</height>
        </rect>
       </property>
-      <layout class="QGridLayout" name="gridLayout">
+      <layout class="QGridLayout" name="gridLayout_2">
        <item row="0" column="0">
         <layout class="QVBoxLayout" name="layout_access_points">
          <property name="spacing">
@@ -71,31 +78,6 @@ color: rgb(236, 236, 236);
        </item>
       </layout>
      </widget>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="lbl_uav">
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Panel</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
-     </property>
-     <property name="text">
-      <string>NO UAVS</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-     <property name="textInteractionFlags">
-      <set>Qt::NoTextInteraction</set>
-     </property>
     </widget>
    </item>
   </layout>

@@ -8,7 +8,7 @@
 #include <rqt_gcs/simple_control.h>
 #include <rqt_gcs/unanswered_queries.h>
 #include <rqt_gcs/settings_widget.h>
-#include <rqt_gcs/access_points_menu.h>
+#include <rqt_gcs/access_points.h>
 #include <lcar_msgs/Door.h>
 #include <lcar_msgs/TargetLocal.h>
 #include <lcar_msgs/TargetGlobal.h>
@@ -61,11 +61,10 @@
 #include <QMetaType>
 #include <QWebView>
 #include <QSettings>
-#include <QCloseEvent>
-
-#define MAX_UAV 100 // the total number of UAV's manageable by our system
 
 namespace rqt_gcs{
+
+  #define MAX_UAV 100 // the total number of UAV's manageable by our system
 
   enum UavStatus { null = -1, active, deleted, purged };
 
@@ -83,6 +82,8 @@ namespace rqt_gcs{
   
   public:
       
+    QString image_root_dir_;
+    
     struct UAV
     {
         UAV(SimpleControl * sc, UavStatus stat)
@@ -170,7 +171,7 @@ namespace rqt_gcs{
     void answerQuery(QWidget *, std::string ap_type, bool);
     
     
-    void toggleScoutButtons(bool visible);
+    void toggleScoutButtons(bool visible, QString icon_type = "pause");
     void toggleArmDisarmButton(bool arm);
     
     int cur_uav;
@@ -192,7 +193,7 @@ namespace rqt_gcs{
     {
         SettingsWidget * settings = nullptr;
         UnansweredQueries * unanswered_queries = nullptr;
-        AccessPointsMenu * ap_menu = nullptr;
+        AccessPoints* ap_menu = nullptr;
     } fl_widgets_;
     
 
@@ -207,7 +208,6 @@ namespace rqt_gcs{
     Ui::SimpleGCSWidget ui_;
     Ui::centralWidget central_ui_;
     std::vector<Ui::UAVConditionWidget*> uavCondWidgetArr;
-    //Ui::AccessPointsMenuWidget apmUi_;
     Ui::PictureMsgWidget pmUi_;
      
     QMenuBar * menu_bar_;
@@ -254,7 +254,6 @@ namespace rqt_gcs{
     QSignalMapper* denyDoorMapper;
 
     QSettings* settings_;
-    QString image_root_dir_;
     QString rqt_gcs_dir_;
 
     QThread t_uav_monitor;

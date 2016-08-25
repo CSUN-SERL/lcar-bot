@@ -25,9 +25,6 @@ namespace rqt_gcs
     public:
         SettingsWidget(SimpleGCS *);
         virtual ~SettingsWidget();
-
-    protected:
-        void closeEvent(QCloseEvent * event) Q_DECL_OVERRIDE;
         
     private:
         Ui::SettingsWidget widget_;

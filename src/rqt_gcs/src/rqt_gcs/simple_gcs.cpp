@@ -1,8 +1,5 @@
 #include <rqt_gcs/simple_gcs.h>
 
-#include "rqt_gcs/access_points_menu.h"
-//
-//
 namespace rqt_gcs
 {
 
@@ -200,7 +197,7 @@ namespace rqt_gcs
 
         if(cur_uav == index)
         {
-            if(fl_widgets_.ap_menu->isVisible())
+            if(fl_widgets_.ap_menu != nullptr && fl_widgets_.ap_menu->isVisible())
                 fl_widgets_.ap_menu->clearAccessPoints();
             if(central_ui_.frame_queries_cntnr->isVisible())
                 clearQueries();
@@ -212,9 +209,11 @@ namespace rqt_gcs
         {
             cur_uav = -1; // no more UAV's to select
             central_ui_.image_frame->setPixmap(QPixmap::fromImage(QImage()));
+            if(fl_widgets_.ap_menu != nullptr)
+                fl_widgets_.ap_menu->setUav(nullptr);
         }
         else if(NUM_UAV == 1 || (cur_uav == index && index == 0))
-            selectUav(0); // default to only remaining uav/first in the list
+            selectUav(0); // default to only remaining uav or the first in the list
         else if(NUM_UAV > 1 && cur_uav == index)
             selectUav(cur_uav-1);
             //if the currently selected uav was deleted, choose the one in front of it
@@ -246,22 +245,6 @@ namespace rqt_gcs
             saveImage(path, file, image);
         }
     }
-
-//    void SimpleGCS::saveUavAccessPoints(SimpleControl* uav, std::string ap_type)
-//    {
-//        std::string path = image_root_dir_.toStdString() + "/access_points/" +ap_type;
-//        path += "/uav_" + std::to_string(uav->id);
-//        std::vector<AccessPoint> * ap_vector = uav->GetRefAccessPoints();
-//        for(int i = 0; i < ap_vector->size(); i++)
-//        {
-//            std::string file = "img_" + std::to_string(i) + ".jpg";
-//
-//            AccessPoint ap = ap_vector->at(i);
-//            sensor_msgs::Image ros_image = ap.GetImage();
-//            cv::Mat image = cv_bridge::toCvCopy(ros_image, "rgb8")->image;
-//            saveImage(path, file, image);
-//        }
-//    }
 
     void SimpleGCS::purgeDeletedUavs()
     {
@@ -297,9 +280,9 @@ namespace rqt_gcs
     //Timed update of GCS gui
     void SimpleGCS::timedUpdate()
     {
-        if(NUM_UAV == 0 || cur_uav == -1)
+        if(NUM_UAV == 0)
         {
-            central_ui_.lbl_cur_uav->setText("NO UAV's");
+            central_ui_.lbl_cur_uav->setText("NO UAVS");
             return;
         }
 
@@ -353,20 +336,20 @@ namespace rqt_gcs
 
     void SimpleGCS::clearQueries()
     {
-        for(int i = pictureQueryWidgets_.size() - 1; i >= 0; i--)
+        int size = pictureQueryWidgets_.size();
+        for(int i = 0; i < size; i++)
         {
             central_ui_.layout_queries->removeWidget(pictureQueryWidgets_[i]);
             delete pictureQueryWidgets_[i];
         }
         pictureQueryWidgets_.clear();
-
         num_queries_last = 0;
     }
 
 
     void SimpleGCS::updateQueries()
     {
-        if(NUM_UAV == 0 || !central_ui_.frame_queries_cntnr->isEnabled())
+        if(NUM_UAV == 0 || !central_ui_.frame_queries_cntnr->isVisible())
             return;
 
         pictureQueryVector = active_uavs[cur_uav]->GetDoorQueries();
@@ -516,7 +499,7 @@ namespace rqt_gcs
 
         for(int i = 0; i < NUM_UAV; i++)
         {
-            active_uavs[i]->SetRTL();
+            active_uavs[i]->StopMission();
         }
         
         this->toggleScoutButtons(true);
@@ -563,7 +546,6 @@ namespace rqt_gcs
             return;
 
         active_uavs[cur_uav]->StopMission();
-        
         this->toggleScoutButtons(true);
     }
 
@@ -619,18 +601,19 @@ namespace rqt_gcs
         }
     }
 
-    void SimpleGCS::toggleScoutButtons(bool visible)
-    {
+    void SimpleGCS::toggleScoutButtons(bool visible, QString icon_type)
+    { // icon_type should be "play" or "pause"
         central_ui_.btn_scout->setVisible(visible);
         central_ui_.btn_scout_play_pause->setVisible(!visible);
-        central_ui_.btn_scout_stop->setVisible(!visible);
+        central_ui_.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/"%icon_type%".png"));
+        central_ui_.btn_scout_stop->setVisible(!visible);     
     }
 
     void SimpleGCS::showAccessPoints()
     {
         if(fl_widgets_.ap_menu == nullptr)
         {
-            fl_widgets_.ap_menu = new AccessPointsMenu();
+            fl_widgets_.ap_menu = new AccessPoints();
            
             QRect window = widget_main_->window()->geometry();
             int x = (widget_main_->width() / 2) - (fl_widgets_.ap_menu->width() / 2);
@@ -638,20 +621,23 @@ namespace rqt_gcs
             fl_widgets_.ap_menu->move(window.x() + x, window.y() + y);
             fl_widgets_.ap_menu->setVisible(true);
             
-            connect(fl_widgets_.ap_menu, &AccessPointsMenu::deleted, this,
+            connect(fl_widgets_.ap_menu, &AccessPoints::destroyed, this,
                     [=](){ fl_widgets_.ap_menu = nullptr; });
+                    
+            if(NUM_UAV > 0)
+                fl_widgets_.ap_menu->setUav(active_uavs[cur_uav]);
+            else
+                fl_widgets_.ap_menu->setUav(nullptr);
         }
-        else
-        {
+        else   
             fl_widgets_.ap_menu->showNormal();
             fl_widgets_.ap_menu->activateWindow();
-        }
     }
 
     // slot gets called when user click on a uav button
-    void SimpleGCS::uavSelected(int quadNumber)
+    void SimpleGCS::uavSelected(int uav_number)
     {
-        selectUav(quadNumber);
+        selectUav(uav_number);
     }
 
     //needed in addUav(int) and deleteUav(int)
@@ -660,33 +646,28 @@ namespace rqt_gcs
         if(cur_uav == uav_number)
             return;
 
+        // handle image topic subscription and image refresh for new uav
         cur_uav = uav_number;
         int uav_id = active_uavs[cur_uav]->id;
         sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav_id) + "/stereo_cam/left/image_rect",
                                          5, &SimpleGCS::ImageCallback, this);
-
         central_ui_.image_frame->setPixmap(QPixmap::fromImage(QImage()));
 
+        //handle accesspoints and queries for new uav
         if(fl_widgets_.ap_menu != nullptr)
-        {
-            fl_widgets_.ap_menu->clearAccessPoints();
-            fl_widgets_.ap_menu->setUavTitle(active_uavs[cur_uav]->id);
-        }
+            fl_widgets_.ap_menu->setUav(active_uavs[cur_uav]);
         clearQueries();
         
+        //handle mission and arm buttons for new uav
         MissionMode m = active_uavs[cur_uav]->GetMissionMode();
         if(m == MissionMode::stopped)
             this->toggleScoutButtons(true); 
+        else if(m == MissionMode::active)
+            this->toggleScoutButtons(false, "pause");
         else
-        {
-            this->toggleScoutButtons(false);
-            if(m == MissionMode::active)
-                central_ui_.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/pause.png"));
-            else
-                central_ui_.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/play.png"));
-        }
+            this->toggleScoutButtons(false, "play");
         
-        this->toggleArmDisarmButton(active_uavs[cur_uav]->GetState().armed);
+        this->toggleArmDisarmButton(active_uavs[cur_uav]->GetState().armed);  
     }
 
 
@@ -921,7 +902,7 @@ namespace rqt_gcs
         settings_->endGroup();
         
         settings_->beginGroup("object_detection_tab");
-         // todo: read object detectin settings and publish them
+         // todo: read object detection settings and publish them
         
         settings_->endGroup();
     }
@@ -938,8 +919,11 @@ namespace rqt_gcs
             fl_widgets_.settings->move(window.x() + x, window.y() + y);
             fl_widgets_.settings->setVisible(true);
 
-            connect(fl_widgets_.settings, SIGNAL(machineLearningModeToggled(bool)),
-                    this, SLOT(toggleMachineLearningMode(bool)));
+            connect(fl_widgets_.settings, &SettingsWidget::machineLearningModeToggled,
+                    this, &SimpleGCS::toggleMachineLearningMode);
+            
+            connect(fl_widgets_.settings, &SettingsWidget::destroyed, 
+                    this, [=](){ fl_widgets_.settings = nullptr; });
         }
         else
         {
@@ -959,6 +943,9 @@ namespace rqt_gcs
             int y = (widget_main_->height() / 2) - (fl_widgets_.unanswered_queries->height() / 2);
             fl_widgets_.unanswered_queries->move(window.x() + x, window.y() + y);
             fl_widgets_.unanswered_queries->setVisible(true);
+            
+            connect(fl_widgets_.unanswered_queries, &UnansweredQueries::destroyed,
+                    this, [=](){  fl_widgets_.unanswered_queries = nullptr; });
         }
         else
         {
