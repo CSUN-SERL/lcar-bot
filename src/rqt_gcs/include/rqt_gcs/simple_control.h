@@ -56,6 +56,7 @@
 #define BATTERY_MIN 0.10    //Minimum battery level for RTL
 #define DEF_NS "UAV"
 #define R_EARTH 6371        //Earth's radius in km
+#define SC_INTERVAL 3       //Time, in seconds, between service calls
 
 //Enumerators
 enum Mode{
@@ -312,6 +313,15 @@ public:
      * Cancels the current mission and commands the UAV to return base.
      */
     void StopMission();
+
+    /*!
+     * \brief Cancels the current mission
+     * \param flight_mode The flight mode to switch to after cancelling mission
+     *
+     * Cancels the current mission and changes flight mode to the one selected
+     * by the user.
+     */
+    void StopMission(std::string flight_mode);
     
     //Getter Functions
     int GetId() { return id; }
@@ -385,6 +395,12 @@ private:
       Manage a global mission
     */
     void RunGlobal();
+
+    /*!
+     * \brief Determines if it is safe to call a service
+     * \return True if safe, false otherwise
+     */
+    bool CanRequest();
 
     //Callback Prototypes
     void StateCallback(const mavros_msgs::State& msg_state) { state = msg_state; }
