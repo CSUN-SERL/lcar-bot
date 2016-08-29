@@ -1,6 +1,8 @@
 
 #include "rqt_gcs/access_points.h"
-#include "rqt_gcs/simple_gcs.h"
+#include "rqt_gcs/image_utility.h"
+#include <QStringBuilder>
+#include "ui_AccessPointStats.h"
 
 namespace rqt_gcs
 {
@@ -13,12 +15,13 @@ AccessPoints::AccessPoints() :
     this->setAttribute(Qt::WA_DeleteOnClose);
     connect(timer, &QTimer::timeout, 
             this, &AccessPoints::updateAccessPoints);
-    timer->start(1000);
+    timer->start(0);
 }
 
 AccessPoints::~AccessPoints()
 {
     clearAccessPoints();
+    uav = nullptr;
 }
 
 void AccessPoints::setUav(SimpleControl* uav)
@@ -48,7 +51,7 @@ void AccessPoints::clearAccessPoints()
 void AccessPoints::updateAccessPoints()
 {
     if(!this->isVisible() || uav == nullptr)
-        return;
+        return ;
 
     //retreive access points
     std::vector<AccessPoint> * ap_vec = uav->GetRefAccessPoints();
@@ -61,22 +64,17 @@ void AccessPoints::updateAccessPoints()
     {
         //retrieve access point
         AccessPoint accessPoint = ap_vec->at(i + num_access_points_last);
-        sensor_msgs::Image acImage = accessPoint.GetImage();
+        sensor_msgs::Image ap_img = accessPoint.GetImage();
 
-        QImage image(acImage.data.data(), acImage.width, acImage.height,
-                     acImage.step, QImage::Format_RGB888);
+        QImage image = image_util::rosImgToQimg(ap_img);
 
         QWidget * apWidget = new QWidget();
         Ui::AccessPointStatsWidget apUiWidget;
         apUiWidget.setupUi(apWidget);
 
-        QWidget * imageWidget = new QWidget();
-        Ui::ImageViewWidget imageUiWidget;
-        imageUiWidget.setupUi(imageWidget);
-
-         //image
-        imageUiWidget.image_frame->setImage(image);
-        apUiWidget.PictureLayout->addWidget(imageWidget);
+        image = image.scaled(apWidget->width(), apWidget->height(), 
+                             Qt::AspectRatioMode::KeepAspectRatio);
+        apUiWidget.image_frame->setPixmap(QPixmap::fromImage(image));
 
         //add widget to the list
         ap_widgets.push_back(apWidget);
@@ -118,7 +116,6 @@ void AccessPoints::updateAccessPoints()
         //finally, add it to the gui
         widget_.layout_access_points->addWidget(ap_widgets[index]);
     }
-
     num_access_points_last = apv_size;
 }
 
@@ -128,25 +125,27 @@ void AccessPoints::deleteAccessPoint(QWidget* w)
     widget_.layout_access_points->removeWidget(w);
     ap_widgets.remove(deleteIndex);
     delete w;
+    auto vector = uav->GetRefAccessPoints();
+    vector->erase(vector->begin()+deleteIndex);
     num_access_points_last--;
 }
 
 
-void AccessPoints::saveUavAccessPoints(SimpleControl* uav, QString& ap_type)
+void AccessPoints::saveUavAccessPoints(SimpleControl* uav, QString ap_type)
 {
-//    QString path = SimpleGCS::image_root_dir_ % "/access_points/" % ap_type;
-//    path.append("/uav_" + QString::number(uav->id));
-//    std::vector<AccessPoint> * ap_vector = uav->GetRefAccessPoints();
-//    for(int i = 0; i < ap_vector->size(); i++)
-//    {
-//        QString file = "img_" + QString::number(i) + ".jpg";
-//
-//        AccessPoint ap = ap_vector->at(i);
-//        sensor_msgs::Image ros_image = ap.GetImage();
-//        QImage image(ros_image.data.data(), ros_image.width, ros_image.height,
-//                     ros_image.step, QImage::Format_RGB888);
-//        ImageHandler::saveImage(path, file, &image);
-//    }
+    QString path = image_util::image_root_dir_ % "/access_points/" % ap_type;
+    path.append("/uav_" + QString::number(uav->id));
+    std::vector<AccessPoint> * ap_vector = uav->GetRefAccessPoints();
+    for(int i = 0; i < ap_vector->size(); i++)
+    {
+        QString file = "img_" + QString::number(i) + ".jpg";
+
+        AccessPoint ap = ap_vector->at(i);
+        sensor_msgs::Image ros_image = ap.GetImage();
+        QImage image(ros_image.data.data(), ros_image.width, ros_image.height,
+                     ros_image.step, QImage::Format_RGB888);
+        image_util::saveImage(path, file, image);
+    }
 }
 
 

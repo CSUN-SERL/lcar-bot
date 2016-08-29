@@ -739,7 +739,7 @@ color: rgb(240, 240, 240);</string>
                </property>
               </spacer>
              </item>
-             <item>
+             <item alignment="Qt::AlignRight">
               <widget class="QPushButton" name="btn_scout">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
@@ -798,7 +798,7 @@ color: rgb(240, 240, 240);</string>
                </property>
               </widget>
              </item>
-             <item>
+             <item alignment="Qt::AlignRight">
               <widget class="QPushButton" name="btn_scout_stop">
                <property name="minimumSize">
                 <size>
@@ -876,22 +876,22 @@ border-radius:0px;</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_6">
         <property name="spacing">
-         <number>9</number>
+         <number>0</number>
         </property>
         <property name="leftMargin">
-         <number>9</number>
+         <number>0</number>
         </property>
         <property name="topMargin">
-         <number>9</number>
+         <number>0</number>
         </property>
         <property name="rightMargin">
-         <number>9</number>
+         <number>0</number>
         </property>
         <property name="bottomMargin">
-         <number>9</number>
+         <number>0</number>
         </property>
         <item>
-         <widget class="QScrollArea" name="scroll_area_uavs_2">
+         <widget class="QScrollArea" name="scroll_area_cntnr_uavs">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
@@ -921,8 +921,8 @@ border-radius:0px;</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>339</width>
-             <height>437</height>
+             <width>357</width>
+             <height>455</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -931,51 +931,53 @@ border-radius:0px;</string>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <layout class="QGridLayout" name="gridLayout_5">
-            <property name="leftMargin">
+           <layout class="QVBoxLayout" name="verticalLayout_9">
+            <property name="spacing">
              <number>0</number>
+            </property>
+            <property name="leftMargin">
+             <number>6</number>
             </property>
             <property name="topMargin">
-             <number>0</number>
+             <number>6</number>
             </property>
             <property name="rightMargin">
-             <number>0</number>
+             <number>6</number>
             </property>
             <property name="bottomMargin">
              <number>0</number>
             </property>
-            <property name="spacing">
-             <number>0</number>
-            </property>
-            <item row="1" column="0">
-             <layout class="QVBoxLayout" name="layoutScrollContainerUavs_2">
+            <item>
+             <layout class="QVBoxLayout" name="layout_uavs">
               <property name="spacing">
+               <number>3</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
                <number>0</number>
               </property>
               <property name="bottomMargin">
                <number>0</number>
               </property>
-              <item>
-               <layout class="QVBoxLayout" name="layout_uavs">
-                <property name="spacing">
-                 <number>3</number>
-                </property>
-               </layout>
-              </item>
-              <item>
-               <spacer name="verticalSpacer_3">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
              </layout>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </widget>
@@ -1251,23 +1253,32 @@ color: rgb(240, 240, 240);</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_7">
         <property name="spacing">
-         <number>9</number>
+         <number>6</number>
         </property>
         <property name="leftMargin">
-         <number>9</number>
+         <number>6</number>
         </property>
         <property name="topMargin">
-         <number>9</number>
+         <number>6</number>
         </property>
         <property name="rightMargin">
-         <number>9</number>
+         <number>6</number>
         </property>
         <property name="bottomMargin">
-         <number>9</number>
+         <number>6</number>
         </property>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="spacing">
+           <number>6</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
           <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
            <number>0</number>
           </property>
           <item alignment="Qt::AlignLeft|Qt::AlignTop">
@@ -1346,11 +1357,14 @@ color: rgb(240, 240, 240);</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>342</width>
-             <height>621</height>
+             <width>348</width>
+             <height>630</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout">
+            <property name="spacing">
+             <number>0</number>
+            </property>
             <property name="leftMargin">
              <number>0</number>
             </property>
@@ -1364,34 +1378,36 @@ color: rgb(240, 240, 240);</string>
              <number>0</number>
             </property>
             <item>
-             <layout class="QVBoxLayout" name="layout_scroll_cntnr_queries">
+             <layout class="QVBoxLayout" name="layout_queries">
               <property name="spacing">
+               <number>6</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
                <number>0</number>
               </property>
               <property name="bottomMargin">
                <number>0</number>
               </property>
-              <item>
-               <layout class="QVBoxLayout" name="layout_queries">
-                <property name="spacing">
-                 <number>3</number>
-                </property>
-               </layout>
-              </item>
-              <item>
-               <spacer name="verticalSpacer_2">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
              </layout>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </widget>

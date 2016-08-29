@@ -22,7 +22,6 @@
 #include <string>
 #include <lcar_msgs/Door.h>
  
-using namespace std;
 using namespace cv;
 using namespace cv::ml;
 
@@ -38,22 +37,24 @@ struct ObjectDetectionSubscribers
     ros::Subscriber sub_mean_shift;
 } od_subs;
 
+ros::Publisher pub_od_request;
+
 struct ObjectDetectionParams
 {
   double hit_thresh = 0.45;
   int step_size = 8;
   int padding = 4;
   double scale_factor = 1.15;
-  bool mean_shift = true;
+  bool mean_shift = false;
 } od_params;
 
 Ptr<SVM> svm_;
-vector< float > hog_detector_;
+std::vector< float > hog_detector_;
 HOGDescriptor hog_; //(Size( 90, 160 ), Size(16, 16), Size(8, 8), Size(8, 8), 9)
 
 //cv::Mat src;
-vector< Mat > training_data_;
-vector< cv::Mat > img_array_;
+std::vector< Mat > training_data_;
+std::vector< cv::Mat > img_array_;
 const Size & img_size_ = Size(128, 256);
 
 int door_count = 0;
@@ -75,8 +76,8 @@ bool compareHistograms(cv::Mat&, std::string);
 void HogFeatureExtraction(Mat ImgMat) {
     HOGDescriptor d;
     d.winSize = img_size_;
-    vector< Point > location;
-    vector< float > descriptors;
+    std::vector< Point > location;
+    std::vector< float > descriptors;
     d.compute(ImgMat, descriptors, Size(8, 8), Size(0, 0), location);
     Mat hog_features = Mat(descriptors).clone();
     if (!hog_features.empty()){
@@ -90,8 +91,8 @@ void ConvertToMl(const std::vector< cv::Mat > & train_samples, cv::Mat& trainDat
     const int cols = (int) std::max(train_samples[0].cols, train_samples[0].rows);
     cv::Mat tmp(1, cols, CV_32FC1); //< used for transposition if needed
     trainData = cv::Mat(rows, cols, CV_32FC1);
-    vector< Mat >::const_iterator itr = train_samples.begin();
-    vector< Mat >::const_iterator end = train_samples.end();
+    std::vector< Mat >::const_iterator itr = train_samples.begin();
+    std::vector< Mat >::const_iterator end = train_samples.end();
     for (int i = 0; itr != end; ++itr, ++i) {
         CV_Assert(itr->cols == 1 || itr->rows == 1);
         if (itr->cols == 1) {
@@ -113,10 +114,10 @@ void DrawLocations(cv::Mat& img, const std::vector< Rect > & found, const Scalar
 
 void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image) {
     if (!gray_image.empty()) {
-        vector <double> weights;
-        vector <Rect> detected_objects;
-        vector <Rect> door_objects;
-        vector <double> door_weights;
+        std::vector <double> weights;
+        std::vector <Rect> detected_objects;
+        std::vector <Rect> door_objects;
+        std::vector <double> door_weights;
         hog_.detectMultiScale(
                 gray_image,
                 detected_objects
@@ -168,12 +169,12 @@ void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image) {
                 door_query.query = true;
             }
 
-            bool similar = compareHistograms(color_image, "door");
-            if(!similar)
-            {
+//            bool similar = compareHistograms(color_image, "door");
+//            if(!similar)
+//            {
                 pub_query_.publish(door_query);         
                 door_count++;
-            }
+//            }
         }
     }
 }
@@ -240,8 +241,8 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
   {
-    if(msg->encoding == "mono8")
-        gray_scale = true;
+//    if(msg->encoding == "mono8")
+//        gray_scale = true;
       
     cv::Mat gray_image = cv_bridge::toCvShare(msg, "mono8")->image;
     //don't change my colorspace! (bgr8))
@@ -256,7 +257,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 }
 
 //extract svm weights and store in a float vector
-void GetSvmDetector(const Ptr<SVM>& svm, vector< float > & hog_detector) {
+void GetSvmDetector(const Ptr<SVM>& svm, std::vector< float > & hog_detector) {
     // get the support vectors
     Mat sv = svm->getSupportVectors();
     //const int sv_total = sv.rows;
@@ -325,13 +326,17 @@ int main (int argc, char** argv){
   std::string ns = ros::this_node::getNamespace();
   std::string topic = "stereo_cam/left/image_rect";
   
-  image_transport::Subscriber sub = it.subscribe(topic, 1, imageCallback);
+  image_transport::Subscriber sub = it.subscribe(topic, 2, imageCallback);
   
-  od_subs.sub_hit_thresh = nh.subscribe("/object_detection/hit_threshold", 1, hitThresholdCallback);
-  od_subs.sub_step_size = nh.subscribe("/object_detection/step_size", 1, stepSizeCallback);
-  od_subs.sub_padding = nh.subscribe("/object_detection/padding", 1, paddingCallback);
-  od_subs.sub_scale_factor = nh.subscribe("/object_detection/scale_factor", 1, scaleFactorCallback);
-  od_subs.sub_mean_shift = nh.subscribe("/object_detection/mean_shift_grouping", 1, meanShiftCallback);
+  od_subs.sub_hit_thresh = nh.subscribe("/object_detection/hit_threshold", 5, hitThresholdCallback);
+  od_subs.sub_step_size = nh.subscribe("/object_detection/step_size", 5, stepSizeCallback);
+  od_subs.sub_padding = nh.subscribe("/object_detection/padding", 5, paddingCallback);
+  od_subs.sub_scale_factor = nh.subscribe("/object_detection/scale_factor", 5, scaleFactorCallback);
+  od_subs.sub_mean_shift = nh.subscribe("/object_detection/mean_shift_grouping", 5, meanShiftCallback);
+  
+  pub_od_request = nh.advertise<std_msgs::Int32>("/object_detection/param_request", 2);
+  pub_od_request.publish(std_msgs::Int32());
+  
   
   ROS_INFO_STREAM("node: " << ros::this_node::getName() << 
                   " is subscribed to topic: " << ns + "/" + topic);

@@ -42,7 +42,8 @@ set(rqt_gcs_SRCS
   src/rqt_gcs/settings_widget.cpp
   src/rqt_gcs/access_points.cpp
   src/rqt_gcs/unanswered_queries.cpp
-  #src/rqt_gcs/image_handler.cpp
+  src/rqt_gcs/image_utility.cpp
+  src/rqt_gcs/debug.cpp
   src/FIS/qfi_PFD.cpp
   src/FIW/LayoutSquare.cpp
   src/FIW/WidgetPFD.cpp
@@ -54,7 +55,6 @@ set(rqt_gcs_HDRS
   include/rqt_gcs/settings_widget.h
   include/rqt_gcs/unanswered_queries.h
   include/rqt_gcs/access_points.h
-  #include/rqt_gcs/image_handler.h
   include/FIS/qfi_PFD.h
   include/FIW/LayoutSquare.h
   include/FIW/WidgetPFD.h

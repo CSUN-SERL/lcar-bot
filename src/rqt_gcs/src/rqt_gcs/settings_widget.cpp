@@ -6,8 +6,9 @@
  */
 
 #include "rqt_gcs/settings_widget.h"
+#include "rqt_gcs/image_utility.h"
 #include <iostream>
-#include <assert.h>
+#include <QStringBuilder>
 
 namespace rqt_gcs
 {
@@ -212,7 +213,7 @@ void SettingsWidget::readGeneralSettings()
         widget_.length_text_box->setEnabled(false);
     }
 
-    QString img_dir = gcs->settings_->value("images_root_directory", gcs->image_root_dir_).toString();
+    QString img_dir = gcs->settings_->value("images_root_directory", image_util::image_root_dir_).toString();
     widget_.line_edit_images_dir->setText(img_dir);
 
     gcs->settings_->endGroup();
@@ -278,7 +279,10 @@ void SettingsWidget::writeGeneralSettings()
 
     QString img_dir = widget_.line_edit_images_dir->text();
     if(!img_dir.isNull())
+    {
         gcs->settings_->setValue("images_root_directory", img_dir);
+        image_util::image_root_dir_ = widget_.line_edit_images_dir->text();
+    }
 
     gcs->settings_->endGroup(); //general_tab
 }
@@ -354,25 +358,25 @@ void SettingsWidget::readObjectDetectionSettings()
     // todo apply logic for determining where node will be run
 
     QString params = "tuning_paramaters";
-    od_params.hit_thresh = gcs->settings_->value(params % "/hit_threshold", 0.45).toDouble();    
-    od_params.step_size = gcs->settings_->value(params % "/step_size", 8).toInt();
-    od_params.padding = gcs->settings_->value(params % "/padding", 4).toInt();
-    od_params.scale_factor = gcs->settings_->value(params % "/scale_factor", 1.15).toDouble();
-    od_params.mean_shift = gcs->settings_->value(params % "/mean_shift_grouping", true).toBool();
+    gcs->od_params.hit_thresh = gcs->settings_->value(params % "/hit_threshold", 0.45).toDouble();    
+    gcs->od_params.step_size = gcs->settings_->value(params % "/step_size", 8).toInt();
+    gcs->od_params.padding = gcs->settings_->value(params % "/padding", 4).toInt();
+    gcs->od_params.scale_factor = gcs->settings_->value(params % "/scale_factor", 1.15).toDouble();
+    gcs->od_params.mean_shift = gcs->settings_->value(params % "/mean_shift_grouping", true).toBool();
 
-    widget_.line_edit_hit_thresh->setText(QString::number(od_params.hit_thresh, 'f', 2));
-    widget_.sl_hit_thresh->setValue(od_params.hit_thresh * 100);
+    widget_.line_edit_hit_thresh->setText(QString::number(gcs->od_params.hit_thresh, 'f', 2));
+    widget_.sl_hit_thresh->setValue(gcs->od_params.hit_thresh * 100);
 
-    widget_.line_edit_step_size->setText(QString::number(od_params.step_size));
-    widget_.sl_step_size->setValue(od_params.step_size / 4);
+    widget_.line_edit_step_size->setText(QString::number(gcs->od_params.step_size));
+    widget_.sl_step_size->setValue(gcs->od_params.step_size / 4);
 
-    widget_.line_edit_padding->setText(QString::number(od_params.padding));
-    widget_.sl_padding->setValue(od_params.padding / 8);
+    widget_.line_edit_padding->setText(QString::number(gcs->od_params.padding));
+    widget_.sl_padding->setValue(gcs->od_params.padding / 8);
 
-    widget_.line_edit_scale_factor->setText(QString::number(od_params.scale_factor, 'f', 2));
-    widget_.sl_scale_factor->setValue(od_params.scale_factor * 100);
+    widget_.line_edit_scale_factor->setText(QString::number(gcs->od_params.scale_factor, 'f', 2));
+    widget_.sl_scale_factor->setValue(gcs->od_params.scale_factor * 100);
 
-    if(od_params.mean_shift == true)
+    if(gcs->od_params.mean_shift == true)
         widget_.radio_on_mean_shift->setChecked(true);
     else 
         widget_.radio_off_mean_shift->setChecked(true);
@@ -391,13 +395,13 @@ void SettingsWidget::writeObjectDetectionSettings()
         gcs->settings_->setValue("node_location", "gcs");
 
     QString params = "tuning_paramaters";
-    QString thresh = QString::number(od_params.hit_thresh,'f', 2);
+    QString thresh = QString::number(gcs->od_params.hit_thresh,'f', 2);
     gcs->settings_->setValue(params % "/hit_threshold", thresh);
-    gcs->settings_->setValue(params % "/step_size", od_params.step_size);
-    gcs->settings_->setValue(params % "/padding", od_params.padding);
-    QString scale = QString::number(od_params.scale_factor, 'f', 2);
+    gcs->settings_->setValue(params % "/step_size", gcs->od_params.step_size);
+    gcs->settings_->setValue(params % "/padding", gcs->od_params.padding);
+    QString scale = QString::number(gcs->od_params.scale_factor, 'f', 2);
     gcs->settings_->setValue(params % "/scale_factor", scale);
-    gcs->settings_->setValue(params % "/mean_shift_grouping", od_params.mean_shift);
+    gcs->settings_->setValue(params % "/mean_shift_grouping", gcs->od_params.mean_shift);
 
     gcs->settings_->endGroup();
 }
@@ -463,9 +467,9 @@ void SettingsWidget::onToggleLengthLine()
 void SettingsWidget::onHitThresholdSliderChange(int new_thresh)
 {
     double thresh = ( ((double)new_thresh) / 100 );
-    if(od_params.hit_thresh != thresh)
+    if(gcs->od_params.hit_thresh != thresh)
     {
-        od_params.hit_thresh = thresh;
+        gcs->od_params.hit_thresh = thresh;
         widget_.line_edit_hit_thresh->setText(QString::number(thresh, 'f', 2));
         gcs->publishHitThreshold(thresh);
     }
@@ -496,16 +500,16 @@ void SettingsWidget::onHitThresholdLineChange()
     if(thresh != thresh_old)
          widget_.line_edit_hit_thresh->setText(QString::number(thresh, 'f', 2));
 
-    od_params.hit_thresh = thresh;
+    gcs->od_params.hit_thresh = thresh;
     widget_.sl_hit_thresh->setValue(thresh * 100);
 }
 
 void SettingsWidget::onStepSizeSliderChange(int new_step)
 {
     new_step *= 4; // map to 4, 8, 12 or 16
-    if(od_params.step_size != new_step)
+    if(gcs->od_params.step_size != new_step)
     {
-        od_params.step_size = new_step;
+        gcs->od_params.step_size = new_step;
         widget_.line_edit_step_size->setText(QString::number(new_step));
         gcs->publishStepSize(new_step);
     }
@@ -534,16 +538,16 @@ void SettingsWidget::onStepSizeLineChange()
     if(step != step_old)
          widget_.line_edit_step_size->setText(QString::number(step));
 
-    od_params.step_size = step;
+    gcs->od_params.step_size = step;
     widget_.sl_step_size->setValue(step / 4);
 }
 
 void SettingsWidget::onPaddingSliderChange(int new_padding)
 {
     new_padding *= 8; // map to 0, 8, 16, 24 or 32
-    if(od_params.padding != new_padding)
+    if(gcs->od_params.padding != new_padding)
     {
-        od_params.padding = new_padding;
+        gcs->od_params.padding = new_padding;
         widget_.line_edit_padding->setText(QString::number(new_padding));
         gcs->publishPadding(new_padding);
     }
@@ -572,16 +576,16 @@ void SettingsWidget::onPaddingLineChange()
     if(padding != padding_old)
         widget_.line_edit_padding->setText(QString::number(padding));
 
-    od_params.padding = padding;
+    gcs->od_params.padding = padding;
     widget_.sl_padding->setValue(padding / 8);
 }
 
 void SettingsWidget::onScaleFactorSliderChange(int new_scale)
 {
     double scale = ( ((double)new_scale) / 100 );
-    if(od_params.scale_factor != scale)
+    if(gcs->od_params.scale_factor != scale)
     {
-        od_params.scale_factor = scale;
+        gcs->od_params.scale_factor = scale;
         widget_.line_edit_scale_factor->setText(QString::number(scale, 'f', 2));
         gcs->publishScaleFactor(scale);
     }
@@ -612,16 +616,16 @@ void SettingsWidget::onScaleFactorLineChange()
     if(scale != scale_old)
         widget_.line_edit_scale_factor->setText(QString::number(scale, 'f', 2));
 
-    od_params.scale_factor = scale;
+    gcs->od_params.scale_factor = scale;
     widget_.sl_scale_factor->setValue(scale * 100);
 }
 
 void SettingsWidget::onMeanShiftRadioChange()
 {
     bool on = widget_.radio_on_mean_shift->isChecked();
-    if(od_params.mean_shift != on)
+    if(gcs->od_params.mean_shift != on)
     {
-        od_params.mean_shift = on;
+        gcs->od_params.mean_shift = on;
         gcs->publishMeanShift(on);
     }
 }

@@ -429,14 +429,6 @@ private:
     void UavHeartbeatTimeoutCallback(const ros::TimerEvent& e)
     {
         heartbeat_recieved = false;
-
-        //TODO
-            //gray out vehicle select button on main gui
-            //some kind of notification to the user
-        //UPDATE
-            // this will be handled by SimpleGCS, by querying each uav for the 
-            // value of heartbeat_recieved. if false, gray out its button
-        
     }
     
     void GcsPublishHeartbeat(const ros::TimerEvent& e)
