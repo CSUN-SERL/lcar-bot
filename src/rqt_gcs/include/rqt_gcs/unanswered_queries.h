@@ -53,5 +53,4 @@ public slots:
 };
 
 }// namespace rqt_gcs
-//Q_DECLARE_METATYPE(rqt_gcs::UnansweredQueries::QueryStat)
 #endif /* _UNANSWEREDQUERIES_H */

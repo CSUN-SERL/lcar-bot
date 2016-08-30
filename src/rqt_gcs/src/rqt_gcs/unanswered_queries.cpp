@@ -150,13 +150,13 @@ void UnansweredQueries::answerQuery(QWidget * w, QString ap_type, bool accepted)
     }
 
     if(image_util::saveImage(path, file, img))
-        qCInfo(lcar_bot) << "couldnt save image to path: " << path << "/" << file;
+    {
+        QDir dir;
+        dir.remove(stat->og_img_file_path);
+        dir.remove(stat->fr_img_file_path);
+    }
     
-    QDir dir;
-    dir.remove(stat->og_img_file_path);
-    dir.remove(stat->fr_img_file_path);
-    
-    layout_by_ap_type[ap_type]->removeWidget(w);
+//    layout_by_ap_type[ap_type]->removeWidget(w);
     QVector<QueryStat*> * ap_vector = &queries_map[ap_type];
     ap_vector->erase(ap_vector->begin()+index); // removes w from vector
     

@@ -106,16 +106,15 @@ namespace rqt_gcs
         path = image_util::image_root_dir_ % "/queries/unanswered/door/uav_" % QString::number(uav_id);
         uav->rejected_images = image_util::numImagesInDir(path);
         
-        uav_db[uav_id] = uav;
-        
         qCWarning(lcar_bot) << "Adding UAV with id:" << uav_id;
 
-        temp_data = "UAV " + QString::number(uav->id);
+        temp_data = "UAV " + QString::number(uav_id);
 
         int index = 0;
         while(index < NUM_UAV && uav_id > active_uavs[index]->id)
             index++;
 
+        uav_db.insert(uav_id, uav);
         active_uavs.insert(active_uavs.begin() + index, uav);
         vec_uav_list_ui_.insert(vec_uav_list_ui_.begin() + index, new Ui::UAVConditionWidget());
         vec_uav_list_widget_.insert(vec_uav_list_widget_.begin() + index, new QWidget());
@@ -144,25 +143,29 @@ namespace rqt_gcs
 
         SimpleControl * uav = active_uavs[index];
         int uav_id = uav->id;
-        
-        uav_db.remove(uav_id);
-
         qCWarning(lcar_bot) << "Deleting UAV with id: " << uav_id;
 
         central_ui_.layout_uavs->removeWidget(vec_uav_list_widget_[index]);
 
+        // dont delete uav_db[index] as it points to same SimpleControl object as active_uavs
+        delete active_uavs[index];
         delete vec_uav_list_ui_[index];
         delete vec_uav_list_widget_[index];
 
         vec_uav_list_ui_.erase(vec_uav_list_ui_.begin() + index);
         vec_uav_list_widget_.erase(vec_uav_list_widget_.begin() + index);
         active_uavs.erase(active_uavs.begin() + index);
-
+        uav_db.erase(uav_db.begin() + index); // erase 
+        
         NUM_UAV--;
         
-        if(cur_uav == index)
-            selectUav(cur_uav-1);
-        //if the currently selected uav was deleted, choose the one in front of it
+        if(cur_uav == index) // deleted current uav
+        {  
+            if(NUM_UAV > 0 && cur_uav == 0) // if there's more and we deleted the first
+                selectUav(0);       // choose the new first
+            else                            // else
+                selectUav(cur_uav - 1); // choose one in front
+        }
 
        num_uav_changed.wakeAll();
        uav_mutex.unlock();
@@ -170,7 +173,6 @@ namespace rqt_gcs
 
     void SimpleGCS::saveUavQueries(SimpleControl * uav, QString ap_type)
     {
-
         QString path = image_util::image_root_dir_ % "/queries/unanswered/" 
             % ap_type % "/uav_" % QString::number(uav->id);
         
@@ -216,10 +218,7 @@ namespace rqt_gcs
     void SimpleGCS::timedUpdate()
     {
         if(NUM_UAV == 0)
-        {
-            central_ui_.lbl_cur_uav->setText("NO UAVS");
             return;
-        }
 
         SimpleControl* uav = active_uavs[cur_uav];
         
@@ -560,7 +559,7 @@ namespace rqt_gcs
         
         cur_uav = uav_number;
         central_ui_.image_frame->setPixmap(QPixmap::fromImage(QImage()));
-        clearQueries(); // new uav selected, so make room for its queries
+        this->clearQueries(); // new uav selected, so make room for its queries
         
         if(cur_uav == -1) // no more uav's in system. 
         {
@@ -568,13 +567,13 @@ namespace rqt_gcs
                 fl_widgets_.ap_menu->setUav(nullptr); 
             this->toggleScoutButtons(true);  // reset scout buttons
             this->toggleArmDisarmButton(false); //set arm disarm button to arm
+            central_ui_.lbl_cur_uav->setText("NO UAVS");
         }
         else
         {
             SimpleControl * uav = active_uavs[cur_uav];
             // handle image topic subscription and image refresh for new uav
-            int uav_id = uav->id;
-            sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav_id) + "/stereo_cam/left/image_rect",
+            sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav->id) + "/stereo_cam/left/image_rect",
                                              5, &SimpleGCS::ImageCallback, this);
 
             if(fl_widgets_.ap_menu != nullptr)
@@ -926,8 +925,10 @@ namespace rqt_gcs
         od_handlers.pub_mean_shift.publish(msg); 
     }
     
+    ////////////////////////////////////////////////////////////////////////////
     //////////////////////////  SimpleGCSHelper  ///////////////////////////////
-
+    ////////////////////////////////////////////////////////////////////////////
+    
     SimpleGCSHelper::SimpleGCSHelper(SimpleGCS * sgcs) :
         gcs(sgcs)
     { }
@@ -974,7 +975,7 @@ namespace rqt_gcs
         {
             for(auto const& uav : uav_map)
             {
-                if(gcs->uav_db.count(uav.first) == 0)
+                if(!gcs->uav_db.contains(uav.first))
                 {
                     emit addUav(uav.first);
                     gcs->num_uav_changed.wait(&gcs->uav_mutex);

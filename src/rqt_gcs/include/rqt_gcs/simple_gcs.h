@@ -47,6 +47,22 @@ namespace rqt_gcs{
   
   public:
       
+//      struct UavWidget{
+//          
+//          UavWidget(Ui::UAVConditionWidget* ui, QWidget* widget, SimpleControl* sc)
+//          {
+//              this->ui = ui;
+//              this->widget = widget;
+//              button = ui->VehicleSelectButton;
+//              this->sc = sc;
+//          }
+//          
+//          Ui::UAVConditionWidget* ui;
+//          QWidget * widget;
+//          QPushButton * button;
+//          SimpleControl* sc;
+//      };
+      
     SimpleGCS();
     ~SimpleGCS();
     ros::NodeHandle nh;
