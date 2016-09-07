@@ -47,7 +47,6 @@ set(rqt_gcs_SRCS
   src/FIS/qfi_PFD.cpp
   src/FIW/LayoutSquare.cpp
   src/FIW/WidgetPFD.cpp
-  src/rqt_image_view/ratio_layouted_frame.cpp
 )
 
 set(rqt_gcs_HDRS
@@ -58,7 +57,6 @@ set(rqt_gcs_HDRS
   include/FIS/qfi_PFD.h
   include/FIW/LayoutSquare.h
   include/FIW/WidgetPFD.h
-  include/rqt_image_view/ratio_layouted_frame.h
 )
 
 set(rqt_gcs_UIS
@@ -72,14 +70,6 @@ set(rqt_gcs_UIS
   resources/PictureMsg.ui
   resources/SettingsWidget.ui
   resources/UnansweredQueries.ui
-  resources/ImageView.ui
-#  resources/MissionSelect.ui
-#  resources/MissionCancel.ui
-#  resources/MissionProgress.ui
-#  resources/UavStat.ui
-#  resources/UavQuestion.ui
-#  resources/QuadStats.ui
-#  resources/MissionConfirm.ui
 )
 
 set(rqt_gcs_RCCS resources/qfi.qrc)
