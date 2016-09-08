@@ -125,7 +125,7 @@ void UnansweredQueries::answerQuery(QWidget * w, QString ap_type, bool accepted)
     QueryStat * stat = queries_map[ap_type][index];
     QImage img = stat->original_img;
 
-    SimpleControl * uav = nullptr;
+    UAVControl * uav = nullptr;
 
     if(gcs->uav_db.count(stat->uav_id) > 0)
         uav = gcs->uav_db[stat->uav_id];

@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <rqt_gcs/simple_control.h>
+#include <rqt_gcs/uav_control.h>
 
 #include <mavros/mavros.h>
 #include <sensor_msgs/NavSatFix.h>

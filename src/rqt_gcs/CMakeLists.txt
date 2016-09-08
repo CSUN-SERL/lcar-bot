@@ -38,7 +38,7 @@ include(MavrosMavlink)
 
 set(rqt_gcs_SRCS
   src/rqt_gcs/simple_gcs.cpp
-  src/rqt_gcs/simple_control.cpp
+  src/rqt_gcs/uav_control.cpp
   src/rqt_gcs/settings_widget.cpp
   src/rqt_gcs/access_points.cpp
   src/rqt_gcs/unanswered_queries.cpp
@@ -102,7 +102,7 @@ include_directories(${rqt_gcs_INCLUDE_DIRECTORIES}
                     ${catkin_INCLUDE_DIRS})
 
 # Declare executables with source files
-add_executable(simple_control src/rqt_gcs/simple_control.cpp)
+add_executable(uav_control src/rqt_gcs/uav_control.cpp)
 add_executable(gps_publisher src/rqt_gcs/gps_publisher.cpp)
 add_executable(gps_demo src/rqt_gcs/gps_demo.cpp)
 add_executable(backup_control src/rqt_gcs/backup_control.cpp)
@@ -114,12 +114,12 @@ add_library(${PROJECT_NAME}
             ${rqt_gcs_UIS_H}
             ${rqt_gcs_RCC_SRCS})
 
-add_dependencies(simple_control ${catkin_EXPORTED_TARGETS})
+add_dependencies(uav_control ${catkin_EXPORTED_TARGETS})
 add_dependencies(gps_demo ${catkin_EXPORTED_TARGETS})
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
 #Specify libraries against which to link
-target_link_libraries(simple_control ${catkin_LIBRARIES})
+target_link_libraries(uav_control ${catkin_LIBRARIES})
 target_link_libraries(gps_publisher ${catkin_LIBRARIES})
 target_link_libraries(gps_demo ${catkin_LIBRARIES})
 target_link_libraries(backup_control ${catkin_LIBRARIES})

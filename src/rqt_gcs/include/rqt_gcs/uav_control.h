@@ -36,10 +36,12 @@
 #include <lcar_msgs/TargetLocal.h>
 #include <lcar_msgs/TargetGlobal.h>
 
-#include <rqt_gcs/access_point.h>
+#include "rqt_gcs/access_point.h"
+#include "rqt_gcs/vehicle_control.h"
 
 #define PI 3.14159265
-#define QUEUE_SIZE 100            //Message Queue size for publishers
+#define QUEUE_SIZE 100  
+#define PI 3.14159265          //Message Queue size for publishers
 #define CHECK_FREQUENCY 1         //Frequency for checking change of state
 #define TIMEOUT 3*CHECK_FREQUENCY //3 Second timeout
 #define TRAVEL_WT 0.5
@@ -88,17 +90,18 @@ struct FlightState {
     float heading;
 };
 
-class SimpleControl
+class UAVControl : public VehicleControl
 {
 public:
-    int id;
+//    int id;
     static int static_id;
-    SimpleControl();
-    SimpleControl(int uav_id);
-    ~SimpleControl();
     
     int accepted_images = 0,
         rejected_images = 0;
+    
+    UAVControl();
+    UAVControl(int uav_id);
+    ~UAVControl();
     
     /**
      * \brief Set online mode on or off
@@ -115,7 +118,7 @@ public:
     *
     * @param value Pass true for arm, false for disarm
     */
-    void Arm(bool value);
+    void Arm(bool value) override;
     
     /**
       Takeoff to a set altitude. Requires the UAV to be first armed and then
@@ -136,7 +139,7 @@ public:
       @param mode Mode to Set: Choose from Stabilize, Alt Hold, Auto, Guided,
       Loiter, RTL, or Circle
     */
-    void SetMode(std::string mode);
+    void SetMode(std::string mode) override;
 
     /**
       Enable OFFBOARD mode on the PX4
@@ -146,7 +149,7 @@ public:
     /**
       Returns the current location of the UAV in JSON format.
     */
-    std::string GetLocation();
+    sensor_msgs::NavSatFix GetLocation() override;
 
     /**
       Add the passed GPS location to the current set of waypoints to visit.
@@ -271,7 +274,7 @@ public:
     /**
       Return to launch site
     */
-    void SetRTL() { this->EnableOffboard(); goal = rtl; }  
+    void SetRTL() override { this->EnableOffboard(); goal = rtl; }  
 
     /**
       Manage the UAV and ensure that it is stable
@@ -296,7 +299,7 @@ public:
      * Stops the UAV at its current location and waits for a command from the
      * GCS to resume the mission.
      */
-    void PauseMission();
+    void PauseMission() override;
 
     /*!
      * \brief Resumes the previously paused mission.
@@ -304,17 +307,16 @@ public:
      * Starts the mission that was previously paused. If there was no previously
      * paused mission, does nothing.
      */
-    void ResumeMission();
+    void ResumeMission() override;
 
     /*!
      * \brief Cancels the current mission
      *
      * Cancels the current mission and commands the UAV to return base.
      */
-    void StopMission();
+    void StopMission() override;
     
     //Getter Functions
-    int GetId() { return id; }
     mavros_msgs::State GetState() { return state; }
     sensor_msgs::BatteryState GetBatteryState() { return battery; }
     sensor_msgs::Imu  GetImu() { return imu; }
@@ -326,6 +328,26 @@ public:
     std::vector<lcar_msgs::DoorPtr>* GetDoorQueries() { return &queries_door; }
     bool RecievedHeartbeat() { return heartbeat_recieved; }
     Mode getMode(){ return goal; }
+
+    void SetRejected_images(int rejected_images)
+    {
+        this->rejected_images = rejected_images;
+    }
+
+    int GetRejected_images() const
+    {
+        return rejected_images;
+    }
+
+    void SetAccepted_images(int accepted_images)
+    {
+        this->accepted_images = accepted_images;
+    }
+
+    int GetAccepted_images() const
+    {
+        return accepted_images;
+    }
 
 private:
     void InitialSetup();

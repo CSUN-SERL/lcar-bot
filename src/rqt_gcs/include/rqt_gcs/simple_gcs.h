@@ -3,7 +3,7 @@
 
 #include <pluginlib/class_list_macros.h>
 #include <rqt_gui_cpp/plugin.h>
-#include <rqt_gcs/simple_control.h>
+#include <rqt_gcs/uav_control.h>
 #include <rqt_gcs/unanswered_queries.h>
 #include <rqt_gcs/settings_widget.h>
 #include <rqt_gcs/access_points.h>
@@ -28,7 +28,8 @@
 #include <QWaitCondition>
 #include <QMutex>
 
-namespace rqt_gcs{
+namespace rqt_gcs
+{
     
   #define MAX_UAV 100 // the total number of UAV's manageable by our system
 
@@ -46,22 +47,6 @@ namespace rqt_gcs{
   friend class SettingsWidget;
   
   public:
-      
-//      struct UavWidget{
-//          
-//          UavWidget(Ui::UAVConditionWidget* ui, QWidget* widget, SimpleControl* sc)
-//          {
-//              this->ui = ui;
-//              this->widget = widget;
-//              button = ui->VehicleSelectButton;
-//              this->sc = sc;
-//          }
-//          
-//          Ui::UAVConditionWidget* ui;
-//          QWidget * widget;
-//          QPushButton * button;
-//          SimpleControl* sc;
-//      };
       
     SimpleGCS();
     ~SimpleGCS();
@@ -129,7 +114,7 @@ namespace rqt_gcs{
     
     void updateQueries();
     void clearQueries();
-    void saveUavQueries(SimpleControl *, QString ap_type);
+    void saveUavQueries(UAVControl *, QString ap_type);
     void answerQuery(QWidget *, QString ap_type, bool);
     
     void toggleScoutButtons(bool visible, QString icon_type = "pause");
@@ -167,8 +152,8 @@ namespace rqt_gcs{
         AccessPoints* ap_menu = nullptr;
     } fl_widgets_;
     
-    QVector<SimpleControl*> active_uavs;
-    QMap<int, SimpleControl*> uav_db;
+    QVector<UAVControl*> active_uavs;
+    QMap<int, UAVControl*> uav_db;
 
     std::vector<lcar_msgs::DoorPtr> * vec_uav_queries_;
 

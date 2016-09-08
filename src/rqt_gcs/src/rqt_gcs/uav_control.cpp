@@ -1,9 +1,9 @@
-#include <rqt_gcs/simple_control.h>
+#include <rqt_gcs/uav_control.h>
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "simple_control");
-    SimpleControl quad1{1};
+    ros::init(argc, argv, "uav_control");
+    UAVControl quad1{1};
 
     ros::Rate loop_rate(10); //10Hz
 
@@ -30,28 +30,27 @@ int main(int argc, char **argv)
 
 }
 
-int SimpleControl::static_id = 0;
+int UAVControl::static_id = 0;
 
-
-SimpleControl::SimpleControl()  //Class constructor
+UAVControl::UAVControl()  //Class constructor
 {
     id = static_id++;
     this->InitialSetup();
 }
 
-SimpleControl::SimpleControl(int uav_id)  //Class constructor
+UAVControl::UAVControl(int uav_id)  //Class constructor
 {
     id = uav_id;
     static_id++;
     this->InitialSetup();
 }
 
-SimpleControl::~SimpleControl(void)
+UAVControl::~UAVControl()
 {
     //Class destructor
 }
 
-void SimpleControl::InitialSetup()
+void UAVControl::InitialSetup()
 {
     ns = DEF_NS + std::to_string(id); //UAV Namespace
 
@@ -74,21 +73,21 @@ void SimpleControl::InitialSetup()
     pub_heartbeat           = nh.advertise<std_msgs::Int32>(ns + "/heartbeat/gcs", 0);
     
     //Initialize Subscribers
-    sub_state      = nh.subscribe(ns + "/mavros/state", QUEUE_SIZE, &SimpleControl::StateCallback, this);
-    sub_battery    = nh.subscribe(ns + "/mavros/battery", QUEUE_SIZE, &SimpleControl::BatteryCallback, this);
-    sub_imu        = nh.subscribe(ns + "/mavros/imu/data", QUEUE_SIZE, &SimpleControl::ImuCallback, this);
-    sub_altitude   = nh.subscribe(ns + "/mavros/global_position/rel_alt", QUEUE_SIZE, &SimpleControl::RelAltitudeCallback, this);
-    sub_heading    = nh.subscribe(ns + "/mavros/global_position/compass_hdg", QUEUE_SIZE, &SimpleControl::HeadingCallback, this);
-    sub_vel        = nh.subscribe(ns + "/mavros/local_position/velocity", QUEUE_SIZE, &SimpleControl::VelocityCallback, this);
-    sub_pos_global = nh.subscribe(ns + "/mavros/global_position/global", QUEUE_SIZE, &SimpleControl::NavSatFixCallback, this);
-    sub_pos_local  = nh.subscribe(ns + "/mavros/local_position/pose", QUEUE_SIZE, &SimpleControl::LocalPosCallback, this);
-    sub_depth      = nh.subscribe(ns + "/object_avoidance/depth", QUEUE_SIZE, &SimpleControl::DepthCallback, this);
+    sub_state      = nh.subscribe(ns + "/mavros/state", QUEUE_SIZE, &UAVControl::StateCallback, this);
+    sub_battery    = nh.subscribe(ns + "/mavros/battery", QUEUE_SIZE, &UAVControl::BatteryCallback, this);
+    sub_imu        = nh.subscribe(ns + "/mavros/imu/data", QUEUE_SIZE, &UAVControl::ImuCallback, this);
+    sub_altitude   = nh.subscribe(ns + "/mavros/global_position/rel_alt", QUEUE_SIZE, &UAVControl::RelAltitudeCallback, this);
+    sub_heading    = nh.subscribe(ns + "/mavros/global_position/compass_hdg", QUEUE_SIZE, &UAVControl::HeadingCallback, this);
+    sub_vel        = nh.subscribe(ns + "/mavros/local_position/velocity", QUEUE_SIZE, &UAVControl::VelocityCallback, this);
+    sub_pos_global = nh.subscribe(ns + "/mavros/global_position/global", QUEUE_SIZE, &UAVControl::NavSatFixCallback, this);
+    sub_pos_local  = nh.subscribe(ns + "/mavros/local_position/pose", QUEUE_SIZE, &UAVControl::LocalPosCallback, this);
+    sub_depth      = nh.subscribe(ns + "/object_avoidance/depth", QUEUE_SIZE, &UAVControl::DepthCallback, this);
     //sub_door_query = nh.subscribe(ns + "/objectdetection/door/query", QUEUE_SIZE, &SimpleControl::DoorQueryCallback, this);
-    sub_detection  = nh.subscribe(ns + "/object_detection/access_point/door", QUEUE_SIZE, &SimpleControl::DetectionCallback, this);
-    sub_heartbeat  = nh.subscribe(ns + "/heartbeat/uav", 0, &SimpleControl::UavHeartbeatCallback, this); 
+    sub_detection  = nh.subscribe(ns + "/object_detection/access_point/door", QUEUE_SIZE, &UAVControl::DetectionCallback, this);
+    sub_heartbeat  = nh.subscribe(ns + "/heartbeat/uav", 0, &UAVControl::UavHeartbeatCallback, this); 
     
-    timer_heartbeat_uav = nh.createTimer(ros::Duration(0.25), &SimpleControl::UavHeartbeatTimeoutCallback, this);
-    timer_heartbeat_gcs = nh.createTimer(ros::Duration(0.1), &SimpleControl::GcsPublishHeartbeat, this);        
+    timer_heartbeat_uav = nh.createTimer(ros::Duration(0.25), &UAVControl::UavHeartbeatTimeoutCallback, this);
+    timer_heartbeat_gcs = nh.createTimer(ros::Duration(0.1), &UAVControl::GcsPublishHeartbeat, this);        
     
     //Set Home position
     pose_home.position.x = pose_home.position.y = pose_home.position.z = 0;
@@ -98,7 +97,7 @@ void SimpleControl::InitialSetup()
     battery.percentage = -1;
 }
 
-void SimpleControl::Arm(bool value)
+void UAVControl::Arm(bool value)
 {
     if(state.armed != value){ //Only change to new state if it's different
 
@@ -147,7 +146,7 @@ void SimpleControl::Arm(bool value)
     }
 }
 
-void SimpleControl::Takeoff(int altitude)
+void UAVControl::Takeoff(int altitude)
 {
     //Ensure the UAV is in Guided mode and armed
     bool armed = (bool)state.armed;
@@ -170,7 +169,7 @@ void SimpleControl::Takeoff(int altitude)
     }
 }
 
-void SimpleControl::Land()
+void UAVControl::Land()
 {
     //Create a message for landing
     mavros_msgs::CommandTOL land;
@@ -185,7 +184,7 @@ void SimpleControl::Land()
     }
 }
 
-void SimpleControl::SetMode(std::string mode)
+void UAVControl::SetMode(std::string mode)
 {
     //Create a message for changing flight mode
     mavros_msgs::SetMode new_mode;
@@ -203,7 +202,7 @@ void SimpleControl::SetMode(std::string mode)
     }
 }
 
-void SimpleControl::EnableOffboard()
+void UAVControl::EnableOffboard()
 {
     mavros_msgs::SetMode offb_set_mode;
     offb_set_mode.request.custom_mode = "OFFBOARD";
@@ -240,15 +239,20 @@ void SimpleControl::EnableOffboard()
     }
 }
 
-std::string SimpleControl::GetLocation()
+sensor_msgs::NavSatFix UAVControl::GetLocation()
 {
-    float lat = pos_global.latitude;
-    float lon = pos_global.longitude;
-
-    return std::to_string(lat) + "," + std::to_string(lon);
+//    float lat = pos_global.latitude;
+//    float lon = pos_global.longitude;
+//
+//    return std::to_string(lat) + "," + std::to_string(lon);
+    
+    sensor_msgs::NavSatFix nav;
+    nav.latitude = pos_global.latitude;
+    nav.longitude = pos_global.longitude;
+    return nav;
 }
 
-void SimpleControl::ScoutBuilding(lcar_msgs::TargetLocal msg_target)
+void UAVControl::ScoutBuilding(lcar_msgs::TargetLocal msg_target)
 {
     //Update the target location
     path_mission = CircleShape(msg_target);
@@ -262,7 +266,7 @@ void SimpleControl::ScoutBuilding(lcar_msgs::TargetLocal msg_target)
     ROS_INFO_STREAM("Traveling to target location.");
 }
 
-void SimpleControl::ScoutBuilding(lcar_msgs::TargetGlobal msg_target)
+void UAVControl::ScoutBuilding(lcar_msgs::TargetGlobal msg_target)
 {
     this->SendMission(CircleShape(msg_target));
     this->Arm(true);
@@ -272,7 +276,7 @@ void SimpleControl::ScoutBuilding(lcar_msgs::TargetGlobal msg_target)
     position_mode = global;
 }
 
-void SimpleControl::SendMission(mavros_msgs::WaypointPush msg_mission)
+void UAVControl::SendMission(mavros_msgs::WaypointPush msg_mission)
 {
     //Call the service
     if(sc_mission.call(msg_mission)){
@@ -283,7 +287,7 @@ void SimpleControl::SendMission(mavros_msgs::WaypointPush msg_mission)
     }
 }
 
-void SimpleControl::OverrideRC(int channel, int value)
+void UAVControl::OverrideRC(int channel, int value)
 {
     //Create the message object
     mavros_msgs::OverrideRCIn override_msg;
@@ -295,7 +299,7 @@ void SimpleControl::OverrideRC(int channel, int value)
     pub_override_rc.publish(override_msg);
 }
 
-void SimpleControl::SetPosition(float x, float y, float z, float yaw)
+void UAVControl::SetPosition(float x, float y, float z, float yaw)
 {
     if(position_mode == global){
         mavros_msgs::GlobalPositionTarget target_global;
@@ -326,7 +330,7 @@ void SimpleControl::SetPosition(float x, float y, float z, float yaw)
     }
 }
 
-void SimpleControl::SetPosition(geometry_msgs::Pose new_pose)
+void UAVControl::SetPosition(geometry_msgs::Pose new_pose)
 {
     if(position_mode == global){
         mavros_msgs::GlobalPositionTarget target_global;
@@ -349,13 +353,13 @@ void SimpleControl::SetPosition(geometry_msgs::Pose new_pose)
     }
 }
 
-void SimpleControl::SetPosition(mavros_msgs::GlobalPositionTarget new_pose)
+void UAVControl::SetPosition(mavros_msgs::GlobalPositionTarget new_pose)
 {
     //Publish the message
     pub_setpoint_gposition.publish(new_pose);
 }
 
-void SimpleControl::SetAttitude(float roll, float pitch, float yaw)
+void UAVControl::SetAttitude(float roll, float pitch, float yaw)
 {
     //Create the message to be published
     geometry_msgs::PoseStamped msg_pose;
@@ -368,7 +372,7 @@ void SimpleControl::SetAttitude(float roll, float pitch, float yaw)
     pub_setpoint_attitude.publish(msg_pose);
 }
 
-void SimpleControl::SetAngularVelocity(float roll_vel, float pitch_vel, float yaw_vel)
+void UAVControl::SetAngularVelocity(float roll_vel, float pitch_vel, float yaw_vel)
 {
     //Create the message object
     geometry_msgs::TwistStamped msg_angular_vel;
@@ -384,7 +388,7 @@ void SimpleControl::SetAngularVelocity(float roll_vel, float pitch_vel, float ya
     pub_angular_vel.publish(msg_angular_vel);
 }
 
-void SimpleControl::SetLinearVelocity(float x, float y, float z)
+void UAVControl::SetLinearVelocity(float x, float y, float z)
 {
     geometry_msgs::TwistStamped msg_linear_vel;
 
@@ -395,7 +399,7 @@ void SimpleControl::SetLinearVelocity(float x, float y, float z)
     pub_linear_vel.publish(msg_linear_vel);
 }
 
-void SimpleControl::SetAcceleration(float x, float y, float z)
+void UAVControl::SetAcceleration(float x, float y, float z)
 {
     //Create the message object
     geometry_msgs::Vector3Stamped msg_accel;
@@ -410,7 +414,7 @@ void SimpleControl::SetAcceleration(float x, float y, float z)
 }
 
 //TODO: Fix Roll, Pitch, Yaw, and Ground Speed values
-FlightState SimpleControl::UpdateFlightState()
+FlightState UAVControl::UpdateFlightState()
 {
     struct FlightState flight_state;
 
@@ -432,7 +436,7 @@ FlightState SimpleControl::UpdateFlightState()
     return flight_state;
 }
 
-  int SimpleControl::ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
+  int UAVControl::ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
 {
     int result;
 
@@ -460,7 +464,7 @@ FlightState SimpleControl::UpdateFlightState()
     return result;
 }
 
-int SimpleControl::CompareAltitude(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
+int UAVControl::CompareAltitude(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
 {
     int result;
     float threshold;
@@ -476,7 +480,7 @@ int SimpleControl::CompareAltitude(geometry_msgs::Pose pose1, geometry_msgs::Pos
     return result;
 }
 
-int SimpleControl::CalculateDistance(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
+int UAVControl::CalculateDistance(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
 {
     float dist_x = pose2.position.x - pose1.position.x;
     float dist_y = pose2.position.y - pose1.position.y;
@@ -484,7 +488,7 @@ int SimpleControl::CalculateDistance(geometry_msgs::Pose pose1, geometry_msgs::P
     return sqrt((dist_x * dist_x) + (dist_y * dist_y) + (dist_z * dist_z));
 }
 
-float SimpleControl::GetMissionProgress()
+float UAVControl::GetMissionProgress()
 {
     float progress  = 0;
 
@@ -507,7 +511,7 @@ float SimpleControl::GetMissionProgress()
     return progress;
 }
 
-nav_msgs::Path SimpleControl::CircleShape(lcar_msgs::TargetLocal target_point)
+nav_msgs::Path UAVControl::CircleShape(lcar_msgs::TargetLocal target_point)
 {
     double yaw_angle, radius = target_point.radius;
     geometry_msgs::PoseStamped  pose_new_stamped;
@@ -537,7 +541,7 @@ nav_msgs::Path SimpleControl::CircleShape(lcar_msgs::TargetLocal target_point)
     return mission;
 }
 
-mavros_msgs::WaypointPush SimpleControl::CircleShape(lcar_msgs::TargetGlobal target_point)
+mavros_msgs::WaypointPush UAVControl::CircleShape(lcar_msgs::TargetGlobal target_point)
 {
     double  yaw_angle, radius = target_point.radius;
     double  lat_center = angles::from_degrees(target_point.target.latitude),
@@ -570,7 +574,7 @@ mavros_msgs::WaypointPush SimpleControl::CircleShape(lcar_msgs::TargetGlobal tar
     return mission;
 }
 
-void SimpleControl::SafetyCheck()
+void UAVControl::SafetyCheck()
 {
     //Sanity Checks
     if(battery.percentage < BATTERY_MIN && battery.percentage != -1){
@@ -594,7 +598,7 @@ void SimpleControl::SafetyCheck()
     }
 }
 
-void SimpleControl::Run()
+void UAVControl::Run()
 {
     //Sanity Checks
     this->SafetyCheck();
@@ -614,7 +618,7 @@ void SimpleControl::Run()
     }
 }
 
-void SimpleControl::RunLocal()
+void UAVControl::RunLocal()
 {
     if(goal == travel){
         if(ComparePosition(pose_local, pose_target) == 0){
@@ -684,7 +688,7 @@ void SimpleControl::RunLocal()
     }
 }
 
-void SimpleControl::RunGlobal()
+void UAVControl::RunGlobal()
 {
     if(goal == travel){
         if(state.mode != "AUTO.MISSION"){
@@ -701,20 +705,20 @@ void SimpleControl::RunGlobal()
     }
 }
 
-void SimpleControl::PauseMission()
+void UAVControl::PauseMission()
 {
     mission_mode = paused;
     goal_prev = goal;
     goal = hold;
 }
 
-void SimpleControl::ResumeMission()
+void UAVControl::ResumeMission()
 {
     mission_mode = active;
     goal = goal_prev;
 }
 
-void SimpleControl::StopMission()
+void UAVControl::StopMission()
 {
     mission_mode = stopped;
     goal = rtl;

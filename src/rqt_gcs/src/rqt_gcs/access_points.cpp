@@ -24,11 +24,11 @@ AccessPoints::~AccessPoints()
     uav = nullptr;
 }
 
-void AccessPoints::setUav(SimpleControl* uav)
+void AccessPoints::setUav(UAVControl* uav)
 {
     this->uav = uav;
     if(uav != nullptr)
-        widget_.lbl_uav->setText("UAV " % QString::number(uav->id));
+        widget_.lbl_uav->setText("UAV " % QString::number(uav->GetId()));
     else
         widget_.lbl_uav->setText("NO UAVS");
     
@@ -131,10 +131,10 @@ void AccessPoints::deleteAccessPoint(QWidget* w)
 }
 
 
-void AccessPoints::saveUavAccessPoints(SimpleControl* uav, QString ap_type)
+void AccessPoints::saveUavAccessPoints(UAVControl* uav, QString ap_type)
 {
     QString path = image_util::image_root_dir_ % "/access_points/" % ap_type;
-    path.append("/uav_" + QString::number(uav->id));
+    path.append("/uav_" + QString::number(uav->GetId()));
     std::vector<AccessPoint> * ap_vector = uav->GetRefAccessPoints();
     for(int i = 0; i < ap_vector->size(); i++)
     {

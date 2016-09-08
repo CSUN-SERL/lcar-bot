@@ -3,7 +3,7 @@
 #define _ACCESSPOINTS_H
 
 #include "ui_AccessPoints.h"
-#include "rqt_gcs/simple_control.h"
+#include "rqt_gcs/uav_control.h"
 #include "qt5/QtCore/qtimer.h"
 #include <QSignalMapper>
 
@@ -18,9 +18,9 @@ public:
     virtual ~AccessPoints();
     void clearAccessPoints();
     void updateAccessPoints();
-    static void saveUavAccessPoints(SimpleControl * uav, QString ap_type);
+    static void saveUavAccessPoints(UAVControl * uav, QString ap_type);
     void deleteAccessPoint(QWidget* w);
-    void setUav(SimpleControl* uav);
+    void setUav(UAVControl* uav);
     
 private:
     Ui::AccessPoints widget_;
@@ -29,7 +29,7 @@ private:
     int num_access_points_last;
     QTimer* timer;
     
-    SimpleControl* uav;
+    UAVControl* uav;
 };
 
 }
