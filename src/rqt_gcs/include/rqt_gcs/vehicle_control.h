@@ -1,12 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /* 
- * File:   VehicleControl.h
- * Author: serl
+ * File:   vehicle_control.h
+ * Author: n8
  *
  * Created on September 7, 2016, 5:09 PM
  */
@@ -37,7 +31,7 @@ protected:
     virtual void Run()=0;
     virtual void RunLocal()=0;
     virtual void RunGlobal()=0;
-    //virtual void SetWayPoint()=0;
+    //virtual void SetWayPoint()=0; // todo implement this in UAVControl
     
     int id;
     

@@ -4,26 +4,27 @@
 namespace rqt_gcs
 {
     
+namespace debug
+{
     Q_LOGGING_CATEGORY(lcar_bot, "lcar_bot");
     
-    void initDbg()
+    void InitDbg()
     {
         QLoggingCategory::setFilterRules("*.debug=false\n"
                                          "*.warning=false\n"
                                          "lcar_bot.debug=true\n"
                                          "lcar_bot.warning=true\n"
                                          "lcar_bot.critical=true\n");
-        qInstallMessageHandler(
-            msgHandler
-            //0
-            );
+        qInstallMessageHandler(MsgHandler
+                            //,0
+                               );
 
     }
     
-    void msgHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+    void MsgHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
     {
         QByteArray localMsg = msg.toLocal8Bit();
-        QByteArray file = fileFromPath(QString(context.file)).toLocal8Bit(); // file contains complete path
+        QByteArray file = FileFromPath(QString(context.file)).toLocal8Bit(); // file contains complete path
         switch (type) 
         {
             case QtInfoMsg:
@@ -44,10 +45,12 @@ namespace rqt_gcs
         }
     }
     
-    QString fileFromPath(const QString& path)
+    QString FileFromPath(const QString& path)
     {
         QString s(path);
         return s.mid(s.lastIndexOf('/') + 1);
     }
     
+}
+
 }

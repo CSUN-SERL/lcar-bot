@@ -47,78 +47,83 @@ namespace rqt_gcs
   friend class SettingsWidget;
   
   public:
-      
     SimpleGCS();
     ~SimpleGCS();
-    ros::NodeHandle nh;
-    ros::ServiceServer server;
-    lcar_msgs::Door msg;
-   
-    image_transport::ImageTransport it_stereo{nh};
-    void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
-    void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
-    void ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg);
 
     virtual void initPlugin(qt_gui_cpp::PluginContext& context);
     virtual void shutdownPlugin();
     virtual void saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const;
     virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings);
+    
+    void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
+    void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
+    void ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg);
 
     //methods for publishing object detection paramerter updates
-    void publishHitThreshold(double thresh);
-    void publishStepSize(int step);
-    void publishPadding(int padding);
-    void publishScaleFactor(double scale);
-    void publishMeanShift(bool on);
+    void PublishHitThreshold(double thresh);
+    void PublishStepSize(int step);
+    void PublishPadding(int padding);
+    void PublishScaleFactor(double scale);
+    void PublishMeanShift(bool on);
     
     std::string GetMissionType(std::string file_name);		 
     lcar_msgs::TargetLocal GetMissionLocal(std::string file_name);
     lcar_msgs::TargetGlobal GetMissionGlobal(std::string file_name);
-
-    static void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
+    
+    ros::NodeHandle nh;
+    ros::ServiceServer server;
+    lcar_msgs::Door msg;
+    image_transport::ImageTransport it_stereo{nh};
+    
     
   protected slots:
-    virtual void timedUpdate();
+    virtual void OnTimedUpdate();
     
     //////////// Buttons
-    virtual void executePlay();
-    virtual void cancelPlay();
-    virtual void scoutBuilding();
-    virtual void stopScout();
-    virtual void changeFlightMode(int);
-    virtual void uavSelected(QWidget*);
-    virtual void armOrDisarmSelectedUav();
-    virtual void pauseOrResumeScout();
-    virtual void acceptDoorQuery(QWidget *);
-    virtual void rejectDoorQuery(QWidget *);
-    virtual void acessPointsTriggered();
-    virtual void settingsTriggered();
-    virtual void unansweredQueriesTriggered();
+    virtual void OnExecutePlay();
+    virtual void OnCancelPlay();
+    virtual void OnScoutBuilding();
+    virtual void OnStopScout();
+    virtual void OnChangeFlightMode(int);
+    virtual void OnUavSelected(QWidget*);
+    virtual void OnArmOrDisarmSelectedUav();
+    virtual void OnPauseOrResumeScout();
+    virtual void OnAcceptDoorQuery(QWidget *);
+    virtual void OnRejectDoorQuery(QWidget *);
+    virtual void OnAcessPointsTriggered();
+    virtual void OnSettingsTriggered();
+    virtual void OnUnansweredQueriesTriggered();
+    virtual void OnSaveUavQueries(UAVControl*, QString&);
+    virtual void OnClearQueries();
+    virtual void OnUpdateQueries();
+    virtual void OnAnswerQuery(QWidget*, QString&, bool);
+    virtual void OnToggleScoutButtons(bool, QString&);
+    virtual void OnToggleArmDisarmButton(bool);
     
-    virtual void addUav(int);
-    virtual void deleteUav(int);
-    virtual void uavConnectionToggled(int, int, bool);
-
+    virtual void OnAddUav(int);
+    virtual void OnDeleteUav(int);
+    virtual void OnUAVConnectionToggled(int, int, bool);
+    
     //SETTINGS RELATED
-    virtual void toggleMachineLearningMode(bool);
+    virtual void OnToggleMachineLearningMode(bool);
 
   private:
     
-    void initMap();
-    void initMenuBar();
-    void initSettings();
-    void initHelperThread();
+    void InitMap();
+    void InitMenuBar();
+    void InitSettings();
+    void InitHelperThread();
       
-    void selectUav(int);  
-    void updatePFD();
+    void SelectUav(int);  
+    void UpdatePFD();
     
-    void updateQueries();
-    void clearQueries();
-    void saveUavQueries(UAVControl *, QString ap_type);
-    void answerQuery(QWidget *, QString ap_type, bool);
+    void UpdateQueries();
+    void ClearQueries();
+    void SaveUavQueries(UAVControl *, QString ap_type);
+    void AnswerQuery(QWidget *, QString ap_type, bool);
     
-    void toggleScoutButtons(bool visible, QString icon_type = "pause");
-    void toggleArmDisarmButton(bool arm);
+    void ToggleScoutButtons(bool visible, QString icon_type = "pause");
+    void ToggleArmDisarmButton(bool arm);
     
     int cur_uav;
     int timeCounter;

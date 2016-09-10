@@ -471,7 +471,7 @@ void SettingsWidget::onHitThresholdSliderChange(int new_thresh)
     {
         gcs->od_params.hit_thresh = thresh;
         widget_.line_edit_hit_thresh->setText(QString::number(thresh, 'f', 2));
-        gcs->publishHitThreshold(thresh);
+        gcs->PublishHitThreshold(thresh);
     }
 }
 
@@ -511,7 +511,7 @@ void SettingsWidget::onStepSizeSliderChange(int new_step)
     {
         gcs->od_params.step_size = new_step;
         widget_.line_edit_step_size->setText(QString::number(new_step));
-        gcs->publishStepSize(new_step);
+        gcs->PublishStepSize(new_step);
     }
 }
 
@@ -549,7 +549,7 @@ void SettingsWidget::onPaddingSliderChange(int new_padding)
     {
         gcs->od_params.padding = new_padding;
         widget_.line_edit_padding->setText(QString::number(new_padding));
-        gcs->publishPadding(new_padding);
+        gcs->PublishPadding(new_padding);
     }
 }
 
@@ -587,7 +587,7 @@ void SettingsWidget::onScaleFactorSliderChange(int new_scale)
     {
         gcs->od_params.scale_factor = scale;
         widget_.line_edit_scale_factor->setText(QString::number(scale, 'f', 2));
-        gcs->publishScaleFactor(scale);
+        gcs->PublishScaleFactor(scale);
     }
 }
 
@@ -626,7 +626,7 @@ void SettingsWidget::onMeanShiftRadioChange()
     if(gcs->od_params.mean_shift != on)
     {
         gcs->od_params.mean_shift = on;
-        gcs->publishMeanShift(on);
+        gcs->PublishMeanShift(on);
     }
 }
     
