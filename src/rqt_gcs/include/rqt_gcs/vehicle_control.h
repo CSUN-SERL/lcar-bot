@@ -8,6 +8,9 @@
 #ifndef VEHICLECONTROL_H
 #define VEHICLECONTROL_H
 
+#include <string>
+#include<sensor_msgs/NavSatFix.h>
+
 class VehicleControl
 {
 public:
@@ -15,7 +18,7 @@ public:
     virtual ~VehicleControl(){};
     
     virtual void Arm(bool value)=0;
-    virtual void SetMode(std::string mode)=0;
+    virtual void SetMode(std::string)=0;
     virtual sensor_msgs::NavSatFix GetLocation()=0;
     virtual void SetRTL()=0;
     virtual void StartMission(){}; // todo make pure virtual and add override implementation to UAVControl

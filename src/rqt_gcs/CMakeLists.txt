@@ -39,6 +39,7 @@ include(MavrosMavlink)
 set(rqt_gcs_SRCS
   src/rqt_gcs/simple_gcs.cpp
   src/rqt_gcs/uav_control.cpp
+  src/rqt_gcs/vehicle_manager.cpp
   src/rqt_gcs/settings_widget.cpp
   src/rqt_gcs/access_points.cpp
   src/rqt_gcs/unanswered_queries.cpp
