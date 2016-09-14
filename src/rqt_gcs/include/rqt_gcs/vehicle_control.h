@@ -9,13 +9,17 @@
 #define VEHICLECONTROL_H
 
 #include <string>
-#include<sensor_msgs/NavSatFix.h>
+#include <sensor_msgs/NavSatFix.h>
+
+#include "rqt_gcs/data_types.h"
 
 class VehicleControl
 {
+    
 public:
-    VehicleControl(){};
-    virtual ~VehicleControl(){};
+    const int id; // child classes provide id to this class' constructor
+    
+    VehicleControl(int id): id(id){ }
     
     virtual void Arm(bool value)=0;
     virtual void SetMode(std::string)=0;
@@ -26,19 +30,12 @@ public:
     virtual void ResumeMission()=0;
     virtual void StopMission()=0;
     
-    void SetId(int id){ this->id = id; }
-    int GetId() { return id; }
-    
 protected:
 
     virtual void Run()=0;
     virtual void RunLocal()=0;
     virtual void RunGlobal()=0;
     //virtual void SetWayPoint()=0; // todo implement this in UAVControl
-    
-    int id;
-    
-//private:
     
 };
 

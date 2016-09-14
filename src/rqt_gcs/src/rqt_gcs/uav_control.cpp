@@ -3,7 +3,7 @@
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "uav_control");
-    UAVControl quad1{1};
+    rqt_gcs::UAVControl quad1{1};
 
     ros::Rate loop_rate(10); //10Hz
 
@@ -30,18 +30,23 @@ int main(int argc, char **argv)
 
 }
 
-int UAVControl::static_id = 0;
 
-UAVControl::UAVControl()  //Class constructor
+namespace rqt_gcs
 {
-    id = static_id++;
-    this->InitialSetup();
-}
 
-UAVControl::UAVControl(int uav_id)  //Class constructor
+//int UAVControl::static_id = 0;
+
+//UAVControl::UAVControl()  //Class constructor
+//{
+//    //id = static_id++;
+//    this->InitialSetup();
+//}
+
+UAVControl::UAVControl(int uav_id) :  //Class constructor
+VehicleControl(uav_id)
 {
-    id = uav_id;
-    static_id++;
+    //id = uav_id;
+    //static_id++;
     this->InitialSetup();
 }
 
@@ -416,14 +421,14 @@ void UAVControl::SetAcceleration(float x, float y, float z)
 //TODO: Fix Roll, Pitch, Yaw, and Ground Speed values
 FlightState UAVControl::UpdateFlightState()
 {
-    struct FlightState flight_state;
+    FlightState flight_state;
 
     /*tf::Quaternion quaternion_tf;
-  tf::quaternionMsgToTF(imu.orientation, quaternion_tf);
-  tf::Matrix3x3 m{quaternion_tf};
+    tf::quaternionMsgToTF(imu.orientation, quaternion_tf);
+    tf::Matrix3x3 m{quaternion_tf};
 
-  double roll, pitch, yaw;
-  m.getRPY(roll, pitch, yaw);*/
+    double roll, pitch, yaw;
+    m.getRPY(roll, pitch, yaw);*/
 
     flight_state.roll = imu.orientation.x;     //Update Roll value
     flight_state.pitch = imu.orientation.y;   //Update Pitch Value
@@ -722,4 +727,6 @@ void UAVControl::StopMission()
 {
     mission_mode = stopped;
     goal = rtl;
+}
+
 }

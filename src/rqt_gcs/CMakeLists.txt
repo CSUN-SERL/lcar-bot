@@ -36,6 +36,8 @@ include_directories(${Qt5Core_INCLUDE_DIRS}
 include(EnableCXX11)
 include(MavrosMavlink)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+
 set(rqt_gcs_SRCS
   src/rqt_gcs/simple_gcs.cpp
   src/rqt_gcs/uav_control.cpp
@@ -54,6 +56,7 @@ set(rqt_gcs_HDRS
   include/rqt_gcs/simple_gcs.h
   include/rqt_gcs/settings_widget.h
   include/rqt_gcs/unanswered_queries.h
+  include/rqt_gcs/vehicle_manager.h
   include/rqt_gcs/access_points.h
   include/FIS/qfi_PFD.h
   include/FIW/LayoutSquare.h
@@ -109,7 +112,7 @@ add_executable(gps_demo src/rqt_gcs/gps_demo.cpp)
 add_executable(backup_control src/rqt_gcs/backup_control.cpp)
 add_executable(safe_mocap src/rqt_gcs/safe_mocap.cpp)
 
-add_library(${PROJECT_NAME}
+add_library(${PROJECT_NAME} SHARED
             ${rqt_gcs_SRCS}
             ${rqt_gcs_MOCS}
             ${rqt_gcs_UIS_H}

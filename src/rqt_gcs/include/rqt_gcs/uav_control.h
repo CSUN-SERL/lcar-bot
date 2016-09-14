@@ -38,6 +38,11 @@
 
 #include "rqt_gcs/access_point.h"
 #include "rqt_gcs/vehicle_control.h"
+//#include "rqt_gcs/data_types.h"
+#include "rqt_gcs/vehicle_manager.h"
+
+namespace rqt_gcs
+{
 
 #define PI 3.14159265
 #define QUEUE_SIZE 100  
@@ -59,47 +64,13 @@
 #define DEF_NS "UAV"
 #define R_EARTH 6371        //Earth's radius in km
 
-//Enumerators
-enum Mode{
-    travel,
-    hold,
-    scout,
-    rtl,
-    land,
-    disarm,
-    idle,
-    null
-};
-
-enum PositionMode{
-    local,
-    global
-};
-
-enum MissionMode{
-    active,
-    paused,
-    stopped
-};
-
-//Structs
-struct FlightState {
-    float roll, pitch, yaw;
-    float altitude;
-    float vertical_speed, ground_speed;
-    float heading;
-};
-
 class UAVControl : public VehicleControl
 {
 public:
-//    int id;
-    static int static_id;
-    
+
     int accepted_images = 0,
         rejected_images = 0;
     
-    UAVControl();
     UAVControl(int uav_id);
     ~UAVControl();
     
@@ -274,7 +245,7 @@ public:
     /**
       Return to launch site
     */
-    void SetRTL() override { this->EnableOffboard(); goal = rtl; }  
+    void SetRTL() override { this->EnableOffboard(); goal = Mode::rtl; }  
 
     /**
       Manage the UAV and ensure that it is stable
@@ -507,7 +478,7 @@ private:
     std_msgs::Float64               altitude_rel,
                                     heading_deg,
                                     object_distance;
-    Mode                            goal = idle,
+    Mode                      goal = idle,
                                     goal_prev = null;
     PositionMode                    position_mode = local;
     MissionMode                     mission_mode = stopped;
@@ -524,5 +495,5 @@ private:
                                     uav_heartbeat;
 };
 
-
+}
 #endif

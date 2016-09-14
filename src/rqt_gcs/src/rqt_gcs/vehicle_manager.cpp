@@ -10,10 +10,9 @@
 namespace rqt_gcs
 {
 
-VehicleManager::VehicleManager()
-{int index = 0;
-//    while (index < vehicles->size() && id < vehicles->at(index)->GetId())
-//        index++;
+VehicleManager::VehicleManager(QObject *parent) :
+QObject(parent)
+{
 }
 
 VehicleManager::~VehicleManager()
@@ -22,39 +21,47 @@ VehicleManager::~VehicleManager()
 
 void VehicleManager::AddUGV(int id)
 {
-    
-    this->AddVehicleByType(VehicleType::ugv, id);
+    //todo add UGVControl
+    //this->AddVehicleByType(VehicleType::ugv, id);
     NUM_UGV++;
 }
 
 void VehicleManager::AddQuadRotor(int id)
-{
-    this->AddQuadRotor(VehicleType::quad_rotor, id);
+{   
+    Q_ASSERT(0 < id && id < (int) VehicleType::quad_rotor);
+    id += (int) VehicleType::quad_rotor; // map to quad_rotor id space
+    UAVControl * uav = new UAVControl(id);
+    this->AddVehicleByType(VehicleType::quad_rotor, uav);
     NUM_QUAD++;
 }
 
 void VehicleManager::AddOctoRotor(int id)
 {
-    this->AddVehicleByType(VehicleType::octo_rotor, id);
+    Q_ASSERT(0 < id && id < (int) VehicleType::octo_rotor);
+    id += (int) VehicleType::octo_rotor; // map to octo_rotor id space
+    UAVControl * uav = new UAVControl(id);
+    this->AddVehicleByType(VehicleType::octo_rotor, uav);
     NUM_OCTO++;
 }
 
 void VehicleManager::AddVTOL(int id)
 {
-    this->AddVehicleByType(VehicleType::vtol, id);
+    // todo add VTOLControl class
+    //this->AddVehicleByType(VehicleType::vtol, id);
     NUM_VTOL++;
 }
 
-void VehicleManager::AddVehicleByType(VehicleType type, int id)
+void VehicleManager::AddVehicleByType(VehicleType v_type, VehicleControl* vehicle)
 {
-    id += (int)type; // map the id into the correct space for its vehicle type
+    Q_ASSERT(v_type != VehicleType::invalid);
+    QVector<VehicleControl*> * vehicles = &db[v_type];
     
-    QVector<VehicleControl*> * vehicles = &db[type];
-//    int index = 0;
-//    while (index < vehicles->size() && id > vehicles->at(index)->GetId())
-//        index++;
+    int index = 0;
+    int size = vehicles->size();
+    while (index < size && vehicle->id > vehicles->at(index)->id)
+        index++;
     
-//    vehicles->insert(vehicles->begin()+id, new)
+    vehicles->insert(vehicles->begin()+index, vehicle);
 }
 
 }

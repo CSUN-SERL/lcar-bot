@@ -111,7 +111,7 @@ namespace rqt_gcs
         temp_data = "UAV " + QString::number(uav_id);
 
         int index = 0;
-        while(index < NUM_UAV && uav_id > active_uavs[index]->GetId())
+        while(index < NUM_UAV && uav_id > active_uavs[index]->id)
             index++;
 
         uav_db.insert(uav_id, uav);
@@ -142,7 +142,7 @@ namespace rqt_gcs
         uav_mutex.lock();
 
         UAVControl * uav = active_uavs[index];
-        int uav_id = uav->GetId();
+        int uav_id = uav->id;
         qCWarning(lcar_bot) << "Deleting UAV with id: " << uav_id;
 
         central_ui_.layout_uavs->removeWidget(vec_uav_list_widget_[index]);
@@ -174,7 +174,7 @@ namespace rqt_gcs
     void SimpleGCS::OnSaveUavQueries(UAVControl * uav, QString& ap_type)
     {
         QString path = image_util::image_root_dir_ % "/queries/unanswered/" 
-            % ap_type % "/uav_" % QString::number(uav->GetId());
+            % ap_type % "/uav_" % QString::number(uav->id);
         
         int num_images = image_util::numImagesInDir(path);
         
@@ -201,7 +201,7 @@ namespace rqt_gcs
 
     void SimpleGCS::OnUAVConnectionToggled(int index, int uav_id, bool toggle)
     {
-        if(index >= active_uavs.size() || active_uavs[index]->GetId() != uav_id)
+        if(index >= active_uavs.size() || active_uavs[index]->id != uav_id)
             return;
         
         QWidget* button = vec_uav_list_ui_[index]->VehicleSelectButton;
@@ -248,7 +248,7 @@ namespace rqt_gcs
         temp_data.setNum(uav->GetBatteryState().percentage * 100);
         central_ui_.pgs_bar_battery->setValue(temp_data.toInt());
 
-        temp_data = "UAV " + QString::number(uav->GetId());
+        temp_data = "UAV " + QString::number(uav->id);
         central_ui_.lbl_cur_uav->setText(temp_data);
 
         central_ui_.pgs_bar_mission->setValue(uav->GetMissionProgress() * 100);
@@ -336,12 +336,12 @@ namespace rqt_gcs
         QString file;
         if(accepted)
         {
-            path.append("/accepted/" % ap_type % "/uav_" % QString::number(uav->GetId()));
+            path.append("/accepted/" % ap_type % "/uav_" % QString::number(uav->id));
             file.append("img_" % QString::number(uav->accepted_images++) % ".jpg");
         }
         else
         {
-            path.append("/rejected/" % ap_type % "/uav_" % QString::number(uav->GetId()));
+            path.append("/rejected/" % ap_type % "/uav_" % QString::number(uav->id));
             file.append("img_" % QString::number(uav->rejected_images++) % ".jpg");
         }
 
@@ -573,7 +573,7 @@ namespace rqt_gcs
         {
             UAVControl * uav = active_uavs[cur_uav];
             // handle image topic subscription and image refresh for new uav
-            sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav->GetId()) + "/stereo_cam/left/image_rect",
+            sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav->id) + "/stereo_cam/left/image_rect",
                                              5, &SimpleGCS::ImageCallback, this);
 
             if(fl_widgets_.ap_menu != nullptr)
@@ -986,7 +986,7 @@ namespace rqt_gcs
         {
             for(int i = 0; i < gcs->active_uavs.size(); i++)
             {
-                if(uav_map.count(gcs->active_uavs[i]->GetId()) == 0)
+                if(uav_map.count(gcs->active_uavs[i]->id) == 0)
                 {
                     emit deleteUav(i);
                     gcs->num_uav_changed.wait(&gcs->uav_mutex);
@@ -1019,13 +1019,13 @@ namespace rqt_gcs
             {
                 //ROS_WARN_STREAM("no heartbeat for UAV_" << quad->id);
                 if(button->isEnabled()) // is the button already disabled?
-                    emit toggleUavConnection(i, uav->GetId(), false);
+                    emit toggleUavConnection(i, uav->id, false);
             }
             else
             {
                 //ROS_INFO_STREAM("recieved heartbeat for UAV_" << quad->id);
                 if(!button->isEnabled()) // is the button already enabled?
-                    emit toggleUavConnection(i, uav->GetId(), true);
+                    emit toggleUavConnection(i, uav->id, true);
             }
         }
     }

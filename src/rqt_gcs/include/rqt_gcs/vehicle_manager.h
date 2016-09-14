@@ -13,37 +13,33 @@
 #include <QVector>
 #include <QObject>
 
-#include "rqt_gcs/vehicle_control.h"
 #include "rqt_gcs/uav_control.h"
+#include "rqt_gcs/data_types.h"
 
 namespace rqt_gcs
 {
-
-enum VehicleType
-{
-    ugv=1000,        //corresponds to the vehicle id range for this vehicle type
-    quad_rotor=2000,
-    octo_rotor=3000,
-    vtol=4000
-};
 
 class VehicleManager : public QObject
 {
     Q_OBJECT
 public:
-    VehicleManager();
+    VehicleManager(QObject *parent=0);
     virtual ~VehicleManager();
     void AddUGV(int id);
     void AddQuadRotor(int id);
     void AddOctoRotor(int id);
     void AddVTOL(int id);
+    
+    
 private:
-    QMap<VehicleType, QVector<VehicleControl*>> db; //the database
-    void AddVehicleByType(VehicleType type, int id);
+    QMap<rqt_gcs::VehicleType, QVector<VehicleControl*>> db; //the database
+    
+    void AddVehicleByType(VehicleType type, VehicleControl* vehicle);
     int NUM_UGV, 
         NUM_QUAD,
         NUM_OCTO,
-        NUM_VTOL;
+        NUM_VTOL,
+        NUM_VEHICLES;
 };
 
 }
