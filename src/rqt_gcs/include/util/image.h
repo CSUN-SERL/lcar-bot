@@ -1,6 +1,6 @@
 
-#ifndef IMAGE_UTIL_H
-#define IMAGE_UTIL_H
+#ifndef IMAGE_H
+#define IMAGE_H
 
 #include <QDir>
 #include <QStringBuilder>
@@ -36,5 +36,5 @@ namespace image_util
 
 }
 
-#endif /* IMAGE_UTIL_H */
+#endif /* IMAGE_H */
 

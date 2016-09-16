@@ -32,12 +32,12 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
-#include <lcar_msgs/Door.h>
-#include <lcar_msgs/TargetLocal.h>
-#include <lcar_msgs/TargetGlobal.h>
+#include "lcar_msgs/Door.h"
+#include "lcar_msgs/TargetLocal.h"
+#include "lcar_msgs/TargetGlobal.h"
 
 #include "rqt_gcs/access_point.h"
-#include "rqt_gcs_no_gui/vehicle_control.h"
+#include "vehicle/vehicle_control.h"
 
 namespace rqt_gcs
 {
@@ -61,6 +61,7 @@ namespace rqt_gcs
 #define BATTERY_MIN 0.10    //Minimum battery level for RTL
 #define DEF_NS "UAV"
 #define R_EARTH 6371        //Earth's radius in km
+
 
 class UAVControl : public VehicleControl
 {

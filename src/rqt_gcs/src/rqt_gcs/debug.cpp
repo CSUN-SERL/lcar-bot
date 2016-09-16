@@ -1,4 +1,4 @@
-#include "rqt_gcs_no_gui/debug.h"
+#include "util/debug.h"
 #include <QDebug>
 
 namespace rqt_gcs

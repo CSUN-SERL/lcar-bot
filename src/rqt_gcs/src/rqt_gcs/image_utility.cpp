@@ -1,5 +1,5 @@
 
-#include "rqt_gcs_no_gui/image_utility.h"
+#include "util/image.h"
 
 namespace rqt_gcs
 {

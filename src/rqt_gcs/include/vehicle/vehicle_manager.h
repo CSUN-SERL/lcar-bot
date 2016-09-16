@@ -13,8 +13,8 @@
 #include <QVector>
 #include <QObject>
 
-#include "rqt_gcs_no_gui/uav_control.h"
-#include "rqt_gcs_no_gui/data_types.h"
+#include "vehicle/uav_control.h"
+#include "util/data_types.h"
 
 namespace rqt_gcs
 {

@@ -11,7 +11,7 @@
 #include <string>
 #include <sensor_msgs/NavSatFix.h>
 
-#include "rqt_gcs_no_gui/data_types.h"
+#include "util/data_types.h"
 
 class VehicleControl
 {

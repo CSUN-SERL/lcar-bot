@@ -1,6 +1,6 @@
 #include "rqt_gcs/simple_gcs.h"
-#include "rqt_gcs_no_gui/image_utility.h"
-#include "rqt_gcs_no_gui/debug.h"
+#include "util/image.h"
+#include "util/debug.h"
 
 #include <ros/package.h>
 #include <cv_bridge/cv_bridge.h>
@@ -59,7 +59,8 @@ namespace rqt_gcs
         connect(central_ui_.cmbo_box_flight_mode, SIGNAL(currentIndexChanged(int)), this, SLOT(OnChangeFlightMode(int)));
         connect(central_ui_.btn_view_acess_points, &QPushButton::clicked, this, &SimpleGCS::OnAccessPointsTriggered);
         connect(central_ui_.btn_arm_uav, &QPushButton::clicked, this, &SimpleGCS::OnArmOrDisarmSelectedUav);
-
+        connect(this, &SimpleGCS::NewImgFrame, this, &SimpleGCS::OnUpdateImage);
+        
         //Setup UAV lists select functions
         uav_select_mapper = new QSignalMapper(this);
         accept_door_mapper = new QSignalMapper(this);
@@ -147,8 +148,10 @@ namespace rqt_gcs
 
         central_ui_.layout_uavs->removeWidget(vec_uav_list_widget_[index]);
 
+        SaveUavQueries(uav->id, uav->GetDoorQueries(), "door");
+        
         // dont delete uav_db[index] as it points to same SimpleControl object as active_uavs
-        delete active_uavs[index];
+        delete uav;
         delete vec_uav_list_ui_[index];
         delete vec_uav_list_widget_[index];
 
@@ -171,14 +174,14 @@ namespace rqt_gcs
        uav_mutex.unlock();
     }
 
-    void SimpleGCS::OnSaveUavQueries(UAVControl * uav, QString& ap_type)
+    void SimpleGCS::SaveUavQueries(int uav_id, const std::vector<lcar_msgs::DoorPtr> *queries, const QString ap_type)
     {
         QString path = image_util::image_root_dir_ % "/queries/unanswered/" 
-            % ap_type % "/uav_" % QString::number(uav->id);
+            % ap_type % "/uav_" % QString::number(uav_id);
         
         int num_images = image_util::numImagesInDir(path);
         
-        const std::vector<lcar_msgs::DoorPtr>* queries = uav->GetDoorQueries();
+//        const std::vector<lcar_msgs::DoorPtr>* queries = uav->GetDoorQueries();
         for(int i = 0; i < queries->size(); i++, num_images += 2)
         {
             lcar_msgs::DoorPtr query = queries->at(i);
@@ -265,7 +268,7 @@ namespace rqt_gcs
         }
     }
 
-    void SimpleGCS::OnClearQueries()
+    void SimpleGCS::ClearQueries()
     {
         int size = query_widgets_.size();
         for(int i = 0; i < size; i++)
@@ -278,7 +281,7 @@ namespace rqt_gcs
     }
 
 
-    void SimpleGCS::OnUpdateQueries()
+    void SimpleGCS::UpdateQueries()
     {
         if(NUM_UAV == 0 || !central_ui_.frame_queries_cntnr->isVisible())
             return;
@@ -326,7 +329,7 @@ namespace rqt_gcs
         num_queries_last = pqv_size;
     }
 
-    void SimpleGCS::OnAnswerQuery(QWidget * qw, QString& ap_type, bool accepted)
+    void SimpleGCS::AnswerQuery(QWidget * qw, QString ap_type, bool accepted)
     {
         int index = central_ui_.layout_queries->indexOf(qw);
         lcar_msgs::DoorPtr door = vec_uav_queries_->at(index);
@@ -536,9 +539,9 @@ namespace rqt_gcs
                     this, [=](){ fl_widgets_.ap_menu = nullptr; });
                     
             if(NUM_UAV > 0)
-                fl_widgets_.ap_menu->setUav(active_uavs[cur_uav]);
+                fl_widgets_.ap_menu->SetUAV(active_uavs[cur_uav]);
             else
-                fl_widgets_.ap_menu->setUav(nullptr);
+                fl_widgets_.ap_menu->SetUAV(nullptr);
         }
         else   
             fl_widgets_.ap_menu->showNormal();
@@ -564,7 +567,7 @@ namespace rqt_gcs
         if(cur_uav == -1) // no more uav's in system. 
         {
             if(fl_widgets_.ap_menu != nullptr)
-                fl_widgets_.ap_menu->setUav(nullptr); 
+                fl_widgets_.ap_menu->SetUAV(nullptr); 
             this->ToggleScoutButtons(true);  // reset scout buttons
             this->ToggleArmDisarmButton(false); //set arm disarm button to arm
             central_ui_.lbl_cur_uav->setText("NO UAVS");
@@ -577,7 +580,7 @@ namespace rqt_gcs
                                              5, &SimpleGCS::ImageCallback, this);
 
             if(fl_widgets_.ap_menu != nullptr)
-                fl_widgets_.ap_menu->setUav(uav); 
+                fl_widgets_.ap_menu->SetUAV(uav); 
             
             //handle mission and arm buttons for new uav
             MissionMode m = uav->GetMissionMode();
@@ -809,12 +812,12 @@ namespace rqt_gcs
     
     std::string SimpleGCS::GetMissionType(std::string file_name)
     {   
-        ROS_WARN_STREAM("in get mission");
         std::string mission_type;
         std::ifstream fileIn(file_name);
 
         fileIn >> mission_type;
-
+        fileIn.close();
+        
         return mission_type;
     }
 
@@ -863,16 +866,29 @@ namespace rqt_gcs
         return building_global;
     }
 
+    void SimpleGCS::OnUpdateImage()
+    {
+        if(img_q.size() > 0)
+            central_ui_.image_frame->setPixmap(img_q.dequeue());
+    }
+    
     void SimpleGCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
     {
         try
         {
             QImage image = image_util::rosImgToQimg(msg);
-            
-            int w = central_ui_.image_frame->width();
+
+            if(img_q.size() < img_q_max_size)
+            {
+                int w = central_ui_.image_frame->width();
             int h = central_ui_.image_frame->height();
-            central_ui_.image_frame->setPixmap(QPixmap::fromImage(image)
+                img_q.enqueue(QPixmap::fromImage(image)
                                                 .scaled(w,h,Qt::KeepAspectRatio));
+                emit this->NewImgFrame();
+            }
+            
+//            central_ui_.image_frame->setPixmap(QPixmap::fromImage(image)
+//                                                .scaled(w,h,Qt::KeepAspectRatio));
         }
         catch(cv_bridge::Exception& e)
         {

@@ -1,33 +1,36 @@
 #ifndef rqt_gcs__SimpleGCS_H
 #define rqt_gcs__SimpleGCS_H
 
-#include "rqt_gcs_no_gui/uav_control.h"
-#include "rqt_gcs/unanswered_queries.h"
-#include "rqt_gcs/settings_widget.h"
-#include "rqt_gcs/access_points.h"
-#include "rqt_gcs_no_gui/data_types.h"
-
 #include <pluginlib/class_list_macros.h>
 #include <rqt_gui_cpp/plugin.h>
 #include <ros/ros.h>
 #include <ros/common.h>
 #include <std_srvs/Empty.h>
 #include <image_transport/image_transport.h>
-#include <lcar_msgs/Door.h>
-#include <lcar_msgs/TargetLocal.h>
-#include <lcar_msgs/TargetGlobal.h>
-
-#include <ui_WidgetMainMap.h>
-#include <ui_PictureMsg.h>
-#include <ui_UAVCondition.h>
 
 #include <QTimer>
+#include <QQueue>
 #include <QThread>
 #include <QMenuBar>
 #include <QSettings>
 #include <QSignalMapper>
 #include <QWaitCondition>
 #include <QMutex>
+
+#include "rqt_gcs/unanswered_queries.h"
+#include "rqt_gcs/settings_widget.h"
+#include "rqt_gcs/access_points.h"
+#include "util/data_types.h"
+#include "util/debug.h"
+#include "util/image.h"
+#include "vehicle/uav_control.h"
+#include "lcar_msgs/Door.h"
+#include "lcar_msgs/TargetLocal.h"
+#include "lcar_msgs/TargetGlobal.h"
+
+#include "ui_WidgetMainMap.h"
+#include "ui_PictureMsg.h"
+#include "ui_UAVCondition.h"
 
 namespace rqt_gcs
 {
@@ -71,42 +74,47 @@ namespace rqt_gcs
     lcar_msgs::TargetLocal GetMissionLocal(std::string file_name);
     lcar_msgs::TargetGlobal GetMissionGlobal(std::string file_name);
     
-    ros::NodeHandle nh;
-    ros::ServiceServer server;
-    lcar_msgs::Door msg;
-    image_transport::ImageTransport it_stereo{nh};
-    
-    
-  protected slots:
-    virtual void OnTimedUpdate();
+  public slots:
+    void OnTimedUpdate();
     
     //////////// Buttons
-    virtual void OnExecutePlay();
-    virtual void OnCancelPlay();
-    virtual void OnScoutBuilding();
-    virtual void OnStopScout();
-    virtual void OnChangeFlightMode(int);
-    virtual void OnUavSelected(QWidget*);
-    virtual void OnArmOrDisarmSelectedUav();
-    virtual void OnPauseOrResumeScout();
-    virtual void OnAcceptDoorQuery(QWidget *);
-    virtual void OnRejectDoorQuery(QWidget *);
-    virtual void OnAccessPointsTriggered();
-    virtual void OnSettingsTriggered();
-    virtual void OnUnansweredQueriesTriggered();
-    virtual void OnSaveUavQueries(UAVControl*, QString&);
-    virtual void OnClearQueries();
-    virtual void OnUpdateQueries();
-    virtual void OnAnswerQuery(QWidget*, QString&, bool);
+    void OnExecutePlay();
+    void OnCancelPlay();
+    void OnScoutBuilding();
+    void OnStopScout();
+    void OnChangeFlightMode(int);
+    void OnUavSelected(QWidget*);
+    void OnArmOrDisarmSelectedUav();
+    void OnPauseOrResumeScout();
+    void OnAcceptDoorQuery(QWidget *);
+    void OnRejectDoorQuery(QWidget *);
+    void OnAccessPointsTriggered();
+    void OnSettingsTriggered();
+    void OnUnansweredQueriesTriggered();
+    void OnSaveUavQueries(UAVControl*, QString&);
+    void OnClearQueries();
+    void OnUpdateQueries();
+    void OnAnswerQuery(QWidget*, QString&, bool);
+    void OnUpdateImage();
     
-    virtual void OnAddUav(int);
-    virtual void OnDeleteUav(int);
-    virtual void OnUAVConnectionToggled(int, int, bool);
+    void OnAddUav(int);
+    void OnDeleteUav(int);
+    void OnUAVConnectionToggled(int, int, bool);
     
     //SETTINGS RELATED
     virtual void OnToggleMachineLearningMode(bool);
 
+  signals:
+    void  NewImgFrame();
+    
   private:
+    
+    ros::NodeHandle nh;
+    ros::ServiceServer server;
+    lcar_msgs::Door msg;
+    image_transport::ImageTransport it_stereo{nh};
+    QQueue<QPixmap> img_q;
+    int img_q_max_size = 30;
     
     void InitMap();
     void InitMenuBar();
@@ -118,7 +126,7 @@ namespace rqt_gcs
     
     void UpdateQueries();
     void ClearQueries();
-    void SaveUavQueries(UAVControl *, QString ap_type);
+    void SaveUavQueries(int uav_id, const std::vector<lcar_msgs::DoorPtr> *queries, const QString ap_type);
     void AnswerQuery(QWidget *, QString ap_type, bool);
     
     void ToggleScoutButtons(bool visible, QString icon_type = "pause");

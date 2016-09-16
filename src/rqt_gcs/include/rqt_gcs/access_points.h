@@ -3,8 +3,8 @@
 #define _ACCESSPOINTS_H
 
 #include "ui_AccessPoints.h"
-#include "rqt_gcs_no_gui/uav_control.h"
-#include "qt5/QtCore/qtimer.h"
+#include "vehicle/uav_control.h"
+#include <QTimer>
 #include <QSignalMapper>
 
 namespace rqt_gcs
@@ -16,11 +16,13 @@ class AccessPoints : public QWidget
 public:
     AccessPoints();
     virtual ~AccessPoints();
-    void clearAccessPoints();
-    void updateAccessPoints();
-    static void saveUavAccessPoints(UAVControl * uav, QString ap_type);
-    void deleteAccessPoint(QWidget* w);
-    void setUav(UAVControl* uav);
+    void ClearAccessPoints();
+    void UpdateAccessPoints();
+    static void SaveUavAccessPoints(UAVControl * uav, QString ap_type);
+    void SetUAV(UAVControl* uav);
+    
+public slots:
+    void OnDeleteAccessPoint(QWidget* w);
     
 private:
     Ui::AccessPoints widget_;

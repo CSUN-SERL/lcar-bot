@@ -6,8 +6,8 @@
  */
 
 #include "rqt_gcs/unanswered_queries.h"
-#include <rqt_gcs_no_gui/image_utility.h>
-#include "rqt_gcs_no_gui/debug.h"
+#include "util/image.h"
+#include "util/debug.h"
 
 #include "ui_PictureMsg.h"
 

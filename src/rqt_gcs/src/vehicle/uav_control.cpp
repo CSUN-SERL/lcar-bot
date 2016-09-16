@@ -1,52 +1,43 @@
-#include <rqt_gcs/uav_control.h>
 
-int main(int argc, char **argv)
-{
-    ros::init(argc, argv, "uav_control");
-    rqt_gcs::UAVControl quad1{1};
+#include "vehicle/uav_control.h"
 
-    ros::Rate loop_rate(10); //10Hz
-
-    lcar_msgs::TargetGlobal target_pt;
-    target_pt.target.latitude = 47.3977255;
-    target_pt.target.longitude = 8.5456603;
-    target_pt.target.altitude = 10;
-
-    /*target_pt.target_local.position.x = 0;
-    target_pt.target_local.position.y = 0;
-    target_pt.target_local.position.z = 2;*/
-
-    target_pt.radius = 0.01;
-
-    quad1.Arm(true);
-    quad1.ScoutBuilding(target_pt);
-
-    while(ros::ok())
-    {
-        quad1.Run();
-        ros::spinOnce();
-        loop_rate.sleep();
-    }
-
-}
+//int main(int argc, char **argv)
+//{
+//    ros::init(argc, argv, "uav_control");
+//    rqt_gcs::UAVControl quad1{1};
+//
+//    ros::Rate loop_rate(10); //10Hz
+//
+//    lcar_msgs::TargetGlobal target_pt;
+//    target_pt.target.latitude = 47.3977255;
+//    target_pt.target.longitude = 8.5456603;
+//    target_pt.target.altitude = 10;
+//
+//    /*target_pt.target_local.position.x = 0;
+//    target_pt.target_local.position.y = 0;
+//    target_pt.target_local.position.z = 2;*/
+//
+//    target_pt.radius = 0.01;
+//
+//    quad1.Arm(true);
+//    quad1.ScoutBuilding(target_pt);
+//
+//    while(ros::ok())
+//    {
+//        quad1.Run();
+//        ros::spinOnce();
+//        loop_rate.sleep();
+//    }
+//
+//}
 
 
 namespace rqt_gcs
 {
 
-//int UAVControl::static_id = 0;
-
-//UAVControl::UAVControl()  //Class constructor
-//{
-//    //id = static_id++;
-//    this->InitialSetup();
-//}
-
 UAVControl::UAVControl(int uav_id) :  //Class constructor
 VehicleControl(uav_id)
 {
-    //id = uav_id;
-    //static_id++;
     this->InitialSetup();
 }
 

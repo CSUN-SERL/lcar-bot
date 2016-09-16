@@ -1,12 +1,12 @@
-#ifndef CONNECTION_MANAGER
-#define CONNECTION_MANAGER
+#ifndef BACKUPCONTROL_H
+#define BACKUPCONTROL_H
 
 #include <ros/ros.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <std_msgs/Int32.h>
 
-#define QUEUE_SIZE 10 //Message Queue size for publishers
+//#define QUEUE_SIZE 10 //Message Queue size for publishers
 #define DEF_NS "UAV"
 
 class BackupControl

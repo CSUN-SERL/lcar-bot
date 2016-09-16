@@ -6,7 +6,7 @@
  */
 
 #include "rqt_gcs/settings_widget.h"
-#include "rqt_gcs_no_gui/image_utility.h"
+#include "util/image.h"
 #include <iostream>
 #include <QStringBuilder>
 

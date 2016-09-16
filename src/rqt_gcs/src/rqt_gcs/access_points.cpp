@@ -1,6 +1,6 @@
 
 #include "rqt_gcs/access_points.h"
-#include "rqt_gcs_no_gui/image_utility.h"
+#include "util/image.h"
 #include <QStringBuilder>
 #include "ui_AccessPointStats.h"
 
@@ -14,17 +14,19 @@ AccessPoints::AccessPoints() :
     widget_.setupUi(this);
     this->setAttribute(Qt::WA_DeleteOnClose);
     connect(timer, &QTimer::timeout, 
-            this, &AccessPoints::updateAccessPoints);
+            this, &AccessPoints::UpdateAccessPoints);
+    connect(mapper, SIGNAL(mapped(QWidget*)), 
+            this, SLOT(OnDeleteAccessPoint(QWidget*)));
     timer->start(0);
 }
 
 AccessPoints::~AccessPoints()
 {
-    clearAccessPoints();
+    ClearAccessPoints();
     uav = nullptr;
 }
 
-void AccessPoints::setUav(UAVControl* uav)
+void AccessPoints::SetUAV(UAVControl* uav)
 {
     this->uav = uav;
     if(uav != nullptr)
@@ -32,10 +34,10 @@ void AccessPoints::setUav(UAVControl* uav)
     else
         widget_.lbl_uav->setText("NO UAVS");
     
-    clearAccessPoints();
+    ClearAccessPoints();
 }
 
-void AccessPoints::clearAccessPoints()
+void AccessPoints::ClearAccessPoints()
 {
     //clear out old list of Access points widgets
     int size = ap_widgets.size();
@@ -48,7 +50,7 @@ void AccessPoints::clearAccessPoints()
     num_access_points_last = 0;
 }
 
-void AccessPoints::updateAccessPoints()
+void AccessPoints::UpdateAccessPoints()
 {
     if(!this->isVisible() || uav == nullptr)
         return ;
@@ -119,19 +121,20 @@ void AccessPoints::updateAccessPoints()
     num_access_points_last = apv_size;
 }
 
-void AccessPoints::deleteAccessPoint(QWidget* w)
+void AccessPoints::OnDeleteAccessPoint(QWidget* w)
 {
     int deleteIndex = widget_.layout_access_points->indexOf(w);
+    Q_ASSERT(deleteIndex > -1);
     widget_.layout_access_points->removeWidget(w);
     ap_widgets.remove(deleteIndex);
     delete w;
-    auto vector = uav->GetRefAccessPoints();
+    std::vector<AccessPoint>* vector = uav->GetRefAccessPoints();
     vector->erase(vector->begin()+deleteIndex);
     num_access_points_last--;
 }
 
 
-void AccessPoints::saveUavAccessPoints(UAVControl* uav, QString ap_type)
+void AccessPoints::SaveUavAccessPoints(UAVControl* uav, QString ap_type)
 {
     QString path = image_util::image_root_dir_ % "/access_points/" % ap_type;
     path.append("/uav_" + QString::number(uav->id));
