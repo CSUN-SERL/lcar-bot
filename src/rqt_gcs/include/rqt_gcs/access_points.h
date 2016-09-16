@@ -3,7 +3,7 @@
 #define _ACCESSPOINTS_H
 
 #include "ui_AccessPoints.h"
-#include "rqt_gcs/uav_control.h"
+#include "rqt_gcs_no_gui/uav_control.h"
 #include "qt5/QtCore/qtimer.h"
 #include <QSignalMapper>
 

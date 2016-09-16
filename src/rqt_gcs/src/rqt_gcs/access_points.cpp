@@ -1,6 +1,6 @@
 
 #include "rqt_gcs/access_points.h"
-#include "rqt_gcs/image_utility.h"
+#include "rqt_gcs_no_gui/image_utility.h"
 #include <QStringBuilder>
 #include "ui_AccessPointStats.h"
 

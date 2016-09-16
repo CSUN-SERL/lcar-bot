@@ -17,8 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
             image_transport
 )
 
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Gui REQUIRED)
+find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Svg REQUIRED)
 find_package(Qt5WebKit REQUIRED)
 find_package(Qt5WebKitWidgets REQUIRED)
@@ -26,60 +25,63 @@ find_package(Qt5WebKitWidgets REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread)
 find_package(OpenCV REQUIRED)
 
-include_directories(${Qt5Core_INCLUDE_DIRS}
+include_directories(${Qt5_INCLUDE_DIRS}
+                    ${Qt5Core_INCLUDE_DIRS}
                     ${Qt5Gui_INCLUDE_DIRS}
                     ${Qt5Svg_INCLUDE_DIRS}
                     ${Qt5WebKit_INCLUDE_DIRS}
-                    ${Qt5WebKitWidgets_INCLUDE_DIRS}                
+                    ${Qt5WebKitWidgets_INCLUDE_DIRS}  
+                    ${OpenCV_INCLUDE_DIRS}
 )
 
 include(EnableCXX11)
 include(MavrosMavlink)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+file(GLOB rqt_gcs_SRCS src/rqt_gcs/*.cpp src/FIS/*.cpp src/FIW/*.cpp
+#  src/rqt_gcs/simple_gcs.cpp
+#  src/rqt_gcs/uav_control.cpp
+#  src/rqt_gcs/vehicle_manager.cpp
+#  src/rqt_gcs/settings_widget.cpp
+#  src/rqt_gcs/access_points.cpp
+#  src/rqt_gcs/unanswered_queries.cpp
+#  src/rqt_gcs/image_utility.cpp
+#  src/rqt_gcs/debug.cpp
+#  src/FIS/qfi_PFD.cpp
+#  src/FIW/LayoutSquare.cpp
+#  src/FIW/WidgetPFD.cpp
+)
+list(REMOVE_ITEM rqt_gcs_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/FIW/MainWindow.cpp)
 
-set(rqt_gcs_SRCS
-  src/rqt_gcs/simple_gcs.cpp
-  src/rqt_gcs/uav_control.cpp
-  src/rqt_gcs/vehicle_manager.cpp
-  src/rqt_gcs/settings_widget.cpp
-  src/rqt_gcs/access_points.cpp
-  src/rqt_gcs/unanswered_queries.cpp
-  src/rqt_gcs/image_utility.cpp
-  src/rqt_gcs/debug.cpp
-  src/FIS/qfi_PFD.cpp
-  src/FIW/LayoutSquare.cpp
-  src/FIW/WidgetPFD.cpp
+file(GLOB rqt_gcs_HDRS include/rqt_gcs/*.h include/FIS/*.h include/FIW/*.h
+#  include/rqt_gcs/simple_gcs.h
+#  include/rqt_gcs/settings_widget.h
+#  include/rqt_gcs/unanswered_queries.h
+#  include/rqt_gcs/access_points.h
+#  include/FIS/qfi_PFD.h
+#  include/FIW/LayoutSquare.h
+#  include/FIW/WidgetPFD.h
 )
 
-set(rqt_gcs_HDRS
-  include/rqt_gcs/simple_gcs.h
-  include/rqt_gcs/settings_widget.h
-  include/rqt_gcs/unanswered_queries.h
-  include/rqt_gcs/vehicle_manager.h
-  include/rqt_gcs/access_points.h
-  include/FIS/qfi_PFD.h
-  include/FIW/LayoutSquare.h
-  include/FIW/WidgetPFD.h
+file(GLOB rqt_gcs_UIS resources/*.ui
+#  resources/gcs.ui
+#  resources/AccessPoints.ui
+#  resources/AccessPointStats.ui
+#  resources/WidgetPFD.ui
+#  resources/PFDWidget_custom.ui
+#  resources/WidgetMainMap.ui
+#  resources/UAVCondition.ui
+#  resources/PictureMsg.ui
+#  resources/SettingsWidget.ui
+#  resources/UnansweredQueries.ui
 )
 
-set(rqt_gcs_UIS
-  resources/gcs.ui
-  resources/AccessPoints.ui
-  resources/AccessPointStats.ui
-  resources/WidgetPFD.ui
-  resources/PFDWidget_custom.ui
-  resources/WidgetMainMap.ui
-  resources/UAVCondition.ui
-  resources/PictureMsg.ui
-  resources/SettingsWidget.ui
-  resources/UnansweredQueries.ui
-)
+file(GLOB rqt_gcs_RCCS resources/*.qrc)
 
-set(rqt_gcs_RCCS resources/qfi.qrc)
-
-set(rqt_gcs_INCLUDE_DIRECTORIES include
-  ${CMAKE_CURRENT_BINARY_DIR}
+set(rqt_gcs_INCLUDE_DIRECTORIES
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/resources
+    ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 catkin_python_setup()
@@ -90,11 +92,12 @@ catkin_package(
   CATKIN_DEPENDS roscpp rqt_gui rqt_gui_cpp std_msgs sensor_msgs
 )
 
-include_directories(include
-	${Qt5_INCLUDE_DIRS}
-	${OpenCV_INCLUDE_DIRS}
-)
+##include_directories(
+##	${Qt5_INCLUDE_DIRS}
+##	${OpenCV_INCLUDE_DIRS}
+##)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 add_definitions(${Qt5_DEFINITIONS})
 
 qt5_add_resources(rqt_gcs_RCC_SRCS ${rqt_gcs_RCCS})
@@ -106,11 +109,11 @@ include_directories(${rqt_gcs_INCLUDE_DIRECTORIES}
                     ${catkin_INCLUDE_DIRS})
 
 # Declare executables with source files
-add_executable(uav_control src/rqt_gcs/uav_control.cpp)
-add_executable(gps_publisher src/rqt_gcs/gps_publisher.cpp)
-add_executable(gps_demo src/rqt_gcs/gps_demo.cpp)
-add_executable(backup_control src/rqt_gcs/backup_control.cpp)
-add_executable(safe_mocap src/rqt_gcs/safe_mocap.cpp)
+add_executable(backup_control src/vehicle/backup_control.cpp)
+#add_executable(uav_control src/vehicle/uav_control.cpp)
+#add_executable(gps_publisher src/vehicle/gps_publisher.cpp)
+#add_executable(gps_demo src/vehicle/gps_demo.cpp)
+#add_executable(safe_mocap src/vehicle/safe_mocap.cpp)
 
 add_library(${PROJECT_NAME} SHARED
             ${rqt_gcs_SRCS}
@@ -118,16 +121,16 @@ add_library(${PROJECT_NAME} SHARED
             ${rqt_gcs_UIS_H}
             ${rqt_gcs_RCC_SRCS})
 
-add_dependencies(uav_control ${catkin_EXPORTED_TARGETS})
-add_dependencies(gps_demo ${catkin_EXPORTED_TARGETS})
+#add_dependencies(uav_control ${catkin_EXPORTED_TARGETS})
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+#add_dependencies(gps_demo ${catkin_EXPORTED_TARGETS})
 
 #Specify libraries against which to link
-target_link_libraries(uav_control ${catkin_LIBRARIES})
-target_link_libraries(gps_publisher ${catkin_LIBRARIES})
-target_link_libraries(gps_demo ${catkin_LIBRARIES})
 target_link_libraries(backup_control ${catkin_LIBRARIES})
-target_link_libraries(safe_mocap ${catkin_LIBRARIES})
+#target_link_libraries(uav_control ${catkin_LIBRARIES})
+#target_link_libraries(gps_publisher ${catkin_LIBRARIES})
+#target_link_libraries(gps_demo ${catkin_LIBRARIES})
+#target_link_libraries(safe_mocap ${catkin_LIBRARIES})
 target_link_libraries(  ${PROJECT_NAME}
                         ${catkin_LIBRARIES}
                         ${Qt5Core_LIBRARIES}

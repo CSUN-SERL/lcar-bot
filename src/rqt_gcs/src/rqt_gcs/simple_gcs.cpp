@@ -1,6 +1,6 @@
-#include <rqt_gcs/simple_gcs.h>
-#include <rqt_gcs/image_utility.h>
-#include "rqt_gcs/debug.h"
+#include "rqt_gcs/simple_gcs.h"
+#include "rqt_gcs_no_gui/image_utility.h"
+#include "rqt_gcs_no_gui/debug.h"
 
 #include <ros/package.h>
 #include <cv_bridge/cv_bridge.h>
@@ -52,22 +52,22 @@ namespace rqt_gcs
         context.addWidget(central_widget_);
 
         //setup button logic for the widgets
-        connect(central_ui_.btn_exec_play, SIGNAL(clicked()), this, SLOT(executePlay()));
-        connect(central_ui_.btn_scout, SIGNAL(clicked()), this, SLOT(scoutBuilding()));
-        connect(central_ui_.btn_scout_play_pause, SIGNAL(clicked()), this, SLOT(pauseOrResumeScout()));
-        connect(central_ui_.btn_scout_stop, SIGNAL(clicked()), this, SLOT(OnStopScout()));
-        connect(central_ui_.cmbo_box_flight_mode, SIGNAL(currentIndexChanged(int)), this, SLOT(changeFlightMode(int)));
-        connect(central_ui_.btn_view_acess_points, SIGNAL(clicked()), this, SLOT(acessPointsTriggered()));
-        connect(central_ui_.btn_arm_uav, SIGNAL(clicked()), this, SLOT(armOrDisarmSelectedUav()));
+        connect(central_ui_.btn_exec_play, &QPushButton::clicked, this, &SimpleGCS::OnExecutePlay);
+        connect(central_ui_.btn_scout, &QPushButton::clicked, this, &SimpleGCS::OnScoutBuilding);
+        connect(central_ui_.btn_scout_play_pause, &QPushButton::clicked, this, &SimpleGCS::OnPauseOrResumeScout);
+        connect(central_ui_.btn_scout_stop, &QPushButton::clicked, this, &SimpleGCS::OnStopScout);
+        connect(central_ui_.cmbo_box_flight_mode, SIGNAL(currentIndexChanged(int)), this, SLOT(OnChangeFlightMode(int)));
+        connect(central_ui_.btn_view_acess_points, &QPushButton::clicked, this, &SimpleGCS::OnAccessPointsTriggered);
+        connect(central_ui_.btn_arm_uav, &QPushButton::clicked, this, &SimpleGCS::OnArmOrDisarmSelectedUav);
 
         //Setup UAV lists select functions
         uav_select_mapper = new QSignalMapper(this);
         accept_door_mapper = new QSignalMapper(this);
         deny_door_mapper = new QSignalMapper(this);
         
-        connect(uav_select_mapper, SIGNAL(mapped(QWidget*)), this, SLOT(uavSelected(QWidget*)));
-        connect(accept_door_mapper, SIGNAL(mapped(QWidget*)), this, SLOT(acceptDoorQuery(QWidget*)));
-        connect(deny_door_mapper, SIGNAL(mapped(QWidget*)), this, SLOT(rejectDoorQuery(QWidget*)));
+        connect(uav_select_mapper, SIGNAL(mapped(QWidget*)), this, SLOT(OnUavSelected(QWidget*)));
+        connect(accept_door_mapper, SIGNAL(mapped(QWidget*)), this, SLOT(OnAcceptDoorQuery(QWidget*)));
+        connect(deny_door_mapper, SIGNAL(mapped(QWidget*)), this, SLOT(OnRejectDoorQuery(QWidget*)));
         
         od_handlers.pub_hit_thresh = nh.advertise<std_msgs::Float64>("/object_detection/hit_threshold", 1);
         od_handlers.pub_step_size = nh.advertise<std_msgs::Int32>("/object_detection/step_size", 1);
@@ -81,7 +81,7 @@ namespace rqt_gcs
         this->InitMenuBar();
         this->InitSettings();
         this->InitHelperThread();
-        //this->InitMap();
+        this->InitMap();
         
         this->ToggleScoutButtons(true);
         
@@ -512,7 +512,7 @@ namespace rqt_gcs
         }
     }
 
-    void SimpleGCS::OnToggleScoutButtons(bool visible, QString& icon_type)
+    void SimpleGCS::ToggleScoutButtons(bool visible, QString icon_type)
     { // icon_type should be "play" or "pause"
         central_ui_.btn_scout->setVisible(visible);
         central_ui_.btn_scout_play_pause->setVisible(!visible);
@@ -520,7 +520,7 @@ namespace rqt_gcs
         central_ui_.btn_scout_stop->setVisible(!visible);     
     }
 
-    void SimpleGCS::OnAcessPointsTriggered()
+    void SimpleGCS::OnAccessPointsTriggered()
     {
         if(fl_widgets_.ap_menu == nullptr)
         {
@@ -605,7 +605,7 @@ namespace rqt_gcs
         active_uavs[cur_uav]->Arm(!armed);        
     }
     
-    void SimpleGCS::OnToggleArmDisarmButton(bool arm)
+    void SimpleGCS::ToggleArmDisarmButton(bool arm)
     {
         if(arm)
             central_ui_.btn_arm_uav->setText("Disarm");

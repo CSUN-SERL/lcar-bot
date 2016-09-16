@@ -5,13 +5,12 @@
  * Created on September 8, 2016, 11:41 AM
  */
 
-#include "rqt_gcs/vehicle_manager.h"
+#include "rqt_gcs_no_gui/vehicle_manager.h"
 
 namespace rqt_gcs
 {
 
-VehicleManager::VehicleManager(QObject *parent) :
-QObject(parent)
+VehicleManager::VehicleManager(QObject *parent)
 {
 }
 

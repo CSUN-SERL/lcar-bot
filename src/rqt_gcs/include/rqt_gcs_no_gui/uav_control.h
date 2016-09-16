@@ -37,9 +37,7 @@
 #include <lcar_msgs/TargetGlobal.h>
 
 #include "rqt_gcs/access_point.h"
-#include "rqt_gcs/vehicle_control.h"
-//#include "rqt_gcs/data_types.h"
-#include "rqt_gcs/vehicle_manager.h"
+#include "rqt_gcs_no_gui/vehicle_control.h"
 
 namespace rqt_gcs
 {

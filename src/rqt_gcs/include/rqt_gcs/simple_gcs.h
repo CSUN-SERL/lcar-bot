@@ -1,13 +1,14 @@
 #ifndef rqt_gcs__SimpleGCS_H
 #define rqt_gcs__SimpleGCS_H
 
+#include "rqt_gcs_no_gui/uav_control.h"
+#include "rqt_gcs/unanswered_queries.h"
+#include "rqt_gcs/settings_widget.h"
+#include "rqt_gcs/access_points.h"
+#include "rqt_gcs_no_gui/data_types.h"
+
 #include <pluginlib/class_list_macros.h>
 #include <rqt_gui_cpp/plugin.h>
-#include <rqt_gcs/uav_control.h>
-#include <rqt_gcs/unanswered_queries.h>
-#include <rqt_gcs/settings_widget.h>
-#include <rqt_gcs/access_points.h>
-
 #include <ros/ros.h>
 #include <ros/common.h>
 #include <std_srvs/Empty.h>
@@ -90,15 +91,13 @@ namespace rqt_gcs
     virtual void OnPauseOrResumeScout();
     virtual void OnAcceptDoorQuery(QWidget *);
     virtual void OnRejectDoorQuery(QWidget *);
-    virtual void OnAcessPointsTriggered();
+    virtual void OnAccessPointsTriggered();
     virtual void OnSettingsTriggered();
     virtual void OnUnansweredQueriesTriggered();
     virtual void OnSaveUavQueries(UAVControl*, QString&);
     virtual void OnClearQueries();
     virtual void OnUpdateQueries();
     virtual void OnAnswerQuery(QWidget*, QString&, bool);
-    virtual void OnToggleScoutButtons(bool, QString&);
-    virtual void OnToggleArmDisarmButton(bool);
     
     virtual void OnAddUav(int);
     virtual void OnDeleteUav(int);
