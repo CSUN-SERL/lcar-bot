@@ -95,7 +95,7 @@ namespace rqt_gcs
     void OnClearQueries();
     void OnUpdateQueries();
     void OnAnswerQuery(QWidget*, QString&, bool);
-    void OnUpdateImage();
+    void OnUpdateCameraFeed();
     
     void OnAddUav(int);
     void OnDeleteUav(int);
@@ -103,9 +103,10 @@ namespace rqt_gcs
     
     //SETTINGS RELATED
     virtual void OnToggleMachineLearningMode(bool);
-
+  
   signals:
-    void  NewImgFrame();
+    void NewCameraFeedFrame();
+    
     
   private:
     
@@ -122,7 +123,8 @@ namespace rqt_gcs
     void InitHelperThread();
       
     void SelectUav(int);  
-    void UpdatePFD();
+    void UpdateFlightStateWidgets(); // both the PFD and the text based widget
+    void UpdateVehicleWidgets();
     
     void UpdateQueries();
     void ClearQueries();

@@ -88,7 +88,8 @@ namespace rqt_gcs
         connect(central_ui_.cmbo_box_flight_mode, SIGNAL(currentIndexChanged(int)), this, SLOT(OnChangeFlightMode(int)));
         connect(central_ui_.btn_view_acess_points, &QPushButton::clicked, this, &SimpleGCS::OnAccessPointsTriggered);
         connect(central_ui_.btn_arm_uav, &QPushButton::clicked, this, &SimpleGCS::OnArmOrDisarmSelectedUav);
-        connect(this, &SimpleGCS::NewImgFrame, this, &SimpleGCS::OnUpdateImage);
+        connect(this, &SimpleGCS::NewCameraFeedFrame, this, &SimpleGCS::OnUpdateCameraFeed);
+        
         
         //Setup UAV lists select functions
         uav_select_mapper = new QSignalMapper(this);
@@ -251,50 +252,15 @@ namespace rqt_gcs
     {
         if(NUM_UAV == 0)
             return;
-
-        UAVControl* uav = active_uavs[cur_uav];
         
         if(timeCounter++ >= 30)
         {
             UpdateQueries();
             timeCounter = 0;
         }
-
-        temp_data.setNum(uav->GetFlightState().yaw, 'f', 2);
-        central_ui_.lbl_yaw_val->setText(temp_data);
-
-        temp_data.setNum(uav->GetFlightState().roll, 'f', 2);
-        central_ui_.lbl_roll_val->setText(temp_data);
-
-        temp_data.setNum(uav->GetFlightState().pitch, 'f', 2);
-        central_ui_.lbl_pitch_val->setText(temp_data);
-
-        temp_data.setNum(uav->GetFlightState().ground_speed, 'f', 2);
-        temp_data.append(" m/s");
-        central_ui_.lbl_gnd_spd_val->setText(temp_data);
-
-        temp_data.setNum(uav->GetDistanceToWP());
-        temp_data.append(" m");
-        central_ui_.lbl_dist_wp_val->setText(temp_data);
-
-        temp_data.setNum(uav->GetBatteryState().percentage * 100);
-        central_ui_.pgs_bar_battery->setValue(temp_data.toInt());
-
-        temp_data = "UAV " + QString::number(uav->id);
-        central_ui_.lbl_cur_uav->setText(temp_data);
-
-        central_ui_.pgs_bar_mission->setValue(uav->GetMissionProgress() * 100);
-
-        this->UpdatePFD();
-
-        //Update Uav List widgets
-        for(int i = 0; i < NUM_UAV; i++)
-        {
-            temp_data.setNum(active_uavs[i]->GetBatteryState().percentage * 100);
-            vec_uav_list_ui_[i]->VehicleBatteryLine->setText(temp_data);
-            temp_data = active_uavs[i]->GetState().mode.c_str();
-            vec_uav_list_ui_[i]->VehicleConditionLine->setText(temp_data);
-        }
+        
+        this->UpdateFlightStateWidgets();
+        this->UpdateVehicleWidgets();
     }
 
     void SimpleGCS::ClearQueries()
@@ -606,7 +572,7 @@ namespace rqt_gcs
             UAVControl * uav = active_uavs[cur_uav];
             // handle image topic subscription and image refresh for new uav
             sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav->id) + "/stereo_cam/left/image_rect",
-                                             30, &SimpleGCS::ImageCallback, this);
+                                             img_q_max_size, &SimpleGCS::ImageCallback, this);
 
             if(fl_widgets_.ap_menu != nullptr)
                 fl_widgets_.ap_menu->SetUAV(uav); 
@@ -623,7 +589,42 @@ namespace rqt_gcs
             this->ToggleArmDisarmButton(active_uavs[cur_uav]->GetState().armed);  
         }
     }
-
+    
+    void SimpleGCS::UpdateFlightStateWidgets()
+    {
+        if(NUM_UAV == 0)
+            return;
+        
+        UAVControl* uav = active_uavs[cur_uav];
+        
+        // PFD
+        central_ui_.graphicsPFD->setRoll(uav->GetFlightState().roll*180);
+        central_ui_.graphicsPFD->setPitch(uav->GetFlightState().pitch*90);
+        central_ui_.graphicsPFD->setHeading(uav->GetFlightState().heading);
+        central_ui_.graphicsPFD->setAirspeed(uav->GetFlightState().ground_speed);
+        central_ui_.graphicsPFD->setAltitude(uav->GetFlightState().altitude);
+        central_ui_.graphicsPFD->setClimbRate(uav->GetFlightState().vertical_speed);
+        central_ui_.graphicsPFD->update();
+        
+        //text based widget
+        temp_data.setNum(uav->GetFlightState().yaw, 'f', 2);
+        central_ui_.lbl_yaw_val->setText(temp_data);
+        temp_data.setNum(uav->GetFlightState().roll, 'f', 2);
+        central_ui_.lbl_roll_val->setText(temp_data);
+        temp_data.setNum(uav->GetFlightState().pitch, 'f', 2);
+        central_ui_.lbl_pitch_val->setText(temp_data);
+        temp_data.setNum(uav->GetFlightState().ground_speed, 'f', 2);
+        temp_data.append(" m/s");
+        central_ui_.lbl_gnd_spd_val->setText(temp_data);
+        temp_data.setNum(uav->GetDistanceToWP());
+        temp_data.append(" m");
+        central_ui_.lbl_dist_wp_val->setText(temp_data);
+        temp_data.setNum(uav->GetBatteryState().percentage * 100);
+        central_ui_.pgs_bar_battery->setValue(temp_data.toInt());
+        temp_data = "UAV " + QString::number(uav->id);
+        central_ui_.lbl_cur_uav->setText(temp_data);
+        central_ui_.pgs_bar_mission->setValue(uav->GetMissionProgress() * 100);
+    }
 
     void SimpleGCS::OnArmOrDisarmSelectedUav()
     {
@@ -643,21 +644,6 @@ namespace rqt_gcs
             central_ui_.btn_arm_uav->setText("Disarm");
         else
             central_ui_.btn_arm_uav->setText("Arm");
-    }
-
-    void SimpleGCS::UpdatePFD()
-    {
-        if(NUM_UAV == 0)
-            return;
-        
-        central_ui_.graphicsPFD->setRoll((active_uavs[cur_uav]->GetFlightState().roll)*180);
-        central_ui_.graphicsPFD->setPitch((active_uavs[cur_uav]->GetFlightState().pitch)*90);
-        central_ui_.graphicsPFD->setHeading(active_uavs[cur_uav]->GetFlightState().heading);
-        central_ui_.graphicsPFD->setAirspeed(active_uavs[cur_uav]->GetFlightState().ground_speed);
-        central_ui_.graphicsPFD->setAltitude(active_uavs[cur_uav]->GetFlightState().altitude);
-        central_ui_.graphicsPFD->setClimbRate(active_uavs[cur_uav]->GetFlightState().vertical_speed);
-
-        central_ui_.graphicsPFD->update();
     }
 
     void SimpleGCS::InitHelperThread()
@@ -863,8 +849,19 @@ namespace rqt_gcs
 
         return building_global;
     }
-
-    void SimpleGCS::OnUpdateImage()
+    
+    void SimpleGCS::UpdateVehicleWidgets()
+    {
+        for(int i = 0; i < NUM_UAV; i++)
+        {
+            temp_data.setNum(active_uavs[i]->GetBatteryState().percentage * 100);
+            vec_uav_list_ui_[i]->VehicleBatteryLine->setText(temp_data);
+            temp_data = active_uavs[i]->GetState().mode.c_str();
+            vec_uav_list_ui_[i]->VehicleConditionLine->setText(temp_data);
+        }
+    }
+    
+    void SimpleGCS::OnUpdateCameraFeed()
     {
         img_mutex.lock();
         
@@ -886,7 +883,7 @@ namespace rqt_gcs
             int w = central_ui_.image_frame->width();
             int h = central_ui_.image_frame->height();
             img_q.enqueue(QPixmap::fromImage(image).scaled(w, h, Qt::KeepAspectRatio));
-            emit this->NewImgFrame();
+            emit NewCameraFeedFrame();
         }
         
         img_mutex.unlock();
