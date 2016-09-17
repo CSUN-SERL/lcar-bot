@@ -34,6 +34,35 @@ namespace rqt_gcs
     {
     }
     
+    void SimpleGCS::shutdownPlugin()
+    {
+        update_timer->stop();
+        delete update_timer;
+        ros::shutdown();
+    }
+
+    void SimpleGCS::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const
+    {
+        // TODO save intrinsic configuration, usually using:
+        // instance_settings.setValue(k, v)
+    }
+
+    void SimpleGCS::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings)
+    {
+        // TODO restore intrinsic configuration, usually using:
+        // v = instance_settings.value(k)
+    }
+
+    /*bool hasConfiguration() const
+    {
+      return true;
+    }
+
+    void triggerConfiguration()
+    {
+      // Usually used to open a dialog to offer the user a set of configuration
+    }*/
+    
     void SimpleGCS::initPlugin(qt_gui_cpp::PluginContext& context)
     {
         // access standalone command line arguments
@@ -577,7 +606,7 @@ namespace rqt_gcs
             UAVControl * uav = active_uavs[cur_uav];
             // handle image topic subscription and image refresh for new uav
             sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav->id) + "/stereo_cam/left/image_rect",
-                                             5, &SimpleGCS::ImageCallback, this);
+                                             30, &SimpleGCS::ImageCallback, this);
 
             if(fl_widgets_.ap_menu != nullptr)
                 fl_widgets_.ap_menu->SetUAV(uav); 
@@ -615,35 +644,6 @@ namespace rqt_gcs
         else
             central_ui_.btn_arm_uav->setText("Arm");
     }
-
-    void SimpleGCS::shutdownPlugin()
-    {
-        update_timer->stop();
-        delete update_timer;
-        ros::shutdown();
-    }
-
-    void SimpleGCS::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const
-    {
-        // TODO save intrinsic configuration, usually using:
-        // instance_settings.setValue(k, v)
-    }
-
-    void SimpleGCS::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings)
-    {
-        // TODO restore intrinsic configuration, usually using:
-        // v = instance_settings.value(k)
-    }
-
-    /*bool hasConfiguration() const
-    {
-      return true;
-    }
-
-    void triggerConfiguration()
-    {
-      // Usually used to open a dialog to offer the user a set of configuration
-    }*/
 
     void SimpleGCS::UpdatePFD()
     {
@@ -809,7 +809,6 @@ namespace rqt_gcs
             active_uavs[i]->SetOnlineMode(toggle);
     }
     
-    
     std::string SimpleGCS::GetMissionType(std::string file_name)
     {   
         std::string mission_type;
@@ -820,7 +819,6 @@ namespace rqt_gcs
         
         return mission_type;
     }
-
 
     lcar_msgs::TargetLocal SimpleGCS::GetMissionLocal(std::string file_name)
     {
@@ -868,32 +866,30 @@ namespace rqt_gcs
 
     void SimpleGCS::OnUpdateImage()
     {
+        img_mutex.lock();
+        
+        //dequeue function assumes the queue isn't empty, so check first.
         if(img_q.size() > 0)
             central_ui_.image_frame->setPixmap(img_q.dequeue());
+        
+        img_mutex.unlock();
     }
     
     void SimpleGCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
     {
-        try
-        {
-            QImage image = image_util::rosImgToQimg(msg);
+        img_mutex.lock();
+        
+        QImage image = image_util::rosImgToQimg(msg);
 
-            if(img_q.size() < img_q_max_size)
-            {
-                int w = central_ui_.image_frame->width();
-            int h = central_ui_.image_frame->height();
-                img_q.enqueue(QPixmap::fromImage(image)
-                                                .scaled(w,h,Qt::KeepAspectRatio));
-                emit this->NewImgFrame();
-            }
-            
-//            central_ui_.image_frame->setPixmap(QPixmap::fromImage(image)
-//                                                .scaled(w,h,Qt::KeepAspectRatio));
-        }
-        catch(cv_bridge::Exception& e)
+        if(img_q.size() < img_q_max_size)
         {
-            ROS_ERROR("Error in image subsrcriber: %s", e.what());
+            int w = central_ui_.image_frame->width();
+            int h = central_ui_.image_frame->height();
+            img_q.enqueue(QPixmap::fromImage(image).scaled(w, h, Qt::KeepAspectRatio));
+            emit this->NewImgFrame();
         }
+        
+        img_mutex.unlock();
     }
     
     void SimpleGCS::ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg)

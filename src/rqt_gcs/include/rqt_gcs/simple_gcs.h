@@ -207,7 +207,8 @@ namespace rqt_gcs
 
     QThread t_uav_monitor;
     SimpleGCSHelper * uav_monitor;
-    QMutex uav_mutex;
+    QMutex uav_mutex,
+           img_mutex;
     QWaitCondition num_uav_changed;
   };
 

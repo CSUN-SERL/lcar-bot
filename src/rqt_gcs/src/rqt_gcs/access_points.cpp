@@ -1,7 +1,9 @@
 
+#include <QStringBuilder>
+
 #include "rqt_gcs/access_points.h"
 #include "util/image.h"
-#include <QStringBuilder>
+
 #include "ui_AccessPointStats.h"
 
 namespace rqt_gcs
@@ -53,7 +55,7 @@ void AccessPoints::ClearAccessPoints()
 void AccessPoints::UpdateAccessPoints()
 {
     if(!this->isVisible() || uav == nullptr)
-        return ;
+        return;
 
     //retreive access points
     std::vector<AccessPoint> * ap_vec = uav->GetRefAccessPoints();

@@ -2,10 +2,11 @@
 #ifndef _ACCESSPOINTS_H
 #define _ACCESSPOINTS_H
 
-#include "ui_AccessPoints.h"
-#include "vehicle/uav_control.h"
 #include <QTimer>
 #include <QSignalMapper>
+
+#include "ui_AccessPoints.h"
+#include "vehicle/uav_control.h"
 
 namespace rqt_gcs
 {
@@ -28,8 +29,8 @@ private:
     Ui::AccessPoints widget_;
     QVector<QWidget*> ap_widgets;
     QSignalMapper* mapper;
-    int num_access_points_last;
     QTimer* timer;
+    int num_access_points_last;
     
     UAVControl* uav;
 };
