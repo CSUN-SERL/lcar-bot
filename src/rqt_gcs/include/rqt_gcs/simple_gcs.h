@@ -54,10 +54,10 @@ namespace rqt_gcs
     SimpleGCS();
     ~SimpleGCS();
 
-    virtual void initPlugin(qt_gui_cpp::PluginContext& context);
-    virtual void shutdownPlugin();
-    virtual void saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const;
-    virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings);
+    virtual void initPlugin(qt_gui_cpp::PluginContext& context) override;
+    virtual void shutdownPlugin() override;
+    virtual void saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const override;
+    virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings) override;
     
     void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
@@ -198,8 +198,8 @@ namespace rqt_gcs
     QAction * ros_act;
     QAction * qt_act;
     QAction * opencv_act;
+    
     QTimer* update_timer;
-
     QString temp_data;
     QSignalMapper* uav_select_mapper;
     QSignalMapper* accept_door_mapper;
