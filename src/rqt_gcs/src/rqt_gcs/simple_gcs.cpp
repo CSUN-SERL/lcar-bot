@@ -1,9 +1,3 @@
-#include "rqt_gcs/simple_gcs.h"
-#include "util/image.h"
-#include "util/debug.h"
-
-#include <ros/package.h>
-#include <cv_bridge/cv_bridge.h>
 
 #include <stdio.h>
 #include <fstream>
@@ -13,6 +7,13 @@
 #include <QMainWindow>
 #include <QStringBuilder>
 #include <QMetaType>
+
+#include "rqt_gcs/simple_gcs.h"
+#include "util/image.h"
+#include "util/debug.h"
+
+#include <ros/package.h>
+#include <cv_bridge/cv_bridge.h>
 
 namespace rqt_gcs
 {
@@ -139,25 +140,23 @@ namespace rqt_gcs
         
         qCWarning(lcar_bot) << "Adding UAV with id:" << uav_id;
 
-        temp_data = "UAV " + QString::number(uav_id);
-
         int index = 0;
         while(index < NUM_UAV && uav_id > active_uavs[index]->id)
             index++;
 
         uav_db.insert(uav_id, uav);
         active_uavs.insert(active_uavs.begin() + index, uav);
-        vec_uav_list_ui_.insert(vec_uav_list_ui_.begin() + index, new Ui::UAVConditionWidget());
-        vec_uav_list_widget_.insert(vec_uav_list_widget_.begin() + index, new QWidget());
         
-        vec_uav_list_ui_[index]->setupUi(vec_uav_list_widget_[index]);
-        vec_uav_list_ui_[index]->VehicleSelectButton->setText(QString::number(uav_id));
-        vec_uav_list_ui_[index]->VehicleNameLine->setText(temp_data);
+        VehicleListWidget *uav_widget = new VehicleListWidget();
+        uav_widget->SetNumber(uav_id);
+        temp_data = "UAV " + QString::number(uav_id);
+        uav_widget->SetName(temp_data);
+        vec_v_widgets.insert(vec_v_widgets.begin() + index, uav_widget);
         
-        uav_select_mapper->setMapping(vec_uav_list_ui_[index]->VehicleSelectButton, vec_uav_list_widget_[index]);
-        connect(vec_uav_list_ui_[index]->VehicleSelectButton, SIGNAL(clicked()),
+        uav_select_mapper->setMapping(uav_widget->Button(), uav_widget);
+        connect(uav_widget->Button(), SIGNAL(clicked()),
                uav_select_mapper, SLOT(map()));
-        central_ui_.layout_uavs->insertWidget(index, vec_uav_list_widget_[index]);
+        central_ui_.layout_uavs->insertWidget(index, uav_widget);
 
         NUM_UAV++;
 
@@ -175,18 +174,16 @@ namespace rqt_gcs
         UAVControl * uav = active_uavs[index];
         int uav_id = uav->id;
         qCWarning(lcar_bot) << "Deleting UAV with id: " << uav_id;
-
-        central_ui_.layout_uavs->removeWidget(vec_uav_list_widget_[index]);
+        
+        central_ui_.layout_uavs->removeWidget(vec_v_widgets[index]);
 
         SaveUavQueries(uav->id, uav->GetDoorQueries(), "door");
         
         // dont delete uav_db[index] as it points to same SimpleControl object as active_uavs
         delete uav;
-        delete vec_uav_list_ui_[index];
-        delete vec_uav_list_widget_[index];
+        delete vec_v_widgets[index];
 
-        vec_uav_list_ui_.erase(vec_uav_list_ui_.begin() + index);
-        vec_uav_list_widget_.erase(vec_uav_list_widget_.begin() + index);
+        vec_v_widgets.erase(vec_v_widgets.begin() + index);
         active_uavs.erase(active_uavs.begin() + index);
         uav_db.erase(uav_db.begin() + index); // erase 
         
@@ -211,7 +208,6 @@ namespace rqt_gcs
         
         int num_images = image_util::numImagesInDir(path);
         
-//        const std::vector<lcar_msgs::DoorPtr>* queries = uav->GetDoorQueries();
         for(int i = 0; i < queries->size(); i++, num_images += 2)
         {
             lcar_msgs::DoorPtr query = queries->at(i);
@@ -237,7 +233,7 @@ namespace rqt_gcs
         if(index >= active_uavs.size() || active_uavs[index]->id != uav_id)
             return;
         
-        QWidget* button = vec_uav_list_ui_[index]->VehicleSelectButton;
+        QWidget* button = vec_v_widgets[index]->Button();
         button->setEnabled(toggle);
 
         QString style_sheet = button->isEnabled() ?
@@ -296,7 +292,7 @@ namespace rqt_gcs
             QWidget * pmWidget = new QWidget();
             Ui::PictureMsgWidget pmUiWidget;
             pmUiWidget.setupUi(pmWidget);
-
+            
             int w = pmUiWidget.image_frame->width();
             int h = pmUiWidget.image_frame->height();
             pmUiWidget.image_frame->setPixmap(QPixmap::fromImage(image).scaled(w,h));
@@ -854,10 +850,10 @@ namespace rqt_gcs
     {
         for(int i = 0; i < NUM_UAV; i++)
         {
-            temp_data.setNum(active_uavs[i]->GetBatteryState().percentage * 100);
-            vec_uav_list_ui_[i]->VehicleBatteryLine->setText(temp_data);
+            int num = active_uavs[i]->GetBatteryState().percentage * 100;
+            vec_v_widgets[i]->SetBattery(num);
             temp_data = active_uavs[i]->GetState().mode.c_str();
-            vec_uav_list_ui_[i]->VehicleConditionLine->setText(temp_data);
+            vec_v_widgets[i]->SetCondition(temp_data);
         }
     }
     
@@ -1022,7 +1018,7 @@ namespace rqt_gcs
         for(int i = 0; i < gcs->NUM_UAV; i++)
         {
             UAVControl* uav = gcs->active_uavs[i];
-            QWidget* button = gcs->vec_uav_list_ui_[i]->VehicleSelectButton;
+            QWidget* button = gcs->vec_v_widgets[i]->Button();
 
             if(!uav->RecievedHeartbeat()) // no heartbeat
             {

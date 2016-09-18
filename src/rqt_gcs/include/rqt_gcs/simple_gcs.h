@@ -17,6 +17,7 @@
 #include <QWaitCondition>
 #include <QMutex>
 
+#include "rqt_gcs/vehicle_list_widget.h"
 #include "rqt_gcs/unanswered_queries.h"
 #include "rqt_gcs/settings_widget.h"
 #include "rqt_gcs/access_points.h"
@@ -174,8 +175,8 @@ namespace rqt_gcs
     image_transport::Subscriber sub_stereo;
     Ui::centralWidget central_ui_;
     QWidget* central_widget_;
-    QVector<QWidget*> vec_uav_list_widget_;
-    QVector<Ui::UAVConditionWidget*> vec_uav_list_ui_;
+    QVector<VehicleListWidget*> vec_v_widgets;
+//    QVector<Ui::UAVConditionWidget*> vec_uav_list_ui_;
     std::vector<QWidget*> query_widgets_; // recieves SimpleControl::getRefQuerires
      
     QMenuBar * menu_bar_;

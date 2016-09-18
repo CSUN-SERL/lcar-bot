@@ -52,7 +52,8 @@ file(GLOB rqt_gcs_SRCS src/rqt_gcs/*.cpp src/FIS/*.cpp src/FIW/*.cpp src/vehicle
 list(REMOVE_ITEM rqt_gcs_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/FIW/MainWindow.cpp)
 
 file(GLOB rqt_gcs_HDRS include/rqt_gcs/*.h include/FIS/*.h include/FIW/*.h )
-list(REMOVE_ITEM rqt_gcs_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/rqt_gcs/access_point.h )
+list(REMOVE_ITEM rqt_gcs_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/rqt_gcs/access_point.h 
+                              ${CMAKE_CURRENT_SOURCE_DIR}/include/rqt_gcs/my_q_widget.h )
 
 file(GLOB rqt_gcs_UIS resources/*.ui )
 

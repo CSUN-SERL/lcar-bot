@@ -28,7 +28,7 @@
   <property name="styleSheet">
    <string notr="true">QWidget{
 	background-color:rgb(48,57,80);
-	color:rgb(240,240,240);
+	color:rgb(236,236,236);
 }
 
 QTabWidget::pane { /* The tab widget frame */
@@ -321,52 +321,6 @@ QPushButton{
              <bool>false</bool>
             </property>
             <layout class="QGridLayout" name="gridLayout_4">
-             <item row="1" column="0" colspan="7">
-              <layout class="QHBoxLayout" name="horizontalLayout_3">
-               <property name="leftMargin">
-                <number>18</number>
-               </property>
-               <item>
-                <widget class="QCheckBox" name="length_check_box">
-                 <property name="maximumSize">
-                  <size>
-                   <width>130</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>Specify length:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="length_text_box">
-                 <property name="maximumSize">
-                  <size>
-                   <width>45</width>
-                   <height>25</height>
-                  </size>
-                 </property>
-                 <property name="clearButtonEnabled">
-                  <bool>false</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="length_mins_lbl">
-                 <property name="maximumSize">
-                  <size>
-                   <width>16777215</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>minutes</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
              <item row="0" column="0">
               <layout class="QGridLayout" name="gridLayout_6">
                <property name="bottomMargin">
@@ -416,6 +370,52 @@ QPushButton{
                </item>
                <item row="1" column="2">
                 <widget class="QLabel" name="interval_mins_lbl">
+                 <property name="text">
+                  <string>minutes</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item row="1" column="0" colspan="6">
+              <layout class="QHBoxLayout" name="horizontalLayout_3">
+               <property name="leftMargin">
+                <number>18</number>
+               </property>
+               <item>
+                <widget class="QCheckBox" name="length_check_box">
+                 <property name="maximumSize">
+                  <size>
+                   <width>130</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>Specify length:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="length_text_box">
+                 <property name="maximumSize">
+                  <size>
+                   <width>45</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="clearButtonEnabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item alignment="Qt::AlignLeft">
+                <widget class="QLabel" name="length_mins_lbl">
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>20</height>
+                  </size>
+                 </property>
                  <property name="text">
                   <string>minutes</string>
                  </property>

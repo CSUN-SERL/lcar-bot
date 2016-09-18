@@ -8,7 +8,8 @@
 #ifndef _SETTINGSWIDGET_H
 #define _SETTINGSWIDGET_H
 
-#include<rqt_gcs/simple_gcs.h>
+#include "rqt_gcs/simple_gcs.h"
+#include "rqt_gcs/my_q_widget.h"
 #include "ui_SettingsWidget.h"
 
 namespace rqt_gcs
@@ -16,7 +17,7 @@ namespace rqt_gcs
 
     class SimpleGCS;
     
-    class SettingsWidget : public QWidget
+    class SettingsWidget : public MyQWidget
     {
         Q_OBJECT
     public:

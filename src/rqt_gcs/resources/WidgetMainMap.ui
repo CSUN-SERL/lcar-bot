@@ -23,41 +23,43 @@
    <string notr="true">#centralWidget{
 background-color: rgb(68, 80, 113);
 }
-#scroll_area_uavs{
-	background-color: rgb(48, 57, 80);
-}
-#scroll_area_queries{
-	background-color: rgb(48, 57, 80);
-}
+#scroll_area_uavs,
+#scroll_area_queries,
 #image_frame{
 	background-color: rgb(48, 57, 80);
 }
-QWidget{
-color: rgb(236, 236, 236);
-background-color: rgb(39, 47,66);
-border-radius:5px;
+
+VehicleListWidget{
+	color: rgb(236, 236, 236);
+	background-color: rgb(39, 47,66);
+	border-radius:5px;
 }
 
+QWidget{
+	color: rgb(236, 236, 236);
+	background-color: rgb(39, 47,66);
+	border-radius:5px;
+}
 
 QFrame{
 	background-color: rgb(48, 57, 80);
 	border-radius:0px;
 }
 
-
 QProgressBar:horizontal {
-background: rgb(26,32,45);
-border:0px;
-border-radius:5px;
-text-align:center;
+	background: rgb(26,32,45);
+	border:0px;
+	border-radius:5px;
+	text-align:center;
 }
+
 QProgressBar::chunk:horizontal {
 background: rgb(211,104,17);
 border-radius:5px;
 }
 
 QPushButton{
-border-radius: 5px;
+	border-radius: 5px;
 }
 
 QMenuBar {
@@ -864,8 +866,8 @@ border-radius:0px;</string>
        </property>
        <property name="baseSize">
         <size>
-         <width>1</width>
-         <height>1</height>
+         <width>0</width>
+         <height>0</height>
         </size>
        </property>
        <property name="frameShape">
@@ -967,7 +969,7 @@ border-radius:0px;</string>
              </layout>
             </item>
             <item>
-             <spacer name="verticalSpacer_3">
+             <spacer name="verticalSpacer_1">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>
@@ -1342,7 +1344,7 @@ color: rgb(240, 240, 240);</string>
          </layout>
         </item>
         <item>
-         <widget class="QScrollArea" name="scroll_area_cntnr">
+         <widget class="QScrollArea" name="scroll_area_cntnr_queries">
           <property name="frameShape">
            <enum>QFrame::NoFrame</enum>
           </property>
