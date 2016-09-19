@@ -57,7 +57,7 @@ list(REMOVE_ITEM rqt_gcs_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/rqt_gcs/access
 
 file(GLOB rqt_gcs_UIS resources/*.ui )
 
-file(GLOB rqt_gcs_RCCS resources/*.qrc)
+file(GLOB rqt_gcs_RCCS resources/*.qrc )
 
 #run qt rcc, moc & uic
 qt5_add_resources(rqt_gcs_RCC_SRCS ${rqt_gcs_RCCS})
@@ -82,7 +82,7 @@ add_library(${PROJECT_NAME}
             ${rqt_gcs_SRCS}
             ${rqt_gcs_MOCS}
             ${rqt_gcs_UIS_H}
-            ${rqt_gcs_RCC_SRCS})
+            ${rqt_gcs_RCC_SRCS} )
 
 #add_dependencies(uav_control ${catkin_EXPORTED_TARGETS})
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
@@ -105,22 +105,18 @@ find_package(class_loader)
 class_loader_hide_library_symbols(${PROJECT_NAME})
 
 install(FILES plugin.xml
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION} )
 
 install(TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
-)
+  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION} )
 
 install(PROGRAMS scripts/rqt_gcs
-  DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
-)
+  DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION} )
+
 install(PROGRAMS scripts/rqt_gcs
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION} )
 
 install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-)
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION} )

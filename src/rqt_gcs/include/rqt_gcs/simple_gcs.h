@@ -202,11 +202,8 @@ namespace rqt_gcs
     
     QTimer* update_timer;
     QString temp_data;
-    QSignalMapper* uav_select_mapper;
-    QSignalMapper* accept_door_mapper;
-    QSignalMapper* deny_door_mapper;
 
-    QSettings* settings_;
+    QSettings* settings;
 
     QThread t_uav_monitor;
     SimpleGCSHelper * uav_monitor;
@@ -217,7 +214,7 @@ namespace rqt_gcs
 
   class SimpleGCSHelper : public QObject
   {
-  Q_OBJECT
+    Q_OBJECT
 
   public:
       SimpleGCSHelper(SimpleGCS *);

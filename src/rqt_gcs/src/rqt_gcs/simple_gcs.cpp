@@ -25,7 +25,7 @@ namespace rqt_gcs
 
     SimpleGCS::SimpleGCS()
     : rqt_gui_cpp::Plugin()
-    , central_widget_(nullptr)
+    , central_widget_(nullptr)            
     {
         //Constructor is called first before initPlugin function
         setObjectName("LCAR Bot GCS");
@@ -73,7 +73,7 @@ namespace rqt_gcs
         timeCounter = 0;
         cur_uav = -1;
         num_queries_last = 0;
-
+        
         //Setup the UI objects with the widgets
         central_widget_ = new QWidget();
         central_ui_.setupUi(central_widget_);
@@ -91,25 +91,15 @@ namespace rqt_gcs
         connect(central_ui_.btn_arm_uav, &QPushButton::clicked, this, &SimpleGCS::OnArmOrDisarmSelectedUav);
         connect(this, &SimpleGCS::NewCameraFeedFrame, this, &SimpleGCS::OnUpdateCameraFeed);
         
-        
-        //Setup UAV lists select functions
-        uav_select_mapper = new QSignalMapper(this);
-        accept_door_mapper = new QSignalMapper(this);
-        deny_door_mapper = new QSignalMapper(this);
-        
-        connect(uav_select_mapper, SIGNAL(mapped(QWidget*)), this, SLOT(OnUavSelected(QWidget*)));
-        connect(accept_door_mapper, SIGNAL(mapped(QWidget*)), this, SLOT(OnAcceptDoorQuery(QWidget*)));
-        connect(deny_door_mapper, SIGNAL(mapped(QWidget*)), this, SLOT(OnRejectDoorQuery(QWidget*)));
-        
-        od_handlers.pub_hit_thresh = nh.advertise<std_msgs::Float64>("/object_detection/hit_threshold", 1);
-        od_handlers.pub_step_size = nh.advertise<std_msgs::Int32>("/object_detection/step_size", 1);
-        od_handlers.pub_padding = nh.advertise<std_msgs::Int32>("/object_detection/padding", 1);
-        od_handlers.pub_scale_factor = nh.advertise<std_msgs::Float64>("/object_detection/scale_factor", 1);
-        od_handlers.pub_mean_shift = nh.advertise<std_msgs::Int32>("/object_detection/mean_shift_grouping", 1);
-        od_handlers.sub_od_request = nh.subscribe("/object_detection/param_request", 2,
+        od_handlers.pub_hit_thresh = nh.advertise<std_msgs::Float64>("/object_detection/hit_threshold", 5);
+        od_handlers.pub_step_size = nh.advertise<std_msgs::Int32>("/object_detection/step_size", 5);
+        od_handlers.pub_padding = nh.advertise<std_msgs::Int32>("/object_detection/padding", 5);
+        od_handlers.pub_scale_factor = nh.advertise<std_msgs::Float64>("/object_detection/scale_factor", 5);
+        od_handlers.pub_mean_shift = nh.advertise<std_msgs::Int32>("/object_detection/mean_shift_grouping", 5);
+        od_handlers.sub_od_request = nh.subscribe("/object_detection/param_request", 5,
                                                   &SimpleGCS::ReceivedObjectDetectionRequest, this);
         
-        InitDbg();
+        dbg::InitDbg();
         this->InitMenuBar();
         this->InitSettings();
         this->InitHelperThread();
@@ -152,10 +142,11 @@ namespace rqt_gcs
         temp_data = "UAV " + QString::number(uav_id);
         uav_widget->SetName(temp_data);
         vec_v_widgets.insert(vec_v_widgets.begin() + index, uav_widget);
-        
-        uav_select_mapper->setMapping(uav_widget->Button(), uav_widget);
-        connect(uav_widget->Button(), SIGNAL(clicked()),
-               uav_select_mapper, SLOT(map()));
+
+        //map this widgets vehicle select button to selecting this widget
+        connect(uav_widget->Button(), &QPushButton::clicked,
+                this, [=](){ OnUavSelected(uav_widget); } );
+                      
         central_ui_.layout_uavs->insertWidget(index, uav_widget);
 
         NUM_UAV++;
@@ -170,31 +161,47 @@ namespace rqt_gcs
     void SimpleGCS::OnDeleteUav(int index)
     {
         uav_mutex.lock();
-
+        
         UAVControl * uav = active_uavs[index];
         int uav_id = uav->id;
+        
         qCWarning(lcar_bot) << "Deleting UAV with id: " << uav_id;
         
-        central_ui_.layout_uavs->removeWidget(vec_v_widgets[index]);
-
-        SaveUavQueries(uav->id, uav->GetDoorQueries(), "door");
+        this->SaveUavQueries(uav_id, uav->GetDoorQueries(), "door");
         
-        // dont delete uav_db[index] as it points to same SimpleControl object as active_uavs
+        // dont delete uav_db[index] as it points to same UAVControl object as active_uavs
         delete uav;
-        delete vec_v_widgets[index];
+        delete vec_v_widgets[index]; // removes this widget from the layout
 
         vec_v_widgets.erase(vec_v_widgets.begin() + index);
         active_uavs.erase(active_uavs.begin() + index);
-        uav_db.erase(uav_db.begin() + index); // erase 
+        uav_db.erase(uav_db.begin() + index);
         
         NUM_UAV--;
         
-        if(cur_uav == index) // deleted current uav
+        if(NUM_UAV == 0) // no more uav's
+        {
+            if(fl_widgets_.ap_menu != nullptr)
+                fl_widgets_.ap_menu->SetUAV(nullptr); 
+            
+            this->ClearQueries();
+            this->ToggleScoutButtons(true);  // reset scout buttons
+            this->ToggleArmDisarmButton(false); //set [dis]arm button to arm
+            
+            central_ui_.lbl_cur_uav->setText("NO UAVS");
+            cur_uav = -1;
+        }
+        //deleted uav was in front of cur_uav, causing NUM_UAV to shrink. cur_uav >= NUM_UAV
+        else if(NUM_UAV <= cur_uav) // subsequent calls to TimedUpdate will be invalid at this point
+        {
+            this->SelectUav(NUM_UAV - 1);
+        }
+        else if(cur_uav == index) // deleted current uav
         {  
-            if(NUM_UAV > 0 && cur_uav == 0) // if there's more and we deleted the first
-                SelectUav(0);       // choose the new first
-            else                            // else
-                SelectUav(cur_uav - 1); // choose one in front
+            if(cur_uav > 0)
+                this->SelectUav(cur_uav - 1);
+            else            
+                this->SelectUav(0);
         }
 
        num_uav_changed.wakeAll();
@@ -233,30 +240,31 @@ namespace rqt_gcs
         if(index >= active_uavs.size() || active_uavs[index]->id != uav_id)
             return;
         
-        QWidget* button = vec_v_widgets[index]->Button();
-        button->setEnabled(toggle);
-
-        QString style_sheet = button->isEnabled() ?
-            "background-color: rgb(64, 89, 140); color: rgb(240, 240, 240);" :
-            "background-color: rgb(80, 90, 110); color: rgb(150, 150, 150);" ;
-
-        button->setStyleSheet(style_sheet);
+        vec_v_widgets[index]->ToggleButton(toggle);
     }
 
     //Timed update of GCS gui
     void SimpleGCS::OnTimedUpdate()
     {
+        
         if(NUM_UAV == 0)
             return;
         
+        uav_mutex.lock();
+        
+        Q_ASSERT(0 <= cur_uav && cur_uav < NUM_UAV);
+        
         if(timeCounter++ >= 30)
         {
-            UpdateQueries();
+            this->UpdateQueries();
             timeCounter = 0;
         }
         
         this->UpdateFlightStateWidgets();
         this->UpdateVehicleWidgets();
+    
+        uav_mutex.unlock();
+        
     }
 
     void SimpleGCS::ClearQueries()
@@ -301,17 +309,10 @@ namespace rqt_gcs
             query_widgets_.push_back(pmWidget);
             int index = query_widgets_.size() - 1;
 
-            //map signal for yes button
-            accept_door_mapper->setMapping(pmUiWidget.yesButton,
-                                         query_widgets_[index]);
-            connect(pmUiWidget.yesButton, SIGNAL(clicked()),
-                    accept_door_mapper, SLOT(map()));
-
-            //map signal for yes button
-            deny_door_mapper->setMapping(pmUiWidget.rejectButton,
-                                       query_widgets_[index]);
-            connect(pmUiWidget.rejectButton, SIGNAL(clicked()),
-                    deny_door_mapper, SLOT(map()));
+            connect(pmUiWidget.yesButton, &QPushButton::clicked,
+                    this, [=](){OnAcceptDoorQuery(pmWidget);});
+            connect(pmUiWidget.rejectButton, &QPushButton::clicked,
+                    this, [=](){OnRejectDoorQuery(pmWidget);});
 
             //add to user interface
             central_ui_.layout_queries->addWidget(query_widgets_[index]);
@@ -541,56 +542,49 @@ namespace rqt_gcs
 
     // slot gets called when user click on a uav button
     void SimpleGCS::OnUavSelected(QWidget* w)
-    {
+    {   
         SelectUav(central_ui_.layout_uavs->indexOf(w));
     }
 
     //needed in addUav(int) and deleteUav(int)
     void SimpleGCS::SelectUav(int uav_number)
     {
+        Q_ASSERT(0 <= uav_number && uav_number < NUM_UAV);
+        
         if(uav_number == cur_uav) 
             return; // no use resetting everything to the way it was
+        
+        qCDebug(lcar_bot) << "selecting uav: " << uav_number;
         
         cur_uav = uav_number;
         central_ui_.image_frame->setPixmap(QPixmap::fromImage(QImage()));
         this->ClearQueries(); // new uav selected, so make room for its queries
         
-        if(cur_uav == -1) // no more uav's in system. 
-        {
-            if(fl_widgets_.ap_menu != nullptr)
-                fl_widgets_.ap_menu->SetUAV(nullptr); 
-            this->ToggleScoutButtons(true);  // reset scout buttons
-            this->ToggleArmDisarmButton(false); //set arm disarm button to arm
-            central_ui_.lbl_cur_uav->setText("NO UAVS");
-        }
+        UAVControl * uav = active_uavs[cur_uav];
+        // handle image topic subscription and image refresh for new uav
+        sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav->id) + "/stereo_cam/left/image_rect",
+                                         img_q_max_size, &SimpleGCS::ImageCallback, this);
+
+        if(fl_widgets_.ap_menu != nullptr)
+            fl_widgets_.ap_menu->SetUAV(uav); 
+
+        //handle mission and arm buttons for new uav
+        MissionMode m = uav->GetMissionMode();
+        if(m == MissionMode::stopped)
+            this->ToggleScoutButtons(true); 
+        else if(m == MissionMode::active)
+            this->ToggleScoutButtons(false, "pause");
         else
-        {
-            UAVControl * uav = active_uavs[cur_uav];
-            // handle image topic subscription and image refresh for new uav
-            sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav->id) + "/stereo_cam/left/image_rect",
-                                             img_q_max_size, &SimpleGCS::ImageCallback, this);
+            this->ToggleScoutButtons(false, "play");
 
-            if(fl_widgets_.ap_menu != nullptr)
-                fl_widgets_.ap_menu->SetUAV(uav); 
-            
-            //handle mission and arm buttons for new uav
-            MissionMode m = uav->GetMissionMode();
-            if(m == MissionMode::stopped)
-                this->ToggleScoutButtons(true); 
-            else if(m == MissionMode::active)
-                this->ToggleScoutButtons(false, "pause");
-            else
-                this->ToggleScoutButtons(false, "play");
-
-            this->ToggleArmDisarmButton(active_uavs[cur_uav]->GetState().armed);  
-        }
+        this->ToggleArmDisarmButton(active_uavs[cur_uav]->GetState().armed);  
     }
     
     void SimpleGCS::UpdateFlightStateWidgets()
     {
         if(NUM_UAV == 0)
             return;
-        
+
         UAVControl* uav = active_uavs[cur_uav];
         
         // PFD
@@ -620,6 +614,7 @@ namespace rqt_gcs
         temp_data = "UAV " + QString::number(uav->id);
         central_ui_.lbl_cur_uav->setText(temp_data);
         central_ui_.pgs_bar_mission->setValue(uav->GetMissionProgress() * 100);
+        
     }
 
     void SimpleGCS::OnArmOrDisarmSelectedUav()
@@ -708,31 +703,31 @@ namespace rqt_gcs
     void SimpleGCS::InitSettings()
     {
         //initialize settings and uav queries display
-        settings_ = new QSettings("SERL", "LCAR_Bot");
+        settings = new QSettings("SERL", "LCAR_Bot");
 
-        settings_->beginGroup("general_tab");
+        settings->beginGroup("general_tab");
 
-        if(settings_->value("machine_learning", "online").toString() == "online")
+        if(settings->value("machine_learning", "online").toString() == "online")
             OnToggleMachineLearningMode(true);
         else
             OnToggleMachineLearningMode(false);
 
         QString default_path = QProcessEnvironment::systemEnvironment().value("HOME") % "/Pictures/LCAR_Bot";
-        image_util::image_root_dir_ = settings_->value("images_root_directory", default_path).toString();
+        image_util::image_root_dir_ = settings->value("images_root_directory", default_path).toString();
         qCDebug(lcar_bot) << "images root directory: " << image_util::image_root_dir_;
 
-        settings_->endGroup();
+        settings->endGroup();
         
-        settings_->beginGroup("object_detection_tab");
+        settings->beginGroup("object_detection_tab");
          
         QString params = "tuning_paramaters";
-        od_params.hit_thresh = settings_->value(params % "/hit_threshold", od_params.hit_thresh).toDouble();    
-        od_params.step_size = settings_->value(params % "/step_size", od_params.step_size).toInt();
-        od_params.padding = settings_->value(params % "/padding", od_params.padding).toInt();
-        od_params.scale_factor = settings_->value(params % "/scale_factor", od_params.scale_factor).toDouble();
-        od_params.mean_shift = settings_->value(params % "/mean_shift_grouping", od_params.mean_shift).toBool();
+        od_params.hit_thresh = settings->value(params % "/hit_threshold", od_params.hit_thresh).toDouble();    
+        od_params.step_size = settings->value(params % "/step_size", od_params.step_size).toInt();
+        od_params.padding = settings->value(params % "/padding", od_params.padding).toInt();
+        od_params.scale_factor = settings->value(params % "/scale_factor", od_params.scale_factor).toDouble();
+        od_params.mean_shift = settings->value(params % "/mean_shift_grouping", od_params.mean_shift).toBool();
 
-        settings_->endGroup();
+        settings->endGroup();
     }
 
     void SimpleGCS::OnSettingsTriggered()
@@ -1018,18 +1013,18 @@ namespace rqt_gcs
         for(int i = 0; i < gcs->NUM_UAV; i++)
         {
             UAVControl* uav = gcs->active_uavs[i];
-            QWidget* button = gcs->vec_v_widgets[i]->Button();
+            bool enabled = gcs->vec_v_widgets[i]->IsButtonEnabled();
 
             if(!uav->RecievedHeartbeat()) // no heartbeat
             {
                 //ROS_WARN_STREAM("no heartbeat for UAV_" << quad->id);
-                if(button->isEnabled()) // is the button already disabled?
+                if(enabled) // is the button already disabled?
                     emit toggleUavConnection(i, uav->id, false);
             }
             else
             {
                 //ROS_INFO_STREAM("recieved heartbeat for UAV_" << quad->id);
-                if(!button->isEnabled()) // is the button already enabled?
+                if(!enabled) // is the button already enabled?
                     emit toggleUavConnection(i, uav->id, true);
             }
         }
@@ -1055,4 +1050,4 @@ namespace rqt_gcs
     
 } // namespace
 PLUGINLIB_DECLARE_CLASS(rqt_gcs, SimpleGCS, rqt_gcs::SimpleGCS, rqt_gui_cpp::Plugin)
-////PLUGINLIB_EXPORT_CLASS(rqt_gcs::SimpleGCS, rqt_gui_cpp::Plugin)
+//PLUGINLIB_EXPORT_CLASS(rqt_gcs::SimpleGCS, rqt_gui_cpp::Plugin)

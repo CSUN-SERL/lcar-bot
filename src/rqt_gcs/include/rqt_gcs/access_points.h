@@ -28,7 +28,6 @@ public slots:
 private:
     Ui::AccessPoints widget_;
     QVector<QWidget*> ap_widgets;
-    QSignalMapper* mapper;
     QTimer* timer;
     int num_access_points_last;
     

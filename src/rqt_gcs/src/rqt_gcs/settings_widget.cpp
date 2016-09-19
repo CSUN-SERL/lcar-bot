@@ -155,9 +155,9 @@ void SettingsWidget::setToolTips()
 
 void SettingsWidget::readGeneralSettings()
 {
-    gcs->settings_->beginGroup("general_tab");
+    gcs->settings->beginGroup("general_tab");
 
-    QString ml = gcs->settings_->value("machine_learning", "online").toString();
+    QString ml = gcs->settings->value("machine_learning", "online").toString();
     if(ml == "online")
         widget_.online_btn->setChecked(true);
     else
@@ -165,7 +165,7 @@ void SettingsWidget::readGeneralSettings()
 
     ml_state_ = ml;
 
-    QString vehicle_link = gcs->settings_->value("connection_drop/vehicle_gcs_link",
+    QString vehicle_link = gcs->settings->value("connection_drop/vehicle_gcs_link",
                                             "marginal").toString();
     if(vehicle_link == "nominal")
         widget_.nominal_btn->setChecked(true);
@@ -181,11 +181,11 @@ void SettingsWidget::readGeneralSettings()
 
     QString conn_freq = "connection_drop/frequency";
 
-    QString frequency = gcs->settings_->value(conn_freq, "random").toString();
+    QString frequency = gcs->settings->value(conn_freq, "random").toString();
     if(frequency == "interval")
     {
         widget_.interval_btn->setChecked(true);
-        QVariant interval = gcs->settings_->value(conn_freq + "/interval_text");
+        QVariant interval = gcs->settings->value(conn_freq + "/interval_text");
         if(!interval.isNull())
             widget_.interval_text_box->setText(interval.toString());
 
@@ -197,11 +197,11 @@ void SettingsWidget::readGeneralSettings()
         widget_.interval_text_box->setEnabled(false);
     }
 
-    bool length_specified = gcs->settings_->value(conn_freq + "/length_box_checked",
+    bool length_specified = gcs->settings->value(conn_freq + "/length_box_checked",
                                              false).toBool();
     if(length_specified)
     {
-        QVariant length = gcs->settings_->value(conn_freq + "/length_text");
+        QVariant length = gcs->settings->value(conn_freq + "/length_text");
         if(!length.isNull())
             widget_.length_text_box->setText(length.toString());
 
@@ -213,15 +213,15 @@ void SettingsWidget::readGeneralSettings()
         widget_.length_text_box->setEnabled(false);
     }
 
-    QString img_dir = gcs->settings_->value("images_root_directory", image_util::image_root_dir_).toString();
+    QString img_dir = gcs->settings->value("images_root_directory", image_util::image_root_dir_).toString();
     widget_.line_edit_images_dir->setText(img_dir);
 
-    gcs->settings_->endGroup();
+    gcs->settings->endGroup();
 }
 
 void SettingsWidget::writeGeneralSettings()
 {
-    gcs->settings_->beginGroup("general_tab");
+    gcs->settings->beginGroup("general_tab");
 
     QString ml;
     if(widget_.online_btn->isChecked())
@@ -230,7 +230,7 @@ void SettingsWidget::writeGeneralSettings()
         ml = "offline";
 
     ml_state_ = ml;
-    gcs->settings_->setValue("machine_learning", ml);
+    gcs->settings->setValue("machine_learning", ml);
 
 
     QString conn = "connection_drop";
@@ -243,7 +243,7 @@ void SettingsWidget::writeGeneralSettings()
     else
         vehicle_link = "poor";
 
-    gcs->settings_->setValue(conn % "/vehicle_gcs_link", vehicle_link);
+    gcs->settings->setValue(conn % "/vehicle_gcs_link", vehicle_link);
 
     QString conn_freq = "connection_drop/frequency";
     if(vehicle_link != "nominal") // write frequency settings to config
@@ -253,38 +253,38 @@ void SettingsWidget::writeGeneralSettings()
             frequency = "interval";
         else
             frequency = "random";
-        gcs->settings_->setValue(conn_freq, frequency);
+        gcs->settings->setValue(conn_freq, frequency);
 
         if(frequency == "interval")
         {   //already guaranteed text is valid in validateGeneralSettings()
             QString interval_text = widget_.interval_text_box->text();
-            gcs->settings_->setValue(conn_freq % "/interval_text", interval_text);
+            gcs->settings->setValue(conn_freq % "/interval_text", interval_text);
         }
         else
-            gcs->settings_->remove(conn_freq % "/interval_text");
+            gcs->settings->remove(conn_freq % "/interval_text");
 
         bool length_specified = widget_.length_check_box->isChecked();
-        gcs->settings_->setValue(conn_freq % "/length_box_checked", length_specified);
+        gcs->settings->setValue(conn_freq % "/length_box_checked", length_specified);
 
         if(length_specified)
         {   //already guaranteed text is valid in validateGeneralSettings()
             QString length_text = widget_.length_text_box->text();
-            gcs->settings_->setValue(conn_freq % "/length_text", length_text);
+            gcs->settings->setValue(conn_freq % "/length_text", length_text);
         }
         else
-            gcs->settings_->remove(conn_freq % "/length_text");
+            gcs->settings->remove(conn_freq % "/length_text");
     }
     else // remove all frequency related settings from config
-        gcs->settings_->remove(conn_freq);
+        gcs->settings->remove(conn_freq);
 
     QString img_dir = widget_.line_edit_images_dir->text();
     if(!img_dir.isNull())
     {
-        gcs->settings_->setValue("images_root_directory", img_dir);
+        gcs->settings->setValue("images_root_directory", img_dir);
         image_util::image_root_dir_ = widget_.line_edit_images_dir->text();
     }
 
-    gcs->settings_->endGroup(); //general_tab
+    gcs->settings->endGroup(); //general_tab
 }
 
     bool SettingsWidget::validateGeneralSettings()
@@ -348,9 +348,9 @@ void SettingsWidget::writeGeneralSettings()
 
 void SettingsWidget::readObjectDetectionSettings()
 {
-    gcs->settings_->beginGroup("object_detection_tab");
+    gcs->settings->beginGroup("object_detection_tab");
 
-    QString node_loc = gcs->settings_->value("node_location", "gcs").toString();
+    QString node_loc = gcs->settings->value("node_location", "gcs").toString();
     if(node_loc == "gcs")
         widget_.gcs_btn->setChecked(true);
     else
@@ -358,11 +358,11 @@ void SettingsWidget::readObjectDetectionSettings()
     // todo apply logic for determining where node will be run
 
     QString params = "tuning_paramaters";
-    gcs->od_params.hit_thresh = gcs->settings_->value(params % "/hit_threshold", 0.45).toDouble();    
-    gcs->od_params.step_size = gcs->settings_->value(params % "/step_size", 8).toInt();
-    gcs->od_params.padding = gcs->settings_->value(params % "/padding", 4).toInt();
-    gcs->od_params.scale_factor = gcs->settings_->value(params % "/scale_factor", 1.15).toDouble();
-    gcs->od_params.mean_shift = gcs->settings_->value(params % "/mean_shift_grouping", true).toBool();
+    gcs->od_params.hit_thresh = gcs->settings->value(params % "/hit_threshold", 0.45).toDouble();    
+    gcs->od_params.step_size = gcs->settings->value(params % "/step_size", 8).toInt();
+    gcs->od_params.padding = gcs->settings->value(params % "/padding", 4).toInt();
+    gcs->od_params.scale_factor = gcs->settings->value(params % "/scale_factor", 1.15).toDouble();
+    gcs->od_params.mean_shift = gcs->settings->value(params % "/mean_shift_grouping", true).toBool();
 
     widget_.line_edit_hit_thresh->setText(QString::number(gcs->od_params.hit_thresh, 'f', 2));
     widget_.sl_hit_thresh->setValue(gcs->od_params.hit_thresh * 100);
@@ -382,28 +382,28 @@ void SettingsWidget::readObjectDetectionSettings()
         widget_.radio_off_mean_shift->setChecked(true);
     onMeanShiftRadioChange();
 
-    gcs->settings_->endGroup();
+    gcs->settings->endGroup();
 }
 
 void SettingsWidget::writeObjectDetectionSettings()
 {
-    gcs->settings_->beginGroup("object_detection_tab");
+    gcs->settings->beginGroup("object_detection_tab");
 
     if(widget_.uav_btn->isChecked())
-        gcs->settings_->setValue("node_location", "uav");
+        gcs->settings->setValue("node_location", "uav");
     else if(widget_.gcs_btn->isChecked())
-        gcs->settings_->setValue("node_location", "gcs");
+        gcs->settings->setValue("node_location", "gcs");
 
     QString params = "tuning_paramaters";
     QString thresh = QString::number(gcs->od_params.hit_thresh,'f', 2);
-    gcs->settings_->setValue(params % "/hit_threshold", thresh);
-    gcs->settings_->setValue(params % "/step_size", gcs->od_params.step_size);
-    gcs->settings_->setValue(params % "/padding", gcs->od_params.padding);
+    gcs->settings->setValue(params % "/hit_threshold", thresh);
+    gcs->settings->setValue(params % "/step_size", gcs->od_params.step_size);
+    gcs->settings->setValue(params % "/padding", gcs->od_params.padding);
     QString scale = QString::number(gcs->od_params.scale_factor, 'f', 2);
-    gcs->settings_->setValue(params % "/scale_factor", scale);
-    gcs->settings_->setValue(params % "/mean_shift_grouping", gcs->od_params.mean_shift);
+    gcs->settings->setValue(params % "/scale_factor", scale);
+    gcs->settings->setValue(params % "/mean_shift_grouping", gcs->od_params.mean_shift);
 
-    gcs->settings_->endGroup();
+    gcs->settings->endGroup();
 }
 
 bool SettingsWidget::onApplyClicked()

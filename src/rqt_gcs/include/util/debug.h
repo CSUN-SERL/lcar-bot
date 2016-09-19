@@ -13,13 +13,18 @@
 namespace rqt_gcs
 {
 
-    Q_DECLARE_LOGGING_CATEGORY(lcar_bot); 
+     Q_DECLARE_LOGGING_CATEGORY(lcar_bot); 
+    
+namespace dbg
+{
     
     void InitDbg();
     
     void MsgHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 
     QString FileFromPath(const QString& path);
+
+}
 
 }
 #endif /* DEBUG_H */

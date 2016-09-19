@@ -14,7 +14,7 @@ class SimpleGCS;
     
 class UnansweredQueries : public QWidget
 {
-Q_OBJECT
+    Q_OBJECT
 public:
 
     struct QueryStat
@@ -25,25 +25,23 @@ public:
         QString og_img_file_path;
         QString fr_img_file_path;
         
-        ~QueryStat()
-        { }
+        ~QueryStat() { }
     };
     
     UnansweredQueries(SimpleGCS*);
     virtual ~UnansweredQueries();
-    void  addQueryWidget(QueryStat*, QString&);
+    
+    void addQueryWidget(QueryStat*, QString&);
     void addUnansweredQueriesFromDisk();
     int uavIdFromDir(QString&);
-
+    
 private:
-    Ui::UnansweredQueries widget_;
+    Ui::UnansweredQueries widget;
     QMap<QString, QVBoxLayout*> layout_by_ap_type;
     QMap <QString, QVector<QueryStat*> > queries_map;
-    
+    QVector<QString> ap_types = {"door", "window", "hole"};
+        
     SimpleGCS * gcs;
-
-    QSignalMapper * accept_mapper;
-    QSignalMapper * reject_mapper;
 
     void answerQuery(QWidget*, QString, bool);
     

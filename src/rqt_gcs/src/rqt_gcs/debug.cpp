@@ -3,8 +3,11 @@
 
 namespace rqt_gcs
 {
+ 
+Q_LOGGING_CATEGORY(lcar_bot, "lcar_bot");
     
-    Q_LOGGING_CATEGORY(lcar_bot, "lcar_bot");
+namespace dbg
+{
     
     void InitDbg()
     {
@@ -48,4 +51,7 @@ namespace rqt_gcs
         QString s(path);
         return s.mid(s.lastIndexOf('/') + 1);
     }
+
+}
+    
 }

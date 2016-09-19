@@ -45,7 +45,22 @@ void VehicleListWidget::SetName(const QString name)
     widget.VehicleNameLine->setText(name);
 }
 
-QPushButton* VehicleListWidget::Button()
+bool VehicleListWidget::ToggleButton(bool enable)
+{
+    widget.VehicleSelectButton->setEnabled(enable); 
+    QString style_sheet = enable ?
+          "background-color: rgb(64, 89, 140); color: rgb(240, 240, 240);" :
+          "background-color: rgb(80, 90, 110); color: rgb(150, 150, 150);" ;
+
+    widget.VehicleSelectButton->setStyleSheet(style_sheet);
+}
+
+bool VehicleListWidget::IsButtonEnabled()
+{
+    return widget.VehicleSelectButton->isEnabled();
+}
+
+const QPushButton* VehicleListWidget::Button()
 {
     return widget.VehicleSelectButton;
 }

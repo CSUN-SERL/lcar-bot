@@ -21,17 +21,12 @@ namespace rqt_gcs
 UnansweredQueries::UnansweredQueries(SimpleGCS * sgcs) :
 gcs(sgcs)
 {
-    widget_.setupUi(this);
+    widget.setupUi(this);
     this->setAttribute(Qt::WA_DeleteOnClose);
-    
-    layout_by_ap_type.insert("door", widget_.queriesLayoutDoor); 
+
+    layout_by_ap_type.insert("door", widget.queriesLayoutDoor); 
     //TODO layout_by_ap_type for window and hole, 
     //and adding the layouts and tab widget container in qtdesigner
-    
-    accept_mapper = new QSignalMapper(this);
-    reject_mapper = new QSignalMapper(this);
-    connect(accept_mapper, SIGNAL(mapped(QWidget *)), this, SLOT(acceptQuery(QWidget *)));
-    connect(reject_mapper, SIGNAL(mapped(QWidget *)), this, SLOT(rejectQuery(QWidget *)));
 
     addUnansweredQueriesFromDisk();
 }
@@ -44,7 +39,6 @@ UnansweredQueries::~UnansweredQueries()
 void UnansweredQueries::addUnansweredQueriesFromDisk()
 {
     QString path_root = image_util::image_root_dir_ % "/queries/unanswered";         
-    QVector<QString> ap_types = {"door", "window", "hole"};
     for(int i = 0; i < ap_types.size(); i++)
     {
         QDir path(path_root % "/" % ap_types[i]);
@@ -85,26 +79,24 @@ void UnansweredQueries::addUnansweredQueriesFromDisk()
 void UnansweredQueries::addQueryWidget(QueryStat* stat, QString& ap_type)
 {   
     //create the widget
-    QWidget * pmWidget = new QWidget();
-    Ui::PictureMsgWidget pmUiWidget;
-    pmUiWidget.setupUi(pmWidget);
+    QWidget * pm_widget = new QWidget(this);
+    Ui::PictureMsgWidget pm_ui;
+    pm_ui.setupUi(pm_widget);
 
     // take care of the image
-    int w = pmUiWidget.image_frame->width();
-    int h = pmUiWidget.image_frame->height();
-    pmUiWidget.image_frame->setPixmap(QPixmap::fromImage(stat->framed_img).scaled(w,h));
+    int w = pm_ui.image_frame->width();
+    int h = pm_ui.image_frame->height();
+    pm_ui.image_frame->setPixmap(QPixmap::fromImage(stat->framed_img).scaled(w,h));
     
     QVector<QueryStat*> * ap_vec = &queries_map[ap_type];
     ap_vec->push_back(stat);
 
-    accept_mapper->setMapping(pmUiWidget.yesButton, pmWidget);
-    connect(pmUiWidget.yesButton, SIGNAL(clicked()), accept_mapper, SLOT(map()));
-
-    reject_mapper->setMapping(pmUiWidget.rejectButton, pmWidget);
-    connect(pmUiWidget.rejectButton, SIGNAL(clicked()), reject_mapper, SLOT(map()));
+    connect(pm_ui.yesButton, &QPushButton::clicked, 
+            this, [=](){ acceptQuery(pm_widget); } );
+    connect(pm_ui.rejectButton, &QPushButton::clicked, 
+            this, [=](){ rejectQuery(pm_widget); } );
      
-    layout_by_ap_type[ap_type]->addWidget(pmWidget);
-    this->resize(pmWidget->width() + 15, this->height());
+    layout_by_ap_type[ap_type]->addWidget(pm_widget);
 }
 
 void UnansweredQueries::acceptQuery(QWidget* w)
@@ -120,7 +112,6 @@ void UnansweredQueries::rejectQuery(QWidget* w)
 void UnansweredQueries::answerQuery(QWidget * w, QString ap_type, bool accepted)
 {
     int index = layout_by_ap_type[ap_type]->indexOf(w);
-    std::cout << "index " << index << "\n";
     
     QueryStat * stat = queries_map[ap_type][index];
     QImage img = stat->original_img;
@@ -156,7 +147,6 @@ void UnansweredQueries::answerQuery(QWidget * w, QString ap_type, bool accepted)
         dir.remove(stat->fr_img_file_path);
     }
     
-//    layout_by_ap_type[ap_type]->removeWidget(w);
     QVector<QueryStat*> * ap_vector = &queries_map[ap_type];
     ap_vector->erase(ap_vector->begin()+index); // removes w from vector
     

@@ -25,7 +25,10 @@ public:
     void SetBattery(int battery);
     void SetCondition(const QString& cond); 
     void SetName(const QString name);
-    QPushButton* Button();
+    
+    bool ToggleButton(bool enable);
+    bool IsButtonEnabled();
+    const QPushButton* Button();
     
 private:
     Ui::VehicleListWidget widget;

@@ -1351,6 +1351,9 @@ color: rgb(240, 240, 240);</string>
           <property name="lineWidth">
            <number>1</number>
           </property>
+          <property name="horizontalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
+          </property>
           <property name="widgetResizable">
            <bool>true</bool>
           </property>

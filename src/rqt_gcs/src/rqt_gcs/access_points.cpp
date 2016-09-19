@@ -10,15 +10,12 @@ namespace rqt_gcs
 {
     
 AccessPoints::AccessPoints() :
-    mapper(new QSignalMapper(this)),
     timer(new QTimer(this))
 {
     widget_.setupUi(this);
     this->setAttribute(Qt::WA_DeleteOnClose);
     connect(timer, &QTimer::timeout, 
             this, &AccessPoints::UpdateAccessPoints);
-    connect(mapper, SIGNAL(mapped(QWidget*)), 
-            this, SLOT(OnDeleteAccessPoint(QWidget*)));
     timer->start(0);
 }
 
@@ -72,50 +69,46 @@ void AccessPoints::UpdateAccessPoints()
 
         QImage image = image_util::rosImgToQimg(ap_img);
 
-        QWidget * apWidget = new QWidget();
-        Ui::AccessPointStatsWidget apUiWidget;
-        apUiWidget.setupUi(apWidget);
+        QWidget * ap_widget = new QWidget(this);
+        Ui::AccessPointStatsWidget ap_ui_widget;
+        ap_ui_widget.setupUi(ap_widget);
 
-        image = image.scaled(apWidget->width(), apWidget->height(), 
+        image = image.scaled(ap_widget->width(), ap_widget->height(), 
                              Qt::AspectRatioMode::KeepAspectRatio);
-        apUiWidget.image_frame->setPixmap(QPixmap::fromImage(image));
+        ap_ui_widget.image_frame->setPixmap(QPixmap::fromImage(image));
 
         //add widget to the list
-        ap_widgets.push_back(apWidget);
+        ap_widgets.push_back(ap_widget);
         int index = ap_widgets.size() - 1;
 
         //access point name
         QString ap_id, ap_data;
         ap_id.setNum(i + num_access_points_last + 1);
         ap_data = "Access Point " + ap_id;
-        apUiWidget.buildingNameLine->setText(ap_data);
+        ap_ui_widget.buildingNameLine->setText(ap_data);
 
         //altitude
         ap_data.setNum(accessPoint.GetAltitude().data, 'f', 2);
-        apUiWidget.altitudeLineEdit->setText(ap_data);
+        ap_ui_widget.altitudeLineEdit->setText(ap_data);
 
         //heading
         ap_data.setNum(accessPoint.GetHeading().data, 'f', 2);
-        apUiWidget.compassHeadingLineEdit->setText(ap_data);
+        ap_ui_widget.compassHeadingLineEdit->setText(ap_data);
 
         //location longitude
         ap_data.setNum(accessPoint.GetLocation().longitude, 'f', 2);
-        apUiWidget.longitudeLineEdit->setText(ap_data);
+        ap_ui_widget.longitudeLineEdit->setText(ap_data);
 
         //location latitude
         ap_data.setNum(accessPoint.GetLocation().latitude, 'f', 2);
-        apUiWidget.latitudeLineEdit->setText(ap_data);
+        ap_ui_widget.latitudeLineEdit->setText(ap_data);
 
         //time
         ap_data.setNum(accessPoint.GetTime().toSec(), 'f', 6);
-        apUiWidget.captureTimeLineEdit->setText(ap_data);
+        ap_ui_widget.captureTimeLineEdit->setText(ap_data);
 
-        //map signal to the delete button
-        mapper->setMapping(apUiWidget.deleteAccessPointButton,
-                                   ap_widgets[index]);
-
-        connect(apUiWidget.deleteAccessPointButton, SIGNAL(clicked()),
-                mapper, SLOT(map()));
+        connect(ap_ui_widget.deleteAccessPointButton, &QPushButton::clicked,
+                this, [=](){ OnDeleteAccessPoint(ap_widget); } );
 
         //finally, add it to the gui
         widget_.layout_access_points->addWidget(ap_widgets[index]);
