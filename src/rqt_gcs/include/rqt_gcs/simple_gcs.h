@@ -1,8 +1,14 @@
-#ifndef rqt_gcs__SimpleGCS_H
-#define rqt_gcs__SimpleGCS_H
 
-#include <pluginlib/class_list_macros.h>
-#include <rqt_gui_cpp/plugin.h>
+/*
+ * File:   SimpleGCS.h
+ * Author: n8
+ *
+ * Created on September 20, 2016, 1:28 PM
+ */
+
+#ifndef _SIMPLEGCS_H
+#define _SIMPLEGCS_H
+
 #include <ros/ros.h>
 #include <ros/common.h>
 #include <std_srvs/Empty.h>
@@ -29,55 +35,35 @@
 #include "lcar_msgs/TargetLocal.h"
 #include "lcar_msgs/TargetGlobal.h"
 
-#include "ui_WidgetMainMap.h"
 #include "ui_PictureMsg.h"
-#include "ui_UAVCondition.h"
+#include "ui_SimpleGCS.h"
 
 namespace rqt_gcs
 {
-    
-  #define MAX_UAV 100 // the total number of UAV's manageable by our system
 
-  class SimpleGCSHelper;
-  class UnansweredQueries;
-  class SettingsWidget;
-  class AccessPoints;
-  
-  class SimpleGCS : public rqt_gui_cpp::Plugin
-  {
-  Q_OBJECT
+#define MAX_UAV 100 // the total number of UAV's manageable by our system
 
-  friend class SimpleGCSHelper;
-  friend class UnansweredQueries;
-  friend class SettingsWidget;
-  
-  public:
+class SimpleGCSHelper;
+class UnansweredQueries;
+class SettingsWidget;
+class AccessPoints;
+
+class SimpleGCS : public QMainWindow
+{
+    Q_OBJECT
+
+    friend class SimpleGCSHelper;
+    friend class UnansweredQueries;
+    friend class SettingsWidget;
+
+public:
     SimpleGCS();
-    ~SimpleGCS();
-
-    virtual void initPlugin(qt_gui_cpp::PluginContext& context) override;
-    virtual void shutdownPlugin() override;
-    virtual void saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const override;
-    virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings) override;
+    virtual ~SimpleGCS();
     
-    void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
-    void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
-    void ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg);
-
-    //methods for publishing object detection paramerter updates
-    void PublishHitThreshold(double thresh);
-    void PublishStepSize(int step);
-    void PublishPadding(int padding);
-    void PublishScaleFactor(double scale);
-    void PublishMeanShift(bool on);
     
-    std::string GetMissionType(std::string file_name);		 
-    lcar_msgs::TargetLocal GetMissionLocal(std::string file_name);
-    lcar_msgs::TargetGlobal GetMissionGlobal(std::string file_name);
-    
-  public slots:
+public slots:
     void OnTimedUpdate();
-    
+
     //////////// Buttons
     void OnExecutePlay();
     void OnCancelPlay();
@@ -92,54 +78,65 @@ namespace rqt_gcs
     void OnAccessPointsTriggered();
     void OnSettingsTriggered();
     void OnUnansweredQueriesTriggered();
-    void OnSaveUavQueries(UAVControl*, QString&);
-    void OnClearQueries();
-    void OnUpdateQueries();
-    void OnAnswerQuery(QWidget*, QString&, bool);
     void OnUpdateCameraFeed();
-    
+
     void OnAddUav(int);
     void OnDeleteUav(int);
     void OnUAVConnectionToggled(int, int, bool);
-    
+
     //SETTINGS RELATED
     virtual void OnToggleMachineLearningMode(bool);
-  
-  signals:
+
+    signals:
     void NewCameraFeedFrame();
     
-    
-  private:
-    
+private:
+    Ui::SimpleGCS widget;
+
+    void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
+    void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
+    void ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg);
+
+    //methods for publishing object detection paramerter updates
+    void PublishHitThreshold(double thresh);
+    void PublishStepSize(int step);
+    void PublishPadding(int padding);
+    void PublishScaleFactor(double scale);
+    void PublishMeanShift(bool on);
+
+    std::string GetMissionType(std::string file_name);
+    lcar_msgs::TargetLocal GetMissionLocal(std::string file_name);
+    lcar_msgs::TargetGlobal GetMissionGlobal(std::string file_name);
+
     ros::NodeHandle nh;
     ros::ServiceServer server;
     lcar_msgs::Door msg;
     image_transport::ImageTransport it_stereo{nh};
     QQueue<QPixmap> img_q;
-    int img_q_max_size = 30;
-    
+    int img_q_max_size;
+
     void InitMap();
     void InitMenuBar();
     void InitSettings();
     void InitHelperThread();
-      
-    void SelectUav(int);  
+
+    void SelectUav(int);
     void UpdateFlightStateWidgets(); // both the PFD and the text based widget
     void UpdateVehicleWidgets();
-    
+
     void UpdateQueries();
     void ClearQueries();
     void SaveUavQueries(int uav_id, const std::vector<lcar_msgs::DoorPtr> *queries, const QString ap_type);
     void AnswerQuery(QWidget *, QString ap_type, bool);
-    
+
     void ToggleScoutButtons(bool visible, QString icon_type = "pause");
     void ToggleArmDisarmButton(bool arm);
-    
+
     int cur_uav;
     int timeCounter;
     int NUM_UAV; //Total number of UAV's in the system
     int num_queries_last;
-    
+
     struct ObjectDetectionMessageHandlers // publishers and subscribers
     {
         ros::Publisher pub_hit_thresh;
@@ -149,7 +146,7 @@ namespace rqt_gcs
         ros::Publisher pub_mean_shift;
         ros::Subscriber sub_od_request;
     } od_handlers;
-    
+
     struct ObjectDetectionParamaters // object detection parameters
     {
         //defaults
@@ -159,47 +156,23 @@ namespace rqt_gcs
         double scale_factor = 1.15; // displayed as a decimal
         bool mean_shift = false;
     } od_params;
-    
-    struct FloatingWidgets 
+
+    struct FloatingWidgets
     {
         SettingsWidget * settings = nullptr;
         UnansweredQueries * unanswered_queries = nullptr;
         AccessPoints* ap_menu = nullptr;
     } fl_widgets_;
-    
+
     QVector<UAVControl*> active_uavs;
     QMap<int, UAVControl*> uav_db;
 
     std::vector<lcar_msgs::DoorPtr> * vec_uav_queries_;
 
     image_transport::Subscriber sub_stereo;
-    Ui::centralWidget central_ui_;
-    QWidget* central_widget_;
     QVector<VehicleListWidget*> vec_v_widgets;
-//    QVector<Ui::UAVConditionWidget*> vec_uav_list_ui_;
-    std::vector<QWidget*> query_widgets_; // recieves SimpleControl::getRefQuerires
-     
-    QMenuBar * menu_bar_;
-    
-    QMenu * file_menu;
-    QAction * start_uav_act;
-    QAction * start_uav_group_act;
-    QAction * shutdown_uav_act;
-    QAction * shutdown_uav_group_act;
-    
-    QMenu * view_menu;
-    QAction * unanswered_queries_act;
-    
-    QMenu * tools_menu;
-    QAction* settings_act;
-    
-    QMenu * help_menu;
-    QAction * about_act;
-    QAction * lcar_bot_act;
-    QAction * ros_act;
-    QAction * qt_act;
-    QAction * opencv_act;
-    
+    std::vector<QWidget*> query_widgets_; // recieves UAVControl::getRefQuerires
+
     QTimer* update_timer;
     QString temp_data;
 
@@ -210,33 +183,34 @@ namespace rqt_gcs
     QMutex uav_mutex,
            img_mutex;
     QWaitCondition num_uav_changed;
-  };
 
-  class SimpleGCSHelper : public QObject
-  {
-    Q_OBJECT
+};
 
-  public:
-      SimpleGCSHelper(SimpleGCS *);
-      ~SimpleGCSHelper();
+class SimpleGCSHelper : public QObject
+{
+  Q_OBJECT
 
-  public slots:
-      void help();
-      
-  signals:
-      void addUav(int); // uav_id
-      void deleteUav(int);
-      void toggleUavConnection(int, int, bool);
-      
-  private:
-      SimpleGCS * gcs;
+public:
+    SimpleGCSHelper(SimpleGCS *);
+    ~SimpleGCSHelper();
 
-      void parseUavNamespace(std::map<int, int>&);
+public slots:
+    void help();
 
-      void monitorUavNamespace();
-      void monitorUavConnections();
-      void runUavs();
-  };
+signals:
+    void addUav(int); // uav_id
+    void deleteUav(int);
+    void toggleUavConnection(int, int, bool);
 
-} // rqt_gcs name space
-#endif //rqt_gcs__SimpleGCS_H
+private:
+    SimpleGCS * gcs;
+
+    void parseUavNamespace(std::map<int, int>&);
+
+    void monitorUavNamespace();
+    void monitorUavConnections();
+    void runUavs();
+};
+
+}
+#endif /* _SIMPLEGCS_H */

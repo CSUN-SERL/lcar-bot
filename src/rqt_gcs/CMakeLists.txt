@@ -6,13 +6,11 @@ find_package(catkin REQUIRED COMPONENTS
             mavros     
             roscpp
             roslib
-            rqt_gui
             std_msgs
             cv_bridge
             lcar_msgs
             mavros_msgs
             sensor_msgs
-            rqt_gui_cpp
             geometry_msgs
             image_transport )
 
@@ -41,15 +39,16 @@ include_directories(${rqt_gcs_INCLUDE_DIRECTORIES}
 
 
 #currently not necessary but it doesn't hurt
-catkin_python_setup()
+#catkin_python_setup()
 
 catkin_package(
   INCLUDE_DIRS ${rqt_gcs_INCLUDE_DIRECTORIES}
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS roscpp rqt_gui rqt_gui_cpp std_msgs sensor_msgs )
+  CATKIN_DEPENDS roscpp std_msgs sensor_msgs )
 
 file(GLOB rqt_gcs_SRCS src/rqt_gcs/*.cpp src/FIS/*.cpp src/FIW/*.cpp src/vehicle/*.cpp )
-list(REMOVE_ITEM rqt_gcs_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/FIW/MainWindow.cpp)
+list(REMOVE_ITEM rqt_gcs_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/FIW/MainWindow.cpp
+                              ${CMAKE_CURRENT_SOURCE_DIR}/src/rqt_gcs/main.cpp )
 
 file(GLOB rqt_gcs_HDRS include/rqt_gcs/*.h include/FIS/*.h include/FIW/*.h )
 list(REMOVE_ITEM rqt_gcs_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/rqt_gcs/access_point.h 
@@ -78,11 +77,13 @@ add_executable(backup_control src/vehicle/backup_control.cpp)
 #add_executable(gps_demo src/vehicle/gps_demo.cpp)
 #add_executable(safe_mocap src/vehicle/safe_mocap.cpp)
 
-add_library(${PROJECT_NAME}
+add_library(_islurp
             ${rqt_gcs_SRCS}
             ${rqt_gcs_MOCS}
             ${rqt_gcs_UIS_H}
             ${rqt_gcs_RCC_SRCS} )
+
+add_executable(${PROJECT_NAME} src/rqt_gcs/main.cpp)
 
 #add_dependencies(uav_control ${catkin_EXPORTED_TARGETS})
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
@@ -95,28 +96,9 @@ target_link_libraries(backup_control ${catkin_LIBRARIES})
 #target_link_libraries(gps_demo ${catkin_LIBRARIES})
 #target_link_libraries(safe_mocap ${catkin_LIBRARIES})
 target_link_libraries(  ${PROJECT_NAME}
+                        _islurp
                         ${catkin_LIBRARIES}
                         ${OpenCV_LIBRARIES}
                         Qt5::Widgets
                         Qt5::Svg
                         Qt5::WebKitWidgets )
-
-find_package(class_loader)
-class_loader_hide_library_symbols(${PROJECT_NAME})
-
-install(FILES plugin.xml
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION} )
-
-install(TARGETS ${PROJECT_NAME}
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION} )
-
-install(PROGRAMS scripts/rqt_gcs
-  DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION} )
-
-install(PROGRAMS scripts/rqt_gcs
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION} )
-
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION} )
