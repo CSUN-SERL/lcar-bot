@@ -1,19 +1,24 @@
 <launch>
-  <machine name="Mobile-Station1" address="localhost" default="true"/>
-  <group ns="UAV1">
-    <machine  name="Quad1"
-              address="Quad1"
-              default="true"
-              user="ubuntu"
-              password="ubuntu"
-              env-loader="$HOME/lcar-bot-files/lcar_env.sh"/>
+    <arg name="uav_id" default="1"/>
 
-    <include file="$(find rqt_gcs)/launch/jetson.launch">
-      <arg name="tgt_system" value="2" />
-      <arg name="uav_id" value="1" />
-    </include>
-  </group>
-  <include file="$(find vrpn_client_ros)/launch/sample.launch">
-		<arg name="server" value="MocapServer" />
-	</include>
+    <machine name="$(env HOSTNAME)"
+             address="localhost" />
+
+    <machine name="Quad$(arg uav_id)"
+             address="Quad$(arg uav_id)"
+             default="true"
+             user="ubuntu"
+             password="ubuntu"
+             env-loader="$HOME/lcar-bot-files/lcar_env.sh" />
+
+   <group name="UAV" ns="UAV$(arg uav_id)" >
+        <include file="$(find machine_vision)/launch/node_object_detection.launch" >
+            <arg name="machine_name" value="Quad$(arg uav_id)" />
+        </include>
+        <include file="$(find rqt_gcs)/launch/jetson.launch" >
+            <arg name="tgt_system" value="$(arg uav_id)" />
+            <arg name="uav_id" value="$(arg uav_id)" required="true" />
+        </include>
+        <include file="$(find rqt_gcs)/launch/gcs.launch"/>
+   </group>
 </launch>

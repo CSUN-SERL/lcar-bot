@@ -6,26 +6,26 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>296</width>
-    <height>280</height>
+    <width>343</width>
+    <height>300</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
   <property name="minimumSize">
    <size>
-    <width>200</width>
-    <height>280</height>
+    <width>0</width>
+    <height>0</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>312</width>
-    <height>5000</height>
+    <width>16777215</width>
+    <height>16777215</height>
    </size>
   </property>
   <property name="palette">
@@ -34,18 +34,18 @@
      <colorrole role="WindowText">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>240</red>
-        <green>240</green>
-        <blue>240</blue>
+        <red>236</red>
+        <green>236</green>
+        <blue>236</blue>
        </color>
       </brush>
      </colorrole>
      <colorrole role="Button">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>48</red>
-        <green>57</green>
-        <blue>80</blue>
+        <red>39</red>
+        <green>47</green>
+        <blue>66</blue>
        </color>
       </brush>
      </colorrole>
@@ -79,36 +79,36 @@
      <colorrole role="Text">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>240</red>
-        <green>240</green>
-        <blue>240</blue>
+        <red>236</red>
+        <green>236</green>
+        <blue>236</blue>
        </color>
       </brush>
      </colorrole>
      <colorrole role="ButtonText">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>240</red>
-        <green>240</green>
-        <blue>240</blue>
+        <red>236</red>
+        <green>236</green>
+        <blue>236</blue>
        </color>
       </brush>
      </colorrole>
      <colorrole role="Base">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>48</red>
-        <green>57</green>
-        <blue>80</blue>
+        <red>39</red>
+        <green>47</green>
+        <blue>66</blue>
        </color>
       </brush>
      </colorrole>
      <colorrole role="Window">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>48</red>
-        <green>57</green>
-        <blue>80</blue>
+        <red>39</red>
+        <green>47</green>
+        <blue>66</blue>
        </color>
       </brush>
      </colorrole>
@@ -144,18 +144,18 @@
      <colorrole role="WindowText">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>240</red>
-        <green>240</green>
-        <blue>240</blue>
+        <red>236</red>
+        <green>236</green>
+        <blue>236</blue>
        </color>
       </brush>
      </colorrole>
      <colorrole role="Button">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>48</red>
-        <green>57</green>
-        <blue>80</blue>
+        <red>39</red>
+        <green>47</green>
+        <blue>66</blue>
        </color>
       </brush>
      </colorrole>
@@ -189,36 +189,36 @@
      <colorrole role="Text">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>240</red>
-        <green>240</green>
-        <blue>240</blue>
+        <red>236</red>
+        <green>236</green>
+        <blue>236</blue>
        </color>
       </brush>
      </colorrole>
      <colorrole role="ButtonText">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>240</red>
-        <green>240</green>
-        <blue>240</blue>
+        <red>236</red>
+        <green>236</green>
+        <blue>236</blue>
        </color>
       </brush>
      </colorrole>
      <colorrole role="Base">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>48</red>
-        <green>57</green>
-        <blue>80</blue>
+        <red>39</red>
+        <green>47</green>
+        <blue>66</blue>
        </color>
       </brush>
      </colorrole>
      <colorrole role="Window">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>48</red>
-        <green>57</green>
-        <blue>80</blue>
+        <red>39</red>
+        <green>47</green>
+        <blue>66</blue>
        </color>
       </brush>
      </colorrole>
@@ -254,18 +254,18 @@
      <colorrole role="WindowText">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>240</red>
-        <green>240</green>
-        <blue>240</blue>
+        <red>236</red>
+        <green>236</green>
+        <blue>236</blue>
        </color>
       </brush>
      </colorrole>
      <colorrole role="Button">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>48</red>
-        <green>57</green>
-        <blue>80</blue>
+        <red>39</red>
+        <green>47</green>
+        <blue>66</blue>
        </color>
       </brush>
      </colorrole>
@@ -299,36 +299,36 @@
      <colorrole role="Text">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>240</red>
-        <green>240</green>
-        <blue>240</blue>
+        <red>236</red>
+        <green>236</green>
+        <blue>236</blue>
        </color>
       </brush>
      </colorrole>
      <colorrole role="ButtonText">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>240</red>
-        <green>240</green>
-        <blue>240</blue>
+        <red>236</red>
+        <green>236</green>
+        <blue>236</blue>
        </color>
       </brush>
      </colorrole>
      <colorrole role="Base">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>48</red>
-        <green>57</green>
-        <blue>80</blue>
+        <red>39</red>
+        <green>47</green>
+        <blue>66</blue>
        </color>
       </brush>
      </colorrole>
      <colorrole role="Window">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>48</red>
-        <green>57</green>
-        <blue>80</blue>
+        <red>39</red>
+        <green>47</green>
+        <blue>66</blue>
        </color>
       </brush>
      </colorrole>
@@ -366,114 +366,83 @@
    <string>Picture Msg</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QPushButton{
+   <string notr="true">QWidget{
+	color: rgb(236, 236, 236);
+	background-color: rgb(39, 47,66);
+	border-radius:5px;
+}
+
+QPushButton{
 	border-radius: 5px;
-	padding-top:5px;
-	padding-bottom:5px
 };
 
-background-color: rgb(48, 57, 80);
-color: rgb(240, 240, 240);
 </string>
   </property>
-  <widget class="QFrame" name="frame">
-   <property name="geometry">
-    <rect>
-     <x>9</x>
-     <y>9</y>
-     <width>280</width>
-     <height>210</height>
-    </rect>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>6</number>
    </property>
-   <property name="minimumSize">
-    <size>
-     <width>280</width>
-     <height>210</height>
-    </size>
-   </property>
-   <property name="maximumSize">
-    <size>
-     <width>480</width>
-     <height>360</height>
-    </size>
-   </property>
-   <property name="frameShape">
-    <enum>QFrame::NoFrame</enum>
-   </property>
-   <property name="frameShadow">
-    <enum>QFrame::Raised</enum>
-   </property>
-   <layout class="QGridLayout" name="gridLayout">
-    <property name="leftMargin">
-     <number>0</number>
-    </property>
-    <property name="topMargin">
-     <number>0</number>
-    </property>
-    <property name="rightMargin">
-     <number>0</number>
-    </property>
-    <property name="bottomMargin">
-     <number>0</number>
-    </property>
-    <property name="spacing">
-     <number>0</number>
-    </property>
-    <item row="0" column="0">
-     <layout class="QVBoxLayout" name="PictureLayout"/>
-    </item>
-   </layout>
-  </widget>
-  <widget class="Line" name="line">
-   <property name="geometry">
-    <rect>
-     <x>9</x>
-     <y>264</y>
-     <width>280</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="frameShadow">
-    <enum>QFrame::Raised</enum>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-  </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>230</y>
-     <width>278</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
-     <widget class="QPushButton" name="yesButton">
-      <property name="styleSheet">
-       <string notr="true">background-color: rgb(64, 89, 145);
+   <item>
+    <widget class="QLabel" name="image_frame">
+     <property name="minimumSize">
+      <size>
+       <width>320</width>
+       <height>240</height>
+      </size>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="indent">
+      <number>-1</number>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>6</number>
+     </property>
+     <item alignment="Qt::AlignHCenter|Qt::AlignTop">
+      <widget class="QPushButton" name="yesButton">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(64, 89, 145);
 color: rgb(240, 240, 240);</string>
-      </property>
-      <property name="text">
-       <string>Accept</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QPushButton" name="rejectButton">
-      <property name="styleSheet">
-       <string notr="true">background-color: rgb(161, 20, 40);
+       </property>
+       <property name="text">
+        <string>Accept</string>
+       </property>
+      </widget>
+     </item>
+     <item alignment="Qt::AlignHCenter|Qt::AlignTop">
+      <widget class="QPushButton" name="rejectButton">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(161, 20, 40);
 color: rgb(240, 240, 240);</string>
-      </property>
-      <property name="text">
-       <string>Reject</string>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
+       </property>
+       <property name="text">
+        <string>Reject</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>

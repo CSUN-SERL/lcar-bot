@@ -32,14 +32,19 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
-#include <lcar_msgs/Door.h>
-#include <lcar_msgs/TargetLocal.h>
-#include <lcar_msgs/TargetGlobal.h>
+#include "lcar_msgs/Door.h"
+#include "lcar_msgs/TargetLocal.h"
+#include "lcar_msgs/TargetGlobal.h"
 
-#include <rqt_gcs/access_point.h>
+#include "rqt_gcs/access_point.h"
+#include "vehicle/vehicle_control.h"
+
+namespace rqt_gcs
+{
 
 #define PI 3.14159265
-#define QUEUE_SIZE 100            //Message Queue size for publishers
+#define QUEUE_SIZE 100  
+#define PI 3.14159265          //Message Queue size for publishers
 #define CHECK_FREQUENCY 1         //Frequency for checking change of state
 #define TIMEOUT 3*CHECK_FREQUENCY //3 Second timeout
 #define TRAVEL_WT 0.5
@@ -57,60 +62,34 @@
 #define DEF_NS "UAV"
 #define R_EARTH 6371        //Earth's radius in km
 
-//Enumerators
-enum Mode{
-    travel,
-    hold_pose,
-    scout,
-    rtl,
-    land,
-    disarm,
-    idle,
-    null
-};
 
-enum PositionMode{
-    local,
-    global
-};
-
-//Structs
-struct FlightState {
-    float roll, pitch, yaw;
-    float altitude;
-    float vertical_speed, ground_speed;
-    float heading;
-};
-
-class SimpleControl
+class UAVControl : public VehicleControl
 {
 public:
-    int id;
-    static int static_id;
-    SimpleControl();
-    SimpleControl(int uav_id);
-    ~SimpleControl();
-    
+
     int accepted_images = 0,
         rejected_images = 0;
     
+    UAVControl(int uav_id);
+    ~UAVControl();
     
     /**
-     * set online mode on or off
+     * \brief Set online mode on or off
      * 
      * @param value: pass true for online, false for offline
      */
-    bool setOnlineMode(bool value)
+    bool SetOnlineMode(bool value)
     {
        online_mode = value;
     }
+
     /**
-      Arm or disarm the UAV.
-
-      @param value Pass true for arm, false for disarm
+    * \brief Arm or disarm the UAV.
+    *
+    * @param value Pass true for arm, false for disarm
     */
-    void Arm(bool value);
-
+    void Arm(bool value) override;
+    
     /**
       Takeoff to a set altitude. Requires the UAV to be first armed and then
       put into Guided mode.
@@ -130,7 +109,7 @@ public:
       @param mode Mode to Set: Choose from Stabilize, Alt Hold, Auto, Guided,
       Loiter, RTL, or Circle
     */
-    void SetMode(std::string mode);
+    void SetMode(std::string mode) override;
 
     /**
       Enable OFFBOARD mode on the PX4
@@ -140,7 +119,7 @@ public:
     /**
       Returns the current location of the UAV in JSON format.
     */
-    std::string GetLocation();
+    sensor_msgs::NavSatFix GetLocation() override;
 
     /**
       Add the passed GPS location to the current set of waypoints to visit.
@@ -160,17 +139,17 @@ public:
     void SetWayPoint(std::string waypoint);
 
     /**
-      Executes proper instructions for running the Scout Building play
+      Executes a Scout Building play using local coordinates
 
-      @param target_point query_msgs::Target building location
+      @param target_point lcar_msgs::TargetLocal building location
 
     */
     void ScoutBuilding(lcar_msgs::TargetLocal msg_target);
 
     /**
-      Executes proper instructions for running the Scout Building play
+      Executes a Scout Building play using global coordinates
 
-      @param target_point query_msgs::Target building location
+      @param target_point lcar_msgs::TargetGlobal building location
 
     */
     void ScoutBuilding(lcar_msgs::TargetGlobal msg_target);
@@ -265,30 +244,80 @@ public:
     /**
       Return to launch site
     */
-    void SetRTL() { this->EnableOffboard(); goal = rtl; }  
+    void SetRTL() override { this->EnableOffboard(); goal = Mode::rtl; }  
 
     /**
       Manage the UAV and ensure that it is stable
     */
     void SendDoorResponse(lcar_msgs::Door msg_answer) { pub_door_answer.publish(msg_answer); }
 
+    /*!
+     * \brief Manages heartbeat emission
+     * \param drop_connection True or false
+     *
+     * Simulates a drop in connection to the ground control station and stops
+     * emitting heartbeats.
+     */
     void DropConnection(bool drop_connection)
     {
         connection_dropped = drop_connection;
     }
+
+    /*!
+     * \brief Pause the current mission
+     *
+     * Stops the UAV at its current location and waits for a command from the
+     * GCS to resume the mission.
+     */
+    void PauseMission() override;
+
+    /*!
+     * \brief Resumes the previously paused mission.
+     *
+     * Starts the mission that was previously paused. If there was no previously
+     * paused mission, does nothing.
+     */
+    void ResumeMission() override;
+
+    /*!
+     * \brief Cancels the current mission
+     *
+     * Cancels the current mission and commands the UAV to return base.
+     */
+    void StopMission() override;
     
     //Getter Functions
-    int GetId() { return id; }
     mavros_msgs::State GetState() { return state; }
     sensor_msgs::BatteryState GetBatteryState() { return battery; }
     sensor_msgs::Imu  GetImu() { return imu; }
     FlightState GetFlightState() { return UpdateFlightState(); }
     int GetDistanceToWP() { return CalculateDistance(pose_target, pose_local); }
     float GetMissionProgress();
+    MissionMode GetMissionMode(){return mission_mode;}
     std::vector<AccessPoint>* GetRefAccessPoints() { return &access_pts; }
     std::vector<lcar_msgs::DoorPtr>* GetDoorQueries() { return &queries_door; }
     bool RecievedHeartbeat() { return heartbeat_recieved; }
-    
+    Mode getMode(){ return goal; }
+
+    void SetRejected_images(int rejected_images)
+    {
+        this->rejected_images = rejected_images;
+    }
+
+    int GetRejected_images() const
+    {
+        return rejected_images;
+    }
+
+    void SetAccepted_images(int accepted_images)
+    {
+        this->accepted_images = accepted_images;
+    }
+
+    int GetAccepted_images() const
+    {
+        return accepted_images;
+    }
 
 private:
     void InitialSetup();
@@ -392,14 +421,6 @@ private:
     void UavHeartbeatTimeoutCallback(const ros::TimerEvent& e)
     {
         heartbeat_recieved = false;
-
-        //TODO
-            //gray out vehicle select button on main gui
-            //some kind of notification to the user
-        //UPDATE
-            // this will be handled by SimpleGCS, by querying each uav for the 
-            // value of heartbeat_recieved. if false, gray out its button
-        
     }
     
     void GcsPublishHeartbeat(const ros::TimerEvent& e)
@@ -456,9 +477,10 @@ private:
     std_msgs::Float64               altitude_rel,
                                     heading_deg,
                                     object_distance;
-    Mode                            goal = idle,
+    Mode                      goal = idle,
                                     goal_prev = null;
     PositionMode                    position_mode = local;
+    MissionMode                     mission_mode = stopped;
     ros::Time                       last_request;
     std::vector<AccessPoint>        access_pts;
     std::vector<lcar_msgs::DoorPtr> queries_door;
@@ -472,5 +494,5 @@ private:
                                     uav_heartbeat;
 };
 
-
+}
 #endif

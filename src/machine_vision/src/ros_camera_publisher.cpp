@@ -48,13 +48,16 @@ int main(int argc, char** argv)
   sensor_msgs::ImagePtr msg;
 
   int numFrames = 0;
+  
+  std::string enc = "bgr8";
+  std::cout << "broadcasting in " << enc << "\n";
   while (nh.ok()) {
     try{
         cap >> frame;
     // Check if grabbed frame is actually full with some content
         if(!frame.empty()) {
             //don't change my color space! (rgb8)
-            msg = cv_bridge::CvImage(std_msgs::Header(), "rgb8", frame).toImageMsg();
+            msg = cv_bridge::CvImage(std_msgs::Header(), enc, frame).toImageMsg();
             pub.publish(msg);
             numFrames++;
         }

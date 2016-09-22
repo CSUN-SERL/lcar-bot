@@ -34,7 +34,7 @@ int main(int argc, char **argv)
           lat = rand() % 170 + (-85); //-90 to 90
           lon = rand() % 355 + (-175); //-180 to 180
         }
-    }else {
+      }else {
         lat += .001;
         lon += .001;
       }

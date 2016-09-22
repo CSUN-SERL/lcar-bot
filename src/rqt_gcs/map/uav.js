@@ -57,8 +57,8 @@ function showPosition() {
 
 latlon = new google.maps.LatLng(longitude, latitude)
 mapholder = document.getElementById('mapholder')
-mapholder.style.height = '850px';
-mapholder.style.width = '100%';
+//mapholder.style.height = '100%';
+//mapholder.style.width = '100%';
 
 
 var myOptions = {
@@ -68,8 +68,7 @@ var myOptions = {
   navigationControlOptions:{style:google.maps.NavigationControlStyle.SMALL}
 }
 
-map = new google.maps.Map(document.getElementById("mapholder"), myOptions);
-
+map = new google.maps.Map(mapholder, myOptions);
 //setTimeout("update()", 4000)
 update();
 
