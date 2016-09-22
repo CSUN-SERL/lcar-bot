@@ -13,7 +13,7 @@
 namespace rqt_gcs
 {
 
-SettingsWidget::SettingsWidget(SimpleGCS * sgcs) :
+SettingsWidget::SettingsWidget(GCS * sgcs) :
 gcs(sgcs)
 {
     this->setAttribute(Qt::WA_DeleteOnClose);

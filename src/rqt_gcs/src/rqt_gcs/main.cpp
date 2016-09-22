@@ -6,7 +6,7 @@
  */
 
 #include <QApplication>
-#include "rqt_gcs/simple_gcs.h"
+#include "rqt_gcs/gcs.h"
 
 int main(int argc, char *argv[])
 {
@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     ros::AsyncSpinner spinner(2);
     spinner.start();
     
-    rqt_gcs::SimpleGCS gcs;
+    rqt_gcs::GCS gcs;
     gcs.show();
     
     return app.exec();

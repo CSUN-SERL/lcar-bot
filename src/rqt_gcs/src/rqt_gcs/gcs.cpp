@@ -8,7 +8,7 @@
 #include <QStringBuilder>
 #include <QMetaType>
 
-#include "rqt_gcs/simple_gcs.h"
+#include "rqt_gcs/gcs.h"
 #include "util/image.h"
 #include "util/debug.h"
 
@@ -23,7 +23,7 @@ namespace rqt_gcs
         QString image_root_dir_; // defined globally in util/image.h
     }
 
-SimpleGCS::SimpleGCS():
+GCS::GCS():
 NUM_UAV(0),
 timeCounter(0),
 cur_uav(-1),
@@ -34,14 +34,14 @@ img_q_max_size(30)
     update_timer = new QTimer(this);
 
     //setup button logic for the widgets
-    connect(widget.btn_exec_play, &QPushButton::clicked, this, &SimpleGCS::OnExecutePlay);
-    connect(widget.btn_scout, &QPushButton::clicked, this, &SimpleGCS::OnScoutBuilding);
-    connect(widget.btn_scout_play_pause, &QPushButton::clicked, this, &SimpleGCS::OnPauseOrResumeScout);
-    connect(widget.btn_scout_stop, &QPushButton::clicked, this, &SimpleGCS::OnStopScout);
+    connect(widget.btn_exec_play, &QPushButton::clicked, this, &GCS::OnExecutePlay);
+    connect(widget.btn_scout, &QPushButton::clicked, this, &GCS::OnScoutBuilding);
+    connect(widget.btn_scout_play_pause, &QPushButton::clicked, this, &GCS::OnPauseOrResumeScout);
+    connect(widget.btn_scout_stop, &QPushButton::clicked, this, &GCS::OnStopScout);
     connect(widget.cmbo_box_flight_mode, SIGNAL(currentIndexChanged(int)), this, SLOT(OnChangeFlightMode(int)));
-    connect(widget.btn_view_acess_points, &QPushButton::clicked, this, &SimpleGCS::OnAccessPointsTriggered);
-    connect(widget.btn_arm_uav, &QPushButton::clicked, this, &SimpleGCS::OnArmOrDisarmSelectedUav);
-    connect(this, &SimpleGCS::NewCameraFeedFrame, this, &SimpleGCS::OnUpdateCameraFeed);
+    connect(widget.btn_view_acess_points, &QPushButton::clicked, this, &GCS::OnAccessPointsTriggered);
+    connect(widget.btn_arm_uav, &QPushButton::clicked, this, &GCS::OnArmOrDisarmSelectedUav);
+    connect(this, &GCS::NewCameraFeedFrame, this, &GCS::OnUpdateCameraFeed);
 
     od_handlers.pub_hit_thresh = nh.advertise<std_msgs::Float64>("/object_detection/hit_threshold", 5);
     od_handlers.pub_step_size = nh.advertise<std_msgs::Int32>("/object_detection/step_size", 5);
@@ -49,7 +49,7 @@ img_q_max_size(30)
     od_handlers.pub_scale_factor = nh.advertise<std_msgs::Float64>("/object_detection/scale_factor", 5);
     od_handlers.pub_mean_shift = nh.advertise<std_msgs::Int32>("/object_detection/mean_shift_grouping", 5);
     od_handlers.sub_od_request = nh.subscribe("/object_detection/param_request", 5,
-                                              &SimpleGCS::ReceivedObjectDetectionRequest, this);
+                                              &GCS::ReceivedObjectDetectionRequest, this);
 
     dbg::InitDbg();
     this->InitMenuBar();
@@ -61,19 +61,19 @@ img_q_max_size(30)
 
     //Setup update timer
     connect(update_timer, &QTimer::timeout,
-            this, &SimpleGCS::OnTimedUpdate);
+            this, &GCS::OnTimedUpdate);
     //30 hz :1000/30 = 33.33...
-    
+
     update_timer->start(0);
 }
 
-SimpleGCS::~SimpleGCS()
+GCS::~GCS()
 {
   ros::shutdown();
 }
 
 
-void SimpleGCS::OnAddUav(int uav_id)
+void GCS::OnAddUav(int uav_id)
 {
     uav_mutex.lock();
 
@@ -117,7 +117,7 @@ void SimpleGCS::OnAddUav(int uav_id)
     uav_mutex.unlock();
 }
 
-void SimpleGCS::OnDeleteUav(int index)
+void GCS::OnDeleteUav(int index)
 {
     uav_mutex.lock();
 
@@ -167,7 +167,7 @@ void SimpleGCS::OnDeleteUav(int index)
    uav_mutex.unlock();
 }
 
-void SimpleGCS::SaveUavQueries(int uav_id, const std::vector<lcar_msgs::DoorPtr> *queries, const QString ap_type)
+void GCS::SaveUavQueries(int uav_id, const std::vector<lcar_msgs::DoorPtr> *queries, const QString ap_type)
 {
     QString path = image_util::image_root_dir_ % "/queries/unanswered/"
         % ap_type % "/uav_" % QString::number(uav_id);
@@ -194,7 +194,7 @@ void SimpleGCS::SaveUavQueries(int uav_id, const std::vector<lcar_msgs::DoorPtr>
     }
 }
 
-void SimpleGCS::OnUAVConnectionToggled(int index, int uav_id, bool toggle)
+void GCS::OnUAVConnectionToggled(int index, int uav_id, bool toggle)
 {
     if(index >= active_uavs.size() || active_uavs[index]->id != uav_id)
         return;
@@ -203,7 +203,7 @@ void SimpleGCS::OnUAVConnectionToggled(int index, int uav_id, bool toggle)
 }
 
 //Timed update of GCS gui
-void SimpleGCS::OnTimedUpdate()
+void GCS::OnTimedUpdate()
 {
 
     if(NUM_UAV == 0)
@@ -226,7 +226,7 @@ void SimpleGCS::OnTimedUpdate()
 
 }
 
-void SimpleGCS::ClearQueries()
+void GCS::ClearQueries()
 {
     int size = query_widgets_.size();
     for(int i = 0; i < size; i++)
@@ -239,7 +239,7 @@ void SimpleGCS::ClearQueries()
 }
 
 
-void SimpleGCS::UpdateQueries()
+void GCS::UpdateQueries()
 {
     if(NUM_UAV == 0 || !widget.frame_queries_cntnr->isVisible())
         return;
@@ -280,7 +280,7 @@ void SimpleGCS::UpdateQueries()
     num_queries_last = pqv_size;
 }
 
-void SimpleGCS::AnswerQuery(QWidget * qw, QString ap_type, bool accepted)
+void GCS::AnswerQuery(QWidget * qw, QString ap_type, bool accepted)
 {
     int index = widget.layout_queries->indexOf(qw);
     lcar_msgs::DoorPtr door = vec_uav_queries_->at(index);
@@ -311,17 +311,17 @@ void SimpleGCS::AnswerQuery(QWidget * qw, QString ap_type, bool accepted)
     //UAVs[cur_uav]->SendDoorResponse(doormsg);
 }
 
-void SimpleGCS::OnAcceptDoorQuery(QWidget *qw)
+void GCS::OnAcceptDoorQuery(QWidget *qw)
 {
     AnswerQuery(qw, "door", true);
 }
 
-void SimpleGCS::OnRejectDoorQuery(QWidget * qw)
+void GCS::OnRejectDoorQuery(QWidget * qw)
 {
     AnswerQuery(qw, "door", false);
 }
 
-void SimpleGCS::OnExecutePlay()
+void GCS::OnExecutePlay()
 {
     if(NUM_UAV == 0)
         return;
@@ -357,7 +357,7 @@ void SimpleGCS::OnExecutePlay()
     ROS_INFO_STREAM("Play " << play_num << " initiated");
 }
 
-void SimpleGCS::OnCancelPlay()
+void GCS::OnCancelPlay()
 {
     if(NUM_UAV == 0)
         return;
@@ -370,7 +370,7 @@ void SimpleGCS::OnCancelPlay()
     this->ToggleScoutButtons(true);
 }
 
-void SimpleGCS::OnScoutBuilding()
+void GCS::OnScoutBuilding()
 {
     if(NUM_UAV == 0)
         return;
@@ -388,7 +388,7 @@ void SimpleGCS::OnScoutBuilding()
     ROS_INFO_STREAM("Scouting Building " << building_index);
 }
 
-void SimpleGCS::OnPauseOrResumeScout()
+void GCS::OnPauseOrResumeScout()
 {
     if (NUM_UAV == 0)
         return;
@@ -405,7 +405,7 @@ void SimpleGCS::OnPauseOrResumeScout()
     }
 }
 
-void SimpleGCS::OnStopScout()
+void GCS::OnStopScout()
 {
     if(NUM_UAV == 0)
         return;
@@ -414,7 +414,7 @@ void SimpleGCS::OnStopScout()
     this->ToggleScoutButtons(true);
 }
 
-void SimpleGCS::OnChangeFlightMode(int index)
+void GCS::OnChangeFlightMode(int index)
 {
     if(NUM_UAV == 0)
         return;
@@ -466,7 +466,7 @@ void SimpleGCS::OnChangeFlightMode(int index)
     }
 }
 
-void SimpleGCS::ToggleScoutButtons(bool visible, QString icon_type)
+void GCS::ToggleScoutButtons(bool visible, QString icon_type)
 { // icon_type should be "play" or "pause"
     widget.btn_scout->setVisible(visible);
     widget.btn_scout_play_pause->setVisible(!visible);
@@ -474,7 +474,7 @@ void SimpleGCS::ToggleScoutButtons(bool visible, QString icon_type)
     widget.btn_scout_stop->setVisible(!visible);
 }
 
-void SimpleGCS::OnAccessPointsTriggered()
+void GCS::OnAccessPointsTriggered()
 {
     if(fl_widgets_.ap_menu == nullptr)
     {
@@ -500,13 +500,13 @@ void SimpleGCS::OnAccessPointsTriggered()
 }
 
 // slot gets called when user click on a uav button
-void SimpleGCS::OnUavSelected(QWidget* w)
+void GCS::OnUavSelected(QWidget* w)
 {
     SelectUav(widget.layout_uavs->indexOf(w));
 }
 
 //needed in addUav(int) and deleteUav(int)
-void SimpleGCS::SelectUav(int uav_number)
+void GCS::SelectUav(int uav_number)
 {
     Q_ASSERT(0 <= uav_number && uav_number < NUM_UAV);
 
@@ -522,7 +522,7 @@ void SimpleGCS::SelectUav(int uav_number)
     UAVControl * uav = active_uavs[cur_uav];
     // handle image topic subscription and image refresh for new uav
     sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav->id) + "/stereo_cam/left/image_rect",
-                                     img_q_max_size, &SimpleGCS::ImageCallback, this);
+                                     img_q_max_size, &GCS::ImageCallback, this);
 
     if(fl_widgets_.ap_menu != nullptr)
         fl_widgets_.ap_menu->SetUAV(uav);
@@ -539,7 +539,7 @@ void SimpleGCS::SelectUav(int uav_number)
     this->ToggleArmDisarmButton(active_uavs[cur_uav]->GetState().armed);
 }
 
-void SimpleGCS::UpdateFlightStateWidgets()
+void GCS::UpdateFlightStateWidgets()
 {
     if(NUM_UAV == 0)
         return;
@@ -576,7 +576,7 @@ void SimpleGCS::UpdateFlightStateWidgets()
 
 }
 
-void SimpleGCS::OnArmOrDisarmSelectedUav()
+void GCS::OnArmOrDisarmSelectedUav()
 {
     if(NUM_UAV == 0)
         return;
@@ -588,7 +588,7 @@ void SimpleGCS::OnArmOrDisarmSelectedUav()
     active_uavs[cur_uav]->Arm(!armed);
 }
 
-void SimpleGCS::ToggleArmDisarmButton(bool arm)
+void GCS::ToggleArmDisarmButton(bool arm)
 {
     if(arm)
         widget.btn_arm_uav->setText("Disarm");
@@ -596,7 +596,7 @@ void SimpleGCS::ToggleArmDisarmButton(bool arm)
         widget.btn_arm_uav->setText("Arm");
 }
 
-void SimpleGCS::InitHelperThread()
+void GCS::InitHelperThread()
 {
     uav_monitor = new SimpleGCSHelper(this);
     uav_monitor->moveToThread(&t_uav_monitor);
@@ -605,25 +605,25 @@ void SimpleGCS::InitHelperThread()
             uav_monitor, &SimpleGCSHelper::help);
 
     connect(uav_monitor, &SimpleGCSHelper::addUav,
-            this, &SimpleGCS::OnAddUav);
+            this, &GCS::OnAddUav);
 
     connect(uav_monitor, &SimpleGCSHelper::deleteUav,
-            this, &SimpleGCS::OnDeleteUav);
+            this, &GCS::OnDeleteUav);
 
     connect(uav_monitor, &SimpleGCSHelper::toggleUavConnection,
-            this, &SimpleGCS::OnUAVConnectionToggled);
+            this, &GCS::OnUAVConnectionToggled);
 
     t_uav_monitor.start();
 }
 
-void SimpleGCS::InitMap()
+void GCS::InitMap()
 {
     QString s = ros::package::getPath("rqt_gcs").c_str();
     QString map_url = "file://" % s % "/map/uavmap.html";
     widget.web_view->load(QUrl(map_url));
 }
 
-void SimpleGCS::InitMenuBar()
+void GCS::InitMenuBar()
 {
     QMenuBar *menu_bar = this->menuBar();
     QMenu *file_menu = menu_bar->addMenu("File");
@@ -635,14 +635,14 @@ void SimpleGCS::InitMenuBar()
     //view menu
     QMenu *view_menu = menu_bar->addMenu("View");
     QAction *unanswered_queries_act = view_menu->addAction("Unanswered Queries");
-    connect(unanswered_queries_act, &QAction::triggered, 
-            this, &SimpleGCS::OnUnansweredQueriesTriggered);
+    connect(unanswered_queries_act, &QAction::triggered,
+            this, &GCS::OnUnansweredQueriesTriggered);
 
     //tools menu
     QMenu *tools_menu = menu_bar->addMenu("Tools");
     QAction *settings_act = tools_menu->addAction("Settings");
-    connect(settings_act, &QAction::triggered, 
-            this, &SimpleGCS::OnSettingsTriggered); 
+    connect(settings_act, &QAction::triggered,
+            this, &GCS::OnSettingsTriggered);
 
     //help menu
     QMenu *help_menu = menu_bar->addMenu("Help");
@@ -654,7 +654,7 @@ void SimpleGCS::InitMenuBar()
 }
 
 // SettingsWidget and QSettings related stuff
-void SimpleGCS::InitSettings()
+void GCS::InitSettings()
 {
     //initialize settings and uav queries display
     settings = new QSettings("SERL", "LCAR_Bot");
@@ -684,7 +684,7 @@ void SimpleGCS::InitSettings()
     settings->endGroup();
 }
 
-void SimpleGCS::OnSettingsTriggered()
+void GCS::OnSettingsTriggered()
 {
     if(fl_widgets_.settings == nullptr)
     {
@@ -697,7 +697,7 @@ void SimpleGCS::OnSettingsTriggered()
         fl_widgets_.settings->setVisible(true);
 
         connect(fl_widgets_.settings, &SettingsWidget::machineLearningModeToggled,
-                this, &SimpleGCS::OnToggleMachineLearningMode);
+                this, &GCS::OnToggleMachineLearningMode);
 
         connect(fl_widgets_.settings, &SettingsWidget::destroyed,
                 this, [=](){ fl_widgets_.settings = nullptr; });
@@ -709,7 +709,7 @@ void SimpleGCS::OnSettingsTriggered()
     }
 }
 
-void SimpleGCS::OnUnansweredQueriesTriggered()
+void GCS::OnUnansweredQueriesTriggered()
 {
     if(fl_widgets_.unanswered_queries == nullptr)
     {
@@ -731,7 +731,7 @@ void SimpleGCS::OnUnansweredQueriesTriggered()
     }
 }
 
-void SimpleGCS::OnToggleMachineLearningMode(bool toggle)
+void GCS::OnToggleMachineLearningMode(bool toggle)
 {
     widget.frame_queries_cntnr->setVisible(toggle);
     widget.frame_queries_cntnr->setEnabled(toggle);
@@ -740,7 +740,7 @@ void SimpleGCS::OnToggleMachineLearningMode(bool toggle)
         active_uavs[i]->SetOnlineMode(toggle);
 }
 
-std::string SimpleGCS::GetMissionType(std::string file_name)
+std::string GCS::GetMissionType(std::string file_name)
 {
     std::string mission_type;
     std::ifstream fileIn(file_name);
@@ -751,7 +751,7 @@ std::string SimpleGCS::GetMissionType(std::string file_name)
     return mission_type;
 }
 
-lcar_msgs::TargetLocal SimpleGCS::GetMissionLocal(std::string file_name)
+lcar_msgs::TargetLocal GCS::GetMissionLocal(std::string file_name)
 {
     float pos_x, pos_y, pos_z, radius;
     std::string mission_type;
@@ -774,7 +774,7 @@ lcar_msgs::TargetLocal SimpleGCS::GetMissionLocal(std::string file_name)
     return building_local;
 }
 
-lcar_msgs::TargetGlobal SimpleGCS::GetMissionGlobal(std::string file_name)
+lcar_msgs::TargetGlobal GCS::GetMissionGlobal(std::string file_name)
 {
     float pos_x, pos_y, pos_z, radius;
     lcar_msgs::TargetGlobal building_global;
@@ -795,7 +795,7 @@ lcar_msgs::TargetGlobal SimpleGCS::GetMissionGlobal(std::string file_name)
     return building_global;
 }
 
-void SimpleGCS::UpdateVehicleWidgets()
+void GCS::UpdateVehicleWidgets()
 {
     for(int i = 0; i < NUM_UAV; i++)
     {
@@ -806,7 +806,7 @@ void SimpleGCS::UpdateVehicleWidgets()
     }
 }
 
-void SimpleGCS::OnUpdateCameraFeed()
+void GCS::OnUpdateCameraFeed()
 {
     img_mutex.lock();
 
@@ -817,7 +817,7 @@ void SimpleGCS::OnUpdateCameraFeed()
     img_mutex.unlock();
 }
 
-void SimpleGCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
+void GCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
     img_mutex.lock();
 
@@ -834,7 +834,7 @@ void SimpleGCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
     img_mutex.unlock();
 }
 
-void SimpleGCS::ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg)
+void GCS::ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg)
 {
     ROS_INFO_STREAM("received object detection paramater request");
     this->PublishHitThreshold(od_params.hit_thresh);
@@ -844,35 +844,35 @@ void SimpleGCS::ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& ms
     this->PublishMeanShift(od_params.mean_shift);
 }
 
-void SimpleGCS::PublishHitThreshold(double thresh)
+void GCS::PublishHitThreshold(double thresh)
 {
     std_msgs::Float64 msg;
     msg.data = thresh;
     od_handlers.pub_hit_thresh.publish(msg);
 }
 
-void SimpleGCS::PublishStepSize(int step)
+void GCS::PublishStepSize(int step)
 {
     std_msgs::Int32 msg;
     msg.data = step;
     od_handlers.pub_step_size.publish(msg);
 }
 
-void SimpleGCS::PublishPadding(int padding)
+void GCS::PublishPadding(int padding)
 {
     std_msgs::Int32 msg;
     msg.data = padding;
     od_handlers.pub_padding.publish(msg);
 }
 
-void SimpleGCS::PublishScaleFactor(double scale)
+void GCS::PublishScaleFactor(double scale)
 {
     std_msgs::Float64 msg;
     msg.data = scale;
     od_handlers.pub_scale_factor.publish(msg);
 }
 
-void SimpleGCS::PublishMeanShift(bool on)
+void GCS::PublishMeanShift(bool on)
 {
     std_msgs::Int32 msg;
     msg.data = on;
@@ -883,7 +883,7 @@ void SimpleGCS::PublishMeanShift(bool on)
 //////////////////////////  SimpleGCSHelper  ///////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
 
-SimpleGCSHelper::SimpleGCSHelper(SimpleGCS * sgcs) :
+SimpleGCSHelper::SimpleGCSHelper(GCS * sgcs) :
     gcs(sgcs)
 { }
 

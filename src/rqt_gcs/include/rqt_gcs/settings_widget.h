@@ -8,26 +8,25 @@
 #ifndef _SETTINGSWIDGET_H
 #define _SETTINGSWIDGET_H
 
-#include "rqt_gcs/simple_gcs.h"
-#include "rqt_gcs/my_q_widget.h"
+#include "rqt_gcs/gcs.h"
 #include "ui_SettingsWidget.h"
 
 namespace rqt_gcs
 {
 
-    class SimpleGCS;
+    class GCS;
     
-    class SettingsWidget : public MyQWidget
+    class SettingsWidget : public QWidget
     {
         Q_OBJECT
     public:
-        SettingsWidget(SimpleGCS *);
+        SettingsWidget(GCS *);
         virtual ~SettingsWidget();
         
     private:
         Ui::SettingsWidget widget_;
         QString ml_state_;
-        SimpleGCS * gcs;
+        GCS * gcs;
         
         void setToolTips();
         

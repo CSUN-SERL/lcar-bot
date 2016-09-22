@@ -36,7 +36,7 @@
 #include "lcar_msgs/TargetGlobal.h"
 
 #include "ui_PictureMsg.h"
-#include "ui_SimpleGCS.h"
+#include "ui_GCS.h"
 
 namespace rqt_gcs
 {
@@ -48,7 +48,7 @@ class UnansweredQueries;
 class SettingsWidget;
 class AccessPoints;
 
-class SimpleGCS : public QMainWindow
+class GCS : public QMainWindow
 {
     Q_OBJECT
 
@@ -57,8 +57,8 @@ class SimpleGCS : public QMainWindow
     friend class SettingsWidget;
 
 public:
-    SimpleGCS();
-    virtual ~SimpleGCS();
+    GCS();
+    virtual ~GCS();
     
     
 public slots:
@@ -91,7 +91,7 @@ public slots:
     void NewCameraFeedFrame();
     
 private:
-    Ui::SimpleGCS widget;
+    Ui::GCS widget;
 
     void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
@@ -183,7 +183,7 @@ private:
     QMutex uav_mutex,
            img_mutex;
     QWaitCondition num_uav_changed;
-
+    
 };
 
 class SimpleGCSHelper : public QObject
@@ -191,7 +191,7 @@ class SimpleGCSHelper : public QObject
   Q_OBJECT
 
 public:
-    SimpleGCSHelper(SimpleGCS *);
+    SimpleGCSHelper(GCS *);
     ~SimpleGCSHelper();
 
 public slots:
@@ -203,7 +203,7 @@ signals:
     void toggleUavConnection(int, int, bool);
 
 private:
-    SimpleGCS * gcs;
+    GCS * gcs;
 
     void parseUavNamespace(std::map<int, int>&);
 

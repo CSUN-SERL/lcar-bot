@@ -3,14 +3,14 @@
 #define _UNANSWEREDQUERIES_H
 
 
-#include <rqt_gcs/simple_gcs.h>
+#include <rqt_gcs/gcs.h>
 #include "ui_UnansweredQueries.h"
 #include <QSignalMapper>
 
 namespace rqt_gcs
 {
     
-class SimpleGCS;
+class GCS;
     
 class UnansweredQueries : public QWidget
 {
@@ -28,7 +28,7 @@ public:
         ~QueryStat() { }
     };
     
-    UnansweredQueries(SimpleGCS*);
+    UnansweredQueries(GCS*);
     virtual ~UnansweredQueries();
     
     void addQueryWidget(QueryStat*, QString&);
@@ -41,7 +41,7 @@ private:
     QMap <QString, QVector<QueryStat*> > queries_map;
     QVector<QString> ap_types = {"door", "window", "hole"};
         
-    SimpleGCS * gcs;
+    GCS * gcs;
 
     void answerQuery(QWidget*, QString, bool);
     

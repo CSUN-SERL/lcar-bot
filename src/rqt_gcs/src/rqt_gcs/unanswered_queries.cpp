@@ -18,7 +18,7 @@
 namespace rqt_gcs
 {
     
-UnansweredQueries::UnansweredQueries(SimpleGCS * sgcs) :
+UnansweredQueries::UnansweredQueries(GCS * sgcs) :
 gcs(sgcs)
 {
     widget.setupUi(this);
