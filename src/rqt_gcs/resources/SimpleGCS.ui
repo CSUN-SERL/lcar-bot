@@ -1431,6 +1431,56 @@ color: rgb(240, 240, 240);</string>
     </rect>
    </property>
   </widget>
+  <action name="actionAdd_Vehicle">
+   <property name="text">
+    <string>Add Vehicle</string>
+   </property>
+  </action>
+  <action name="actionDelete_Vehicle">
+   <property name="text">
+    <string>Delete Vehicle</string>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionIslurp">
+   <property name="text">
+    <string>Islurp</string>
+   </property>
+  </action>
+  <action name="actionROS">
+   <property name="text">
+    <string>ROS</string>
+   </property>
+  </action>
+  <action name="actionQt">
+   <property name="text">
+    <string>Qt</string>
+   </property>
+  </action>
+  <action name="actionOpenCV">
+   <property name="text">
+    <string>OpenCV</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionUnanswered_Queries">
+   <property name="text">
+    <string>Unanswered Queries</string>
+   </property>
+  </action>
+  <action name="actionAccess_Points">
+   <property name="text">
+    <string>Access Points</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

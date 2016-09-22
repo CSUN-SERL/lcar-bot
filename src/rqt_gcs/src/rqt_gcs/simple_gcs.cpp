@@ -625,7 +625,32 @@ void SimpleGCS::InitMap()
 
 void SimpleGCS::InitMenuBar()
 {
-    //todo add menu bar items
+    QMenuBar *menu_bar = this->menuBar();
+    QMenu *file_menu = menu_bar->addMenu("File");
+    QAction *start_vehicle_act = file_menu->addAction("Add Vehicle");
+    QAction *start_vehicle_group_act = file_menu->addAction("Add Vehicle Group");
+    QAction *shutdown_vehicle_act = file_menu->addAction("Shutdown Vehicle");
+    QAction *shutdown_vehicle_group_act = file_menu->addAction("Shutdown Vehicle Group");
+
+    //view menu
+    QMenu *view_menu = menu_bar->addMenu("View");
+    QAction *unanswered_queries_act = view_menu->addAction("Unanswered Queries");
+    connect(unanswered_queries_act, &QAction::triggered, 
+            this, &SimpleGCS::OnUnansweredQueriesTriggered);
+
+    //tools menu
+    QMenu *tools_menu = menu_bar->addMenu("Tools");
+    QAction *settings_act = tools_menu->addAction("Settings");
+    connect(settings_act, &QAction::triggered, 
+            this, &SimpleGCS::OnSettingsTriggered); 
+
+    //help menu
+    QMenu *help_menu = menu_bar->addMenu("Help");
+    QAction *lcar_bot_act = help_menu->addAction("Learning Classifying And Recognizing Bot (LCAR-Bot)");
+    QAction *ros_act      = help_menu->addAction("Robot Operating System (ROS)");
+    QAction *opencv_act   = help_menu->addAction("Open Computer Vision (OpenCV)");
+    QAction *qt_act       = help_menu->addAction("Qt");
+    QAction *about_act    = help_menu->addSection("About");
 }
 
 // SettingsWidget and QSettings related stuff
