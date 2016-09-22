@@ -468,7 +468,7 @@ QLabel{
                  <string/>
                 </property>
                 <property name="icon">
-                 <iconset resource="resources/qfi.qrc">
+                 <iconset resource="qfi.qrc">
                   <normaloff>:/icons/icons/battery.png</normaloff>:/icons/icons/battery.png</iconset>
                 </property>
                 <property name="iconSize">
@@ -785,7 +785,7 @@ color: rgb(240, 240, 240);</string>
                  <string/>
                 </property>
                 <property name="icon">
-                 <iconset resource="resources/qfi.qrc">
+                 <iconset resource="qfi.qrc">
                   <normaloff>:/icons/icons/pause.png</normaloff>:/icons/icons/pause.png</iconset>
                 </property>
                 <property name="iconSize">
@@ -821,7 +821,7 @@ border-radius:0px;</string>
                  <string/>
                 </property>
                 <property name="icon">
-                 <iconset resource="resources/qfi.qrc">
+                 <iconset resource="qfi.qrc">
                   <normaloff>:/icons/icons/stop.png</normaloff>:/icons/icons/stop.png</iconset>
                 </property>
                 <property name="iconSize">
@@ -1445,7 +1445,7 @@ color: rgb(240, 240, 240);</string>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="resources/qfi.qrc"/>
+  <include location="qfi.qrc"/>
  </resources>
  <connections/>
 </ui>

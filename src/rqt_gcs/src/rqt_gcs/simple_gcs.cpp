@@ -28,7 +28,7 @@ NUM_UAV(0),
 timeCounter(0),
 cur_uav(-1),
 num_queries_last(0),
-img_q_max_size(30),
+img_q_max_size(30)
 {
     widget.setupUi(this);
     update_timer = new QTimer(this);
@@ -64,7 +64,6 @@ img_q_max_size(30),
             this, &SimpleGCS::OnTimedUpdate);
     //30 hz :1000/30 = 33.33...
     
-    spinner->start();
     update_timer->start(0);
 }
 
