@@ -213,7 +213,7 @@ void SettingsWidget::readGeneralSettings()
         widget_.length_text_box->setEnabled(false);
     }
 
-    QString img_dir = gcs->settings->value("images_root_directory", image_util::image_root_dir_).toString();
+    QString img_dir = gcs->settings->value("images_root_directory", img::image_root_dir_).toString();
     widget_.line_edit_images_dir->setText(img_dir);
 
     gcs->settings->endGroup();
@@ -281,7 +281,7 @@ void SettingsWidget::writeGeneralSettings()
     if(!img_dir.isNull())
     {
         gcs->settings->setValue("images_root_directory", img_dir);
-        image_util::image_root_dir_ = widget_.line_edit_images_dir->text();
+        img::image_root_dir_ = widget_.line_edit_images_dir->text();
     }
 
     gcs->settings->endGroup(); //general_tab

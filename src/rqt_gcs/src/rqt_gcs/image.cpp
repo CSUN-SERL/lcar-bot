@@ -4,7 +4,7 @@
 namespace rqt_gcs
 {
     
-namespace image_util
+namespace img
 {
 
     QImage matToQimg(const cv::Mat& in, QImage::Format format)

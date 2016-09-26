@@ -14,12 +14,12 @@
 namespace rqt_gcs
 {
 
-class VehicleListWidget : public MyQWidget
+class VehicleWidget : public MyQWidget
 {
     Q_OBJECT
 public:
-    VehicleListWidget(QWidget * parent = 0);
-    virtual ~VehicleListWidget();
+    VehicleWidget(QWidget * parent = 0);
+    virtual ~VehicleWidget();
     
     void SetNumber(int id);
     void SetBattery(int battery);

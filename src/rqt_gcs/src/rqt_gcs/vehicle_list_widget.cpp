@@ -13,39 +13,39 @@
 namespace rqt_gcs
 {
 
-VehicleListWidget::VehicleListWidget(QWidget * parent):
+VehicleWidget::VehicleWidget(QWidget * parent):
 MyQWidget(parent)
 {
     widget.setupUi(this);
 }
 
-VehicleListWidget::~VehicleListWidget() 
+VehicleWidget::~VehicleWidget() 
 {
 }
 
-void VehicleListWidget::SetNumber(int id)
+void VehicleWidget::SetNumber(int id)
 {
     widget.VehicleSelectButton->setText(QString::number(id));
 }
 
-void VehicleListWidget::SetBattery(int battery)
+void VehicleWidget::SetBattery(int battery)
 {
     if (battery < 0)
         battery = 0;
     widget.VehicleBatteryLine->setText(QString::number(battery) % "%");
 }
 
-void VehicleListWidget::SetCondition(const QString& cond)
+void VehicleWidget::SetCondition(const QString& cond)
 {
     widget.VehicleConditionLine->setText(cond);
 }
 
-void VehicleListWidget::SetName(const QString name)
+void VehicleWidget::SetName(const QString name)
 {
     widget.VehicleNameLine->setText(name);
 }
 
-bool VehicleListWidget::ToggleButton(bool enable)
+bool VehicleWidget::ToggleButton(bool enable)
 {
     widget.VehicleSelectButton->setEnabled(enable); 
     QString style_sheet = enable ?
@@ -55,12 +55,12 @@ bool VehicleListWidget::ToggleButton(bool enable)
     widget.VehicleSelectButton->setStyleSheet(style_sheet);
 }
 
-bool VehicleListWidget::IsButtonEnabled()
+bool VehicleWidget::IsButtonEnabled()
 {
     return widget.VehicleSelectButton->isEnabled();
 }
 
-const QPushButton* VehicleListWidget::Button()
+const QPushButton* VehicleWidget::Button()
 {
     return widget.VehicleSelectButton;
 }

@@ -21,6 +21,7 @@
 #include <QSettings>
 #include <QSignalMapper>
 #include <QWaitCondition>
+#include <QCloseEvent>
 #include <QMutex>
 
 #include "rqt_gcs/vehicle_list_widget.h"
@@ -43,7 +44,7 @@ namespace rqt_gcs
 
 #define MAX_UAV 100 // the total number of UAV's manageable by our system
 
-class SimpleGCSHelper;
+class GCSHelperThread;
 class UnansweredQueries;
 class SettingsWidget;
 class AccessPoints;
@@ -52,7 +53,7 @@ class GCS : public QMainWindow
 {
     Q_OBJECT
 
-    friend class SimpleGCSHelper;
+    friend class GCSHelperThread;
     friend class UnansweredQueries;
     friend class SettingsWidget;
 
@@ -86,17 +87,20 @@ public slots:
 
     //SETTINGS RELATED
     virtual void OnToggleMachineLearningMode(bool);
-
+    
     signals:
-    void NewCameraFeedFrame();
+        void NewCameraFeedFrame();
+    
+protected:
+    void closeEvent(QCloseEvent* event)override;
     
 private:
-    Ui::GCS widget;
 
     void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
     void ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg);
-
+    VehicleWidget* VehicleWidgetAt(int index);
+    
     //methods for publishing object detection paramerter updates
     void PublishHitThreshold(double thresh);
     void PublishStepSize(int step);
@@ -107,13 +111,6 @@ private:
     std::string GetMissionType(std::string file_name);
     lcar_msgs::TargetLocal GetMissionLocal(std::string file_name);
     lcar_msgs::TargetGlobal GetMissionGlobal(std::string file_name);
-
-    ros::NodeHandle nh;
-    ros::ServiceServer server;
-    lcar_msgs::Door msg;
-    image_transport::ImageTransport it_stereo{nh};
-    QQueue<QPixmap> img_q;
-    int img_q_max_size;
 
     void InitMap();
     void InitMenuBar();
@@ -132,6 +129,17 @@ private:
     void ToggleScoutButtons(bool visible, QString icon_type = "pause");
     void ToggleArmDisarmButton(bool arm);
 
+    void AdvertiseObjectDetection();
+    
+    Ui::GCS widget;
+    
+    ros::NodeHandle nh;
+    ros::ServiceServer server;
+    lcar_msgs::Door msg;
+    image_transport::ImageTransport it_stereo{nh};
+    QQueue<QPixmap> img_q;
+    int img_q_max_size;
+    
     int cur_uav;
     int timeCounter;
     int NUM_UAV; //Total number of UAV's in the system
@@ -162,54 +170,51 @@ private:
         SettingsWidget * settings = nullptr;
         UnansweredQueries * unanswered_queries = nullptr;
         AccessPoints* ap_menu = nullptr;
-    } fl_widgets_;
+    } fl_widgets;
 
     QVector<UAVControl*> active_uavs;
     QMap<int, UAVControl*> uav_db;
 
-    std::vector<lcar_msgs::DoorPtr> * vec_uav_queries_;
+    std::vector<lcar_msgs::DoorPtr> * vec_uav_queries; // receives UAVControl::getRefQuerires
+    std::vector<QWidget*> vec_query_widgets;
 
     image_transport::Subscriber sub_stereo;
-    QVector<VehicleListWidget*> vec_v_widgets;
-    std::vector<QWidget*> query_widgets_; // recieves UAVControl::getRefQuerires
 
     QTimer* update_timer;
     QString temp_data;
 
     QSettings* settings;
 
-    QThread t_uav_monitor;
-    SimpleGCSHelper * uav_monitor;
+    GCSHelperThread *thread_uav_monitor;
     QMutex uav_mutex,
            img_mutex;
     QWaitCondition num_uav_changed;
     
 };
 
-class SimpleGCSHelper : public QObject
+class GCSHelperThread : public QThread
 {
   Q_OBJECT
 
 public:
-    SimpleGCSHelper(GCS *);
-    ~SimpleGCSHelper();
-
-public slots:
-    void help();
-
+    GCSHelperThread(GCS *);
+    ~GCSHelperThread();
+    virtual void stop();
+    
 signals:
     void addUav(int); // uav_id
     void deleteUav(int);
     void toggleUavConnection(int, int, bool);
-
+    
 private:
     GCS * gcs;
-
+    
     void parseUavNamespace(std::map<int, int>&);
-
     void monitorUavNamespace();
     void monitorUavConnections();
     void runUavs();
+    
+    virtual void run() override;
 };
 
 }

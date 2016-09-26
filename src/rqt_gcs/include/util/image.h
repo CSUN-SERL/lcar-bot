@@ -11,7 +11,7 @@
 namespace rqt_gcs
 {
 
-namespace image_util 
+namespace img 
 {   
     
     extern QString image_root_dir_;

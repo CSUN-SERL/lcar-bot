@@ -67,7 +67,7 @@ void AccessPoints::UpdateAccessPoints()
         AccessPoint accessPoint = ap_vec->at(i + num_access_points_last);
         sensor_msgs::Image ap_img = accessPoint.GetImage();
 
-        QImage image = image_util::rosImgToQimg(ap_img);
+        QImage image = img::rosImgToQimg(ap_img);
 
         QWidget * ap_widget = new QWidget(this);
         Ui::AccessPointStatsWidget ap_ui_widget;
@@ -131,7 +131,7 @@ void AccessPoints::OnDeleteAccessPoint(QWidget* w)
 
 void AccessPoints::SaveUavAccessPoints(UAVControl* uav, QString ap_type)
 {
-    QString path = image_util::image_root_dir_ % "/access_points/" % ap_type;
+    QString path = img::image_root_dir_ % "/access_points/" % ap_type;
     path.append("/uav_" + QString::number(uav->id));
     std::vector<AccessPoint> * ap_vector = uav->GetRefAccessPoints();
     for(int i = 0; i < ap_vector->size(); i++)
@@ -142,7 +142,7 @@ void AccessPoints::SaveUavAccessPoints(UAVControl* uav, QString ap_type)
         sensor_msgs::Image ros_image = ap.GetImage();
         QImage image(ros_image.data.data(), ros_image.width, ros_image.height,
                      ros_image.step, QImage::Format_RGB888);
-        image_util::saveImage(path, file, image);
+        img::saveImage(path, file, image);
     }
 }
 

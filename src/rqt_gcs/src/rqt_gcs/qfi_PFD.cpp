@@ -58,7 +58,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#include <FIS/qfi_PFD.h>
+#include <rqt_gcs/qfi_PFD.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 

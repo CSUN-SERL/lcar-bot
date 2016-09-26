@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1920</width>
-    <height>1080</height>
+    <width>1400</width>
+    <height>787</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -200,7 +200,7 @@ QLabel{
            </property>
           </widget>
          </item>
-         <item alignment="Qt::AlignHCenter|Qt::AlignTop">
+         <item>
           <widget class="QWidget" name="widget_PFD" native="true">
            <property name="minimumSize">
             <size>
@@ -210,87 +210,121 @@ QLabel{
            </property>
            <property name="maximumSize">
             <size>
-             <width>4096</width>
-             <height>4096</height>
+             <width>345</width>
+             <height>330</height>
+            </size>
+           </property>
+           <property name="sizeIncrement">
+            <size>
+             <width>1</width>
+             <height>1</height>
+            </size>
+           </property>
+           <property name="baseSize">
+            <size>
+             <width>345</width>
+             <height>345</height>
             </size>
            </property>
            <property name="autoFillBackground">
             <bool>false</bool>
            </property>
-           <widget class="QFrame" name="framePFD">
-            <property name="geometry">
-             <rect>
-              <x>0</x>
-              <y>0</y>
-              <width>330</width>
-              <height>330</height>
-             </rect>
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <property name="spacing">
+             <number>0</number>
             </property>
-            <property name="minimumSize">
-             <size>
-              <width>330</width>
-              <height>330</height>
-             </size>
+            <property name="leftMargin">
+             <number>0</number>
             </property>
-            <property name="autoFillBackground">
-             <bool>false</bool>
+            <property name="topMargin">
+             <number>0</number>
             </property>
-            <property name="styleSheet">
-             <string notr="true">#framePFD
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QFrame" name="framePFD">
+              <property name="minimumSize">
+               <size>
+                <width>330</width>
+                <height>330</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>4096</width>
+                <height>4096</height>
+               </size>
+              </property>
+              <property name="autoFillBackground">
+               <bool>false</bool>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">#framePFD
 {
 	background-color: #000;
 	border-radius: 10px;
 }</string>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::StyledPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Raised</enum>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_8">
-             <property name="leftMargin">
-              <number>4</number>
-             </property>
-             <property name="topMargin">
-              <number>4</number>
-             </property>
-             <property name="rightMargin">
-              <number>4</number>
-             </property>
-             <property name="bottomMargin">
-              <number>4</number>
-             </property>
-             <item row="0" column="0">
-              <widget class="qfi_PFD" name="graphicsPFD">
-               <property name="enabled">
-                <bool>false</bool>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Raised</enum>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_8">
+               <property name="leftMargin">
+                <number>4</number>
                </property>
-               <property name="focusPolicy">
-                <enum>Qt::NoFocus</enum>
+               <property name="topMargin">
+                <number>4</number>
                </property>
-               <property name="frameShape">
-                <enum>QFrame::NoFrame</enum>
+               <property name="rightMargin">
+                <number>4</number>
                </property>
-               <property name="frameShadow">
-                <enum>QFrame::Plain</enum>
+               <property name="bottomMargin">
+                <number>4</number>
                </property>
-               <property name="verticalScrollBarPolicy">
-                <enum>Qt::ScrollBarAlwaysOff</enum>
+               <property name="spacing">
+                <number>0</number>
                </property>
-               <property name="horizontalScrollBarPolicy">
-                <enum>Qt::ScrollBarAlwaysOff</enum>
-               </property>
-               <property name="interactive">
-                <bool>false</bool>
-               </property>
-               <property name="optimizationFlags">
-                <set>QGraphicsView::IndirectPainting</set>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
+               <item row="0" column="0">
+                <widget class="qfi_PFD" name="pfd">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="focusPolicy">
+                  <enum>Qt::NoFocus</enum>
+                 </property>
+                 <property name="frameShape">
+                  <enum>QFrame::NoFrame</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="verticalScrollBarPolicy">
+                  <enum>Qt::ScrollBarAlwaysOff</enum>
+                 </property>
+                 <property name="horizontalScrollBarPolicy">
+                  <enum>Qt::ScrollBarAlwaysOff</enum>
+                 </property>
+                 <property name="interactive">
+                  <bool>false</bool>
+                 </property>
+                 <property name="optimizationFlags">
+                  <set>QGraphicsView::IndirectPainting</set>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+           <zorder>framePFD</zorder>
+           <zorder>web_view</zorder>
           </widget>
          </item>
          <item>
@@ -920,7 +954,7 @@ border-radius:0px;</string>
               <x>0</x>
               <y>0</y>
               <width>357</width>
-              <height>445</height>
+              <height>152</height>
              </rect>
             </property>
             <property name="sizePolicy">
@@ -1359,7 +1393,7 @@ color: rgb(240, 240, 240);</string>
               <x>0</x>
               <y>0</y>
               <width>348</width>
-              <height>605</height>
+              <height>312</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout">
@@ -1426,7 +1460,7 @@ color: rgb(240, 240, 240);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1920</width>
+     <width>1400</width>
      <height>25</height>
     </rect>
    </property>
@@ -1491,7 +1525,7 @@ color: rgb(240, 240, 240);</string>
   <customwidget>
    <class>qfi_PFD</class>
    <extends>QGraphicsView</extends>
-   <header>../../src/rqt_gcs/include/FIS/qfi_PFD.h</header>
+   <header>rqt_gcs/qfi_PFD.h</header>
   </customwidget>
  </customwidgets>
  <resources>

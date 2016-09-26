@@ -46,11 +46,10 @@ catkin_package(
   LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS roscpp std_msgs sensor_msgs )
 
-file(GLOB rqt_gcs_SRCS src/rqt_gcs/*.cpp src/FIS/*.cpp src/FIW/*.cpp src/vehicle/*.cpp )
-list(REMOVE_ITEM rqt_gcs_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/FIW/MainWindow.cpp
-                              ${CMAKE_CURRENT_SOURCE_DIR}/src/rqt_gcs/main.cpp )
+file(GLOB rqt_gcs_SRCS src/rqt_gcs/*.cpp src/vehicle/*.cpp )
+list(REMOVE_ITEM rqt_gcs_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/rqt_gcs/main.cpp )
 
-file(GLOB rqt_gcs_HDRS include/rqt_gcs/*.h include/FIS/*.h include/FIW/*.h )
+file(GLOB rqt_gcs_HDRS include/rqt_gcs/*.h )
 list(REMOVE_ITEM rqt_gcs_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/rqt_gcs/access_point.h 
                               ${CMAKE_CURRENT_SOURCE_DIR}/include/rqt_gcs/my_q_widget.h )
 
@@ -67,7 +66,6 @@ qt5_wrap_ui(rqt_gcs_UIS_H ${rqt_gcs_UIS})
 #compiler flags and options
 include(EnableCXX11)
 include(MavrosMavlink)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 add_definitions(${Qt5_DEFINITIONS})
 
 # Declare executables with source files
