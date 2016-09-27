@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>QueryWidget</class>
+ <widget class="QWidget" name="QueryWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>328</width>
+    <height>289</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>QueryWidget</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget{
+	color: rgb(236, 236, 236);
+	background-color: rgb(39, 47,66);
+	border-radius:5px;
+}
+
+QPushButton{
+	border-radius: 5px;
+}
+
+</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="leftMargin">
+    <number>9</number>
+   </property>
+   <item>
+    <widget class="QLabel" name="image_frame">
+     <property name="minimumSize">
+      <size>
+       <width>310</width>
+       <height>233</height>
+      </size>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="indent">
+      <number>-1</number>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>6</number>
+     </property>
+     <item alignment="Qt::AlignHCenter|Qt::AlignTop">
+      <widget class="QPushButton" name="yesButton">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(64, 89, 145);
+color: rgb(240, 240, 240);</string>
+       </property>
+       <property name="text">
+        <string>Accept</string>
+       </property>
+      </widget>
+     </item>
+     <item alignment="Qt::AlignHCenter|Qt::AlignTop">
+      <widget class="QPushButton" name="rejectButton">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(161, 20, 40);
+color: rgb(240, 240, 240);</string>
+       </property>
+       <property name="text">
+        <string>Reject</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
