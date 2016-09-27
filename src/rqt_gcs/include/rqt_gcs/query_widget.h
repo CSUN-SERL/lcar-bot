@@ -13,8 +13,7 @@
 #include "ui_QueryWidget.h"
 
 namespace rqt_gcs
-{ore
-
+{
 
 class QueryWidget : public MyQWidget
 {
