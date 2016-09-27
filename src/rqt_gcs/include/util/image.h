@@ -5,6 +5,7 @@
 #include <QDir>
 #include <QStringBuilder>
 #include <QImage>
+#include <QPixmap>
 #include <opencv/cv.h>
 #include <cv_bridge/cv_bridge.h>
 
@@ -19,6 +20,9 @@ namespace img
     QImage matToQimg(const cv::Mat& in, QImage::Format format = QImage::Format_RGB888);
     QImage rosImgToQimg(const sensor_msgs::Image& in, QImage::Format format = QImage::Format_RGB888);
     QImage rosImgToQimg(const sensor_msgs::ImageConstPtr& in, QImage::Format format = QImage::Format_RGB888);
+    QPixmap matToQpixmap(const cv::Mat& in, QImage::Format format = QImage::Format_RGB888);
+    QPixmap rosImgToQpixmap(const sensor_msgs::Image& in, QImage::Format format = QImage::Format_RGB888);
+    QPixmap rosImgToQpixmap(const sensor_msgs::ImageConstPtr& in, QImage::Format format = QImage::Format_RGB888);
     cv::Mat qImgToMat(const QImage& in, int fomat = CV_8UC3);
     cv::Mat rosImgToMat(const sensor_msgs::Image& in, int format = CV_8UC3);
     sensor_msgs::ImagePtr qImgToRosImg(const QImage& in, std::string format = "bgr8");

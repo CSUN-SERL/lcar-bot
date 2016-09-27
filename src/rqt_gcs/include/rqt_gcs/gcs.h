@@ -47,7 +47,6 @@ namespace rqt_gcs
 class GCSHelperThread;
 class UnansweredQueries;
 class SettingsWidget;
-class AccessPoints;
 
 class GCS : public QMainWindow
 {
@@ -92,7 +91,7 @@ public slots:
         void NewCameraFeedFrame();
     
 protected:
-    void closeEvent(QCloseEvent* event)override;
+    void closeEvent(QCloseEvent* event) override;
     
 private:
 
@@ -141,7 +140,7 @@ private:
     int img_q_max_size;
     
     int cur_uav;
-    int timeCounter;
+    int time_counter;
     int NUM_UAV; //Total number of UAV's in the system
     int num_queries_last;
 
@@ -175,15 +174,14 @@ private:
     QVector<UAVControl*> active_uavs;
     QMap<int, UAVControl*> uav_db;
 
-    std::vector<lcar_msgs::DoorPtr> * vec_uav_queries; // receives UAVControl::getRefQuerires
-    std::vector<QWidget*> vec_query_widgets;
+    std::vector<lcar_msgs::DoorPtr> *vec_uav_queries_ptr;
 
     image_transport::Subscriber sub_stereo;
 
-    QTimer* update_timer;
+    QTi mer *update_timer;
     QString temp_data;
 
-    QSettings* settings;
+    QSettings *settings;
 
     GCSHelperThread *thread_uav_monitor;
     QMutex uav_mutex,
@@ -199,20 +197,20 @@ class GCSHelperThread : public QThread
 public:
     GCSHelperThread(GCS *);
     ~GCSHelperThread();
-    virtual void stop();
+    virtual void Stop();
     
 signals:
-    void addUav(int); // uav_id
-    void deleteUav(int);
-    void toggleUavConnection(int, int, bool);
+    void AddUav(int); // uav_id
+    void DeleteUav(int);
+    void ToggleUavConnection(int, int, bool);
     
 private:
     GCS * gcs;
     
-    void parseUavNamespace(std::map<int, int>&);
-    void monitorUavNamespace();
-    void monitorUavConnections();
-    void runUavs();
+    void ParseUavNamespace(std::map<int, int>&);
+    void MonitorUavNamespace();
+    void MonitorUavConnections();
+    void RunUavs();
     
     virtual void run() override;
 };

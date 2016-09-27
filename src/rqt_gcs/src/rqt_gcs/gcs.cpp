@@ -26,7 +26,9 @@ namespace rqt_gcs
 GCS::GCS():
     NUM_UAV(0),
     cur_uav(-1),
+    time_counter(0),
     img_q_max_size(30),
+    num_queries_last(0),
     update_timer(new QTimer(this))
 {
     widget.setupUi(this);
@@ -201,10 +203,10 @@ void GCS::OnTimedUpdate()
 
     Q_ASSERT(0 <= cur_uav && cur_uav < NUM_UAV);
 
-    if(timeCounter++ >= 30)
+    if(time_counter++ >= 100)
     {
         this->UpdateQueries();
-        timeCounter = 0;
+        time_counter = 0;
     }
 
     this->UpdateFlightStateWidgets();
@@ -215,13 +217,9 @@ void GCS::OnTimedUpdate()
 
 void GCS::ClearQueries()
 {
-    int size = vec_query_widgets.size();
-    for(int i = 0; i < size; i++)
-    {
-        widget.layout_queries->removeWidget(vec_query_widgets[i]);
-        delete vec_query_widgets[i];
-    }
-    vec_query_widgets.clear();
+    for(int i = widget.layout_queries->count() - 1; i >= 0; i--)
+        delete widget.layout_queries->itemAt(i)->widget();
+    
     num_queries_last = 0;
 }
 
@@ -231,37 +229,32 @@ void GCS::UpdateQueries()
     if(NUM_UAV == 0 || !widget.frame_queries_cntnr->isVisible())
         return;
 
-    vec_uav_queries = active_uavs[cur_uav]->GetDoorQueries();
-    int pqv_size = vec_uav_queries->size();
-    int new_queries = pqv_size - num_queries_last;
+    vec_uav_queries_ptr = active_uavs[cur_uav]->GetDoorQueries();
+    int pqv_size = vec_uav_queries_ptr->size();
 
-    for(int i = 0; i < new_queries; i++)
+    for(int i = num_queries_last; i < pqv_size; i++)
     {
         //retrieve Query msg for door image
-        lcar_msgs::DoorPtr doorQuery = vec_uav_queries->at(i + num_queries_last);
+        lcar_msgs::DoorPtr doorQuery = vec_uav_queries_ptr->at(i);
 
-        QImage image = img::rosImgToQimg(doorQuery->framed_picture);
+        QPixmap image = img::rosImgToQpixmap(doorQuery->framed_picture);
 
         //create the widget
         QWidget * pmWidget = new QWidget();
-        Ui::PictureMsgWidget pmUiWidget;
-        pmUiWidget.setupUi(pmWidget);
+        Ui::PictureMsgWidget ui;
+        ui.setupUi(pmWidget);
 
-        int w = pmUiWidget.image_frame->width();
-        int h = pmUiWidget.image_frame->height();
-        pmUiWidget.image_frame->setPixmap(QPixmap::fromImage(image).scaled(w,h));
+        int w = ui.image_frame->width();
+        int h = ui.image_frame->height();
+        ui.image_frame->setPixmap(image.scaled(w,h));
 
-        //add to list
-        vec_query_widgets.push_back(pmWidget);
-        int index = vec_query_widgets.size() - 1;
-
-        connect(pmUiWidget.yesButton, &QPushButton::clicked,
-                this, [=](){OnAcceptDoorQuery(pmWidget);});
-        connect(pmUiWidget.rejectButton, &QPushButton::clicked,
-                this, [=](){OnRejectDoorQuery(pmWidget);});
-
+        connect(ui.yesButton, &QPushButton::clicked,
+                this, [=](){OnAcceptDoorQuery(pmWidget); });
+        connect(ui.rejectButton, &QPushButton::clicked,
+                this, [=](){OnRejectDoorQuery(pmWidget); });
+                
         //add to user interface
-        widget.layout_queries->addWidget(vec_query_widgets[index]);
+        widget.layout_queries->addWidget(pmWidget);
     }
 
     num_queries_last = pqv_size;
@@ -270,7 +263,7 @@ void GCS::UpdateQueries()
 void GCS::AnswerQuery(QWidget * qw, QString ap_type, bool accepted)
 {
     int index = widget.layout_queries->indexOf(qw);
-    lcar_msgs::DoorPtr door = vec_uav_queries->at(index);
+    lcar_msgs::DoorPtr door = vec_uav_queries_ptr->at(index);
 
     UAVControl* uav = active_uavs[cur_uav];
     QString path = img::image_root_dir_ % "/queries";
@@ -288,14 +281,12 @@ void GCS::AnswerQuery(QWidget * qw, QString ap_type, bool accepted)
 
     img::saveImage(path, file, door->original_picture);
 
-    vec_uav_queries->erase(vec_uav_queries->begin() + index);
-    vec_query_widgets.erase(vec_query_widgets.begin() + index);
-    widget.layout_queries->removeWidget(qw);
+    vec_uav_queries_ptr->erase(vec_uav_queries_ptr->begin() + index);
     delete qw;
 
     door->accepted = accepted;
     num_queries_last--;
-    //UAVs[cur_uav]->SendDoorResponse(doormsg);
+    //uav->SendDoorResponse(doormsg);
 }
 
 void GCS::OnAcceptDoorQuery(QWidget *qw)
@@ -571,11 +562,11 @@ void GCS::InitHelperThread()
 {
     thread_uav_monitor = new GCSHelperThread(this);
     
-    connect(thread_uav_monitor, &GCSHelperThread::addUav,
+    connect(thread_uav_monitor, &GCSHelperThread::AddUav,
             this, &GCS::OnAddUav);
-    connect(thread_uav_monitor, &GCSHelperThread::deleteUav,
+    connect(thread_uav_monitor, &GCSHelperThread::DeleteUav,
             this, &GCS::OnDeleteUav);
-    connect(thread_uav_monitor, &GCSHelperThread::toggleUavConnection,
+    connect(thread_uav_monitor, &GCSHelperThread::ToggleUavConnection,
             this, &GCS::OnUAVConnectionToggled);
             
     thread_uav_monitor->start();
@@ -591,6 +582,7 @@ void GCS::InitMap()
 void GCS::InitMenuBar()
 {
     QMenuBar *menu_bar = this->menuBar();
+    
     QMenu *file_menu = menu_bar->addMenu("File");
     QAction *start_vehicle_act = file_menu->addAction("Add Vehicle");
     QAction *start_vehicle_group_act = file_menu->addAction("Add Vehicle Group");
@@ -811,13 +803,13 @@ void GCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
     img_mutex.lock();
 
-    QImage image = img::rosImgToQimg(msg);
+    QPixmap image = img::rosImgToQpixmap(msg);
 
     if(img_q.size() < img_q_max_size)
     {
         int w = widget.image_frame->width();
         int h = widget.image_frame->height();
-        img_q.enqueue(QPixmap::fromImage(image).scaled(w, h, Qt::KeepAspectRatio));
+        img_q.enqueue(image.scaled(w, h, Qt::KeepAspectRatio));
         emit NewCameraFeedFrame();
     }
 
@@ -871,7 +863,7 @@ void GCS::PublishMeanShift(bool on)
 
 void GCS::closeEvent(QCloseEvent* event)
 {
-    thread_uav_monitor->stop();
+    thread_uav_monitor->Stop();
     thread_uav_monitor->wait();
     delete thread_uav_monitor;
     
@@ -910,7 +902,7 @@ GCSHelperThread::~GCSHelperThread()
     gcs = nullptr;
 }
 
-void GCSHelperThread::parseUavNamespace(std::map<int, int>& map)
+void GCSHelperThread::ParseUavNamespace(std::map<int, int>& map)
 {  
     ros::V_string nodes;
     ros::master::getNodes(nodes);
@@ -936,10 +928,10 @@ void GCSHelperThread::parseUavNamespace(std::map<int, int>& map)
     }
 }
 
-void GCSHelperThread::monitorUavNamespace()
+void GCSHelperThread::MonitorUavNamespace()
 {
     std::map<int,int> uav_map;
-    parseUavNamespace(uav_map);
+    ParseUavNamespace(uav_map);
 
     gcs->uav_mutex.lock();
 
@@ -949,7 +941,7 @@ void GCSHelperThread::monitorUavNamespace()
         {
             if(!gcs->uav_db.contains(uav.first))
             {
-                emit addUav(uav.first);
+                emit AddUav(uav.first);
                 gcs->num_uav_changed.wait(&gcs->uav_mutex);
             }
         }
@@ -960,7 +952,7 @@ void GCSHelperThread::monitorUavNamespace()
         {
             if(uav_map.count(gcs->active_uavs[i]->id) == 0)
             {
-                emit deleteUav(i);
+                emit DeleteUav(i);
                 gcs->num_uav_changed.wait(&gcs->uav_mutex);
                 i--;
             }
@@ -970,7 +962,7 @@ void GCSHelperThread::monitorUavNamespace()
     gcs->uav_mutex.unlock();
 }
 
-void GCSHelperThread::monitorUavConnections()
+void GCSHelperThread::MonitorUavConnections()
 {
     /*
      * under normal conditions (recieved a heartbeat), button stylesheet is:
@@ -990,38 +982,34 @@ void GCSHelperThread::monitorUavConnections()
 
         if(!uav->RecievedHeartbeat()) // no heartbeat
         {
-            //ROS_WARN_STREAM("no heartbeat for UAV_" << quad->id);
             if(enabled) // is the button already disabled?
-                emit toggleUavConnection(i, uav->id, false);
+                emit ToggleUavConnection(i, uav->id, false);
         }
         else
         {
-            //ROS_INFO_STREAM("recieved heartbeat for UAV_" << quad->id);
             if(!enabled) // is the button already enabled?
-                emit toggleUavConnection(i, uav->id, true);
+                emit ToggleUavConnection(i, uav->id, true);
         }
     }
 }
 
-void GCSHelperThread::runUavs()
+void GCSHelperThread::RunUavs()
 {
     for(auto const& uav : gcs->active_uavs)
-    {
         uav->Run();
-    }
 }
 
 void GCSHelperThread::run()
 {
     while(!this->isInterruptionRequested())
     {
-        monitorUavNamespace();
-        monitorUavConnections();
-        runUavs();  
+        MonitorUavNamespace();
+        MonitorUavConnections();
+        RunUavs();  
     }
 }
 
-void GCSHelperThread::stop()
+void GCSHelperThread::Stop()
 {
     this->requestInterruption();
 }

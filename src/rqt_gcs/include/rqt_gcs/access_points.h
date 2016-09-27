@@ -26,8 +26,7 @@ public slots:
     void OnDeleteAccessPoint(QWidget* w);
     
 private:
-    Ui::AccessPoints widget_;
-    QVector<QWidget*> ap_widgets;
+    Ui::AccessPoints widget;
     QTimer* timer;
     int num_access_points_last;
     

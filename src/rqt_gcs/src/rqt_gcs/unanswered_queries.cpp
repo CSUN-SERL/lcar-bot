@@ -79,21 +79,21 @@ void UnansweredQueries::addUnansweredQueriesFromDisk()
 void UnansweredQueries::addQueryWidget(QueryStat* stat, QString& ap_type)
 {   
     //create the widget
-    QWidget * pm_widget = new QWidget(this);
-    Ui::PictureMsgWidget pm_ui;
-    pm_ui.setupUi(pm_widget);
+    QWidget * pm_widget = new QWidget();
+    Ui::PictureMsgWidget ui;
+    ui.setupUi(pm_widget);
 
     // take care of the image
-    int w = pm_ui.image_frame->width();
-    int h = pm_ui.image_frame->height();
-    pm_ui.image_frame->setPixmap(QPixmap::fromImage(stat->framed_img).scaled(w,h));
+    int w = ui.image_frame->width();
+    int h = ui.image_frame->height();
+    ui.image_frame->setPixmap(QPixmap::fromImage(stat->framed_img).scaled(w,h));
     
     QVector<QueryStat*> * ap_vec = &queries_map[ap_type];
     ap_vec->push_back(stat);
 
-    connect(pm_ui.yesButton, &QPushButton::clicked, 
+    connect(ui.yesButton, &QPushButton::clicked, 
             this, [=](){ acceptQuery(pm_widget); } );
-    connect(pm_ui.rejectButton, &QPushButton::clicked, 
+    connect(ui.rejectButton, &QPushButton::clicked, 
             this, [=](){ rejectQuery(pm_widget); } );
      
     layout_by_ap_type[ap_type]->addWidget(pm_widget);
@@ -148,7 +148,7 @@ void UnansweredQueries::answerQuery(QWidget * w, QString ap_type, bool accepted)
     }
     
     QVector<QueryStat*> * ap_vector = &queries_map[ap_type];
-    ap_vector->erase(ap_vector->begin()+index); // removes w from vector
+    ap_vector->erase(ap_vector->begin()+index); // removes stat from vector
     
     delete stat; 
     delete w;

@@ -21,6 +21,24 @@ namespace img
     {   
         return QImage(in->data.data(), in->width, in->height, in->step, format).rgbSwapped();
     }
+    
+    QPixmap matToQpixmap(const cv::Mat& in, QImage::Format format)
+    {
+        QImage img = matToQimg(in, format);
+        return QPixmap::fromImage(img);
+    }
+    
+    QPixmap rosImgToQpixmap(const sensor_msgs::Image& in, QImage::Format format)
+    {
+        QImage img = rosImgToQimg(in, format);
+        return QPixmap::fromImage(img);
+    }
+    
+    QPixmap rosImgToQpixmap(const sensor_msgs::ImageConstPtr& in, QImage::Format format)
+    {
+        QImage img = rosImgToQimg(in, format);
+        return QPixmap::fromImage(img);
+    }
 
     cv::Mat qImgToMat(const QImage& in, int format)
     {   

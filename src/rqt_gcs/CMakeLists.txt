@@ -58,7 +58,7 @@ file(GLOB rqt_gcs_UIS resources/*.ui )
 file(GLOB rqt_gcs_RCCS resources/*.qrc )
 
 #run qt rcc, moc & uic
-qt5_add_resources(rqt_gcs_RCC_SRCS ${rqt_gcs_RCCS})
+qt5_add_resources(rqt_gcs_VFIR ${rqt_gcs_RCCS}) #VFIR = Virtual File System Resources
 qt5_wrap_cpp(rqt_gcs_MOCS ${rqt_gcs_HDRS})
 qt5_wrap_ui(rqt_gcs_UIS_H ${rqt_gcs_UIS})
 
@@ -79,7 +79,7 @@ add_library(_islurp
             ${rqt_gcs_SRCS}
             ${rqt_gcs_MOCS}
             ${rqt_gcs_UIS_H}
-            ${rqt_gcs_RCC_SRCS} )
+            ${rqt_gcs_VFIR} )
 
 add_executable(${PROJECT_NAME} src/rqt_gcs/main.cpp)
 
