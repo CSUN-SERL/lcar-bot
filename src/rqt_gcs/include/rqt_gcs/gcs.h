@@ -178,7 +178,7 @@ private:
 
     image_transport::Subscriber sub_stereo;
 
-    QTi mer *update_timer;
+    QTimer *update_timer;
     QString temp_data;
 
     QSettings *settings;
