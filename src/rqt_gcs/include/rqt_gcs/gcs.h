@@ -36,7 +36,6 @@
 #include "lcar_msgs/TargetLocal.h"
 #include "lcar_msgs/TargetGlobal.h"
 
-#include "ui_PictureMsg.h"
 #include "ui_GCS.h"
 
 namespace rqt_gcs

@@ -1,6 +1,6 @@
 
 /* 
- * File:   MyQWidget.h
+ * File:   my_q_widget.h
  * Author: n8
  *
  * Created on September 17, 2016, 11:16 PM

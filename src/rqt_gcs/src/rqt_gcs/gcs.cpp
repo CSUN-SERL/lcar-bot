@@ -8,6 +8,7 @@
 #include <QStringBuilder>
 #include <QMetaType>
 
+#include "rqt_gcs/query_widget.h"
 #include "rqt_gcs/gcs.h"
 #include "util/image.h"
 #include "util/debug.h"
@@ -240,21 +241,16 @@ void GCS::UpdateQueries()
         QPixmap image = img::rosImgToQpixmap(doorQuery->framed_picture);
 
         //create the widget
-        QWidget * pmWidget = new QWidget();
-        Ui::PictureMsgWidget ui;
-        ui.setupUi(pmWidget);
+        QueryWidget * qw = new QueryWidget();
+        qw->SetImage(image);
 
-        int w = ui.image_frame->width();
-        int h = ui.image_frame->height();
-        ui.image_frame->setPixmap(image.scaled(w,h));
-
-        connect(ui.yesButton, &QPushButton::clicked,
-                this, [=](){OnAcceptDoorQuery(pmWidget); });
-        connect(ui.rejectButton, &QPushButton::clicked,
-                this, [=](){OnRejectDoorQuery(pmWidget); });
+        connect(qw->YesButton(), &QPushButton::clicked,
+                this, [=](){OnAcceptDoorQuery(qw); });
+        connect(qw->RejectButton(), &QPushButton::clicked,
+                this, [=](){OnRejectDoorQuery(qw); });
                 
         //add to user interface
-        widget.layout_queries->addWidget(pmWidget);
+        widget.layout_queries->addWidget(qw);
     }
 
     num_queries_last = pqv_size;

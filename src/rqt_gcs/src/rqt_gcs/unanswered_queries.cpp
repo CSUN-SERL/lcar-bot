@@ -6,10 +6,9 @@
  */
 
 #include "rqt_gcs/unanswered_queries.h"
+#include "rqt_gcs/query_widget.h"
 #include "util/image.h"
 #include "util/debug.h"
-
-#include "ui_PictureMsg.h"
 
 #include <QDir>
 #include <QDirIterator>
@@ -28,7 +27,7 @@ gcs(sgcs)
     //TODO layout_by_ap_type for window and hole, 
     //and adding the layouts and tab widget container in qtdesigner
 
-    addUnansweredQueriesFromDisk();
+    this->addUnansweredQueriesFromDisk();
 }
 
 UnansweredQueries::~UnansweredQueries()
@@ -78,25 +77,19 @@ void UnansweredQueries::addUnansweredQueriesFromDisk()
 
 void UnansweredQueries::addQueryWidget(QueryStat* stat, QString& ap_type)
 {   
-    //create the widget
-    QWidget * pm_widget = new QWidget();
-    Ui::PictureMsgWidget ui;
-    ui.setupUi(pm_widget);
-
-    // take care of the image
-    int w = ui.image_frame->width();
-    int h = ui.image_frame->height();
-    ui.image_frame->setPixmap(QPixmap::fromImage(stat->framed_img).scaled(w,h));
-    
     QVector<QueryStat*> * ap_vec = &queries_map[ap_type];
     ap_vec->push_back(stat);
+    
+    //create the widget
+    QueryWidget * qw = new QueryWidget();
+    qw->SetImage(QPixmap::fromImage(stat->framed_img));
 
-    connect(ui.yesButton, &QPushButton::clicked, 
-            this, [=](){ acceptQuery(pm_widget); } );
-    connect(ui.rejectButton, &QPushButton::clicked, 
-            this, [=](){ rejectQuery(pm_widget); } );
-     
-    layout_by_ap_type[ap_type]->addWidget(pm_widget);
+    connect(qw->YesButton(), &QPushButton::clicked,
+            this, [=](){acceptQuery(qw); });
+    connect(qw->RejectButton(), &QPushButton::clicked,
+            this, [=](){rejectQuery(qw); });
+
+    layout_by_ap_type[ap_type]->addWidget(qw);
 }
 
 void UnansweredQueries::acceptQuery(QWidget* w)
