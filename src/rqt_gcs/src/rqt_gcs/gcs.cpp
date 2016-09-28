@@ -337,9 +337,8 @@ void GCS::OnCancelPlay()
         return;
 
     for(int i = 0; i < NUM_UAV; i++)
-    {
         active_uavs[i]->StopMission();
-    }
+    
 
     this->ToggleScoutButtons(true);
 }
@@ -392,7 +391,7 @@ void GCS::OnChangeFlightMode(int index)
 {
     if(NUM_UAV == 0)
         return;
-
+    
     if(index == 0)
     {
         ROS_INFO_STREAM("Quadrotor Stablized");
@@ -435,9 +434,8 @@ void GCS::OnChangeFlightMode(int index)
     }
 
     if(active_uavs[cur_uav]->GetMissionMode() != MissionMode::stopped)
-    {
         this->OnStopScout();
-    }
+    
 }
 
 void GCS::ToggleScoutButtons(bool visible, QString icon_type)
@@ -491,7 +489,7 @@ void GCS::UpdateFlightStateWidgets()
     if(NUM_UAV == 0)
         return;
 
-    UAVControl* uav = active_uavs[cur_uav];
+    UAVControl *uav = active_uavs[cur_uav];
 
     // PFD
     widget.pfd->setRoll(uav->GetFlightState().roll*180);

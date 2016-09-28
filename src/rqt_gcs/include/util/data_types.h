@@ -11,7 +11,7 @@
 namespace rqt_gcs
 {
 
-typedef enum VehicleType_
+enum VehicleType
 {
     invalid = -1,
     ugv = 1000,      //corresponds to the vehicle id range for this vehicle type
@@ -19,22 +19,22 @@ typedef enum VehicleType_
     octo_rotor = 3000,
     vtol = 4000,
     humanoid = 5000
-} VehicleType;
+};
     
-typedef enum PositionMode_
+enum PositionMode
 {
     local,
     global
-} PositionMode;
+};
 
-typedef enum MissionMode_
+enum MissionMode
 {
     active,
     paused,
     stopped
-} MissionMode;
+};
 
-typedef enum Mode_
+enum Mode
 {
     travel,
     hold,
@@ -44,7 +44,7 @@ typedef enum Mode_
     disarm,
     idle,
     null
-} Mode;
+};
 
 typedef struct State_
 {
