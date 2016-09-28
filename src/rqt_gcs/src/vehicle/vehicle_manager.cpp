@@ -6,11 +6,15 @@
  */
 
 #include "vehicle/vehicle_manager.h"
+#include "vehicle/uav_control.h"
 
 namespace rqt_gcs
 {
-
-VehicleManager::VehicleManager(QObject *parent)
+    
+//public: 
+    
+VehicleManager::VehicleManager(QObject *parent):
+QObject(parent)
 {
 }
 
@@ -18,6 +22,8 @@ VehicleManager::~VehicleManager()
 {
 }
 
+//all public Add* functions assume that the id passed to them are between 0 and 99.
+//the functions themselves map the id to the appropriate space
 void VehicleManager::AddUGV(int id)
 {
     //todo add UGVControl
@@ -27,40 +33,102 @@ void VehicleManager::AddUGV(int id)
 
 void VehicleManager::AddQuadRotor(int id)
 {   
-    Q_ASSERT(0 < id && id < (int) VehicleType::quad_rotor);
-    id += (int) VehicleType::quad_rotor; // map to quad_rotor id space
-    UAVControl * uav = new UAVControl(id);
-    this->AddVehicleByType(VehicleType::quad_rotor, uav);
+    id += VehicleType::quad_rotor; // map to quad_rotor id space
+    Q_ASSERT(VehicleType::quad_rotor < id && id < VehicleType::quad_rotor + VEHICLE_TYPE_MAX);
+    VehicleControl *v = new UAVControl(id);
+    db.insert(id, v);
     NUM_QUAD++;
 }
 
 void VehicleManager::AddOctoRotor(int id)
 {
-    Q_ASSERT(0 < id && id < (int) VehicleType::octo_rotor);
-    id += (int) VehicleType::octo_rotor; // map to octo_rotor id space
-    UAVControl * uav = new UAVControl(id);
-    this->AddVehicleByType(VehicleType::octo_rotor, uav);
+    id += VehicleType::octo_rotor; // map to octo_rotor id space
+    Q_ASSERT(VehicleType::octo_rotor <= id && id < VehicleType::octo_rotor + VEHICLE_TYPE_MAX);
+    VehicleControl *v = new UAVControl(id);
+    db.insert(id, v);
     NUM_OCTO++;
 }
 
 void VehicleManager::AddVTOL(int id)
 {
     // todo add VTOLControl class
-    //this->AddVehicleByType(VehicleType::vtol, id);
     NUM_VTOL++;
 }
 
-void VehicleManager::AddVehicleByType(VehicleType v_type, VehicleControl* vehicle)
+// like the public Add* functions, these expect id to be between 0 and 99
+void VehicleManager::DeleteUGV(int id)
 {
-    Q_ASSERT(v_type != VehicleType::invalid);
-    QVector<VehicleControl*> * vehicles = &db[v_type];
-    
-    int index = 0;
-    int size = vehicles->size();
-    while (index < size && vehicle->id > vehicles->at(index)->id)
-        index++;
-    
-    vehicles->insert(vehicles->begin()+index, vehicle);
+//    UGVControl* ugv = (UGVControl*)EraseVehicleFromDB(id + VehicleType::ugv);
+//    if(ugv != nullptr)
+//    {
+//        delete ugv;
+//        NUM_UGV--;
+//    }
+}
+
+void VehicleManager::DeleteQuadRotor(int id)
+{
+    UAVControl* uav= (UAVControl*)this->EraseVehicleFromDB(id + VehicleType::quad_rotor);
+    if(uav != nullptr)
+    {
+        delete uav;
+        NUM_QUAD--;
+    }
+}
+
+void VehicleManager::DeleteOctoRotor(int id)
+{
+    UAVControl* uav= (UAVControl*)this->EraseVehicleFromDB(id + VehicleType::quad_rotor);
+    if(uav != nullptr)
+    {
+        delete uav;
+        NUM_OCTO--;
+    }
+}
+
+void VehicleManager::DeleteVTOL(int id)
+{
+//    VTOLControl * vtol = (UAVControl*)this->EraseVehicleFromDB(id + VehicleType::vtol);
+    NUM_VTOL--;
+}
+
+QString VehicleManager::VehicleString(int id)
+{
+    if(id > VehicleType::humanoid)
+        return "humanoid";
+    else if(id > VehicleType::vtol)
+        return "VTOL";
+    else if(id > VehicleType::octo_rotor)
+        return "octo-rotor";
+    else if(id > VehicleType::quad_rotor)
+        return "quad-rotor";
+    else if(id > VehicleType::ugv)
+        return "UGV";
+    else
+        return QString::null; 
+}
+
+//private:
+
+VehicleControl* VehicleManager::EraseVehicleFromDB(int id)
+{          
+    // there should only be one vehicle with this id
+    VehicleControl* vehicle = nullptr;
+    QMap<int, VehicleControl*>::iterator it = db.find(id);
+    if(it != db.end())
+    {
+        vehicle = it.value();
+        db.erase(it);
+    }
+    else
+    {
+        int v_type = (id / VEHICLE_TYPE_MAX) * VEHICLE_TYPE_MAX; // remove singular 
+        ROS_ERROR_STREAM("tried to delete non existent " 
+                << VehicleString(v_type).toStdString()
+                << " with id: "  
+                << (id % VEHICLE_TYPE_MAX) );
+    }
+    return vehicle;
 }
 
 }

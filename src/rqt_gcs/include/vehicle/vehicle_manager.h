@@ -10,17 +10,17 @@
 #define VEHICLEMANAGER_H
 
 #include <QMap>
-#include <QVector>
 #include <QObject>
 
-#include "vehicle/uav_control.h"
+#include "vehicle/vehicle_control.h"
 #include "util/data_types.h"
 
 namespace rqt_gcs
 {
-
-class VehicleManager
+    
+class VehicleManager : QObject
 {
+    Q_OBJECT
 public:
     VehicleManager(QObject *parent=0);
     virtual ~VehicleManager();
@@ -29,16 +29,22 @@ public:
     void AddOctoRotor(int id);
     void AddVTOL(int id);
     
+    void DeleteUGV(int id);
+    void DeleteQuadRotor(int id);
+    void DeleteOctoRotor(int id);
+    void DeleteVTOL(int id);
+    
+    QString VehicleString(int id);
     
 private:
-    QMap<VehicleType, QVector<VehicleControl*>> db; //the database
+    QMap<int, VehicleControl*> db; //the database
     
-    void AddVehicleByType(VehicleType type, VehicleControl* vehicle);
+    VehicleControl* EraseVehicleFromDB(int id);
+    
     int NUM_UGV, 
         NUM_QUAD,
         NUM_OCTO,
-        NUM_VTOL,
-        NUM_VEHICLES;
+        NUM_VTOL;
 };
 
 }

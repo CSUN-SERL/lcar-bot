@@ -11,14 +11,16 @@
 namespace rqt_gcs
 {
 
+#define VEHICLE_TYPE_MAX 1000
+    
 enum VehicleType
-{
+{   // the id space for each vehicle type  
     invalid = -1,
-    ugv = 1000,      //corresponds to the vehicle id range for this vehicle type
-    quad_rotor = 2000,
-    octo_rotor = 3000,
-    vtol = 4000,
-    humanoid = 5000
+    ugv =                 0 + VEHICLE_TYPE_MAX, //1000
+    quad_rotor =        ugv + VEHICLE_TYPE_MAX, //2000
+    octo_rotor = quad_rotor + VEHICLE_TYPE_MAX, //3000
+    vtol =       octo_rotor + VEHICLE_TYPE_MAX, //4000
+    humanoid =         vtol + VEHICLE_TYPE_MAX  //5000
 };
     
 enum PositionMode
