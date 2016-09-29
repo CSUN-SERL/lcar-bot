@@ -124,12 +124,7 @@ void StereoDriver::StartStream(){
 }
 
 void StereoDriver::ImageCallback(uvc_frame_t *frame){
-    //ros::Rate loop_rate(30);
-    //loop_rate.sleep();
     frame->frame_format = UVC_FRAME_FORMAT_YUYV;
-
-    //std::cout << "Frame format" << std::endl;
-    //std::cout << frame->frame_format << std::endl;
 
     uvc_frame_t *greyLeft;
     uvc_frame_t *greyRight;
