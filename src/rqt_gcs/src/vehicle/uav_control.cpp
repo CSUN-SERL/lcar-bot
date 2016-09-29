@@ -78,7 +78,7 @@ void UAVControl::InitialSetup()
     sub_pos_global = nh.subscribe(ns + "/mavros/global_position/global", QUEUE_SIZE, &UAVControl::NavSatFixCallback, this);
     sub_pos_local  = nh.subscribe(ns + "/mavros/local_position/pose", QUEUE_SIZE, &UAVControl::LocalPosCallback, this);
     sub_depth      = nh.subscribe(ns + "/object_avoidance/depth", QUEUE_SIZE, &UAVControl::DepthCallback, this);
-    //sub_door_query = nh.subscribe(ns + "/objectdetection/door/query", QUEUE_SIZE, &SimpleControl::DoorQueryCallback, this);
+    //sub_door_query = nh.subscribe(ns + "/objectdetection/door/query", QUEUE_SIZE, &UAVControl::DoorQueryCallback, this);
     sub_detection  = nh.subscribe(ns + "/object_detection/access_point/door", QUEUE_SIZE, &UAVControl::DetectionCallback, this);
     sub_heartbeat  = nh.subscribe(ns + "/heartbeat/uav", 0, &UAVControl::UavHeartbeatCallback, this); 
     
@@ -714,5 +714,5 @@ bool UAVControl::CanRequest()
     return (ros::Time::now() - last_request > ros::Duration(SC_INTERVAL));
 }
 
-}
+}//End Namespace
 
