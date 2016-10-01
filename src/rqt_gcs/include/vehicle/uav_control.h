@@ -1,5 +1,5 @@
-#ifndef SIMPLE_CONTROL
-#define SIMPLE_CONTROL
+#ifndef UAV_CONTROL
+#define UAV_CONTROL
 
 #include <stdio.h>
 #include <vector>
@@ -61,8 +61,8 @@ namespace rqt_gcs
 #define BATTERY_MIN 0.10    //Minimum battery level for RTL
 #define DEF_NS "UAV"
 #define R_EARTH 6371        //Earth's radius in km
-#define SC_INTERVAL 3       //Time, in seconds, between service calls
-
+#define SC_INTERVAL 2       //Time, in seconds, between service calls
+#define MAX_TRIES 5
 
 class UAVControl : public VehicleControl
 {
@@ -508,6 +508,7 @@ private:
                                     timer_heartbeat_gcs;
     std_msgs::Int32                 gcs_heartbeat,
                                     uav_heartbeat;
+    int                             tries = 0;
 };
 
 }
