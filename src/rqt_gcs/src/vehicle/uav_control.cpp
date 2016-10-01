@@ -136,6 +136,9 @@ void UAVControl::Arm(bool value)
             ROS_ERROR_STREAM("Failed to call arm service!");
         }
     }
+
+    //Reset the counter for making service calls
+    tries = 0;
 }
 
 void UAVControl::Takeoff(int altitude)
@@ -188,16 +191,22 @@ void UAVControl::SetMode(std::string mode)
         //Already in requested mode or cannot yet request. Do nothing.
     }
     else{
-        if(sc_mode.call(new_mode)){
-            if(new_mode.response.success == 1) ROS_INFO_STREAM("Mode changed to " << mode << ".");
-            else ROS_ERROR_STREAM("Failed to change flight mode to " << mode << ".");
+        if(tries < MAX_TRIES){
+            if(sc_mode.call(new_mode)){
+                if(new_mode.response.success == 1) ROS_INFO_STREAM("Mode changed to " << mode << ".");
+                else ROS_ERROR_STREAM("Failed to change flight mode to " << mode << ".");
+            }
+            else{
+                ROS_INFO_STREAM("Mode: " << mode);
+                ROS_ERROR_STREAM("Failed to call change flight mode service!");
+            }
+            last_request = ros::Time::now();
+
+            tries++;
         }
         else{
-            ROS_INFO_STREAM("Mode: " << mode);
-            ROS_ERROR_STREAM("Failed to call change flight mode service!");
+            ROS_ERROR_ONCE("Failed to change flight mode! Max number of retries reached.");
         }
-
-        last_request = ros::Time::now();
     }
 }
 
@@ -711,7 +720,7 @@ void UAVControl::StopMission(std::string flight_mode)
 
 bool UAVControl::CanRequest()
 {
-    return (ros::Time::now() - last_request > ros::Duration(SC_INTERVAL));
+    return ((ros::Time::now() - last_request) > ros::Duration(SC_INTERVAL));
 }
 
 }//End Namespace
