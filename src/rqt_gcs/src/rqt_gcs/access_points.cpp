@@ -1,7 +1,7 @@
 
 #include <QStringBuilder>
 
-#include "rqt_gcs/access_points.h"
+#include "rqt_gcs/access_points_widget.h"
 #include "util/image.h"
 
 #include "ui_AccessPointStats.h"
@@ -51,7 +51,7 @@ void AccessPoints::UpdateAccessPoints()
         return;
 
     //retreive access points
-    std::vector<AccessPoint> * ap_vec = uav->GetRefAccessPoints();
+    std::vector<lcar_msgs::AccessPointStampedPtr> * ap_vec = uav->GetRefAccessPoints();
 
     //Get our new number of Access points
     int apv_size = ap_vec->size();
@@ -59,10 +59,10 @@ void AccessPoints::UpdateAccessPoints()
     for(int i = num_access_points_last; i < apv_size; i++)
     {
         //retrieve access point
-        AccessPoint accessPoint = ap_vec->at(i);
-        sensor_msgs::ImagePtr ap_img = accessPoint.GetImage();
+        lcar_msgs::AccessPointStampedPtr accessPoint = ap_vec->at(i);
+        sensor_msgs::Image* ap_img = &accessPoint->ap.query.img_framed;
 
-        QPixmap image = img::rosImgToQpixmap(ap_img);
+        QPixmap image = img::rosImgToQpixmap(*ap_img);
 
         QWidget * ap_widget = new QWidget(this);
         Ui::AccessPointStatsWidget ui;
@@ -78,25 +78,24 @@ void AccessPoints::UpdateAccessPoints()
         ap_id.setNum(i);
         ap_data = "Access Point " + ap_id;
         ui.buildingNameLine->setText(ap_data);
-
         //altitude
-        ap_data.setNum(accessPoint.GetAltitude().data, 'f', 2);
+        ap_data.setNum((double)accessPoint->ap.altitude, 'f', 2);
         ui.altitudeLineEdit->setText(ap_data);
 
         //heading
-        ap_data.setNum(accessPoint.GetHeading().data, 'f', 2);
+        ap_data.setNum((double)accessPoint->ap.compass_heading, 'f', 2);
         ui.compassHeadingLineEdit->setText(ap_data);
 
         //location longitude
-        ap_data.setNum(accessPoint.GetLocation().longitude, 'f', 2);
+        ap_data.setNum((double)accessPoint->ap.location.longitude, 'f', 2);
         ui.longitudeLineEdit->setText(ap_data);
 
         //location latitude
-        ap_data.setNum(accessPoint.GetLocation().latitude, 'f', 2);
+        ap_data.setNum((double)accessPoint->ap.location.latitude, 'f', 2);
         ui.latitudeLineEdit->setText(ap_data);
 
         //time
-        ap_data.setNum(accessPoint.GetTime().toSec(), 'f', 6);
+        ap_data.setNum((double)accessPoint->header.stamp.toSec(), 'f', 6);
         ui.captureTimeLineEdit->setText(ap_data);
 
         connect(ui.deleteAccessPointButton, &QPushButton::clicked,
@@ -113,7 +112,7 @@ void AccessPoints::OnDeleteAccessPoint(QWidget* w)
     int deleteIndex = widget.layout_access_points->indexOf(w);
     widget.layout_access_points->removeWidget(w);
     delete w;
-    std::vector<AccessPoint>* vector = uav->GetRefAccessPoints();
+    std::vector<lcar_msgs::AccessPointStampedPtr>* vector = uav->GetRefAccessPoints();
     vector->erase(vector->begin()+deleteIndex);
     num_access_points_last--;
 }
@@ -123,13 +122,13 @@ void AccessPoints::SaveUavAccessPoints(UAVControl* uav, QString ap_type)
 {
     QString path = img::image_root_dir_ % "/access_points/" % ap_type;
     path.append("/uav_" + QString::number(uav->id));
-    std::vector<AccessPoint> * ap_vector = uav->GetRefAccessPoints();
+    std::vector<lcar_msgs::AccessPointStampedPtr> * ap_vector = uav->GetRefAccessPoints();
     for(int i = 0; i < ap_vector->size(); i++)
     {
         QString file = "img_" + QString::number(i) + ".jpg";
 
-        AccessPoint ap = ap_vector->at(i);
-        sensor_msgs::ImagePtr ros_image = ap.GetImage();
+        lcar_msgs::AccessPointStampedPtr ap = ap_vector->at(i);
+        sensor_msgs::Image* ros_image = &ap->ap.query.img;
         QImage image(ros_image->data.data(), ros_image->width, ros_image->height,
                      ros_image->step, QImage::Format_RGB888);
         img::saveImage(path, file, image);

@@ -20,7 +20,7 @@
 #include <map>
 #include <vector>
 #include <string>
-#include <lcar_msgs/APquery.h>
+#include <lcar_msgs/Query.h>
  
 using namespace cv;
 using namespace cv::ml;
@@ -158,23 +158,21 @@ void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image) {
             sensor_msgs::ImagePtr framed_img = cv_bridge::CvImage(std_msgs::Header()
                                                        ,"bgr8", framed_image).toImageMsg();
             door_img->header.stamp = framed_img->header.stamp = ros::Time::now();
+            door_img->header.seq = framed_img->header.seq = door_count;
             //pub_mat_.publish(framed_img);
             
             //publish query message
-            lcar_msgs::APquery door_query;
-            door_query.accepted = false;
-            door_query.framed_picture = *framed_img;
-            door_query.original_picture = *door_img;
-            if(door_count % 5 == 0){
-                door_query.query = true;
-            }
+            lcar_msgs::Query door_query;
+            door_query.is_accepted = false;
+            door_query.img_framed = *framed_img;
+            door_query.img = *door_img;
 
-//            bool similar = compareHistograms(color_image, "door");
-//            if(!similar)
-//            {
+            bool similar = compareHistograms(color_image, "door");
+            if(!similar)
+            {
                 pub_query_.publish(door_query);         
                 door_count++;
-//            }
+            }
         }
     }
 }
@@ -321,7 +319,7 @@ int main (int argc, char** argv){
   hog_.setSVMDetector(hog_detector_);
 
   //pub_mat_ = nh.advertise<sensor_msgs::Image>("object_detection/access_point/door", 1);
-  pub_query_ = nh.advertise<lcar_msgs::APquery>("object_detection/access_point/door", 1);
+  pub_query_ = nh.advertise<lcar_msgs::Query>("object_detection/access_point/door", 1);
   
   std::string ns = ros::this_node::getNamespace();
   std::string topic = "stereo_cam/left/image_rect";

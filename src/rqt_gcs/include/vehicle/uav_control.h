@@ -32,11 +32,9 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
-#include "lcar_msgs/APquery.h"
+#include "lcar_msgs/AccessPointStamped.h"
 #include "lcar_msgs/TargetLocal.h"
 #include "lcar_msgs/TargetGlobal.h"
-
-#include "rqt_gcs/access_point.h"
 #include "vehicle/vehicle_control.h"
 
 namespace rqt_gcs
@@ -249,7 +247,7 @@ public:
     /**
       Manage the UAV and ensure that it is stable
     */
-    void SendDoorResponse(lcar_msgs::APquery msg_answer) { pub_door_answer.publish(msg_answer); }
+    void SendDoorResponse(lcar_msgs::Query msg_answer) { pub_door_answer.publish(msg_answer); }
 
     /*!
      * \brief Manages heartbeat emission
@@ -294,8 +292,8 @@ public:
     int GetDistanceToWP() { return CalculateDistance(pose_target, pose_local); }
     float GetMissionProgress();
     MissionMode GetMissionMode(){return mission_mode;}
-    std::vector<AccessPoint>* GetRefAccessPoints() { return &access_pts; }
-    std::vector<lcar_msgs::APqueryPtr>* GetDoorQueries() { return &queries_door; }
+    std::vector<lcar_msgs::AccessPointStampedPtr>* GetRefAccessPoints() { return &access_pts; }
+    std::vector<lcar_msgs::QueryPtr>* GetDoorQueries() { return &queries_door; }
     bool RecievedHeartbeat() { return heartbeat_recieved; }
     Mode getMode(){ return goal; }
 
@@ -388,21 +386,21 @@ private:
     void NavSatFixCallback(const sensor_msgs::NavSatFix& msg_gps) { pos_global = msg_gps; }
     void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) { pose_local = msg_pos.pose; }
     void DepthCallback(const std_msgs::Float64& msg_depth){ object_distance = msg_depth;}
-    //void DoorQueryCallback(const lcar_msgs::APquery& msg_query){ queries_door.push_back(msg_query); }
-    void DetectionCallback(const lcar_msgs::APqueryPtr& msg_detection)
+    //void DoorQueryCallback(const lcar_msgs::Query& msg_query){ queries_door.push_back(msg_query); }
+    void DetectionCallback(const lcar_msgs::QueryPtr& msg)
     {
-        AccessPoint new_point;
+        lcar_msgs::AccessPointStampedPtr new_point(new lcar_msgs::AccessPointStamped());
 
-        new_point.SetTime(ros::Time::now());
-        new_point.SetImage(boost::make_shared<sensor_msgs::Image>(msg_detection->framed_picture));
-        new_point.SetAltitude(altitude_rel);
-        new_point.SetHeading(heading_deg);
-        new_point.SetLocation(pos_global);
-        new_point.SetType(AccessPoint::door);
+        new_point->header = msg->img_framed.header;
+        new_point->ap.query = *msg;
+        new_point->ap.altitude = altitude_rel.data;
+        new_point->ap.compass_heading = heading_deg.data;
+        new_point->ap.location = pos_global;
+        new_point->ap.ap_type = lcar_msgs::AccessPoint::DOOR;
         access_pts.push_back(new_point);
                 
-        if(online_mode && msg_detection->query)
-            queries_door.push_back(msg_detection);
+        if(online_mode && msg->img_framed.header.seq % 5 == 0)
+            queries_door.push_back(msg);
     }
     
     void UavHeartbeatCallback(std_msgs::Int32 heartbeat_msg)
@@ -482,8 +480,8 @@ private:
     PositionMode                    position_mode = local;
     MissionMode                     mission_mode = stopped;
     ros::Time                       last_request;
-    std::vector<AccessPoint>        access_pts;
-    std::vector<lcar_msgs::APqueryPtr> queries_door;
+    std::vector<lcar_msgs::AccessPointStampedPtr>        access_pts;
+    std::vector<lcar_msgs::QueryPtr> queries_door;
     bool                            collision = false,
                                     online_mode = true,
                                     connection_dropped = false,

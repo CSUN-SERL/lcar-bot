@@ -159,7 +159,7 @@ void GCS::OnDeleteUav(int index)
    uav_mutex.unlock();
 }
 
-void GCS::SaveUavQueries(int uav_id, const std::vector<lcar_msgs::APqueryPtr> *queries, const QString ap_type)
+void GCS::SaveUavQueries(int uav_id, const std::vector<lcar_msgs::QueryPtr> *queries, const QString ap_type)
 {
     QString path = img::image_root_dir_ % "/queries/unanswered/"
         % ap_type % "/uav_" % QString::number(uav_id);
@@ -168,16 +168,16 @@ void GCS::SaveUavQueries(int uav_id, const std::vector<lcar_msgs::APqueryPtr> *q
 
     for(int i = 0; i < queries->size(); i++, num_images += 2)
     {
-        lcar_msgs::APqueryPtr query = queries->at(i);
+        lcar_msgs::QueryPtr query = queries->at(i);
 
-        sensor_msgs::Image ros_image = query->original_picture;
+        sensor_msgs::Image ros_image = query->img;
         QImage image = img::rosImgToQimg(ros_image);
 
         QString file = "img_" % QString::number(num_images) % ".jpg";
         if(!img::saveImage(path, file, image))
             qCDebug(lcar_bot) << "error saving uav query\n";
 
-        ros_image = query->framed_picture;
+        ros_image = query->img_framed;
         image = img::rosImgToQimg(ros_image);
 
         file = "img_" %  QString::number(num_images+1) % ".jpg";
@@ -236,9 +236,9 @@ void GCS::UpdateQueries()
     for(int i = num_queries_last; i < pqv_size; i++)
     {
         //retrieve Query msg for door image
-        lcar_msgs::APqueryPtr doorQuery = vec_uav_queries_ptr->at(i);
+        lcar_msgs::QueryPtr doorQuery = vec_uav_queries_ptr->at(i);
 
-        QPixmap image = img::rosImgToQpixmap(doorQuery->framed_picture);
+        QPixmap image = img::rosImgToQpixmap(doorQuery->img_framed);
 
         //create the widget
         QueryWidget * qw = new QueryWidget();
@@ -259,7 +259,7 @@ void GCS::UpdateQueries()
 void GCS::AnswerQuery(QWidget * qw, QString ap_type, bool accepted)
 {
     int index = widget.layout_queries->indexOf(qw);
-    lcar_msgs::APqueryPtr door = vec_uav_queries_ptr->at(index);
+    lcar_msgs::QueryPtr door = vec_uav_queries_ptr->at(index);
 
     UAVControl* uav = active_uavs[cur_uav];
     QString path = img::image_root_dir_ % "/queries";
@@ -275,12 +275,12 @@ void GCS::AnswerQuery(QWidget * qw, QString ap_type, bool accepted)
         file.append("img_" % QString::number(uav->rejected_images++) % ".jpg");
     }
 
-    img::saveImage(path, file, door->original_picture);
+    img::saveImage(path, file, door->img);
 
     vec_uav_queries_ptr->erase(vec_uav_queries_ptr->begin() + index);
     delete qw;
 
-    door->accepted = accepted;
+    door->is_accepted = accepted;
     num_queries_last--;
     //uav->SendDoorResponse(doormsg);
 }
