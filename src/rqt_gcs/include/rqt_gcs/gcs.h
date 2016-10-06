@@ -32,7 +32,7 @@
 #include "util/debug.h"
 #include "util/image.h"
 #include "vehicle/uav_control.h"
-#include "lcar_msgs/Door.h"
+#include "lcar_msgs/APquery.h"
 #include "lcar_msgs/TargetLocal.h"
 #include "lcar_msgs/TargetGlobal.h"
 
@@ -121,7 +121,7 @@ private:
 
     void UpdateQueries();
     void ClearQueries();
-    void SaveUavQueries(int uav_id, const std::vector<lcar_msgs::DoorPtr> *queries, const QString ap_type);
+    void SaveUavQueries(int uav_id, const std::vector<lcar_msgs::APqueryPtr> *queries, const QString ap_type);
     void AnswerQuery(QWidget *, QString ap_type, bool);
 
     void ToggleScoutButtons(bool visible, QString icon_type = "pause");
@@ -133,7 +133,7 @@ private:
     
     ros::NodeHandle nh;
     ros::ServiceServer server;
-    lcar_msgs::Door msg;
+    lcar_msgs::APquery msg;
     image_transport::ImageTransport it_stereo{nh};
     QQueue<QPixmap> img_q;
     int img_q_max_size;
@@ -173,7 +173,7 @@ private:
     QVector<UAVControl*> active_uavs;
     QMap<int, UAVControl*> uav_db;
 
-    std::vector<lcar_msgs::DoorPtr> *vec_uav_queries_ptr;
+    std::vector<lcar_msgs::APqueryPtr> *vec_uav_queries_ptr;
 
     image_transport::Subscriber sub_stereo;
 

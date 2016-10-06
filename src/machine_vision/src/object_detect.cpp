@@ -20,7 +20,7 @@
 #include <map>
 #include <vector>
 #include <string>
-#include <lcar_msgs/Door.h>
+#include <lcar_msgs/APquery.h>
  
 using namespace cv;
 using namespace cv::ml;
@@ -161,7 +161,7 @@ void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image) {
             //pub_mat_.publish(framed_img);
             
             //publish query message
-            lcar_msgs::Door door_query;
+            lcar_msgs::APquery door_query;
             door_query.accepted = false;
             door_query.framed_picture = *framed_img;
             door_query.original_picture = *door_img;
@@ -321,7 +321,7 @@ int main (int argc, char** argv){
   hog_.setSVMDetector(hog_detector_);
 
   //pub_mat_ = nh.advertise<sensor_msgs::Image>("object_detection/access_point/door", 1);
-  pub_query_ = nh.advertise<lcar_msgs::Door>("object_detection/access_point/door", 1);
+  pub_query_ = nh.advertise<lcar_msgs::APquery>("object_detection/access_point/door", 1);
   
   std::string ns = ros::this_node::getNamespace();
   std::string topic = "stereo_cam/left/image_rect";

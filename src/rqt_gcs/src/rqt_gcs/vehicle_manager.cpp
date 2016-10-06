@@ -5,7 +5,7 @@
  * Created on September 8, 2016, 11:41 AM
  */
 
-#include "vehicle/vehicle_manager.h"
+#include "rqt_gcs/vehicle_manager.h"
 #include "vehicle/uav_control.h"
 
 namespace rqt_gcs

@@ -60,7 +60,7 @@ void AccessPoints::UpdateAccessPoints()
     {
         //retrieve access point
         AccessPoint accessPoint = ap_vec->at(i);
-        sensor_msgs::Image ap_img = accessPoint.GetImage();
+        sensor_msgs::ImagePtr ap_img = accessPoint.GetImage();
 
         QPixmap image = img::rosImgToQpixmap(ap_img);
 
@@ -129,9 +129,9 @@ void AccessPoints::SaveUavAccessPoints(UAVControl* uav, QString ap_type)
         QString file = "img_" + QString::number(i) + ".jpg";
 
         AccessPoint ap = ap_vector->at(i);
-        sensor_msgs::Image ros_image = ap.GetImage();
-        QImage image(ros_image.data.data(), ros_image.width, ros_image.height,
-                     ros_image.step, QImage::Format_RGB888);
+        sensor_msgs::ImagePtr ros_image = ap.GetImage();
+        QImage image(ros_image->data.data(), ros_image->width, ros_image->height,
+                     ros_image->step, QImage::Format_RGB888);
         img::saveImage(path, file, image);
     }
 }

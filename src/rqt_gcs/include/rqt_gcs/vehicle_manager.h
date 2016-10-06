@@ -18,12 +18,13 @@
 namespace rqt_gcs
 {
     
-class VehicleManager : QObject
+class VehicleManager : public QObject
 {
     Q_OBJECT
 public:
     VehicleManager(QObject *parent=0);
-    virtual ~VehicleManager();
+    virtual~VehicleManager();
+    
     void AddUGV(int id);
     void AddQuadRotor(int id);
     void AddOctoRotor(int id);

@@ -20,7 +20,7 @@ public:
     const int id; // child classes provide id to this class' constructor
     
     VehicleControl(int id): id(id){ }
-    
+    virtual ~VehicleControl(){};
     virtual void Arm(bool value)=0;
     virtual void SetMode(std::string)=0;
     virtual sensor_msgs::NavSatFix GetLocation()=0;

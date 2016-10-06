@@ -32,7 +32,7 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
-#include "lcar_msgs/Door.h"
+#include "lcar_msgs/APquery.h"
 #include "lcar_msgs/TargetLocal.h"
 #include "lcar_msgs/TargetGlobal.h"
 
@@ -249,7 +249,7 @@ public:
     /**
       Manage the UAV and ensure that it is stable
     */
-    void SendDoorResponse(lcar_msgs::Door msg_answer) { pub_door_answer.publish(msg_answer); }
+    void SendDoorResponse(lcar_msgs::APquery msg_answer) { pub_door_answer.publish(msg_answer); }
 
     /*!
      * \brief Manages heartbeat emission
@@ -295,7 +295,7 @@ public:
     float GetMissionProgress();
     MissionMode GetMissionMode(){return mission_mode;}
     std::vector<AccessPoint>* GetRefAccessPoints() { return &access_pts; }
-    std::vector<lcar_msgs::DoorPtr>* GetDoorQueries() { return &queries_door; }
+    std::vector<lcar_msgs::APqueryPtr>* GetDoorQueries() { return &queries_door; }
     bool RecievedHeartbeat() { return heartbeat_recieved; }
     Mode getMode(){ return goal; }
 
@@ -388,13 +388,13 @@ private:
     void NavSatFixCallback(const sensor_msgs::NavSatFix& msg_gps) { pos_global = msg_gps; }
     void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) { pose_local = msg_pos.pose; }
     void DepthCallback(const std_msgs::Float64& msg_depth){ object_distance = msg_depth;}
-    //void DoorQueryCallback(const lcar_msgs::Door& msg_query){ queries_door.push_back(msg_query); }
-    void DetectionCallback(const lcar_msgs::DoorPtr& msg_detection)
+    //void DoorQueryCallback(const lcar_msgs::APquery& msg_query){ queries_door.push_back(msg_query); }
+    void DetectionCallback(const lcar_msgs::APqueryPtr& msg_detection)
     {
         AccessPoint new_point;
 
         new_point.SetTime(ros::Time::now());
-        new_point.SetImage((sensor_msgs::Image)msg_detection->framed_picture);
+        new_point.SetImage(boost::make_shared<sensor_msgs::Image>(msg_detection->framed_picture));
         new_point.SetAltitude(altitude_rel);
         new_point.SetHeading(heading_deg);
         new_point.SetLocation(pos_global);
@@ -483,7 +483,7 @@ private:
     MissionMode                     mission_mode = stopped;
     ros::Time                       last_request;
     std::vector<AccessPoint>        access_pts;
-    std::vector<lcar_msgs::DoorPtr> queries_door;
+    std::vector<lcar_msgs::APqueryPtr> queries_door;
     bool                            collision = false,
                                     online_mode = true,
                                     connection_dropped = false,

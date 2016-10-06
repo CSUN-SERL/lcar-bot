@@ -11,7 +11,7 @@ include_directories(include)
 add_message_files(
   DIRECTORY msg
   FILES
-  Door.msg
+  APquery.msg
   TargetLocal.msg
   TargetGlobal.msg)
 
