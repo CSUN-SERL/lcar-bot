@@ -5,7 +5,7 @@
 #include <QTimer>
 #include <QSignalMapper>
 
-#include "ui_AccessPoints.h"
+#include "ui_AllAccessPointsWidget.h"
 #include "vehicle/uav_control.h"
 
 namespace rqt_gcs
@@ -26,7 +26,7 @@ public slots:
     void OnDeleteAccessPoint(QWidget* w);
     
 private:
-    Ui::AccessPoints widget;
+    Ui::AllAccessPointsWidget widget;
     QTimer* timer;
     int num_access_points_last;
     

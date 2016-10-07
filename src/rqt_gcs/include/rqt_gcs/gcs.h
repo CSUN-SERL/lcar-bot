@@ -27,7 +27,7 @@
 #include "rqt_gcs/vehicle_list_widget.h"
 #include "rqt_gcs/unanswered_queries.h"
 #include "rqt_gcs/settings_widget.h"
-#include "rqt_gcs/access_points_widget.h"
+#include "rqt_gcs/all_access_points_widget.h"
 #include "util/data_types.h"
 #include "util/debug.h"
 #include "util/image.h"

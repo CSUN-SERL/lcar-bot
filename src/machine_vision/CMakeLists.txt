@@ -28,18 +28,16 @@ catkin_package()
 # Specify locations of header files
 include_directories(include
     ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_BINARY_DIR}
-  ${catkin_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
-  ${libuvc_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${catkin_INCLUDE_DIRS}
+    ${OpenCV_INCLUDE_DIRS}
+    ${libuvc_INCLUDE_DIRS}
 )
 
 # Declare executables with source files
 add_executable(camera_publisher src/ros_camera_publisher.cpp)
 add_executable(camera_subscriber src/ros_camera_subscriber.cpp)
-add_executable(stereo_publisher src/stereo_cam_pub.cpp)
 add_executable(disparity_view src/disparity_view.cpp)
-
 add_executable(stereo_driver src/stereo_driver.cpp src/stereo_driver_main.cpp)
 add_executable(object_detection src/object_detect.cpp)
 add_executable(object_avoidance src/object_avoidance.cpp)
@@ -55,12 +53,6 @@ target_link_libraries(camera_publisher
 target_link_libraries(camera_subscriber
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
-)
-
-target_link_libraries(stereo_publisher
-  ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-  ${libuvc_LIBRARIES}
 )
 
 target_link_libraries(stereo_driver
