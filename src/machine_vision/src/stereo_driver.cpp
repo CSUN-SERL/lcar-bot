@@ -2,31 +2,22 @@
 
 using namespace camera_info_manager;
 
-StereoDriver::StereoDriver(
-    int vendor_id,
-    int product_id,
-    ros::NodeHandle nh
-) :
-    vendor_id_(vendor_id),
-    product_id_(product_id),
-    nh_(nh),
-    it_(nh),
-    cinfo_left_ (ros::NodeHandle(nh_, "stereo_cam/left" ), "li_stereo_left" ),
-    cinfo_right_(ros::NodeHandle(nh_, "stereo_cam/right"), "li_stereo_right"),
-    open_(false),
-    stereo_image_id_(0)
+StereoDriver::StereoDriver(int vendor_id, int product_id, ros::NodeHandle nh) :
+    vendor_id(vendor_id),
+    product_id(product_id),
+    nh(nh),
+    it(nh),
+    cim_left(ros::NodeHandle(nh, "stereo_cam/left" ), "li_stereo_left" ),
+    cim_right(ros::NodeHandle(nh, "stereo_cam/right"), "li_stereo_right"),
+    open(false)
 {
-    cinfo_left_.loadCameraInfo("package://machine_vision/calibrations/left.yaml");
-    cinfo_right_.loadCameraInfo("package://machine_vision/calibrations/right.yaml");
-
-    pub_left_  = it_.advertiseCamera( "stereo_cam/left/image_raw", 1);
-    pub_right_ = it_.advertiseCamera("stereo_cam/right/image_raw", 1);
-    //pub_rgb_   = it_.advertise("stereo_cam/rgb/image_raw", 1);
+    pub_left = it.advertiseCamera( "stereo_cam/left/image_raw", 1);
+    pub_right = it.advertiseCamera("stereo_cam/right/image_raw", 1);
 }
 
 StereoDriver::~StereoDriver(){}
 
-bool StereoDriver::IsOpen(){ return open_; }
+bool StereoDriver::IsOpen(){ return open; }
 
 void StereoDriver::StartStream(){
 
@@ -45,10 +36,10 @@ void StereoDriver::StartStream(){
     /* Locates the first attached UVC device, stores in dev */
     res = uvc_find_device(
         ctx, &dev,
-        vendor_id_, product_id_, NULL); /* filter devices: vendor_id, product_id, "serial_num" */
+        vendor_id, product_id, NULL); /* filter devices: vendor_id, product_id, "serial_num" */
 
     if (res < 0) {
-      open_=false;
+      open=false;
       uvc_perror(res, "uvc_find_device"); /* no devices found */
     } else {
       puts("Device found");
@@ -59,7 +50,7 @@ void StereoDriver::StartStream(){
       if (res < 0) {
         uvc_perror(res, "uvc_open"); /* unable to open device */
         printf("Unable to open device");
-        open_=false;
+        open=false;
       } else {
         puts("Device opened");
 
@@ -78,27 +69,27 @@ void StereoDriver::StartStream(){
         uvc_print_stream_ctrl(&ctrl, stderr);
 
         if (res < 0) {
-          open_ = false;
+          open = false;
           uvc_perror(res, "get_mode"); /* device doesn't provide a matching stream */
         } else {
           /* Start the video stream. The library will call user function cb:
            *   cb(frame, (void*) 12345)
            */
 
-          open_ = false;
+          open = false;
           res = uvc_start_streaming(devh, &ctrl, &StereoDriver::ImageCallbackAdapter, this, 0);
 
           if (res < 0) {
             uvc_perror(res, "start_streaming"); /* unable to start stream */
           } else {
-            open_ = true;
+            open = true;
 
             puts("Streaming...");
 
             uvc_set_ae_mode(devh, 0); /* e.g., turn on auto exposure */
 
             //sleep(10); /* stream for 10 seconds */
-            while(nh_.ok() && open_){
+            while(nh.ok() && open){
                 ros::spinOnce();
             }
 
@@ -124,78 +115,73 @@ void StereoDriver::StartStream(){
 }
 
 void StereoDriver::ImageCallback(uvc_frame_t *frame){
-    frame->frame_format = UVC_FRAME_FORMAT_YUYV;
-
-    uvc_frame_t *greyLeft;
-    uvc_frame_t *greyRight;
-    
-    uvc_error_t retLeft;
-    uvc_error_t retRight;
-
     /* We'll convert the image from YUV/JPEG to gray8, so allocate space */
-    greyLeft = uvc_allocate_frame(frame->width * frame->height);
-    greyRight = uvc_allocate_frame(frame->width * frame->height);
+    uvc_frame_t *uvc_left = uvc_allocate_frame(frame->width * frame->height);
+    uvc_frame_t *uvc_right = uvc_allocate_frame(frame->width * frame->height);
 
-    if (!greyLeft) {
-      printf("unable to allocate grey left frame!");
+    if (!uvc_left) 
+    {
+      printf("unable to allocate left frame!");
       return;
     }
-    if (!greyRight) {
-      printf("unable to allocate grey right frame!");
+    if (!uvc_right) 
+    {
+      printf("unable to allocate right frame!");
       return;
     }
 
-    sensor_msgs::CameraInfoPtr ci_left(new sensor_msgs::CameraInfo(cinfo_left_.getCameraInfo()));
-
-    sensor_msgs::CameraInfoPtr ci_right(new sensor_msgs::CameraInfo(cinfo_right_.getCameraInfo()));
-
+    sensor_msgs::CameraInfoPtr ci_left(new sensor_msgs::CameraInfo(cim_left.getCameraInfo()));
+    sensor_msgs::CameraInfoPtr ci_right(new sensor_msgs::CameraInfo(cim_right.getCameraInfo()));
+    
     ros::Time time_stamp = ros::Time::now();
-
     ci_left->header.stamp = ci_right->header.stamp = time_stamp;
 
     /* Do the BGR conversion */
-    retLeft = uvc_yuyv2y(frame, greyLeft);
-    retRight = uvc_yuyv2uv(frame, greyRight);
+    uvc_error_t ret_left = uvc_yuyv2y(frame, uvc_left);
+    uvc_error_t ret_right = uvc_yuyv2uv(frame, uvc_right);
 
-    if (retLeft) {
-      uvc_perror(retLeft, "uvc_yuyv2y");
-      uvc_free_frame(greyLeft);
-      printf("Error with yuyv to y conversion");
+    if(ret_left)
+    {
+      uvc_perror(ret_left, "uvc_yuyv2y");
+      uvc_free_frame(uvc_left);
+      printf("Error with yuyv to y conversion: error code %d", ret_left);
       return;
     }
 
-    if (retRight) {
-      uvc_perror(retRight, "uvc_yuyv2uv");
-      uvc_free_frame(greyRight);
-      printf("Error with yuyv to uv conversion");
+    if(ret_right)
+    {
+      uvc_perror(ret_right, "uvc_yuyv2uv");
+      uvc_free_frame(uvc_right);
+      printf("Error with yuyv to uv conversion: error code %d", ret_right);
       return;
     }
+    
+    cv::Mat left (uvc_left->height, uvc_left->width, CV_8UC1, uvc_left->data);
+    cv::Mat right (uvc_right->height, uvc_right->width, CV_8UC1, uvc_right->data);
 
-    cv::Mat left (greyLeft->height, greyLeft->width, CV_8UC1, greyLeft->data);
-    cv::Mat right (greyRight->height, greyRight->width, CV_8UC1, greyRight->data);;
-
-    if(!left.empty() && !right.empty()){
+    if(!left.empty() && !right.empty())
+    {
         sensor_msgs::ImagePtr msg_left = cv_bridge::CvImage(std_msgs::Header(),
                                                 "mono8", left).toImageMsg();
 
         sensor_msgs::ImagePtr msg_right = cv_bridge::CvImage(std_msgs::Header(),
                                                 "mono8", right).toImageMsg();
-        msg_left->header.stamp = time_stamp;
-        msg_right->header.stamp = time_stamp;
+       
+        msg_left->header.stamp = msg_right->header.stamp = time_stamp;
+        msg_left->header.seq = msg_right->header.seq = frame->sequence;
 
-        msg_left->header.seq = msg_right->header.seq = stereo_image_id_;
+        pub_left.publish(msg_left, ci_left);
+        pub_right.publish(msg_right, ci_right);
 
-        pub_left_.publish(msg_left, ci_left);
-        pub_right_.publish(msg_right, ci_right);
-
-        stereo_image_id_++;
+//        stereo_image_id++;
     }
 
-    uvc_free_frame(greyLeft);
-    uvc_free_frame(greyRight);
+    uvc_free_frame(uvc_left);
+    uvc_free_frame(uvc_right);
 }
 
-void StereoDriver::ImageCallbackAdapter(uvc_frame_t *frame, void *ptr){
+void StereoDriver::ImageCallbackAdapter(uvc_frame_t *frame, void *ptr)
+{
     StereoDriver *driver = static_cast<StereoDriver*>(ptr);
     driver->ImageCallback(frame);
 }

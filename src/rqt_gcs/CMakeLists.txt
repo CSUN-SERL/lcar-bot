@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(rqt_gcs)
+project(rqt_gcs) # ${PROJECT_NAME} == rqt_gcs
 
 find_package(catkin REQUIRED COMPONENTS
             tf
