@@ -1,10 +1,10 @@
 
 #include <QStringBuilder>
 
-#include "rqt_gcs/all_access_points_widget.h"
-#include "rqt_gcs/access_point_widget.h"
+#include "rqt_gcs/access_points_widget.h"
 #include "util/image.h"
-#include "ui_AllAccessPointsWidget.h"
+
+#include "ui_AccessPointStats.h"
 
 namespace rqt_gcs
 {
@@ -64,30 +64,41 @@ void AccessPoints::UpdateAccessPoints()
 
         QPixmap image = img::rosImgToQpixmap(*ap_img);
 
-        AccessPointWidget * ap_widget = new AccessPointWidget(this);
-        
-        ap_widget->SetImage(image);
-        
+        QWidget * ap_widget = new QWidget(this);
+        Ui::AccessPointStatsWidget ui;
+        ui.setupUi(ap_widget);
+
+        int w = ui.image_frame->width();
+        int h = ui.image_frame->height();
+        image = image.scaled(w, h, Qt::AspectRatioMode::KeepAspectRatio);
+        ui.image_frame->setPixmap(image);
+
         //access point name
-        ap_widget->SetName("Building " % QString::number(i));
-        
+        QString ap_id, ap_data;
+        ap_id.setNum(i);
+        ap_data = "Access Point " + ap_id;
+        ui.buildingNameLine->setText(ap_data);
         //altitude
-        ap_widget->SetAltitude((double)accessPoint->ap.altitude);
+        ap_data.setNum((double)accessPoint->ap.altitude, 'f', 2);
+        ui.altitudeLineEdit->setText(ap_data);
 
         //heading
-        ap_widget->SetHeading((double)accessPoint->ap.compass_heading);
+        ap_data.setNum((double)accessPoint->ap.compass_heading, 'f', 2);
+        ui.compassHeadingLineEdit->setText(ap_data);
 
         //location longitude
-        ap_widget->SetLongitude((double)accessPoint->ap.location.longitude);
+        ap_data.setNum((double)accessPoint->ap.location.longitude, 'f', 2);
+        ui.longitudeLineEdit->setText(ap_data);
 
         //location latitude
-        ap_widget->SetLatitude((double)accessPoint->ap.location.latitude);
+        ap_data.setNum((double)accessPoint->ap.location.latitude, 'f', 2);
+        ui.latitudeLineEdit->setText(ap_data);
 
         //time
-        ap_widget->SetCaptureTime((double)accessPoint->header.stamp.toSec());
- 
+        ap_data.setNum((double)accessPoint->header.stamp.toSec(), 'f', 6);
+        ui.captureTimeLineEdit->setText(ap_data);
 
-        connect(ap_widget->Button(), &QPushButton::clicked,
+        connect(ui.deleteAccessPointButton, &QPushButton::clicked,
                 this, [=](){ OnDeleteAccessPoint(ap_widget); } );
 
         //finally, add it to the gui

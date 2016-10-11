@@ -1,27 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AllAccessPointsWidget</class>
- <widget class="QWidget" name="AllAccessPointsWidget">
+ <class>AccessPoints</class>
+ <widget class="QWidget" name="AccessPoints">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>760</width>
-    <height>562</height>
+    <width>868</width>
+    <height>592</height>
    </rect>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>760</width>
-    <height>562</height>
-   </size>
   </property>
   <property name="windowTitle">
    <string>Access Points</string>
   </property>
   <property name="styleSheet">
    <string notr="true">QWidget{
-background-color: rgb(48, 57, 80);
+background-color: rgb(39, 47, 66);
 color: rgb(236, 236, 236);
 }
 
@@ -64,8 +58,8 @@ background:transparent;
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>742</width>
-        <height>516</height>
+        <width>850</width>
+        <height>546</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
