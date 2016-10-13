@@ -102,11 +102,7 @@ void UAVControl::Arm(bool value)
         arm.request.value = value;
 
         //Call the service
-        if(pose_local.position.z > 1 && !value){
-            ROS_ERROR_STREAM("Cannot disarm in air! Landing.");
-            this->SetMode("AUTO.LAND");
-        }
-        else if(sc_arm.call(arm)){
+        if(sc_arm.call(arm)){
             if(arm.response.success == 1){
 
                 bool timeout = false;
@@ -188,51 +184,41 @@ void UAVControl::SetMode(std::string mode)
     new_mode.request.custom_mode = mode; //custom_mode expects a char*
 
     //Call the service
-    if(sc_mode.call(new_mode)){
-        if(new_mode.response.success == 1) ROS_INFO_STREAM("Mode changed to " << mode << ".");
-        else ROS_ERROR_STREAM("Failed to change flight mode to " << mode << ".");
+    if((state.mode).compare(mode) == 0 || !CanRequest()){
+        //Already in requested mode or cannot yet request. Do nothing.
     }
     else{
-        ROS_INFO_STREAM("Mode: " << mode);
-        ROS_ERROR_STREAM("Failed to call change flight mode service!");
+        if(sc_mode.call(new_mode)){
+            if(new_mode.response.success == 1) ROS_INFO_STREAM("Mode changed to " << mode << ".");
+            else ROS_ERROR_STREAM("Failed to change flight mode to " << mode << ".");
+        }
+        else{
+            ROS_INFO_STREAM("Mode: " << mode);
+            ROS_ERROR_STREAM("Failed to call change flight mode service!");
+        }
+
+        last_request = ros::Time::now();
     }
 }
 
 void UAVControl::EnableOffboard()
 {
-    mavros_msgs::SetMode offb_set_mode;
-    offb_set_mode.request.custom_mode = "OFFBOARD";
-
     geometry_msgs::PoseStamped pose;
     pose.pose.position.x = pose_previous.position.x;
     pose.pose.position.y = pose_previous.position.y;
     pose.pose.position.z = pose_previous.position.z;
 
-    mavros_msgs::CommandBool arm_cmd;
-    arm_cmd.request.value = true;
+    this->Arm(true);
 
-    if( state.mode != "OFFBOARD" && (ros::Time::now() - last_request > ros::Duration(5.0))){
-
-        ros::Rate loop_rate(50); //50Hz
-        //send a few setpoints before starting
-        for(int i = 10; ros::ok() && i > 0; --i){
-            pub_setpoint_position.publish(pose);
-            ros::spinOnce();
-            loop_rate.sleep();
-        }
-
-        if( sc_mode.call(offb_set_mode) && offb_set_mode.response.success){
-            ROS_INFO("Offboard enabled");
-        }
-        last_request = ros::Time::now();
-    } else {
-        if( !state.armed && (ros::Time::now() - last_request > ros::Duration(5.0))){
-            if( sc_arm.call(arm_cmd) && arm_cmd.response.success){
-                ROS_INFO("Vehicle armed");
-            }
-            last_request = ros::Time::now();
-        }
+    ros::Rate loop_rate(50); //50Hz
+    //send a few setpoints before starting
+    for(int i = 10; ros::ok() && i > 0; --i){
+        pub_setpoint_position.publish(pose);
+        ros::spinOnce();
+        loop_rate.sleep();
     }
+
+    this->SetMode("OFFBOARD");
 }
 
 sensor_msgs::NavSatFix UAVControl::GetLocation()
@@ -687,13 +673,9 @@ void UAVControl::RunLocal()
 void UAVControl::RunGlobal()
 {
     if(goal == travel){
-        if(state.mode != "AUTO.MISSION"){
-            //Restore target point
-            this->SetMode("AUTO.MISSION");
-        }
+        this->SetMode("AUTO.MISSION");
     }
     else if(goal == hold){
-        //Save target waypoint
         this->SetMode("AUTO.HOLD");
     }
     else if(goal == rtl){
@@ -720,4 +702,17 @@ void UAVControl::StopMission()
     goal = rtl;
 }
 
+void UAVControl::StopMission(std::string flight_mode)
+{
+    mission_mode = stopped;
+    this->SetMode(flight_mode);
+    goal = idle;
 }
+
+bool UAVControl::CanRequest()
+{
+    return (ros::Time::now() - last_request > ros::Duration(SC_INTERVAL));
+}
+
+}
+
