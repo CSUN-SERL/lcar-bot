@@ -17,6 +17,12 @@ add_message_files(
     TargetLocal.msg
     TargetGlobal.msg)
 
+add_service_files(
+    DIRECTORY srv
+    FILES
+    Init.srv
+)
+
 generate_messages(DEPENDENCIES sensor_msgs geometry_msgs mavros_msgs)
 
 catkin_package(CATKIN_DEPENDS message_runtime sensor_msgs geometry_msgs mavros_msgs)

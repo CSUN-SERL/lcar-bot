@@ -27,7 +27,7 @@
 #include "rqt_gcs/vehicle_list_widget.h"
 #include "rqt_gcs/unanswered_queries.h"
 #include "rqt_gcs/settings_widget.h"
-#include "rqt_gcs/access_points_widget.h"
+#include "rqt_gcs/access_points_container_widget.h"
 #include "util/data_types.h"
 #include "util/debug.h"
 #include "util/image.h"
@@ -167,7 +167,7 @@ private:
     {
         SettingsWidget * settings = nullptr;
         UnansweredQueries * unanswered_queries = nullptr;
-        AccessPoints* ap_menu = nullptr;
+        AccessPointsContainerWidget* ap_menu = nullptr;
     } fl_widgets;
 
     QVector<UAVControl*> active_uavs;

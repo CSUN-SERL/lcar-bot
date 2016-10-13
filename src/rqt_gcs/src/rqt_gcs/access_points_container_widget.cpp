@@ -1,31 +1,30 @@
 
 #include <QStringBuilder>
 
-#include "rqt_gcs/access_points_widget.h"
+#include "rqt_gcs/access_points_container_widget.h"
+#include "rqt_gcs/access_point_widget.h"
 #include "util/image.h"
-
-#include "ui_AccessPointStats.h"
 
 namespace rqt_gcs
 {
     
-AccessPoints::AccessPoints() :
+AccessPointsContainerWidget::AccessPointsContainerWidget() :
     timer(new QTimer(this))
 {
     widget.setupUi(this);
     this->setAttribute(Qt::WA_DeleteOnClose);
     connect(timer, &QTimer::timeout, 
-            this, &AccessPoints::UpdateAccessPoints);
+            this, &AccessPointsContainerWidget::UpdateAccessPoints);
     timer->start(0);
 }
 
-AccessPoints::~AccessPoints()
+AccessPointsContainerWidget::~AccessPointsContainerWidget()
 {
-    ClearAccessPoints();
+    this->ClearAccessPoints();
     uav = nullptr;
 }
 
-void AccessPoints::SetUAV(UAVControl* uav)
+void AccessPointsContainerWidget::SetUAV(UAVControl* uav)
 {
     this->uav = uav;
     if(uav != nullptr)
@@ -36,7 +35,7 @@ void AccessPoints::SetUAV(UAVControl* uav)
     this->ClearAccessPoints();
 }
 
-void AccessPoints::ClearAccessPoints()
+void AccessPointsContainerWidget::ClearAccessPoints()
 {
     //clear out old list of Access points widgets
     for(int i = widget.layout_access_points->count() -1 ; i >= 0; i--)
@@ -45,7 +44,7 @@ void AccessPoints::ClearAccessPoints()
     num_access_points_last = 0;
 }
 
-void AccessPoints::UpdateAccessPoints()
+void AccessPointsContainerWidget::UpdateAccessPoints()
 {
     if(!this->isVisible() || uav == nullptr)
         return;
@@ -60,45 +59,34 @@ void AccessPoints::UpdateAccessPoints()
     {
         //retrieve access point
         lcar_msgs::AccessPointStampedPtr accessPoint = ap_vec->at(i);
-        sensor_msgs::Image* ap_img = &accessPoint->ap.query.img_framed;
+        sensor_msgs::Image *ap_img = &accessPoint->ap.query.img_framed;
 
         QPixmap image = img::rosImgToQpixmap(*ap_img);
 
-        QWidget * ap_widget = new QWidget(this);
-        Ui::AccessPointStatsWidget ui;
-        ui.setupUi(ap_widget);
-
-        int w = ui.image_frame->width();
-        int h = ui.image_frame->height();
-        image = image.scaled(w, h, Qt::AspectRatioMode::KeepAspectRatio);
-        ui.image_frame->setPixmap(image);
-
+        AccessPointWidget * ap_widget = new AccessPointWidget(this);
+        
+        ap_widget->SetImage(image);
+        
         //access point name
-        QString ap_id, ap_data;
-        ap_id.setNum(i);
-        ap_data = "Access Point " + ap_id;
-        ui.buildingNameLine->setText(ap_data);
+        ap_widget->SetName("Building " % QString::number(i));
+        
         //altitude
-        ap_data.setNum((double)accessPoint->ap.altitude, 'f', 2);
-        ui.altitudeLineEdit->setText(ap_data);
+        ap_widget->SetAltitude((double)accessPoint->ap.altitude);
 
         //heading
-        ap_data.setNum((double)accessPoint->ap.compass_heading, 'f', 2);
-        ui.compassHeadingLineEdit->setText(ap_data);
+        ap_widget->SetHeading((double)accessPoint->ap.compass_heading);
 
         //location longitude
-        ap_data.setNum((double)accessPoint->ap.location.longitude, 'f', 2);
-        ui.longitudeLineEdit->setText(ap_data);
+        ap_widget->SetLongitude((double)accessPoint->ap.location.longitude);
 
         //location latitude
-        ap_data.setNum((double)accessPoint->ap.location.latitude, 'f', 2);
-        ui.latitudeLineEdit->setText(ap_data);
+        ap_widget->SetLatitude((double)accessPoint->ap.location.latitude);
 
         //time
-        ap_data.setNum((double)accessPoint->header.stamp.toSec(), 'f', 6);
-        ui.captureTimeLineEdit->setText(ap_data);
+        ap_widget->SetCaptureTime((double)accessPoint->header.stamp.toSec());
+ 
 
-        connect(ui.deleteAccessPointButton, &QPushButton::clicked,
+        connect(ap_widget->Button(), &QPushButton::clicked,
                 this, [=](){ OnDeleteAccessPoint(ap_widget); } );
 
         //finally, add it to the gui
@@ -107,18 +95,18 @@ void AccessPoints::UpdateAccessPoints()
     num_access_points_last = apv_size;
 }
 
-void AccessPoints::OnDeleteAccessPoint(QWidget* w)
+void AccessPointsContainerWidget::OnDeleteAccessPoint(QWidget* w)
 {
     int deleteIndex = widget.layout_access_points->indexOf(w);
     widget.layout_access_points->removeWidget(w);
     delete w;
-    std::vector<lcar_msgs::AccessPointStampedPtr>* vector = uav->GetRefAccessPoints();
-    vector->erase(vector->begin()+deleteIndex);
+    std::vector<lcar_msgs::AccessPointStampedPtr>* ap_vector = uav->GetRefAccessPoints();
+    ap_vector->erase(ap_vector->begin()+deleteIndex);
     num_access_points_last--;
 }
 
 
-void AccessPoints::SaveUavAccessPoints(UAVControl* uav, QString ap_type)
+void AccessPointsContainerWidget::SaveUavAccessPoints(UAVControl * uav, QString ap_type)
 {
     QString path = img::image_root_dir_ % "/access_points/" % ap_type;
     path.append("/uav_" + QString::number(uav->id));

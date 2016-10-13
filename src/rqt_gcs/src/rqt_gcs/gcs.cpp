@@ -638,7 +638,7 @@ void GCS::OnAccessPointsTriggered()
 {
     if(fl_widgets.ap_menu == nullptr)
     {
-        fl_widgets.ap_menu = new AccessPoints();
+        fl_widgets.ap_menu = new AccessPointsContainerWidget();
 
         QRect window = this->window()->geometry();
         int x = (this->width() / 2) - (fl_widgets.ap_menu->width() / 2);
@@ -646,7 +646,7 @@ void GCS::OnAccessPointsTriggered()
         fl_widgets.ap_menu->move(window.x() + x, window.y() + y);
         fl_widgets.ap_menu->setVisible(true);
 
-        connect(fl_widgets.ap_menu, &AccessPoints::destroyed,
+        connect(fl_widgets.ap_menu, &AccessPointsContainerWidget::destroyed,
                 this, [=](){ fl_widgets.ap_menu = nullptr; });
 
         if(NUM_UAV > 0)
