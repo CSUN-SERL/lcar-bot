@@ -1,0 +1,3 @@
+Header header
+std_msgs/String machine
+std_msgs/Int32 id

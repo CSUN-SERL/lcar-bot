@@ -789,16 +789,16 @@ void GCS::OnUpdateCameraFeed()
     //dequeue function assumes the queue isn't empty, so check first.
     if(img_q.size() > 0)
         widget.image_frame->setPixmap(img_q.dequeue());
-
+    
     img_mutex.unlock();
 }
 
 void GCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
     img_mutex.lock();
-
+    
     QPixmap image = img::rosImgToQpixmap(msg);
-
+    
     if(img_q.size() < img_q_max_size)
     {
         int w = widget.image_frame->width();
