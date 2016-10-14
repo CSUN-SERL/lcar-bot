@@ -59,9 +59,7 @@ void AccessPointsContainerWidget::UpdateAccessPoints()
     {
         //retrieve access point
         lcar_msgs::AccessPointStampedPtr accessPoint = ap_vec->at(i);
-        sensor_msgs::Image *ap_img = &accessPoint->ap.query.img_framed;
-
-        QPixmap image = img::rosImgToQpixmap(*ap_img);
+        QPixmap image = img::rosImgToQpixmap(accessPoint->ap.query.img_framed);
 
         AccessPointWidget * ap_widget = new AccessPointWidget(this);
         
@@ -97,11 +95,11 @@ void AccessPointsContainerWidget::UpdateAccessPoints()
 
 void AccessPointsContainerWidget::OnDeleteAccessPoint(QWidget* w)
 {
-    int deleteIndex = widget.layout_access_points->indexOf(w);
-    widget.layout_access_points->removeWidget(w);
+    int index = widget.layout_access_points->indexOf(w);
     delete w;
+    
     std::vector<lcar_msgs::AccessPointStampedPtr>* ap_vector = uav->GetRefAccessPoints();
-    ap_vector->erase(ap_vector->begin()+deleteIndex);
+    ap_vector->erase(ap_vector->begin()+index);
     num_access_points_last--;
 }
 
@@ -116,10 +114,7 @@ void AccessPointsContainerWidget::SaveUavAccessPoints(UAVControl * uav, QString 
         QString file = "img_" + QString::number(i) + ".jpg";
 
         lcar_msgs::AccessPointStampedPtr ap = ap_vector->at(i);
-        sensor_msgs::Image* ros_image = &ap->ap.query.img;
-        QImage image(ros_image->data.data(), ros_image->width, ros_image->height,
-                     ros_image->step, QImage::Format_RGB888);
-        img::saveImage(path, file, image);
+        img::saveImage(path, file, img::rosImgToQimg(ap->ap.query.img));
     }
 }
 
