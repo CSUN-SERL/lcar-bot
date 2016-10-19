@@ -277,7 +277,7 @@ public:
      * paused mission, does nothing.
      */
     void ResumeMission() override;
-
+ 
     /*!
      * \brief Cancels the current mission
      *
@@ -406,7 +406,8 @@ private:
     //void DoorQueryCallback(const lcar_msgs::Query& msg_query){ queries_door.push_back(msg_query); }
     void DetectionCallback(const lcar_msgs::QueryPtr& msg)
     {
-        lcar_msgs::AccessPointStampedPtr new_point(new lcar_msgs::AccessPointStamped());
+        lcar_msgs::AccessPointStampedPtr new_point =
+                            boost::make_shared<lcar_msgs::AccessPointStamped>();
 
         new_point->header = msg->img_framed.header;
         new_point->ap.query = *msg;

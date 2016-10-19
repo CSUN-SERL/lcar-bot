@@ -10,10 +10,14 @@
 #define VEHICLEMANAGER_H
 
 #include <QMap>
+#include <QSet>
 #include <QObject>
+
+#include <ros/ros.h>
 
 #include "vehicle/vehicle_control.h"
 #include "util/data_types.h"
+#include "lcar_msgs/InitRequest.h"
 
 namespace rqt_gcs
 {
@@ -35,12 +39,28 @@ public:
     void DeleteOctoRotor(int id);
     void DeleteVTOL(int id);
     
-    QString VehicleString(int id);
+    QString VehicleTypeToString(int id);
+    const QList<QString> GetInitRequests();
+    int IdFromMachineName(const QString& machine_name);
+    
+    int NumVehicles();
+    int NumUGVs();
+    int NumQuadRotors();
+    int NumOctoRotors();
+    int NumVTOLs();
+    
+public slots:
+    void OnOperatorInitRequested(const QString& machine_name);
     
 private:
-    QMap<int, VehicleControl*> db; //the database
-    
     VehicleControl* EraseVehicleFromDB(int id);
+    bool OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req, const lcar_msgs::InitRequest::Response& res);
+    
+    QMap<int, VehicleControl*> db; //the database
+    QSet<QString> init_requests; //vehicle initialization requests, storing machine_name
+    ros::NodeHandle nh;
+    ros::ServiceServer init_server;
+    ros::ServiceClient init_client;
     
     int NUM_UGV, 
         NUM_QUAD,

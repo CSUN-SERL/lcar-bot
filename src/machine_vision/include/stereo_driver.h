@@ -42,13 +42,12 @@ class StereoDriver{
         uvc_error_t res;
 
         ros::NodeHandle nh;
-        camera_info_manager::CameraInfoManager cim_left;
-        camera_info_manager::CameraInfoManager cim_right;
         image_transport::ImageTransport it;
+        sensor_msgs::CameraInfo ci_left;
+        sensor_msgs::CameraInfo ci_right;
         image_transport::CameraPublisher pub_left;
         image_transport::CameraPublisher pub_right;
 
-//        int stereo_image_id;
         bool open;
         unsigned int vendor_id;
         unsigned int product_id;

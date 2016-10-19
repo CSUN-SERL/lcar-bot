@@ -1,0 +1,6 @@
+---
+float32 hit_threshold
+int32 step_size
+int32 padding
+float32 scale_factor
+bool mean_shift

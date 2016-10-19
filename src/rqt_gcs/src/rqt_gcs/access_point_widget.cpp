@@ -1,6 +1,6 @@
 
 /*
- * File:   AccessPointWidget.cpp
+ * File:   access_point_widget.cpp
  * Author: n8
  *
  * Created on October 6, 2016, 2:54 PM

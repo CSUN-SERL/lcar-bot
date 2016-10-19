@@ -17,16 +17,16 @@ namespace img
     
     extern QString image_root_dir_;
     
-    QImage matToQimg(const cv::Mat& in, QImage::Format format = QImage::Format_RGB888);
-    QImage rosImgToQimg(const sensor_msgs::Image& in, QImage::Format format = QImage::Format_RGB888);
-    QImage rosImgToQimg(const sensor_msgs::ImageConstPtr& in, QImage::Format format = QImage::Format_RGB888);
-    QPixmap matToQpixmap(const cv::Mat& in, QImage::Format format = QImage::Format_RGB888);
-    QPixmap rosImgToQpixmap(const sensor_msgs::Image& in, QImage::Format format = QImage::Format_RGB888);
-    QPixmap rosImgToQpixmap(const sensor_msgs::ImageConstPtr& in, QImage::Format format = QImage::Format_RGB888);
-    cv::Mat qImgToMat(const QImage& in, int fomat = CV_8UC3);
-    cv::Mat rosImgToMat(const sensor_msgs::Image& in, int format = CV_8UC3);
-    sensor_msgs::ImagePtr qImgToRosImg(const QImage& in, std::string format = "bgr8");
-    sensor_msgs::ImagePtr matToRosImg(const cv::Mat& in, std::string format = "bgr8");
+    QImage matToQimg(const cv::Mat& in);
+    QImage rosImgToQimg(const sensor_msgs::Image& in);
+    QImage rosImgToQimg(const sensor_msgs::ImageConstPtr& in);
+    QPixmap matToQpixmap(const cv::Mat& in);
+    QPixmap rosImgToQpixmap(const sensor_msgs::Image& in);
+    QPixmap rosImgToQpixmap(const sensor_msgs::ImageConstPtr& in);
+    cv::Mat qImgToMat(const QImage& in);
+    cv::Mat rosImgToMat(const sensor_msgs::Image& in);
+    void qImgToRosImg(const QImage& in, sensor_msgs::Image& out);
+    sensor_msgs::ImagePtr matToRosImg(const cv::Mat& in);
 
     bool saveImage(QString& path, QString& file, const QImage& image);
     bool saveImage(QString& path, QString& file, const cv::Mat& image);

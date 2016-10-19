@@ -1,5 +1,6 @@
 
 #include "util/image.h"
+#include <sensor_msgs/fill_image.h>
 
 namespace rqt_gcs
 {
@@ -7,60 +8,63 @@ namespace rqt_gcs
 namespace img
 {
 
-    QImage matToQimg(const cv::Mat& in, QImage::Format format)
+    QImage matToQimg(const cv::Mat& in)
     {
-        return QImage(in.data, in.cols, in.rows, in.step, format);
+        QImage::Format f = (in.channels() == 1) ? QImage::Format_Grayscale8
+                                                : QImage::Format_RGB888;
+        return QImage(in.data, in.cols, in.rows, in.step, f);
+    }
+       
+    QPixmap matToQpixmap(const cv::Mat& in)
+    {
+        return QPixmap::fromImage(matToQimg(in));
     }
 
-    QImage rosImgToQimg(const sensor_msgs::Image& in, QImage::Format format)
+    QImage rosImgToQimg(const sensor_msgs::Image& in)
     {
-        return QImage(in.data.data(), in.width, in.height, in.step, format).rgbSwapped();
+        QImage::Format f = (in.encoding == "mono8") ? QImage::Format_Grayscale8 
+                                                    : QImage::Format_RGB888;
+        return QImage(in.data.data(), in.width, in.height, in.step, f).rgbSwapped();
     }
 
-    QImage rosImgToQimg(const sensor_msgs::ImageConstPtr& in, QImage::Format format)
+    QImage rosImgToQimg(const sensor_msgs::ImageConstPtr& in)
     {   
-        return QImage(in->data.data(), in->width, in->height, in->step, format).rgbSwapped();
+        return rosImgToQimg(*in);
     }
     
-    QPixmap matToQpixmap(const cv::Mat& in, QImage::Format format)
+    QPixmap rosImgToQpixmap(const sensor_msgs::Image& in)
     {
-        QImage img = matToQimg(in, format);
-        return QPixmap::fromImage(img);
+        return QPixmap::fromImage(rosImgToQimg(in));
     }
     
-    QPixmap rosImgToQpixmap(const sensor_msgs::Image& in, QImage::Format format)
+    QPixmap rosImgToQpixmap(const sensor_msgs::ImageConstPtr& in)
     {
-        QImage img = rosImgToQimg(in, format);
-        return QPixmap::fromImage(img);
-    }
-    
-    QPixmap rosImgToQpixmap(const sensor_msgs::ImageConstPtr& in, QImage::Format format)
-    {
-        QImage img = rosImgToQimg(in, format);
-        return QPixmap::fromImage(img);
+        return QPixmap::fromImage(rosImgToQimg(in));
     }
 
-    cv::Mat qImgToMat(const QImage& in, int format)
+    cv::Mat qImgToMat(const QImage& in)
     {   
-        QImage img = in.rgbSwapped();
-        return cv::Mat(img.height(), img.width(), format, (uchar *)img.bits(), img.bytesPerLine());
+        QImage temp = in.rgbSwapped();
+        int format = (temp.format() == QImage::Format_Grayscale8) ? CV_8UC1 : CV_8UC3;
+        return cv::Mat(temp.height(), temp.width(), format, (uchar *)temp.bits(), temp.bytesPerLine());
     }
 
-    cv::Mat rosImgToMat(const sensor_msgs::Image& in, int format)
+    cv::Mat rosImgToMat(const sensor_msgs::Image& in)
     {
+        int format = (in.encoding == "mono8") ? CV_8UC1 : CV_8UC3;
         return cv::Mat(in.height, in.width, format, (uchar *)in.data.data(), in.step);
     }
 
-    sensor_msgs::ImagePtr qImgToRosImg(const QImage& in, std::string format)
+    void qImgToRosImg(const QImage& in, sensor_msgs::Image& out)
     {   
         QImage temp = in.rgbSwapped();
-        //todo handle different image encodings;
-        cv::Mat img(temp.height(), temp.width(), CV_8UC3, (uchar *)temp.bits(), temp.bytesPerLine());
-        return matToRosImg(img, format);
+        std::string format = (temp.format() == QImage::Format_Grayscale8) ? "mono8" : "rgb8";
+        sensor_msgs::fillImage(out, format, temp.height(), temp.width(), temp.bytesPerLine(), temp.bits());
     }
 
-    sensor_msgs::ImagePtr matToRosImg(const cv::Mat& in, std::string format)
+    sensor_msgs::ImagePtr matToRosImg(const cv::Mat& in)
     {
+        std::string format = (in.channels() == 1) ? "mono8" : "rgb8";
         return cv_bridge::CvImage(std_msgs::Header(), format, in).toImageMsg();
     }
 
