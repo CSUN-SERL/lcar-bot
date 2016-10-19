@@ -7,7 +7,7 @@
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="serl@todo.todo">serl</maintainer>
+  <maintainer email="robotanist@todo.todo">robotanist</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
@@ -30,5 +30,6 @@
 
   <export>
     <architecture_independent/>
+    <cpp cflags="-I${prefix}/srv/cpp"/>
   </export>
 </package>

@@ -5,8 +5,11 @@
  * Created on September 8, 2016, 11:41 AM
  */
 
+#include <qt5/QtCore/qset.h>
+
 #include "rqt_gcs/vehicle_manager.h"
 #include "vehicle/uav_control.h"
+#include "lcar_msgs/InitResponse.h"
 
 namespace rqt_gcs
 {
@@ -15,7 +18,9 @@ namespace rqt_gcs
     
 VehicleManager::VehicleManager(QObject *parent):
 QObject(parent)
-{
+{   
+    init_server = nh.advertiseService("vehicle/init/request", &VehicleManager::OnVehicleInitRequested, this);
+    init_client = nh.serviceClient<lcar_msgs::InitResponse>("vehicle/init/response");
 }
 
 VehicleManager::~VehicleManager()
@@ -68,7 +73,7 @@ void VehicleManager::DeleteUGV(int id)
 
 void VehicleManager::DeleteQuadRotor(int id)
 {
-    UAVControl* uav= (UAVControl*)this->EraseVehicleFromDB(id + VehicleType::quad_rotor);
+    UAVControl* uav = (UAVControl*)this->EraseVehicleFromDB(id + VehicleType::quad_rotor);
     if(uav != nullptr)
     {
         delete uav;
@@ -78,7 +83,7 @@ void VehicleManager::DeleteQuadRotor(int id)
 
 void VehicleManager::DeleteOctoRotor(int id)
 {
-    UAVControl* uav= (UAVControl*)this->EraseVehicleFromDB(id + VehicleType::quad_rotor);
+    UAVControl* uav = (UAVControl*)this->EraseVehicleFromDB(id + VehicleType::quad_rotor);
     if(uav != nullptr)
     {
         delete uav;
@@ -92,7 +97,7 @@ void VehicleManager::DeleteVTOL(int id)
     NUM_VTOL--;
 }
 
-QString VehicleManager::VehicleString(int id)
+QString VehicleManager::VehicleTypeToString(int id)
 {
     if(id > VehicleType::humanoid)
         return "humanoid";
@@ -106,6 +111,50 @@ QString VehicleManager::VehicleString(int id)
         return "UGV";
     else
         return QString::null; 
+}
+
+const QList<QString> VehicleManager::GetInitRequests()
+{
+    return init_requests.values();
+}
+
+int VehicleManager::NumVehicles()
+{
+    return NUM_UGV + NUM_QUAD + NUM_OCTO + NUM_VTOL;
+}
+
+int VehicleManager::NumUGVs()
+{
+    return NUM_UGV;
+}
+
+int VehicleManager::NumQuadRotors()
+{
+    return NUM_QUAD;
+}
+
+int VehicleManager::NumOctoRotors()
+{
+    return NUM_OCTO;
+}
+
+int VehicleManager::NumVTOLs()
+{
+    return NUM_VTOL;
+}
+
+//public slots:
+void VehicleManager::OnOperatorInitRequested(const QString& machine_name)
+{
+    QSet<QString>::Iterator it = init_requests.find(machine_name);
+    if(it != init_requests.end())
+    {
+        lcar_msgs::InitResponse res;
+        res.request.machine_name = machine_name.toStdString();
+//        res.request.vehicle_id = 
+        init_client.call(res);
+        init_requests.erase(it);
+    }
 }
 
 //private:
@@ -124,11 +173,18 @@ VehicleControl* VehicleManager::EraseVehicleFromDB(int id)
     {
         int v_type = (id / VEHICLE_TYPE_MAX) * VEHICLE_TYPE_MAX; // remove singular 
         ROS_ERROR_STREAM("tried to delete non existent " 
-                << VehicleString(v_type).toStdString()
+                << VehicleTypeToString(v_type).toStdString()
                 << " with id: "  
                 << (id % VEHICLE_TYPE_MAX) );
     }
+    
     return vehicle;
+}
+
+bool VehicleManager::OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req, const lcar_msgs::InitRequest::Response& res)
+{
+    init_requests.insert(req.machine_name.c_str());     
+    return true;
 }
 
 }
