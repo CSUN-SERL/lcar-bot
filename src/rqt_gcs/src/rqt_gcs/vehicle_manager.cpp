@@ -5,7 +5,7 @@
  * Created on September 8, 2016, 11:41 AM
  */
 
-#include <qt5/QtCore/qset.h>
+#include <QSet>
 
 #include "rqt_gcs/vehicle_manager.h"
 #include "vehicle/uav_control.h"
@@ -14,17 +14,41 @@
 namespace rqt_gcs
 {
     
-//public: 
+//public://///////////////////////////////////////////////////////////////////// 
     
 VehicleManager::VehicleManager(QObject *parent):
 QObject(parent)
 {   
-    init_server = nh.advertiseService("vehicle/init/request", &VehicleManager::OnVehicleInitRequested, this);
-    init_client = nh.serviceClient<lcar_msgs::InitResponse>("vehicle/init/response");
+    init_request_server = nh.advertiseService("vehicle/init/request", &VehicleManager::OnVehicleInitRequested, this);
+    init_response_client = nh.serviceClient<lcar_msgs::InitResponse>("vehicle/init/response");
 }
 
 VehicleManager::~VehicleManager()
 {
+}
+
+void VehicleManager::AddVehicleById(int id)
+{
+    if(id <= VehicleType::invalid_low || VehicleType::invalid_high <= id)
+    {
+        //emit NotifyOperator();
+        ROS_ERROR_STREAM ("tried to add Vehicle with invalid id: " << id);
+        return;
+    }
+    int v_type = (id / VEHICLE_TYPE_MAX) * VEHICLE_TYPE_MAX; // remove singles digit
+    
+    if(v_type == VehicleType::vtol) // vtol
+        this->AddVTOL(id);
+    else if(v_type == VehicleType::octo_rotor) // octo-rotor
+        this->AddOctoRotor(id);
+    else if(v_type == VehicleType::quad_rotor) // quad-rotor
+        this->AddQuadRotor(id);
+    else if(v_type == VehicleType::ugv)
+        this->AddUGV(id);
+    else if(v_type == VehicleType::humanoid)
+    {
+        //todo
+    }    
 }
 
 //all public Add* functions assume that the id passed to them are between 0 and 99.
@@ -38,7 +62,6 @@ void VehicleManager::AddUGV(int id)
 
 void VehicleManager::AddQuadRotor(int id)
 {   
-    id += VehicleType::quad_rotor; // map to quad_rotor id space
     Q_ASSERT(VehicleType::quad_rotor < id && id < VehicleType::quad_rotor + VEHICLE_TYPE_MAX);
     VehicleControl *v = new UAVControl(id);
     db.insert(id, v);
@@ -47,7 +70,6 @@ void VehicleManager::AddQuadRotor(int id)
 
 void VehicleManager::AddOctoRotor(int id)
 {
-    id += VehicleType::octo_rotor; // map to octo_rotor id space
     Q_ASSERT(VehicleType::octo_rotor <= id && id < VehicleType::octo_rotor + VEHICLE_TYPE_MAX);
     VehicleControl *v = new UAVControl(id);
     db.insert(id, v);
@@ -97,20 +119,36 @@ void VehicleManager::DeleteVTOL(int id)
     NUM_VTOL--;
 }
 
-QString VehicleManager::VehicleTypeToString(int id)
+QString VehicleManager::TypeStringFromId(int id)
 {
-    if(id > VehicleType::humanoid)
+    int v_type = (id / VEHICLE_TYPE_MAX) * VEHICLE_TYPE_MAX; // remove singular 
+    if(v_type == VehicleType::humanoid)
         return "humanoid";
-    else if(id > VehicleType::vtol)
-        return "VTOL";
-    else if(id > VehicleType::octo_rotor)
+    if(v_type == VehicleType::vtol)
+        return "vtol";
+    if(v_type == VehicleType::octo_rotor)
         return "octo-rotor";
-    else if(id > VehicleType::quad_rotor)
+    if(v_type == VehicleType::quad_rotor)
         return "quad-rotor";
-    else if(id > VehicleType::ugv)
-        return "UGV";
+    if(v_type == VehicleType::ugv)
+        return "ugv";
     else
         return QString::null; 
+}
+
+int VehicleManager::IdFromMachineName(const QString& machine_name)
+{
+    Qt::CaseSensitivity cs = Qt::CaseSensitivity::CaseInsensitive;
+    if(machine_name.contains("quad", cs))
+        return VehicleType::quad_rotor + NUM_QUAD;
+    if(machine_name.contains("octo", cs))
+        return VehicleType::octo_rotor + NUM_OCTO;
+    if(machine_name.contains("vtol", cs))
+        return VehicleType::vtol + NUM_VTOL;
+    if(machine_name.contains("ugv", cs))
+        return VehicleType::ugv + NUM_UGV;
+    else
+        return -1;
 }
 
 const QList<QString> VehicleManager::GetInitRequests()
@@ -143,7 +181,9 @@ int VehicleManager::NumVTOLs()
     return NUM_VTOL;
 }
 
-//public slots:
+
+//public slots://///////////////////////////////////////////////////////////////
+
 void VehicleManager::OnOperatorInitRequested(const QString& machine_name)
 {
     QSet<QString>::Iterator it = init_requests.find(machine_name);
@@ -151,13 +191,24 @@ void VehicleManager::OnOperatorInitRequested(const QString& machine_name)
     {
         lcar_msgs::InitResponse res;
         res.request.machine_name = machine_name.toStdString();
-//        res.request.vehicle_id = 
-        init_client.call(res);
-        init_requests.erase(it);
+        res.request.vehicle_id = this->IdFromMachineName(machine_name);
+        if(init_response_client.call(res))
+        {
+            this->AddVehicleById(res.request.vehicle_id);
+            init_requests.erase(it);
+        }
+        else
+        {
+            ROS_ERROR_STREAM("Operator initialization request "
+                            "for vehicle with id: " 
+                            << res.request.vehicle_id
+                            << " failed!");
+        }
     }
 }
 
-//private:
+
+//private://////////////////////////////////////////////////////////////////////
 
 VehicleControl* VehicleManager::EraseVehicleFromDB(int id)
 {          
@@ -171,19 +222,20 @@ VehicleControl* VehicleManager::EraseVehicleFromDB(int id)
     }
     else
     {
-        int v_type = (id / VEHICLE_TYPE_MAX) * VEHICLE_TYPE_MAX; // remove singular 
-        ROS_ERROR_STREAM("tried to delete non existent " 
-                << VehicleTypeToString(v_type).toStdString()
-                << " with id: "  
-                << (id % VEHICLE_TYPE_MAX) );
+        ROS_ERROR_STREAM("Tried to delete non existent " 
+                        << this->TypeStringFromId(id).toStdString()
+                        << " with id: "  
+                        << (id));
     }
     
     return vehicle;
 }
 
-bool VehicleManager::OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req, const lcar_msgs::InitRequest::Response& res)
+bool VehicleManager::OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req, 
+                                            const lcar_msgs::InitRequest::Response& res)
 {
-    init_requests.insert(req.machine_name.c_str());     
+    init_requests.insert(req.machine_name.c_str());
+    emit NotifyOperator();
     return true;
 }
 

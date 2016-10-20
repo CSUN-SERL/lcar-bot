@@ -12,6 +12,7 @@
 #include "rqt_gcs/gcs.h"
 #include "util/image.h"
 #include "util/debug.h"
+#include "rqt_gcs/vehicle_init_widget.h"
 
 #include <ros/package.h>
 #include <cv_bridge/cv_bridge.h>
@@ -578,10 +579,9 @@ void GCS::InitMenuBar()
     QMenuBar *menu_bar = this->menuBar();
     
     QMenu *file_menu = menu_bar->addMenu("File");
-    QAction *start_vehicle_act = file_menu->addAction("Add Vehicle");
-    QAction *start_vehicle_group_act = file_menu->addAction("Add Vehicle Group");
-    QAction *shutdown_vehicle_act = file_menu->addAction("Shutdown Vehicle");
-    QAction *shutdown_vehicle_group_act = file_menu->addAction("Shutdown Vehicle Group");
+    QAction *add_vehicle_act = file_menu->addAction("Add Vehicle(s)");
+    connect(add_vehicle_act, &QAction::triggered,
+            this, &GCS::OnAddVehicleTriggered);
 
     //view menu
     QMenu *view_menu = menu_bar->addMenu("View");
@@ -703,6 +703,32 @@ void GCS::OnUnansweredQueriesTriggered()
     {
         fl_widgets.unanswered_queries->showNormal();
         fl_widgets.unanswered_queries->activateWindow();
+    }
+}
+
+void GCS::OnAddVehicleTriggered()
+{
+    if(fl_widgets.vehicle_init == nullptr)
+    {
+        fl_widgets.vehicle_init = new VehicleInitWidget();
+
+        QRect window = this->window()->geometry();
+        int x = (this->width() / 2) - (fl_widgets.vehicle_init->width() / 2);
+        int y = (this->height() / 2) - (fl_widgets.vehicle_init->height() / 2);
+        fl_widgets.vehicle_init->move(window.x() + x, window.y() + y);
+        fl_widgets.vehicle_init->setVisible(true);
+
+        connect(fl_widgets.vehicle_init, &VehicleInitWidget::destroyed,
+                this, [=](){ fl_widgets.vehicle_init= nullptr; });
+                
+//        connect(fl_widgets.vehicle_init, &VehicleInitWidget::AddVehicle, 
+//                vm, &VehicleManger::OnOperatorInitRequested);
+                
+    }
+    else
+    {
+        fl_widgets.vehicle_init->showNormal();
+        fl_widgets.vehicle_init->activateWindow();
     }
 }
 
