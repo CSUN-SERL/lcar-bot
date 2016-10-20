@@ -5,18 +5,18 @@
 #include <QTimer>
 #include <QSignalMapper>
 
-#include "ui_AccessPoints.h"
+#include "ui_AccessPointsContainerWidget.h"
 #include "vehicle/uav_control.h"
 
 namespace rqt_gcs
 {
     
-class AccessPoints : public QWidget
+class AccessPointsContainerWidget : public QWidget
 {
     Q_OBJECT
 public:
-    AccessPoints();
-    virtual ~AccessPoints();
+    AccessPointsContainerWidget();
+    virtual ~AccessPointsContainerWidget();
     void ClearAccessPoints();
     void UpdateAccessPoints();
     static void SaveUavAccessPoints(UAVControl * uav, QString ap_type);
@@ -26,7 +26,7 @@ public slots:
     void OnDeleteAccessPoint(QWidget* w);
     
 private:
-    Ui::AccessPoints widget;
+    Ui::AccessPointsContainerWidget widget;
     QTimer* timer;
     int num_access_points_last;
     

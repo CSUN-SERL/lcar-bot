@@ -16,8 +16,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-using namespace camera_info_manager;
-
 class StereoDriver{
 
     public:
@@ -43,18 +41,16 @@ class StereoDriver{
         uvc_device_t **list;
         uvc_error_t res;
 
-        ros::NodeHandle nh_;
-        CameraInfoManager cinfo_left_;
-        CameraInfoManager cinfo_right_;
-        image_transport::ImageTransport it_;
-        image_transport::CameraPublisher pub_left_;
-        image_transport::CameraPublisher pub_right_;
-        image_transport::Publisher pub_rgb_;
+        ros::NodeHandle nh;
+        image_transport::ImageTransport it;
+        sensor_msgs::CameraInfo ci_left;
+        sensor_msgs::CameraInfo ci_right;
+        image_transport::CameraPublisher pub_left;
+        image_transport::CameraPublisher pub_right;
 
-        int stereo_image_id_;
-        bool open_;
-        unsigned int vendor_id_;
-        unsigned int product_id_;
+        bool open;
+        unsigned int vendor_id;
+        unsigned int product_id;
 
         // Accept a new image frame from the camera
         void ImageCallback(uvc_frame_t *frame);

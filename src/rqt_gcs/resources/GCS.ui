@@ -323,8 +323,6 @@ QLabel{
              </widget>
             </item>
            </layout>
-           <zorder>framePFD</zorder>
-           <zorder>web_view</zorder>
           </widget>
          </item>
          <item>

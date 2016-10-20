@@ -12,6 +12,7 @@
 #include "rqt_gcs/gcs.h"
 #include "util/image.h"
 #include "util/debug.h"
+#include "rqt_gcs/vehicle_init_widget.h"
 
 #include <ros/package.h>
 #include <cv_bridge/cv_bridge.h>
@@ -159,7 +160,7 @@ void GCS::OnDeleteUav(int index)
    uav_mutex.unlock();
 }
 
-void GCS::SaveUavQueries(int uav_id, const std::vector<lcar_msgs::DoorPtr> *queries, const QString ap_type)
+void GCS::SaveUavQueries(int uav_id, const std::vector<lcar_msgs::QueryPtr> *queries, const QString ap_type)
 {
     QString path = img::image_root_dir_ % "/queries/unanswered/"
         % ap_type % "/uav_" % QString::number(uav_id);
@@ -168,16 +169,16 @@ void GCS::SaveUavQueries(int uav_id, const std::vector<lcar_msgs::DoorPtr> *quer
 
     for(int i = 0; i < queries->size(); i++, num_images += 2)
     {
-        lcar_msgs::DoorPtr query = queries->at(i);
+        lcar_msgs::QueryPtr query = queries->at(i);
 
-        sensor_msgs::Image ros_image = query->original_picture;
+        sensor_msgs::Image ros_image = query->img;
         QImage image = img::rosImgToQimg(ros_image);
 
         QString file = "img_" % QString::number(num_images) % ".jpg";
         if(!img::saveImage(path, file, image))
             qCDebug(lcar_bot) << "error saving uav query\n";
 
-        ros_image = query->framed_picture;
+        ros_image = query->img_framed;
         image = img::rosImgToQimg(ros_image);
 
         file = "img_" %  QString::number(num_images+1) % ".jpg";
@@ -236,9 +237,9 @@ void GCS::UpdateQueries()
     for(int i = num_queries_last; i < pqv_size; i++)
     {
         //retrieve Query msg for door image
-        lcar_msgs::DoorPtr doorQuery = vec_uav_queries_ptr->at(i);
+        lcar_msgs::QueryPtr doorQuery = vec_uav_queries_ptr->at(i);
 
-        QPixmap image = img::rosImgToQpixmap(doorQuery->framed_picture);
+        QPixmap image = img::rosImgToQpixmap(doorQuery->img_framed);
 
         //create the widget
         QueryWidget * qw = new QueryWidget();
@@ -259,7 +260,7 @@ void GCS::UpdateQueries()
 void GCS::AnswerQuery(QWidget * qw, QString ap_type, bool accepted)
 {
     int index = widget.layout_queries->indexOf(qw);
-    lcar_msgs::DoorPtr door = vec_uav_queries_ptr->at(index);
+    lcar_msgs::QueryPtr door = vec_uav_queries_ptr->at(index);
 
     UAVControl* uav = active_uavs[cur_uav];
     QString path = img::image_root_dir_ % "/queries";
@@ -275,12 +276,12 @@ void GCS::AnswerQuery(QWidget * qw, QString ap_type, bool accepted)
         file.append("img_" % QString::number(uav->rejected_images++) % ".jpg");
     }
 
-    img::saveImage(path, file, door->original_picture);
+    img::saveImage(path, file, door->img);
 
     vec_uav_queries_ptr->erase(vec_uav_queries_ptr->begin() + index);
     delete qw;
 
-    door->accepted = accepted;
+    door->is_accepted = accepted;
     num_queries_last--;
     //uav->SendDoorResponse(doormsg);
 }
@@ -337,9 +338,8 @@ void GCS::OnCancelPlay()
         return;
 
     for(int i = 0; i < NUM_UAV; i++)
-    {
         active_uavs[i]->StopMission();
-    }
+    
 
     this->ToggleScoutButtons(true);
 }
@@ -392,7 +392,7 @@ void GCS::OnChangeFlightMode(int index)
 {
     if(NUM_UAV == 0)
         return;
-
+    
     if(index == 0)
     {
         ROS_INFO_STREAM("Quadrotor Stablized");
@@ -435,9 +435,8 @@ void GCS::OnChangeFlightMode(int index)
     }
 
     if(active_uavs[cur_uav]->GetMissionMode() != MissionMode::stopped)
-    {
         this->OnStopScout();
-    }
+    
 }
 
 void GCS::ToggleScoutButtons(bool visible, QString icon_type)
@@ -491,7 +490,7 @@ void GCS::UpdateFlightStateWidgets()
     if(NUM_UAV == 0)
         return;
 
-    UAVControl* uav = active_uavs[cur_uav];
+    UAVControl *uav = active_uavs[cur_uav];
 
     // PFD
     widget.pfd->setRoll(uav->GetFlightState().roll*180);
@@ -580,10 +579,9 @@ void GCS::InitMenuBar()
     QMenuBar *menu_bar = this->menuBar();
     
     QMenu *file_menu = menu_bar->addMenu("File");
-    QAction *start_vehicle_act = file_menu->addAction("Add Vehicle");
-    QAction *start_vehicle_group_act = file_menu->addAction("Add Vehicle Group");
-    QAction *shutdown_vehicle_act = file_menu->addAction("Shutdown Vehicle");
-    QAction *shutdown_vehicle_group_act = file_menu->addAction("Shutdown Vehicle Group");
+    QAction *add_vehicle_act = file_menu->addAction("Add Vehicle(s)");
+    connect(add_vehicle_act, &QAction::triggered,
+            this, &GCS::OnAddVehicleTriggered);
 
     //view menu
     QMenu *view_menu = menu_bar->addMenu("View");
@@ -640,7 +638,7 @@ void GCS::OnAccessPointsTriggered()
 {
     if(fl_widgets.ap_menu == nullptr)
     {
-        fl_widgets.ap_menu = new AccessPoints();
+        fl_widgets.ap_menu = new AccessPointsContainerWidget();
 
         QRect window = this->window()->geometry();
         int x = (this->width() / 2) - (fl_widgets.ap_menu->width() / 2);
@@ -648,7 +646,7 @@ void GCS::OnAccessPointsTriggered()
         fl_widgets.ap_menu->move(window.x() + x, window.y() + y);
         fl_widgets.ap_menu->setVisible(true);
 
-        connect(fl_widgets.ap_menu, &AccessPoints::destroyed,
+        connect(fl_widgets.ap_menu, &AccessPointsContainerWidget::destroyed,
                 this, [=](){ fl_widgets.ap_menu = nullptr; });
 
         if(NUM_UAV > 0)
@@ -705,6 +703,32 @@ void GCS::OnUnansweredQueriesTriggered()
     {
         fl_widgets.unanswered_queries->showNormal();
         fl_widgets.unanswered_queries->activateWindow();
+    }
+}
+
+void GCS::OnAddVehicleTriggered()
+{
+    if(fl_widgets.vehicle_init == nullptr)
+    {
+        fl_widgets.vehicle_init = new VehicleInitWidget();
+
+        QRect window = this->window()->geometry();
+        int x = (this->width() / 2) - (fl_widgets.vehicle_init->width() / 2);
+        int y = (this->height() / 2) - (fl_widgets.vehicle_init->height() / 2);
+        fl_widgets.vehicle_init->move(window.x() + x, window.y() + y);
+        fl_widgets.vehicle_init->setVisible(true);
+
+        connect(fl_widgets.vehicle_init, &VehicleInitWidget::destroyed,
+                this, [=](){ fl_widgets.vehicle_init= nullptr; });
+                
+//        connect(fl_widgets.vehicle_init, &VehicleInitWidget::AddVehicle, 
+//                vm, &VehicleManger::OnOperatorInitRequested);
+                
+    }
+    else
+    {
+        fl_widgets.vehicle_init->showNormal();
+        fl_widgets.vehicle_init->activateWindow();
     }
 }
 
@@ -791,16 +815,16 @@ void GCS::OnUpdateCameraFeed()
     //dequeue function assumes the queue isn't empty, so check first.
     if(img_q.size() > 0)
         widget.image_frame->setPixmap(img_q.dequeue());
-
+    
     img_mutex.unlock();
 }
 
 void GCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
     img_mutex.lock();
-
+    
     QPixmap image = img::rosImgToQpixmap(msg);
-
+    
     if(img_q.size() < img_q_max_size)
     {
         int w = widget.image_frame->width();

@@ -20,7 +20,7 @@
 #include <map>
 #include <vector>
 #include <string>
-#include <lcar_msgs/Door.h>
+#include <lcar_msgs/Query.h>
  
 using namespace cv;
 using namespace cv::ml;
@@ -61,6 +61,7 @@ int door_count = 0;
 int img_iterator = 0;
 
 bool gray_scale = false;
+std::string color_encoding = "bgr8";
 
 static std::string object_types_ [] = {"door", "window", "hole"};
 std::map< std::string, std::vector<Mat> > hist_map_;
@@ -85,7 +86,8 @@ void HogFeatureExtraction(Mat ImgMat) {
     }
 }
 
-void ConvertToMl(const std::vector< cv::Mat > & train_samples, cv::Mat& trainData) {
+void ConvertToMl(const std::vector< cv::Mat > & train_samples, cv::Mat& trainData) 
+{
     //--Convert data
     const int rows = (int) train_samples.size();
     const int cols = (int) std::max(train_samples[0].cols, train_samples[0].rows);
@@ -95,10 +97,13 @@ void ConvertToMl(const std::vector< cv::Mat > & train_samples, cv::Mat& trainDat
     std::vector< Mat >::const_iterator end = train_samples.end();
     for (int i = 0; itr != end; ++itr, ++i) {
         CV_Assert(itr->cols == 1 || itr->rows == 1);
-        if (itr->cols == 1) {
+        if (itr->cols == 1) 
+        {
             transpose(*(itr), tmp);
             tmp.copyTo(trainData.row(i));
-        } else if (itr->rows == 1) {
+        }
+        else if (itr->rows == 1) 
+        {
             itr->copyTo(trainData.row(i));
         }
     }
@@ -112,8 +117,10 @@ void DrawLocations(cv::Mat& img, const std::vector< Rect > & found, const Scalar
        }
 }
 
-void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image) {
-    if (!gray_image.empty()) {
+void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image) 
+{
+    if (!gray_image.empty()) 
+    {
         std::vector <double> weights;
         std::vector <Rect> detected_objects;
         std::vector <Rect> door_objects;
@@ -128,9 +135,10 @@ void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image) {
                 ,od_params.scale_factor                         // scale factor
                 ,2                                            // final threshold
                 ,od_params.mean_shift                // use mean shift grouping?
-                );
+        );
         
-        for (int i = 0; i < detected_objects.size(); i++) {
+        for (int i = 0; i < detected_objects.size(); i++) 
+        {
             Rect obj = detected_objects.at(i);
             Rect windows(obj.x, obj.y, obj.width, obj.height);
             Mat Roi = gray_image(windows);
@@ -140,8 +148,10 @@ void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image) {
             ConvertToMl(training_data_, train_data);
             training_data_.clear();
             svm_->predict(train_data, res, 4);
-            for (int j = 0; j < res.rows; j++) {
-                if (res.at<float>(j, 0) == 1) {
+            for (int j = 0; j < res.rows; j++)
+            {
+                if (res.at<float>(j, 0) == 1) 
+                {
                     door_objects.push_back(obj);
                     door_weights.push_back(weights[j]);
                 }
@@ -152,37 +162,33 @@ void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image) {
         DrawLocations(framed_image, door_objects, Scalar(0, 255, 0));
         //imshow("view", image);
         //waitKey(1);
-        if(door_objects.size() > 0){
+        if(door_objects.size() > 0)
+        {
             sensor_msgs::ImagePtr door_img = cv_bridge::CvImage(std_msgs::Header()
-                                                       ,"bgr8", color_image).toImageMsg();
+                                                       ,color_encoding, color_image).toImageMsg();
             sensor_msgs::ImagePtr framed_img = cv_bridge::CvImage(std_msgs::Header()
-                                                       ,"bgr8", framed_image).toImageMsg();
+                                                       ,color_encoding, framed_image).toImageMsg();
             door_img->header.stamp = framed_img->header.stamp = ros::Time::now();
-            //pub_mat_.publish(framed_img);
+            door_img->header.seq = framed_img->header.seq = door_count;
             
             //publish query message
-            lcar_msgs::Door door_query;
-            door_query.accepted = false;
-            door_query.framed_picture = *framed_img;
-            door_query.original_picture = *door_img;
-            if(door_count % 5 == 0){
-                door_query.query = true;
-            }
+            lcar_msgs::Query door_query;
+            door_query.is_accepted = false;
+            door_query.img_framed = *framed_img;
+            door_query.img = *door_img;
 
-//            bool similar = compareHistograms(color_image, "door");
-//            if(!similar)
-//            {
+            bool similar = compareHistograms(color_image, "door");
+            if(!similar)
+            {
                 pub_query_.publish(door_query);         
                 door_count++;
-//            }
+            }
         }
     }
 }
 
 bool compareHistograms(cv::Mat& src, std::string object_type)
 {   
-    ROS_INFO_STREAM("////////////////");
-    
     cv::Mat hist;
     if(!gray_scale)
     {
@@ -210,7 +216,7 @@ bool compareHistograms(cv::Mat& src, std::string object_type)
     else
     {
         cv::Mat mat = src.clone();
-        cv::cvtColor(mat, mat, cv::COLOR_BGR2GRAY);
+//        cv::cvtColor(mat, mat, cv::COLOR_BGR2GRAY);
 
         int histSize = 32;    // bin size
         float range[] = { 0, 256 };
@@ -224,7 +230,6 @@ bool compareHistograms(cv::Mat& src, std::string object_type)
     normalize( hist, hist, 0, 1, NORM_MINMAX, -1, Mat() );
     
     std::vector<Mat>* stream = &hist_map_[object_type];
-    ROS_WARN_STREAM("size: " << stream->size());
     for(int i = 0; i < stream->size(); i++)
     {
         double result = cv::compareHist(hist, stream->at(i), CV_COMP_CHISQR);
@@ -239,21 +244,22 @@ bool compareHistograms(cv::Mat& src, std::string object_type)
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
-  try
-  {
-//    if(msg->encoding == "mono8")
-//        gray_scale = true;
-      
-    cv::Mat gray_image = cv_bridge::toCvShare(msg, "mono8")->image;
-    //don't change my colorspace! (bgr8))
-    cv::Mat color_image = cv_bridge::toCvCopy(msg, "bgr8")->image;
-    
-    ObjectCategorize(gray_image, color_image);
-  }
-  catch (cv_bridge::Exception& e)
-  {
-    ROS_ERROR("Error in image subscriber callback: %s", e.what());
-  }
+    try
+    {
+        if(msg->header.seq < 10 && msg->encoding == "mono8")
+            gray_scale = true;
+        
+        cv::Mat gray_image = cv_bridge::toCvShare(msg, "mono8")->image;
+        //don't change my colorspace! (bgr8))
+        cv::Mat color_image = cv_bridge::toCvCopy(msg, color_encoding)->image;
+
+        ObjectCategorize(gray_image, color_image);
+    }
+    catch (cv_bridge::Exception& e)
+    {
+      ROS_ERROR_STREAM_ONCE("Error in" <<  ros::this_node::getName() 
+                            <<  "callback:" << e.what());
+    }
 }
 
 //extract svm weights and store in a float vector
@@ -271,7 +277,6 @@ void GetSvmDetector(const Ptr<SVM>& svm, std::vector< float > & hog_detector) {
     memcpy(&hog_detector[0], sv.ptr(), sv.cols * sizeof (hog_detector[0]));
     hog_detector[sv.cols] = (float) -rho;
 }
-///
 
 void hitThresholdCallback(const std_msgs::Float64& msg)
 {
@@ -321,7 +326,7 @@ int main (int argc, char** argv){
   hog_.setSVMDetector(hog_detector_);
 
   //pub_mat_ = nh.advertise<sensor_msgs::Image>("object_detection/access_point/door", 1);
-  pub_query_ = nh.advertise<lcar_msgs::Door>("object_detection/access_point/door", 1);
+  pub_query_ = nh.advertise<lcar_msgs::Query>("object_detection/access_point/door", 1);
   
   std::string ns = ros::this_node::getNamespace();
   std::string topic = "stereo_cam/left/image_rect";

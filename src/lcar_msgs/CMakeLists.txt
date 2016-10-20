@@ -9,11 +9,20 @@ find_package(catkin REQUIRED COMPONENTS message_generation
 include_directories(include)
 
 add_message_files(
-  DIRECTORY msg
-  FILES
-  Door.msg
-  TargetLocal.msg
-  TargetGlobal.msg)
+    DIRECTORY msg
+    FILES
+    Query.msg
+    AccessPoint.msg
+    AccessPointStamped.msg
+    TargetLocal.msg
+    TargetGlobal.msg )
+
+add_service_files(
+    DIRECTORY srv
+    FILES
+    InitRequest.srv
+    InitResponse.srv
+    ODParams.srv )
 
 generate_messages(DEPENDENCIES sensor_msgs geometry_msgs mavros_msgs)
 

@@ -11,30 +11,33 @@
 namespace rqt_gcs
 {
 
-typedef enum VehicleType_
-{
-    invalid = -1,
-    ugv = 1000,      //corresponds to the vehicle id range for this vehicle type
-    quad_rotor = 2000,
-    octo_rotor = 3000,
-    vtol = 4000,
-    humanoid = 5000
-} VehicleType;
+#define VEHICLE_TYPE_MAX 1000
     
-typedef enum PositionMode_
+enum VehicleType
+{   // the id space for each vehicle type  
+    invalid_low = 999,
+    ugv =                     VEHICLE_TYPE_MAX, //1000
+    quad_rotor =        ugv + VEHICLE_TYPE_MAX, //2000
+    octo_rotor = quad_rotor + VEHICLE_TYPE_MAX, //3000
+    vtol =       octo_rotor + VEHICLE_TYPE_MAX, //4000
+    humanoid =         vtol + VEHICLE_TYPE_MAX, //5000
+    invalid_high = humanoid + VEHICLE_TYPE_MAX
+};
+    
+enum PositionMode
 {
     local,
     global
-} PositionMode;
+};
 
-typedef enum MissionMode_
+enum MissionMode
 {
     active,
     paused,
     stopped
-} MissionMode;
+};
 
-typedef enum Mode_
+enum Mode
 {
     travel,
     hold,
@@ -44,7 +47,7 @@ typedef enum Mode_
     disarm,
     idle,
     null
-} Mode;
+};
 
 typedef struct State_
 {

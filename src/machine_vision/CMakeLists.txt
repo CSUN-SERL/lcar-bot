@@ -27,6 +27,8 @@ catkin_package()
 
 # Specify locations of header files
 include_directories(include
+    ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
   ${libuvc_INCLUDE_DIRS}

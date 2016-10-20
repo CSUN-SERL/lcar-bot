@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(rqt_gcs)
+project(rqt_gcs) # ${PROJECT_NAME} == rqt_gcs
 
 find_package(catkin REQUIRED COMPONENTS
             tf
@@ -29,7 +29,9 @@ set(rqt_gcs_INCLUDE_DIRECTORIES
      src
      resources )
 
-include_directories(${rqt_gcs_INCLUDE_DIRECTORIES}     
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}
+                    ${CMAKE_CURRENT_BINARY_DIR}
+                    ${rqt_gcs_INCLUDE_DIRECTORIES}     
                     ${Qt5Widgets_INCLUDE_DIRS}
                     ${Qt5Svg_INCLUDE_DIRS}
                     ${Qt5WebKitWidgets_INCLUDE_DIRS}  
