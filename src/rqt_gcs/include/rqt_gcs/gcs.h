@@ -28,10 +28,15 @@
 #include "rqt_gcs/unanswered_queries.h"
 #include "rqt_gcs/settings_widget.h"
 #include "rqt_gcs/access_points_container_widget.h"
+#include "rqt_gcs/vehicle_init_widget.h"
+#include "rqt_gcs/vehicle_manager.h"
+
 #include "util/data_types.h"
 #include "util/debug.h"
 #include "util/image.h"
+
 #include "vehicle/uav_control.h"
+
 #include "lcar_msgs/Query.h"
 #include "lcar_msgs/TargetLocal.h"
 #include "lcar_msgs/TargetGlobal.h"
@@ -77,6 +82,7 @@ public slots:
     void OnAccessPointsTriggered();
     void OnSettingsTriggered();
     void OnUnansweredQueriesTriggered();
+    void OnAddVehicleTriggered();
     void OnUpdateCameraFeed();
 
     void OnAddUav(int);
@@ -165,13 +171,15 @@ private:
 
     struct FloatingWidgets
     {
-        SettingsWidget * settings = nullptr;
-        UnansweredQueries * unanswered_queries = nullptr;
-        AccessPointsContainerWidget* ap_menu = nullptr;
+        SettingsWidget *settings = nullptr;
+        UnansweredQueries *unanswered_queries = nullptr;
+        AccessPointsContainerWidget *ap_menu = nullptr;
+        VehicleInitWidget *vehicle_init = nullptr;
     } fl_widgets;
 
     QVector<UAVControl*> active_uavs;
     QMap<int, UAVControl*> uav_db;
+    VehicleManager * vm;
 
     std::vector<lcar_msgs::QueryPtr> *vec_uav_queries_ptr;
 

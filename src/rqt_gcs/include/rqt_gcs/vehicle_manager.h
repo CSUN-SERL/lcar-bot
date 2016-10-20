@@ -29,6 +29,7 @@ public:
     VehicleManager(QObject *parent=0);
     virtual~VehicleManager();
     
+    void AddVehicleById(int id);
     void AddUGV(int id);
     void AddQuadRotor(int id);
     void AddOctoRotor(int id);
@@ -39,7 +40,7 @@ public:
     void DeleteOctoRotor(int id);
     void DeleteVTOL(int id);
     
-    QString VehicleTypeToString(int id);
+    QString TypeStringFromId(int id);
     const QList<QString> GetInitRequests();
     int IdFromMachineName(const QString& machine_name);
     
@@ -48,9 +49,14 @@ public:
     int NumQuadRotors();
     int NumOctoRotors();
     int NumVTOLs();
+
+signals:
+    //todo add slot to connect to this signal
+    void NotifyOperator();
     
 public slots:
     void OnOperatorInitRequested(const QString& machine_name);
+    // todo add all main gui button slots
     
 private:
     VehicleControl* EraseVehicleFromDB(int id);
@@ -58,9 +64,10 @@ private:
     
     QMap<int, VehicleControl*> db; //the database
     QSet<QString> init_requests; //vehicle initialization requests, storing machine_name
+    
     ros::NodeHandle nh;
-    ros::ServiceServer init_server;
-    ros::ServiceClient init_client;
+    ros::ServiceServer init_request_server;
+    ros::ServiceClient init_response_client;
     
     int NUM_UGV, 
         NUM_QUAD,
