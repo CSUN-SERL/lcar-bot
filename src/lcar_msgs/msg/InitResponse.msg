@@ -1,3 +1,2 @@
 string machine_name
-int32 vehicle_id
----
+int16 vehicle_id
