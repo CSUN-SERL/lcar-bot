@@ -19,8 +19,9 @@ namespace rqt_gcs
 VehicleManager::VehicleManager(QObject *parent):
 QObject(parent)
 {   
-    init_request_server = nh.advertiseService("vehicle/init/request", &VehicleManager::OnVehicleInitRequested, this);
-    init_response_client = nh.serviceClient<lcar_msgs::InitResponse>("vehicle/init/response");
+    init_request = nh.advertiseService("vehicle/init/request", &VehicleManager::OnVehicleInitRequested, this);
+    init_response = nh.advertise<lcar_msgs::InitResponse>("vehicle/init/response", 2);
+    init_final_ack = nh.advertiseService("vehicle/init/final_ack", &VehicleManager::OnInitFinalAck, this);
 }
 
 VehicleManager::~VehicleManager()
@@ -95,7 +96,7 @@ void VehicleManager::DeleteUGV(int id)
 
 void VehicleManager::DeleteQuadRotor(int id)
 {
-    UAVControl* uav = (UAVControl*)this->EraseVehicleFromDB(id + VehicleType::quad_rotor);
+    VehicleControl * uav = this->EraseVehicleFromDB(id + VehicleType::quad_rotor);
     if(uav != nullptr)
     {
         delete uav;
@@ -105,7 +106,7 @@ void VehicleManager::DeleteQuadRotor(int id)
 
 void VehicleManager::DeleteOctoRotor(int id)
 {
-    UAVControl* uav = (UAVControl*)this->EraseVehicleFromDB(id + VehicleType::quad_rotor);
+    VehicleControl *uav = this->EraseVehicleFromDB(id + VehicleType::quad_rotor);
     if(uav != nullptr)
     {
         delete uav;
@@ -151,9 +152,9 @@ int VehicleManager::IdFromMachineName(const QString& machine_name)
         return -1;
 }
 
-const QList<QString> VehicleManager::GetInitRequests()
+const QMap<int, QString>& VehicleManager::GetInitRequests()
 {
-    return init_requests.values();
+    return init_requests;
 }
 
 int VehicleManager::NumVehicles()
@@ -184,29 +185,17 @@ int VehicleManager::NumVTOLs()
 
 //public slots://///////////////////////////////////////////////////////////////
 
-void VehicleManager::OnOperatorInitRequested(const QString& machine_name)
+void VehicleManager::OnOperatorInitRequested(const int& vehicle_id)
 {
-    QSet<QString>::Iterator it = init_requests.find(machine_name);
+    QMap<int, QString>::Iterator it = init_requests.find(vehicle_id);
     if(it != init_requests.end())
     {
         lcar_msgs::InitResponse res;
-        res.request.machine_name = machine_name.toStdString();
-        res.request.vehicle_id = this->IdFromMachineName(machine_name);
-        if(init_response_client.call(res))
-        {
-            this->AddVehicleById(res.request.vehicle_id);
-            init_requests.erase(it);
-        }
-        else
-        {
-            ROS_ERROR_STREAM("Operator initialization request "
-                            "for vehicle with id: " 
-                            << res.request.vehicle_id
-                            << " failed!");
-        }
+        res.machine_name = it.value().toStdString(); // machine_name
+        res.vehicle_id = it.key(); // vehicle_id
+        init_response.publish(res);
     }
 }
-
 
 //private://////////////////////////////////////////////////////////////////////
 
@@ -232,11 +221,58 @@ VehicleControl* VehicleManager::EraseVehicleFromDB(int id)
 }
 
 bool VehicleManager::OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req, 
-                                            const lcar_msgs::InitRequest::Response& res)
+                                            lcar_msgs::InitRequest::Response& res)
 {
-    init_requests.insert(req.machine_name.c_str());
+    // check that this vehicle hasn't already requested initialization
+    QMap<int, QString>::Iterator it = init_requests.begin();
+    for(; it != init_requests.end(); it++)
+    {
+        if(it.value().toStdString() == req.machine_name)
+        {
+            res.vehicle_id = VehicleType::invalid_low;
+            res.ack = false;
+            return false;
+        }
+    }
+    
+    res.vehicle_id = this->IdFromMachineName(QString(req.machine_name.c_str()));
+    res.ack = true;
+    init_requests.insert(res.vehicle_id, req.machine_name.c_str());
     emit NotifyOperator();
     return true;
+}
+
+bool VehicleManager::OnInitFinalAck(lcar_msgs::InitFinalAck::Request& req, 
+                                    lcar_msgs::InitFinalAck::Response& res)
+{
+    QMap<int, QString>::Iterator it = init_requests.find(req.vehicle_id);
+    if(it != init_requests.end())
+    {
+        this->AddVehicleById(req.vehicle_id);
+        init_requests.erase(it);
+        res.startup = true;
+        emit RemoveInitRequest(req.vehicle_id);
+        return true;
+    }
+    else
+    {
+        ROS_ERROR_STREAM("Operator initialization request "
+                                "for vehicle with id: " 
+                                << req.vehicle_id
+                                << " failed!");
+        res.startup = false;
+        return false;
+    }
+}
+
+QString VehicleManager::VehicleTypeFromName(QString& name)
+{
+    Qt::CaseSensitivity cs = Qt::CaseInsensitive;
+    return name.contains("quad", cs) ? "quad" : 
+           name.contains("octo", cs) ? "octo" :
+           name.contains("vtol", cs) ? "vtol" :
+           name.contains("ugv", cs) ? "ugv" : 
+           QString();
 }
 
 }

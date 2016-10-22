@@ -15,14 +15,15 @@ add_message_files(
     AccessPoint.msg
     AccessPointStamped.msg
     TargetLocal.msg
-    TargetGlobal.msg )
+    TargetGlobal.msg
+    InitResponse.msg)
 
 add_service_files(
     DIRECTORY srv
     FILES
+    ODParams.srv
     InitRequest.srv
-    InitResponse.srv
-    ODParams.srv )
+    InitFinalAck.srv)
 
 generate_messages(DEPENDENCIES sensor_msgs geometry_msgs mavros_msgs)
 
