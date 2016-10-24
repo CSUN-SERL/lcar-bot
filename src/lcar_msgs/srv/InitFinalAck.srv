@@ -1,0 +1,3 @@
+int16 vehicle_id
+---
+bool startup

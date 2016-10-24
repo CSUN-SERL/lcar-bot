@@ -31,7 +31,8 @@ GCS::GCS():
     time_counter(0),
     img_q_max_size(30),
     num_queries_last(0),
-    update_timer(new QTimer(this))
+    update_timer(new QTimer(this)),
+    vm(new VehicleManager())
 {
     widget.setupUi(this);
 
@@ -710,7 +711,7 @@ void GCS::OnAddVehicleTriggered()
 {
     if(fl_widgets.vehicle_init == nullptr)
     {
-        fl_widgets.vehicle_init = new VehicleInitWidget();
+        fl_widgets.vehicle_init = new VehicleInitWidget(vm);
 
         QRect window = this->window()->geometry();
         int x = (this->width() / 2) - (fl_widgets.vehicle_init->width() / 2);
@@ -720,10 +721,6 @@ void GCS::OnAddVehicleTriggered()
 
         connect(fl_widgets.vehicle_init, &VehicleInitWidget::destroyed,
                 this, [=](){ fl_widgets.vehicle_init= nullptr; });
-                
-//        connect(fl_widgets.vehicle_init, &VehicleInitWidget::AddVehicle, 
-//                vm, &VehicleManger::OnOperatorInitRequested);
-                
     }
     else
     {
