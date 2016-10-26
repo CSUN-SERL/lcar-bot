@@ -30,54 +30,49 @@ public:
     VehicleManager(QObject *parent=0);
     virtual~VehicleManager();
     
-    void AddVehicleById(int id);
-    void AddUGV(int id);
-    void AddQuadRotor(int id);
-    void AddOctoRotor(int id);
-    void AddVTOL(int id);
-    
-    void DeleteUGV(int id);
-    void DeleteQuadRotor(int id);
-    void DeleteOctoRotor(int id);
-    void DeleteVTOL(int id);
-    
-    QString TypeStringFromId(int id);
-    QString VehicleTypeFromName(QString& name);
-    const QMap<int, QString>& GetInitRequests();
-    int IdFromMachineName(const QString& machine_name);
+    void AddVehicle(int id);
+    void DeleteVehicle(int id);
     
     int NumVehicles();
     int NumUGVs();
     int NumQuadRotors();
     int NumOctoRotors();
     int NumVTOLs();
+    
+    const QMap<int, QString>& GetInitRequests();
+    
+    QString VehicleStringFromId(int id);
+    QString VehicleStringFromMachineName(QString& name);
+    int GenerateId(const QString& machine_name);
+    int VehicleTypeFromId(int id);
 
 signals:
-    //todo add slot to connect to this signal
-    void NotifyOperator();
+    //todo add slot to connect to this signal in GCS
+    void NotifyOperator(QString message);
     void RemoveInitRequest(int vehicle_id);
     
 public slots:
-    void OnOperatorInitRequested(const int& vehicle_id);
+    void OnOperatorInitRequested(const int vehicle_id);
     // todo add all main gui button slots
     
 private:
-    VehicleControl* EraseVehicleFromDB(int id);
+    
     bool OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req,lcar_msgs::InitRequest::Response& res);
     bool OnInitFinalAck(lcar_msgs::InitFinalAck::Request& req, lcar_msgs::InitFinalAck::Response& res);
     
-    QMap<int, VehicleControl*> db; //the database
+    
+    QMap<int/*VehicleType*/, QMap<int, VehicleControl*>> db; //the database
     QMap<int, QString> init_requests; //vehicle initialization requests, storing machine_name and potential id
     
     ros::NodeHandle nh;
-    ros::ServiceServer init_request;
-    ros::Publisher init_response;
-    ros::ServiceServer init_final_ack;
+    ros::ServiceServer srv_init_request;
+    ros::Publisher pub_init_response;
+    ros::ServiceServer srv_init_final_ack;
     
-    int NUM_UGV, 
-        NUM_QUAD,
-        NUM_OCTO,
-        NUM_VTOL;
+    int UGV_ID,
+        QUAD_ID,
+        OCTO_ID,
+        VTOL_ID;
 };
 
 }

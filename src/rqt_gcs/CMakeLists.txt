@@ -50,6 +50,7 @@ catkin_package(
 
 file(GLOB rqt_gcs_SRCS src/rqt_gcs/*.cpp src/vehicle/*.cpp )
 list(REMOVE_ITEM rqt_gcs_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/rqt_gcs/main.cpp )
+list(REMOVE_ITEM rqt_gcs_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/vehicle/init_node.cpp )
 
 file(GLOB rqt_gcs_HDRS include/rqt_gcs/*.h )
 list(REMOVE_ITEM rqt_gcs_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/rqt_gcs/access_point.h 
@@ -72,6 +73,7 @@ add_definitions(${Qt5_DEFINITIONS})
 
 # Declare executables with source files
 add_executable(backup_control src/vehicle/backup_control.cpp)
+add_executable(init_node src/vehicle/init_node.cpp)
 #add_executable(uav_control src/vehicle/uav_control.cpp)
 #add_executable(gps_publisher src/vehicle/gps_publisher.cpp)
 #add_executable(gps_demo src/vehicle/gps_demo.cpp)
@@ -91,6 +93,7 @@ add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
 #Specify libraries against which to link
 target_link_libraries(backup_control ${catkin_LIBRARIES})
+target_link_libraries(init_node ${catkin_LIBRARIES})
 #target_link_libraries(uav_control ${catkin_LIBRARIES})
 #target_link_libraries(gps_publisher ${catkin_LIBRARIES})
 #target_link_libraries(gps_demo ${catkin_LIBRARIES})
