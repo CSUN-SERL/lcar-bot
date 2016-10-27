@@ -73,7 +73,7 @@ void VehicleInitWidget::DisplayVehicleInitRequests()
     {
         int id = it.key();
         QString machine_name = it.value();
-        QString v_type = vm->VehicleTypeFromName(machine_name);
+        QString v_type = vm->VehicleStringFromMachineName(machine_name);
         
         int row = widget.view->rowCount();
         widget.view->insertRow(row);

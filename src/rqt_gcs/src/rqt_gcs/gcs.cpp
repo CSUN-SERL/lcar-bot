@@ -720,7 +720,10 @@ void GCS::OnAddVehicleTriggered()
         fl_widgets.vehicle_init->setVisible(true);
 
         connect(fl_widgets.vehicle_init, &VehicleInitWidget::destroyed,
-                this, [=](){ fl_widgets.vehicle_init= nullptr; });
+                this, [=](){ fl_widgets.vehicle_init = nullptr; });
+                
+        connect(fl_widgets.vehicle_init, &VehicleInitWidget::AddVehicleToDb,
+                vm, &VehicleManager::OnOperatorInitRequested);
     }
     else
     {

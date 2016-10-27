@@ -5,7 +5,7 @@
  * Created on September 8, 2016, 11:41 AM
  */
 
-#include <QSet>
+#include <QStringBuilder>
 
 #include "rqt_gcs/vehicle_manager.h"
 #include "vehicle/uav_control.h"
@@ -19,137 +19,105 @@ namespace rqt_gcs
 VehicleManager::VehicleManager(QObject *parent):
 QObject(parent)
 {   
-    init_request = nh.advertiseService("vehicle/init/request", &VehicleManager::OnVehicleInitRequested, this);
-    init_response = nh.advertise<lcar_msgs::InitResponse>("vehicle/init/response", 2);
-    init_final_ack = nh.advertiseService("vehicle/init/final_ack", &VehicleManager::OnInitFinalAck, this);
+    srv_init_request = nh.advertiseService("vehicle/init/request", &VehicleManager::OnVehicleInitRequested, this);
+    pub_init_response = nh.advertise<lcar_msgs::InitResponse>("vehicle/init/response", 2);
+    srv_init_final_ack = nh.advertiseService("vehicle/init/final_ack", &VehicleManager::OnInitFinalAck, this);
 }
 
 VehicleManager::~VehicleManager()
 {
 }
 
-void VehicleManager::AddVehicleById(int id)
+void VehicleManager::AddVehicle(int id)
 {
     if(id <= VehicleType::invalid_low || VehicleType::invalid_high <= id)
     {
-        //emit NotifyOperator();
+        //emit NotifyOperator("tried to add Vehicle with invalid id: " % id);
         ROS_ERROR_STREAM ("tried to add Vehicle with invalid id: " << id);
         return;
     }
-    int v_type = (id / VEHICLE_TYPE_MAX) * VEHICLE_TYPE_MAX; // remove singles digit
+    int v_type = this->VehicleTypeFromId(id);
+    VehicleControl* vehicle = nullptr;
     
-    if(v_type == VehicleType::vtol) // vtol
-        this->AddVTOL(id);
-    else if(v_type == VehicleType::octo_rotor) // octo-rotor
-        this->AddOctoRotor(id);
-    else if(v_type == VehicleType::quad_rotor) // quad-rotor
-        this->AddQuadRotor(id);
-    else if(v_type == VehicleType::ugv)
-        this->AddUGV(id);
-    else if(v_type == VehicleType::humanoid)
+    //todo uncomment these after their classes are added to the system
+//    if(v_type == VehicleType::ugv)
+//        this->AddVehicle(new UGVControl(id), db[v_type], NUM_UGV);
+    if(v_type == VehicleType::quad_rotor) // quad-rotor
+        vehicle = new UAVControl(id);
+    if(v_type == VehicleType::octo_rotor) // octo-rotor
+        vehicle = new UAVControl(id);
+//    if(v_type == VehicleType::vtol) // vtol
+//        vehicle = new VTOLControl(id);
+//    if(v_type == VehicleControl::humanoid) // humanoid
+//        vehicle = new NAOControl(id);
+    
+    if(vehicle != nullptr)
     {
-        //todo
-    }    
-}
-
-//all public Add* functions assume that the id passed to them are between 0 and 99.
-//the functions themselves map the id to the appropriate space
-void VehicleManager::AddUGV(int id)
-{
-    //todo add UGVControl
-    //this->AddVehicleByType(VehicleType::ugv, id);
-    NUM_UGV++;
-}
-
-void VehicleManager::AddQuadRotor(int id)
-{   
-    Q_ASSERT(VehicleType::quad_rotor < id && id < VehicleType::quad_rotor + VEHICLE_TYPE_MAX);
-    VehicleControl *v = new UAVControl(id);
-    db.insert(id, v);
-    NUM_QUAD++;
-}
-
-void VehicleManager::AddOctoRotor(int id)
-{
-    Q_ASSERT(VehicleType::octo_rotor <= id && id < VehicleType::octo_rotor + VEHICLE_TYPE_MAX);
-    VehicleControl *v = new UAVControl(id);
-    db.insert(id, v);
-    NUM_OCTO++;
-}
-
-void VehicleManager::AddVTOL(int id)
-{
-    // todo add VTOLControl class
-    NUM_VTOL++;
-}
-
-// like the public Add* functions, these expect id to be between 0 and 99
-void VehicleManager::DeleteUGV(int id)
-{
-//    UGVControl* ugv = (UGVControl*)EraseVehicleFromDB(id + VehicleType::ugv);
-//    if(ugv != nullptr)
-//    {
-//        delete ugv;
-//        NUM_UGV--;
-//    }
-}
-
-void VehicleManager::DeleteQuadRotor(int id)
-{
-    VehicleControl * uav = this->EraseVehicleFromDB(id + VehicleType::quad_rotor);
-    if(uav != nullptr)
+        db[v_type].insert(id, vehicle);
+        ROS_INFO_STREAM("added vehicle of type: "
+                        << this->VehicleStringFromId(id).toStdString()
+                        << " with id: " << id <<  " to database.");
+    }
+    else
     {
-        delete uav;
-        NUM_QUAD--;
+        ROS_ERROR_STREAM("tried to add vehicle of invalid type: "
+                         << this->VehicleStringFromId(id).toStdString());
     }
 }
 
-void VehicleManager::DeleteOctoRotor(int id)
-{
-    VehicleControl *uav = this->EraseVehicleFromDB(id + VehicleType::quad_rotor);
-    if(uav != nullptr)
+void VehicleManager::DeleteVehicle(int id)
+{          
+    // there should only be one vehicle with this id
+    int v_type = this->VehicleTypeFromId(id);
+    VehicleControl* vehicle = nullptr;
+    
+    ROS_ASSERT(db.find(v_type) != db.end());
+    
+    QMap<int, VehicleControl*> * v_db = &db[v_type];
+    QMap<int, VehicleControl*>::Iterator it = v_db->find(id);
+    
+    if(it != v_db->end())
     {
-        delete uav;
-        NUM_OCTO--;
+        vehicle = it.value();
+        v_db->erase(it);
     }
-}
-
-void VehicleManager::DeleteVTOL(int id)
-{
-//    VTOLControl * vtol = (UAVControl*)this->EraseVehicleFromDB(id + VehicleType::vtol);
-    NUM_VTOL--;
-}
-
-QString VehicleManager::TypeStringFromId(int id)
-{
-    int v_type = (id / VEHICLE_TYPE_MAX) * VEHICLE_TYPE_MAX; // remove singular 
-    if(v_type == VehicleType::humanoid)
-        return "humanoid";
-    if(v_type == VehicleType::vtol)
-        return "vtol";
-    if(v_type == VehicleType::octo_rotor)
-        return "octo-rotor";
-    if(v_type == VehicleType::quad_rotor)
-        return "quad-rotor";
-    if(v_type == VehicleType::ugv)
-        return "ugv";
     else
-        return QString::null; 
+    {
+        ROS_ERROR_STREAM("Tried to delete non existent " 
+                        << this->VehicleStringFromId(id).toStdString()
+                        << " with id: "  
+                        << (id));
+    }
+    
+    delete vehicle;
 }
 
-int VehicleManager::IdFromMachineName(const QString& machine_name)
+int VehicleManager::NumVehicles()
 {
-    Qt::CaseSensitivity cs = Qt::CaseSensitivity::CaseInsensitive;
-    if(machine_name.contains("quad", cs))
-        return VehicleType::quad_rotor + NUM_QUAD;
-    if(machine_name.contains("octo", cs))
-        return VehicleType::octo_rotor + NUM_OCTO;
-    if(machine_name.contains("vtol", cs))
-        return VehicleType::vtol + NUM_VTOL;
-    if(machine_name.contains("ugv", cs))
-        return VehicleType::ugv + NUM_UGV;
-    else
-        return -1;
+    return this->NumUGVs() +
+           this->NumQuadRotors() +
+           this->NumOctoRotors() +
+           this->NumVTOLs();
+}
+
+int VehicleManager::NumUGVs()
+{
+    return db[VehicleType::ugv].size();
+}
+
+int VehicleManager::NumQuadRotors()
+{
+    return db[VehicleType::quad_rotor].size();
+}
+
+int VehicleManager::NumOctoRotors()
+{
+    return db[VehicleType::octo_rotor].size();
+}
+
+int VehicleManager::NumVTOLs()
+{
+    return db[VehicleType::vtol].size();
 }
 
 const QMap<int, QString>& VehicleManager::GetInitRequests()
@@ -157,35 +125,38 @@ const QMap<int, QString>& VehicleManager::GetInitRequests()
     return init_requests;
 }
 
-int VehicleManager::NumVehicles()
+QString VehicleManager::VehicleStringFromId(int id)
 {
-    return NUM_UGV + NUM_QUAD + NUM_OCTO + NUM_VTOL;
+    int v_type = this->VehicleTypeFromId(id);
+
+    switch(v_type)
+    {
+        case VehicleType::ugv:        return "ugv";
+        case VehicleType::quad_rotor: return "quad-rotor";
+        case VehicleType::octo_rotor: return "octo-rotor";
+        case VehicleType::humanoid:   return "humanoid";
+        default:                      return QString();  
+    }
 }
 
-int VehicleManager::NumUGVs()
-{
-    return NUM_UGV;
+int VehicleManager::VehicleTypeFromId(int id)
+{ 
+    return (id / VEHICLE_TYPE_MAX) * VEHICLE_TYPE_MAX;
 }
 
-int VehicleManager::NumQuadRotors()
+int VehicleManager::GenerateId(const QString& machine_name)
 {
-    return NUM_QUAD;
+    Qt::CaseSensitivity cs = Qt::CaseSensitivity::CaseInsensitive;
+    return machine_name.contains("ugv", cs)  ? VehicleType::ugv + UGV_ID++  :
+           machine_name.contains("quad", cs) ? VehicleType::quad_rotor + QUAD_ID++ :
+           machine_name.contains("octo", cs) ? VehicleType::octo_rotor + OCTO_ID++ :
+           machine_name.contains("vtol", cs) ? VehicleType::vtol + VTOL_ID++ :
+                                               VehicleType::invalid_low;
 }
-
-int VehicleManager::NumOctoRotors()
-{
-    return NUM_OCTO;
-}
-
-int VehicleManager::NumVTOLs()
-{
-    return NUM_VTOL;
-}
-
 
 //public slots://///////////////////////////////////////////////////////////////
 
-void VehicleManager::OnOperatorInitRequested(const int& vehicle_id)
+void VehicleManager::OnOperatorInitRequested(const int vehicle_id)
 {
     QMap<int, QString>::Iterator it = init_requests.find(vehicle_id);
     if(it != init_requests.end())
@@ -193,32 +164,12 @@ void VehicleManager::OnOperatorInitRequested(const int& vehicle_id)
         lcar_msgs::InitResponse res;
         res.machine_name = it.value().toStdString(); // machine_name
         res.vehicle_id = it.key(); // vehicle_id
-        init_response.publish(res);
+        pub_init_response.publish(res);
+        res.machine_name = it.value().toStdString();
     }
 }
 
 //private://////////////////////////////////////////////////////////////////////
-
-VehicleControl* VehicleManager::EraseVehicleFromDB(int id)
-{          
-    // there should only be one vehicle with this id
-    VehicleControl* vehicle = nullptr;
-    QMap<int, VehicleControl*>::iterator it = db.find(id);
-    if(it != db.end())
-    {
-        vehicle = it.value();
-        db.erase(it);
-    }
-    else
-    {
-        ROS_ERROR_STREAM("Tried to delete non existent " 
-                        << this->TypeStringFromId(id).toStdString()
-                        << " with id: "  
-                        << (id));
-    }
-    
-    return vehicle;
-}
 
 bool VehicleManager::OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req, 
                                             lcar_msgs::InitRequest::Response& res)
@@ -235,10 +186,10 @@ bool VehicleManager::OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req
         }
     }
     
-    res.vehicle_id = this->IdFromMachineName(QString(req.machine_name.c_str()));
+    res.vehicle_id = this->GenerateId(QString(req.machine_name.c_str()));
     res.ack = true;
     init_requests.insert(res.vehicle_id, req.machine_name.c_str());
-    emit NotifyOperator();
+    emit NotifyOperator("Vehicle Initialization requested");
     return true;
 }
 
@@ -248,7 +199,7 @@ bool VehicleManager::OnInitFinalAck(lcar_msgs::InitFinalAck::Request& req,
     QMap<int, QString>::Iterator it = init_requests.find(req.vehicle_id);
     if(it != init_requests.end())
     {
-        this->AddVehicleById(req.vehicle_id);
+        this->AddVehicle(req.vehicle_id);
         init_requests.erase(it);
         res.startup = true;
         emit RemoveInitRequest(req.vehicle_id);
@@ -265,7 +216,7 @@ bool VehicleManager::OnInitFinalAck(lcar_msgs::InitFinalAck::Request& req,
     }
 }
 
-QString VehicleManager::VehicleTypeFromName(QString& name)
+QString VehicleManager::VehicleStringFromMachineName(QString& name)
 {
     Qt::CaseSensitivity cs = Qt::CaseInsensitive;
     return name.contains("quad", cs) ? "quad" : 

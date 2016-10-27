@@ -10,7 +10,7 @@
 
 namespace rqt_gcs
 {
-
+    
 #define VEHICLE_TYPE_MAX 1000
     
 enum VehicleType
