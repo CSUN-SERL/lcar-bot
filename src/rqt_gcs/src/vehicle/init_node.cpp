@@ -9,8 +9,9 @@
 
 int vehicle_id;
 std::string machine_name;
-ros::ServiceClient *sc_final_ack;
-bool gcs_response = false;
+ros::ServiceClient sc_final_ack;
+bool gcs_init_response = false;
+bool gcs_final_ack = false;
 
 void StartupNodes();
 
@@ -19,29 +20,18 @@ void InitResponseCallback(const lcar_msgs::InitResponseConstPtr& msg)
     if(machine_name != msg->machine_name)
         return;
     
-    ROS_INFO_STREAM("received operator initialization request");
+    ROS_INFO_STREAM(machine_name << " received operator initialization request.");
     
-    gcs_response = true;
-    
-    lcar_msgs::InitFinalAck ack;
-    ack.request.vehicle_id = msg->vehicle_id;
-    
-    if(sc_final_ack->call(ack))
-    {
-        ROS_INFO_STREAM("init_node for " << machine_name << " starting nodes");
-        StartupNodes();
-    }
-    else
-    {
-        ROS_INFO_STREAM("init node for " << machine_name << " failed");
-        gcs_response = false;
-    }
+    vehicle_id = msg->vehicle_id;
+    gcs_init_response = true;
 }
 
 void StartupNodes()
 {
     //todo properly launch nodes for given vehicle type
-    system("lcar_bot");
+    std::string cmd("lcar-bot " + std::to_string(vehicle_id));
+    system("printenv");
+    system(cmd.c_str());
 }
 
 int main(int argc, char ** argv) 
@@ -50,27 +40,39 @@ int main(int argc, char ** argv)
     ros::NodeHandle nh;
     
     ros::ServiceClient sc_init_request = nh.serviceClient<lcar_msgs::InitRequest>("vehicle/init/request");
-    ros::ServiceClient sc_temp = nh.serviceClient<lcar_msgs::InitFinalAck>("vehicle/init/final_ack");
-    sc_final_ack = &sc_temp;
+    sc_final_ack = nh.serviceClient<lcar_msgs::InitFinalAck>("vehicle/init/final_ack");
     ros::Subscriber sub_init_response = nh.subscribe("vehicle/init/response", 2, InitResponseCallback);
     
     char host[HOST_NAME_MAX];
     gethostname(host, HOST_NAME_MAX);
     machine_name = std::string(host);
-    
+    machine_name = "quad1";
+
     lcar_msgs::InitRequest req;
     req.request.machine_name = machine_name;
     if(sc_init_request.call(req))
-        ROS_INFO_STREAM("init_node for " << machine_name << " request acknowledged");
+        ROS_INFO_STREAM(machine_name << " init_request acknowledged");
     else
-        ROS_WARN_STREAM("init_node for " << machine_name << " request denied");
-    
-    ros::Rate loop_rate(10);
-    while(ros::ok() && !gcs_response)
+        ROS_WARN_STREAM(machine_name << " init_request denied");
+
+    ros::Rate loop_rate(2);
+    while(ros::ok() && !gcs_init_response) // gcs_init_response update in callback
     {
         ros::spinOnce();
         loop_rate.sleep();
     }
-    
+
+    lcar_msgs::InitFinalAck ack;
+    ack.request.vehicle_id = vehicle_id;
+    if(sc_final_ack.call(ack))
+    {
+        ROS_INFO_STREAM(machine_name << " init_final_ack: starting nodes");
+        gcs_final_ack = true;
+        StartupNodes();
+    }
+    else
+        ROS_INFO_STREAM(machine_name << " init_final_ack: failed");
+
+
     return 0;
 }

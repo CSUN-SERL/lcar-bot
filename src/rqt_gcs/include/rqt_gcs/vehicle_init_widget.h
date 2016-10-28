@@ -32,7 +32,7 @@ public slots:
 private:
     void DisplayVehicleInitRequests();
     
-    Ui::VehicleInitWidget widget;
+    Ui::VehicleInitWidget widget;\
     VehicleManager *vm;
 };
 

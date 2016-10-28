@@ -17,7 +17,11 @@ namespace rqt_gcs
 //public://///////////////////////////////////////////////////////////////////// 
     
 VehicleManager::VehicleManager(QObject *parent):
-QObject(parent)
+    QObject(parent),
+    UGV_ID(0),
+    QUAD_ID(0),
+    OCTO_ID(0),
+    VTOL_ID(0)
 {   
     srv_init_request = nh.advertiseService("vehicle/init/request", &VehicleManager::OnVehicleInitRequested, this);
     pub_init_response = nh.advertise<lcar_msgs::InitResponse>("vehicle/init/response", 2);
@@ -32,8 +36,8 @@ void VehicleManager::AddVehicle(int id)
 {
     if(id <= VehicleType::invalid_low || VehicleType::invalid_high <= id)
     {
-        //emit NotifyOperator("tried to add Vehicle with invalid id: " % id);
-        ROS_ERROR_STREAM ("tried to add Vehicle with invalid id: " << id);
+        emit NotifyOperator("tried to add Vehicle with invalid id: " % QString::number(id));
+        ROS_ERROR_STREAM("tried to add Vehicle with invalid id: " << id);
         return;
     }
     int v_type = this->VehicleTypeFromId(id);
@@ -54,27 +58,27 @@ void VehicleManager::AddVehicle(int id)
     if(vehicle != nullptr)
     {
         db[v_type].insert(id, vehicle);
-        ROS_INFO_STREAM("added vehicle of type: "
+        ROS_INFO_STREAM("Added vehicle of type: "
                         << this->VehicleStringFromId(id).toStdString()
                         << " with id: " << id <<  " to database.");
     }
     else
     {
-        ROS_ERROR_STREAM("tried to add vehicle of invalid type: "
+        ROS_ERROR_STREAM("Tried to add vehicle of invalid type: "
                          << this->VehicleStringFromId(id).toStdString());
     }
 }
 
-void VehicleManager::DeleteVehicle(int id)
+void VehicleManager::DeleteVehicle(int v_id)
 {          
     // there should only be one vehicle with this id
-    int v_type = this->VehicleTypeFromId(id);
-    VehicleControl* vehicle = nullptr;
+    int v_type = this->VehicleTypeFromId(v_id);
+    VehicleControl *vehicle = nullptr;
     
     ROS_ASSERT(db.find(v_type) != db.end());
     
-    QMap<int, VehicleControl*> * v_db = &db[v_type];
-    QMap<int, VehicleControl*>::Iterator it = v_db->find(id);
+    QMap<int, VehicleControl*> *v_db = &db[v_type];
+    QMap<int, VehicleControl*>::Iterator it = v_db->find(v_id);
     
     if(it != v_db->end())
     {
@@ -84,12 +88,47 @@ void VehicleManager::DeleteVehicle(int id)
     else
     {
         ROS_ERROR_STREAM("Tried to delete non existent " 
-                        << this->VehicleStringFromId(id).toStdString()
+                        << this->VehicleStringFromId(v_id).toStdString()
                         << " with id: "  
-                        << (id));
+                        << (v_id));
     }
     
     delete vehicle;
+}
+
+void VehicleManager::SetWaypoint(std::string v_string, const sensor_msgs::NavSatFix& location) 
+{
+    int v_id = this->IdfromVehicleString(v_string);
+    if(v_id == VehicleType::invalid_low)
+    {
+        ROS_ERROR_STREAM("Cannot set waypoint: " v_string <<  
+                         << "is not a recognized vehicle");
+    }
+    else
+       this->SetWaypoint(this->IdfromVehicleString(QString(v_type.c_str()), location);
+}
+
+void VehicleManager::SetWaypoint(int v_id, const sensor_msgs::NavSatFix& location)
+{
+    int v_type = this->VehicleTypeFromId(v_id);
+    
+    ROS_ASSERT(db.find(v_type) != db.end());
+    
+    QMap<int, VehicleControl*> *v_db = &db[v_type];
+    
+    if(v_type == VehicleType::ugv)
+        ROS_WARN_STREAM("ignoring altitude for ugv");
+
+    QMap<int, VehicleControl*>::ConstIterator it = v_db->find(v_id);
+    if(it != v_db->end())
+    {   
+        VehicleControl * vc = it.value();
+        vc->SetWayPoint(location);
+    }
+    else
+        ROS_ERROR_STREAM("Cannot set waypoint: No such" 
+                         << this->VehicleStringFromId(v_id).toStdString()
+                         << "with id: " << v_id);
 }
 
 int VehicleManager::NumVehicles()
@@ -139,9 +178,14 @@ QString VehicleManager::VehicleStringFromId(int id)
     }
 }
 
-int VehicleManager::VehicleTypeFromId(int id)
-{ 
-    return (id / VEHICLE_TYPE_MAX) * VEHICLE_TYPE_MAX;
+QString VehicleManager::VehicleStringFromMachineName(QString& name)
+{
+    Qt::CaseSensitivity cs = Qt::CaseInsensitive;
+    return name.contains("quad", cs) ? "quad" : 
+           name.contains("octo", cs) ? "octo" :
+           name.contains("vtol", cs) ? "vtol" :
+           name.contains("ugv", cs)  ? "ugv" : 
+                                       QString();
 }
 
 int VehicleManager::GenerateId(const QString& machine_name)
@@ -153,6 +197,12 @@ int VehicleManager::GenerateId(const QString& machine_name)
            machine_name.contains("vtol", cs) ? VehicleType::vtol + VTOL_ID++ :
                                                VehicleType::invalid_low;
 }
+
+int VehicleManager::VehicleTypeFromId(int id)
+{ 
+    return (id / VEHICLE_TYPE_MAX) * VEHICLE_TYPE_MAX;
+}
+
 
 //public slots://///////////////////////////////////////////////////////////////
 
@@ -189,7 +239,7 @@ bool VehicleManager::OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req
     res.vehicle_id = this->GenerateId(QString(req.machine_name.c_str()));
     res.ack = true;
     init_requests.insert(res.vehicle_id, req.machine_name.c_str());
-    emit NotifyOperator("Vehicle Initialization requested");
+    emit NotifyOperator("Vehicle initialization requested");
     return true;
 }
 
@@ -207,23 +257,27 @@ bool VehicleManager::OnInitFinalAck(lcar_msgs::InitFinalAck::Request& req,
     }
     else
     {
-        ROS_ERROR_STREAM("Operator initialization request "
-                                "for vehicle with id: " 
-                                << req.vehicle_id
-                                << " failed!");
+        ROS_ERROR_STREAM("Operator initialization request for vehicle with id: " 
+                         << req.vehicle_id
+                         << " failed!");
         res.startup = false;
         return false;
     }
 }
 
-QString VehicleManager::VehicleStringFromMachineName(QString& name)
+int VehicleManager::IdfromVehicleString(QString v_type)
 {
-    Qt::CaseSensitivity cs = Qt::CaseInsensitive;
-    return name.contains("quad", cs) ? "quad" : 
-           name.contains("octo", cs) ? "octo" :
-           name.contains("vtol", cs) ? "vtol" :
-           name.contains("ugv", cs) ? "ugv" : 
-           QString();
+    int number;
+    sscanf(v_type.toStdString().c_str(), "%d", &number);
+    
+    Qt::CaseSensitivity cs = Qt::CaseSensitivity::CaseInsensitive;
+    return v_type.contains("ugv", cs)  ? VehicleType::ugv + number:
+           v_type.contains("quad", cs) ? VehicleType::quad_rotor + number:
+           v_type.contains("octo", cs) ? VehicleType::octo_rotor + number:
+           v_type.contains("vtol", cs) ? VehicleType::vtol + number:
+                                         VehicleType::invalid_low;
 }
+
+
 
 }

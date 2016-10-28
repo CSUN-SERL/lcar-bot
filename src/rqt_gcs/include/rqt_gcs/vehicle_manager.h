@@ -19,6 +19,7 @@
 #include "util/data_types.h"
 #include "lcar_msgs/InitRequest.h"
 #include "lcar_msgs/InitFinalAck.h"
+#include "sensor_msgs/NavSatFix.h"
 
 namespace rqt_gcs
 {
@@ -32,6 +33,26 @@ public:
     
     void AddVehicle(int id);
     void DeleteVehicle(int id);
+    
+    //Vehicle Commands//////////////////////////////////////////////////////////
+    
+    /*
+     * convenience function: set the way point for the specified vehicle, where
+     * vehicle type and number are specified in v_string
+     * @param v_string the human readable vehicle type containing its number ("quad1")
+     * @param location the container for latitude, longitude, and latitude
+     */
+    void SetWaypoint(std::string v_string, const sensor_msgs::NavSatFix& location);
+    
+    /*
+     * sets the way point for vehicle associated with the given internal id
+     * @param v_id the vehicles internal id
+     * @param location the container for latitude, longitude, and latitude
+     */
+    void SetWaypoint(int v_id, const sensor_msgs::NavSatFix& location);
+    
+    
+    
     
     int NumVehicles();
     int NumUGVs();
@@ -59,7 +80,7 @@ private:
     
     bool OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req,lcar_msgs::InitRequest::Response& res);
     bool OnInitFinalAck(lcar_msgs::InitFinalAck::Request& req, lcar_msgs::InitFinalAck::Response& res);
-    
+    int IdfromVehicleString(QString v_type);
     
     QMap<int/*VehicleType*/, QMap<int, VehicleControl*>> db; //the database
     QMap<int, QString> init_requests; //vehicle initialization requests, storing machine_name and potential id

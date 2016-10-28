@@ -887,6 +887,7 @@ void GCS::closeEvent(QCloseEvent* event)
     thread_uav_monitor->wait();
     delete thread_uav_monitor;
     
+    // move backwards because OnDeleteUav decrenements NUM_UAV
     for(int i = NUM_UAV - 1; i >= 0; i--)
         this->OnDeleteUav(i);
     
@@ -899,6 +900,9 @@ void GCS::closeEvent(QCloseEvent* event)
     
     if(fl_widgets.unanswered_queries != nullptr)
         fl_widgets.unanswered_queries->close();
+    
+    if(fl_widgets.vehicle_init != nullptr)
+        fl_widgets.vehicle_init->close();
     
     event->accept();
 }
