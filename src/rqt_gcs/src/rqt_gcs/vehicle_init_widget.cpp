@@ -36,6 +36,9 @@ vm(vm)
     
     connect(vm, &VehicleManager::RemoveInitRequest,
             this, &VehicleInitWidget::OnRemoveInitRequest);
+    
+    connect(vm, &VehicleManager::AddToInitWidget, 
+            this, &VehicleInitWidget::OnAddInitRequest);
 
     this->DisplayVehicleInitRequests();
 }
@@ -68,6 +71,19 @@ void VehicleInitWidget::OnRemoveInitRequest(int vehicle_id)
     widget.view->removeRow(row);
 }
 
+void VehicleInitWidget::OnAddInitRequest(QString machine_name, int vehicle_id)
+{
+    qCDebug(lcar_bot) << "vehicle_id: " << vehicle_id;
+    QString v_type = vm->VehicleStringFromMachineName(machine_name);
+
+    int row = widget.view->rowCount();
+    widget.view->insertRow(row); // rowCount goes up by 1
+
+    widget.view->setItem(row, 0, new QTableWidgetItem(machine_name));
+    widget.view->setItem(row, 1, new QTableWidgetItem(v_type));
+    widget.view->setItem(row, 2, new QTableWidgetItem(QString::number(vehicle_id)));
+}
+
 //private://////////////////////////////////////////////////////////////////////
 
 void VehicleInitWidget::DisplayVehicleInitRequests()
@@ -75,19 +91,7 @@ void VehicleInitWidget::DisplayVehicleInitRequests()
     const QMap<int, QString> requests = vm->GetInitRequests();
     QMap<int, QString>::ConstIterator it = requests.begin();
     for(; it != requests.end(); it++)
-    {
-        int vehicle_id = it.key();
-        qCDebug(lcar_bot) << "vehicle_id: " << vehicle_id;
-        QString machine_name = it.value();
-        QString v_type = vm->VehicleStringFromMachineName(machine_name);
-        
-        int row = widget.view->rowCount();
-        widget.view->insertRow(row); // rowCount goes up by 1
-
-        widget.view->setItem(row, 0, new QTableWidgetItem(machine_name));
-        widget.view->setItem(row, 1, new QTableWidgetItem(v_type));
-        widget.view->setItem(row, 2, new QTableWidgetItem(QString::number(vehicle_id)));
-    }
+        this->OnAddInitRequest(it.value(),it.key());
 }
 
 

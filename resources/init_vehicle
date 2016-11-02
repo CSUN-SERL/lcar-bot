@@ -1,0 +1,11 @@
+#!/bin/bash
+
+rosrun rqt_gcs init_node
+
+id=`cat ~/vehicle_id`
+
+if [ "$id" != "-1" ]; then
+  roslaunch rqt_gcs lcarbot_isolated.launch uav_id:=$id
+else
+  echo "FAILURE TO LAUNCH NODES"
+fi

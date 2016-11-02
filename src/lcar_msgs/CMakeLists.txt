@@ -4,7 +4,9 @@ project(lcar_msgs)
 find_package(catkin REQUIRED COMPONENTS message_generation
                                         sensor_msgs
                                         geometry_msgs
-                                        mavros_msgs)
+                                        mavros_msgs
+                                        rospy
+                                        roscpp)
 
 include_directories(include)
 
@@ -22,8 +24,7 @@ add_service_files(
     DIRECTORY srv
     FILES
     ODParams.srv
-    InitRequest.srv
-    InitFinalAck.srv)
+    InitRequest.srv)
 
 generate_messages(DEPENDENCIES sensor_msgs geometry_msgs mavros_msgs)
 

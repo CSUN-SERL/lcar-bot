@@ -942,7 +942,7 @@ void GCSHelperThread::ParseUavNamespace(std::map<int, int>& map)
                 continue;
         }
 
-        std::string id_string = node.substr(index+4, 3);
+        std::string id_string = node.substr(index+4, id_string.length());
         id_string = id_string.substr(0,id_string.find("/"));
         char * end;
         int uav_id = std::strtol(&id_string[0], &end, 10);

@@ -25,7 +25,6 @@ VehicleManager::VehicleManager(QObject *parent):
 {   
     srv_init_request = nh.advertiseService("vehicle/init/request", &VehicleManager::OnVehicleInitRequested, this);
     pub_init_response = nh.advertise<lcar_msgs::InitResponse>("vehicle/init/response", 2);
-    srv_init_final_ack = nh.advertiseService("vehicle/init/final_ack", &VehicleManager::OnInitFinalAck, this);
 }
 
 VehicleManager::~VehicleManager()
@@ -98,14 +97,15 @@ void VehicleManager::DeleteVehicle(int v_id)
 
 void VehicleManager::SetWaypoint(std::string v_string, const sensor_msgs::NavSatFix& location) 
 {
-    int v_id = this->IdfromVehicleString(v_string);
+    QString vq_string(v_string.c_str());
+    int v_id = this->IdfromVehicleString(vq_string);
     if(v_id == VehicleType::invalid_low)
     {
-        ROS_ERROR_STREAM("Cannot set waypoint: " v_string <<  
-                         << "is not a recognized vehicle");
+        ROS_ERROR_STREAM("Cannot set waypoint: " << v_string  
+                         << " is not a recognized vehicle");
     }
     else
-       this->SetWaypoint(this->IdfromVehicleString(QString(v_type.c_str()), location);
+       this->SetWaypoint(v_id, location);
 }
 
 void VehicleManager::SetWaypoint(int v_id, const sensor_msgs::NavSatFix& location)
@@ -212,10 +212,10 @@ void VehicleManager::OnOperatorInitRequested(const int vehicle_id)
     if(it != init_requests.end())
     {
         lcar_msgs::InitResponse res;
-        res.machine_name = it.value().toStdString(); // machine_name
         res.vehicle_id = it.key(); // vehicle_id
+        res.machine_name = it.value().toStdString(); // machine_name#
         pub_init_response.publish(res);
-        res.machine_name = it.value().toStdString();
+        emit RemoveInitRequest(res.vehicle_id);
     }
 }
 
@@ -239,30 +239,11 @@ bool VehicleManager::OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req
     res.vehicle_id = this->GenerateId(QString(req.machine_name.c_str()));
     res.ack = true;
     init_requests.insert(res.vehicle_id, req.machine_name.c_str());
+    
     emit NotifyOperator("Vehicle initialization requested");
+    emit AddToInitWidget(QString(req.machine_name.c_str()), res.vehicle_id);
+    
     return true;
-}
-
-bool VehicleManager::OnInitFinalAck(lcar_msgs::InitFinalAck::Request& req, 
-                                    lcar_msgs::InitFinalAck::Response& res)
-{
-    QMap<int, QString>::Iterator it = init_requests.find(req.vehicle_id);
-    if(it != init_requests.end())
-    {
-        this->AddVehicle(req.vehicle_id);
-        init_requests.erase(it);
-        res.startup = true;
-        emit RemoveInitRequest(req.vehicle_id);
-        return true;
-    }
-    else
-    {
-        ROS_ERROR_STREAM("Operator initialization request for vehicle with id: " 
-                         << req.vehicle_id
-                         << " failed!");
-        res.startup = false;
-        return false;
-    }
 }
 
 int VehicleManager::IdfromVehicleString(QString v_type)
@@ -277,7 +258,5 @@ int VehicleManager::IdfromVehicleString(QString v_type)
            v_type.contains("vtol", cs) ? VehicleType::vtol + number:
                                          VehicleType::invalid_low;
 }
-
-
 
 }

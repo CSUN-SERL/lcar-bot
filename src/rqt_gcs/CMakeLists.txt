@@ -5,6 +5,7 @@ find_package(catkin REQUIRED COMPONENTS
             tf
             mavros     
             roscpp
+            rospy
             roslib
             std_msgs
             cv_bridge
