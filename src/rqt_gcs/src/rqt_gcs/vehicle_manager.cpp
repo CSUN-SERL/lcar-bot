@@ -72,7 +72,6 @@ void VehicleManager::DeleteVehicle(int v_id)
 {          
     // there should only be one vehicle with this id
     int v_type = this->VehicleTypeFromId(v_id);
-    VehicleControl *vehicle = nullptr;
     
     ROS_ASSERT(db.find(v_type) != db.end());
     
@@ -81,8 +80,9 @@ void VehicleManager::DeleteVehicle(int v_id)
     
     if(it != v_db->end())
     {
-        vehicle = it.value();
+        VehicleControl* vehicle = it.value();
         v_db->erase(it);
+        delete vehicle;
     }
     else
     {
@@ -92,13 +92,11 @@ void VehicleManager::DeleteVehicle(int v_id)
                         << (v_id));
     }
     
-    delete vehicle;
 }
 
 void VehicleManager::SetWaypoint(std::string v_string, const sensor_msgs::NavSatFix& location) 
 {
-    QString vq_string(v_string.c_str());
-    int v_id = this->IdfromVehicleString(vq_string);
+    int v_id = this->IdfromVehicleString(QString(v_string.c_str()));
     if(v_id == VehicleType::invalid_low)
     {
         ROS_ERROR_STREAM("Cannot set waypoint: " << v_string  
@@ -178,16 +176,6 @@ QString VehicleManager::VehicleStringFromId(int id)
     }
 }
 
-QString VehicleManager::VehicleStringFromMachineName(QString& name)
-{
-    Qt::CaseSensitivity cs = Qt::CaseInsensitive;
-    return name.contains("quad", cs) ? "quad" : 
-           name.contains("octo", cs) ? "octo" :
-           name.contains("vtol", cs) ? "vtol" :
-           name.contains("ugv", cs)  ? "ugv" : 
-                                       QString();
-}
-
 int VehicleManager::GenerateId(const QString& machine_name)
 {
     Qt::CaseSensitivity cs = Qt::CaseSensitivity::CaseInsensitive;
@@ -206,16 +194,16 @@ int VehicleManager::VehicleTypeFromId(int id)
 
 //public slots://///////////////////////////////////////////////////////////////
 
-void VehicleManager::OnOperatorInitRequested(const int vehicle_id)
+void VehicleManager::OnOperatorInitResponse(const int vehicle_id)
 {
     QMap<int, QString>::Iterator it = init_requests.find(vehicle_id);
     if(it != init_requests.end())
     {
         lcar_msgs::InitResponse res;
         res.vehicle_id = it.key(); // vehicle_id
-        res.machine_name = it.value().toStdString(); // machine_name#
+        res.machine_name = it.value().toStdString(); // machine_name
         pub_init_response.publish(res);
-        emit RemoveInitRequest(res.vehicle_id);
+        init_requests.erase(it);
     }
 }
 
@@ -232,18 +220,33 @@ bool VehicleManager::OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req
         {
             res.vehicle_id = VehicleType::invalid_low;
             res.ack = false;
+            res.message = "this vehicle already requested initilization";
             return false;
         }
     }
     
     res.vehicle_id = this->GenerateId(QString(req.machine_name.c_str()));
-    res.ack = true;
-    init_requests.insert(res.vehicle_id, req.machine_name.c_str());
-    
-    emit NotifyOperator("Vehicle initialization requested");
-    emit AddToInitWidget(QString(req.machine_name.c_str()), res.vehicle_id);
-    
-    return true;
+    if(res.vehicle_id != VehicleType::invalid_low)
+    {
+        res.ack = true;
+        init_requests.insert(res.vehicle_id, req.machine_name.c_str());
+        res.message = "request for " + req.machine_name + " acknowledged with id: " + std::to_string(res.vehicle_id);
+        emit NotifyOperator("Vehicle initialization requested");
+        emit AddToInitWidget(QString(req.machine_name.c_str()), res.vehicle_id);
+
+        return true;
+    }
+    else
+    {
+        res.message ="ehicle Initilization request: " 
+                + req.machine_name + " is not a recognized vehicle type";
+        
+        ROS_ERROR_STREAM("res.message");
+        
+        res.ack = false;
+        return false;
+    }
+        
 }
 
 int VehicleManager::IdfromVehicleString(QString v_type)

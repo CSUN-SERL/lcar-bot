@@ -1,4 +1,5 @@
 string machine_name
 ---
 int16 vehicle_id
+string message
 bool ack

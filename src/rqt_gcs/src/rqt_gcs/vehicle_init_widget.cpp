@@ -32,10 +32,7 @@ vm(vm)
             this, [=](){ this->close(); } );
             
     connect(this, &VehicleInitWidget::AddVehicleToDb,
-            vm, &VehicleManager::OnOperatorInitRequested);
-    
-    connect(vm, &VehicleManager::RemoveInitRequest,
-            this, &VehicleInitWidget::OnRemoveInitRequest);
+            vm, &VehicleManager::OnOperatorInitResponse);
     
     connect(vm, &VehicleManager::AddToInitWidget, 
             this, &VehicleInitWidget::OnAddInitRequest);
@@ -57,28 +54,20 @@ void VehicleInitWidget::OnAddVehicleBtnClicked()
     for(int i = 0; i < size; i++)
     {
         if(items[i]->column() == 2)
+        {
             emit AddVehicleToDb(items[i]->text().toInt());
+            widget.view->removeRow(items[i]->row());
+        }
     }
-}
-
-void VehicleInitWidget::OnRemoveInitRequest(int vehicle_id)
-{
-    int rows = widget.view->rowCount();
-    int row = 0;
-    while(row < rows && widget.view->item(row, 2)->data(0).toInt() != vehicle_id)
-        row++;
-    
-    widget.view->removeRow(row);
 }
 
 void VehicleInitWidget::OnAddInitRequest(QString machine_name, int vehicle_id)
 {
     qCDebug(lcar_bot) << "vehicle_id: " << vehicle_id;
-    QString v_type = vm->VehicleStringFromMachineName(machine_name);
+    QString v_type = vm->VehicleStringFromId(vehicle_id);
 
     int row = widget.view->rowCount();
     widget.view->insertRow(row); // rowCount goes up by 1
-
     widget.view->setItem(row, 0, new QTableWidgetItem(machine_name));
     widget.view->setItem(row, 1, new QTableWidgetItem(v_type));
     widget.view->setItem(row, 2, new QTableWidgetItem(QString::number(vehicle_id)));

@@ -63,18 +63,16 @@ public:
     const QMap<int, QString>& GetInitRequests();
     
     QString VehicleStringFromId(int id);
-    QString VehicleStringFromMachineName(QString& name);
     int GenerateId(const QString& machine_name);
     int VehicleTypeFromId(int id);
 
 signals:
     //todo add slot to connect to this signal in GCS
     void NotifyOperator(QString message);
-    void RemoveInitRequest(int vehicle_id);
     void AddToInitWidget(QString machine_name, int vehicle_id);
     
 public slots:
-    void OnOperatorInitRequested(const int vehicle_id);
+    void OnOperatorInitResponse(const int vehicle_id);
     // todo add all main gui button slots
     
 private:
@@ -84,7 +82,6 @@ private:
     
     QMap<int/*VehicleType*/, QMap<int, VehicleControl*>> db; //the database
     QMap<int, QString> init_requests; //vehicle initialization requests, storing machine_name and potential id
-    QMap<int, QProcess*> proc_nodes;
     
     ros::NodeHandle nh;
     ros::ServiceServer srv_init_request;

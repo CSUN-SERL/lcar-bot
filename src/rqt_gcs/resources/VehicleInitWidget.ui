@@ -161,7 +161,7 @@ color: rgb(240, 240, 240);
 </string>
        </property>
        <property name="text">
-        <string>Close</string>
+        <string>Cancel</string>
        </property>
       </widget>
      </item>

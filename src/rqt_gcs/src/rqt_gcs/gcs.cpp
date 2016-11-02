@@ -723,7 +723,7 @@ void GCS::OnAddVehicleTriggered()
                 this, [=](){ fl_widgets.vehicle_init = nullptr; });
                 
         connect(fl_widgets.vehicle_init, &VehicleInitWidget::AddVehicleToDb,
-                vm, &VehicleManager::OnOperatorInitRequested);
+                vm, &VehicleManager::OnOperatorInitResponse);
     }
     else
     {

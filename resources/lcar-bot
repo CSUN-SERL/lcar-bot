@@ -16,9 +16,9 @@ ctrl_c()
 }
 
 
-if [ -z "$1" ]; then
+if [ -z "$1" ]; then #if no arguments specified
    ID=1
-elif [ "$1" != "mono" ]; then
+elif [ "$1" != "mono" ]; then #if the first argument isn't specifying the camsera type
    ID=$1
 else
     printf "    usage: lcar-bot [<number>] [mono]\n\n"
