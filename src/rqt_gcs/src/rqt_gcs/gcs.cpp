@@ -720,7 +720,10 @@ void GCS::OnAddVehicleTriggered()
         fl_widgets.vehicle_init->setVisible(true);
 
         connect(fl_widgets.vehicle_init, &VehicleInitWidget::destroyed,
-                this, [=](){ fl_widgets.vehicle_init= nullptr; });
+                this, [=](){ fl_widgets.vehicle_init = nullptr; });
+                
+        connect(fl_widgets.vehicle_init, &VehicleInitWidget::AddVehicleToDb,
+                vm, &VehicleManager::OnOperatorInitRequested);
     }
     else
     {
@@ -884,6 +887,7 @@ void GCS::closeEvent(QCloseEvent* event)
     thread_uav_monitor->wait();
     delete thread_uav_monitor;
     
+    // move backwards because OnDeleteUav decrenements NUM_UAV
     for(int i = NUM_UAV - 1; i >= 0; i--)
         this->OnDeleteUav(i);
     
@@ -896,6 +900,9 @@ void GCS::closeEvent(QCloseEvent* event)
     
     if(fl_widgets.unanswered_queries != nullptr)
         fl_widgets.unanswered_queries->close();
+    
+    if(fl_widgets.vehicle_init != nullptr)
+        fl_widgets.vehicle_init->close();
     
     event->accept();
 }
@@ -935,7 +942,7 @@ void GCSHelperThread::ParseUavNamespace(std::map<int, int>& map)
                 continue;
         }
 
-        std::string id_string = node.substr(index+4, 3);
+        std::string id_string = node.substr(index+4, id_string.length());
         id_string = id_string.substr(0,id_string.find("/"));
         char * end;
         int uav_id = std::strtol(&id_string[0], &end, 10);

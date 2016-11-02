@@ -1,19 +1,12 @@
 <launch>
+
     <arg name="uav_id" default="1"/>
     <arg name="gcs_machine" default="Station1"/>
-    <arg name="robot_machine" default="Quad1"/>
 
     <machine name="$(arg gcs_machine)"
              address="localhost" />
 
-    <machine name="$(arg robot_machine)"
-             address="$(arg robot_machine)"
-             default="true"
-             user="ubuntu"
-             password="ubuntu"
-             env-loader="$HOME/lcar-bot-files/lcar_env.sh" />
-
-   <group name="QUAD" ns="QUAD$(arg uav_id)" >
+   <group ns="UAV$(arg uav_id)" >
 
         <include file="$(find machine_vision)/launch/node_object_detection.launch" >
             <arg name="machine_name" value="$(arg gcs_machine)" />
@@ -21,11 +14,12 @@
 
         <include file="$(find rqt_gcs)/launch/jetson.launch" >
             <arg name="tgt_system" value="$(arg uav_id)" />
-            <arg name="uav_id" value="$(arg uav_id)" required="true" />
-            <arg name="machine_name" value="$(arg robot_machine)" />
+            <arg name="uav_id" value="$(arg uav_id)"/>
+            <arg name="machine_name" value="$(arg gcs_machine)" />
         </include>
 
         <!--<include file="$(find rqt_gcs)/launch/gcs.launch"/>-->
 
    </group>
+
 </launch>

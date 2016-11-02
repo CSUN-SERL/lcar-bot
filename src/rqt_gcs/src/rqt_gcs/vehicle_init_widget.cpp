@@ -10,6 +10,8 @@
 #include "rqt_gcs/vehicle_manager.h"
 #include "ui_VehicleInitWidget.h"
 
+#include "util/debug.h"
+
 namespace rqt_gcs
 {
 
@@ -23,14 +25,20 @@ vm(vm)
     widget.setupUi(this);
     widget.view->setSelectionBehavior(QAbstractItemView::SelectRows);
     
-    connect(this, &VehicleInitWidget::AddVehicleToDb,
-            vm, &VehicleManager::OnOperatorInitRequested);
+    connect(widget.btn_add, &QPushButton::clicked,
+            this, &VehicleInitWidget::OnAddVehicleBtnClicked);
     
     connect(widget.btn_close, &QPushButton::clicked,
             this, [=](){ this->close(); } );
             
-            connect(vm, &VehicleManager::RemoveInitRequest,
-                    this, &VehicleInitWidget::OnRemoveInitRequest);
+    connect(this, &VehicleInitWidget::AddVehicleToDb,
+            vm, &VehicleManager::OnOperatorInitRequested);
+    
+    connect(vm, &VehicleManager::RemoveInitRequest,
+            this, &VehicleInitWidget::OnRemoveInitRequest);
+    
+    connect(vm, &VehicleManager::AddToInitWidget, 
+            this, &VehicleInitWidget::OnAddInitRequest);
 
     this->DisplayVehicleInitRequests();
 }
@@ -57,31 +65,33 @@ void VehicleInitWidget::OnRemoveInitRequest(int vehicle_id)
 {
     int rows = widget.view->rowCount();
     int row = 0;
-    while(row < rows && widget.view->item(row, 2))
+    while(row < rows && widget.view->item(row, 2)->data(0).toInt() != vehicle_id)
         row++;
     
     widget.view->removeRow(row);
+}
+
+void VehicleInitWidget::OnAddInitRequest(QString machine_name, int vehicle_id)
+{
+    qCDebug(lcar_bot) << "vehicle_id: " << vehicle_id;
+    QString v_type = vm->VehicleStringFromMachineName(machine_name);
+
+    int row = widget.view->rowCount();
+    widget.view->insertRow(row); // rowCount goes up by 1
+
+    widget.view->setItem(row, 0, new QTableWidgetItem(machine_name));
+    widget.view->setItem(row, 1, new QTableWidgetItem(v_type));
+    widget.view->setItem(row, 2, new QTableWidgetItem(QString::number(vehicle_id)));
 }
 
 //private://////////////////////////////////////////////////////////////////////
 
 void VehicleInitWidget::DisplayVehicleInitRequests()
 {
-    QMap<int, QString> requests = vm->GetInitRequests();
-    QMap<int, QString>::Iterator it = requests.begin();
+    const QMap<int, QString> requests = vm->GetInitRequests();
+    QMap<int, QString>::ConstIterator it = requests.begin();
     for(; it != requests.end(); it++)
-    {
-        int id = it.key();
-        QString machine_name = it.value();
-        QString v_type = vm->VehicleTypeFromName(machine_name);
-        
-        int row = widget.view->rowCount();
-        widget.view->insertRow(row);
-
-        widget.view->setItem(row, 0, new QTableWidgetItem(machine_name));
-        widget.view->setItem(row, 1, new QTableWidgetItem(v_type));
-        widget.view->setItem(row, 2, new QTableWidgetItem(id));
-    }
+        this->OnAddInitRequest(it.value(),it.key());
 }
 
 

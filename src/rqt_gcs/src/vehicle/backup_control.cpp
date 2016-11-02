@@ -1,3 +1,5 @@
+//#include <bits/basic_string.h>
+
 #include "vehicle/backup_control.h"
 
 int main(int argc, char **argv)
@@ -23,8 +25,8 @@ int main(int argc, char **argv)
 
 BackupControl::BackupControl(int id)  //Class constructor
 {
-  this->id = id;
-    
+//  this->id = id;
+  
   //Setup heartbeat timers
   timer_heartbeat_uav   = nh.createTimer(ros::Duration(0.1), &BackupControl::PublishHeartbeat, this);
   timer_heartbeat_gcs   = nh.createTimer(ros::Duration(0.25), &BackupControl::AssumeControl, this);

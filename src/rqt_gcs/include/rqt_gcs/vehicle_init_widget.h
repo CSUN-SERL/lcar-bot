@@ -28,11 +28,12 @@ signals:
 public slots:
     void OnAddVehicleBtnClicked();
     void OnRemoveInitRequest(int vehicle_id);
+    void OnAddInitRequest(QString machine_name, int vehicle_id);
     
 private:
     void DisplayVehicleInitRequests();
     
-    Ui::VehicleInitWidget widget;
+    Ui::VehicleInitWidget widget;\
     VehicleManager *vm;
 };
 
