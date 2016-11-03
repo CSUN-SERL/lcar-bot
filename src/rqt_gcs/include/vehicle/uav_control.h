@@ -59,7 +59,7 @@ namespace rqt_gcs
 #define BATTERY_MIN 0.10    //Minimum battery level for RTL
 #define DEF_NS "UAV"
 #define R_EARTH 6371        //Earth's radius in km
-#define SC_INTERVAL 3       //Time, in seconds, between service calls
+#define SC_INTERVAL 2       //Time, in seconds, between service calls
 #define MAX_TRIES 5
 
 class UAVControl : public VehicleControl
@@ -277,7 +277,7 @@ public:
      * paused mission, does nothing.
      */
     void ResumeMission() override;
- 
+
     /*!
      * \brief Cancels the current mission
      *
@@ -417,7 +417,7 @@ private:
         new_point->ap.ap_type = lcar_msgs::AccessPoint::DOOR;
         access_pts.push_back(new_point);
 
-                
+
         if(online_mode && msg->img_framed.header.seq % 5 == 0)
             queries_door.push_back(msg);
 

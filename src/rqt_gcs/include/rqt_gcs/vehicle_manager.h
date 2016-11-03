@@ -12,13 +12,14 @@
 #include <QMap>
 #include <QSet>
 #include <QObject>
+#include <QProcess>
 
 #include <ros/ros.h>
 
 #include "vehicle/vehicle_control.h"
 #include "util/data_types.h"
 #include "lcar_msgs/InitRequest.h"
-#include "lcar_msgs/InitFinalAck.h"
+#include "sensor_msgs/NavSatFix.h"
 
 namespace rqt_gcs
 {
@@ -33,6 +34,26 @@ public:
     void AddVehicle(int id);
     void DeleteVehicle(int id);
     
+    //Vehicle Commands//////////////////////////////////////////////////////////
+    
+    /*
+     * convenience function: set the way point for the specified vehicle, where
+     * vehicle type and number are specified in v_string
+     * @param v_string the human readable vehicle type containing its number ("quad1")
+     * @param location the container for latitude, longitude, and latitude
+     */
+    void SetWaypoint(std::string v_string, const sensor_msgs::NavSatFix& location);
+    
+    /*
+     * sets the way point for vehicle associated with the given internal id
+     * @param v_id the vehicles internal id
+     * @param location the container for latitude, longitude, and latitude
+     */
+    void SetWaypoint(int v_id, const sensor_msgs::NavSatFix& location);
+    
+    
+    
+    
     int NumVehicles();
     int NumUGVs();
     int NumQuadRotors();
@@ -42,24 +63,22 @@ public:
     const QMap<int, QString>& GetInitRequests();
     
     QString VehicleStringFromId(int id);
-    QString VehicleStringFromMachineName(QString& name);
     int GenerateId(const QString& machine_name);
     int VehicleTypeFromId(int id);
 
 signals:
     //todo add slot to connect to this signal in GCS
     void NotifyOperator(QString message);
-    void RemoveInitRequest(int vehicle_id);
+    void AddToInitWidget(QString machine_name, int vehicle_id);
     
 public slots:
-    void OnOperatorInitRequested(const int vehicle_id);
+    void OnOperatorInitResponse(const int vehicle_id);
     // todo add all main gui button slots
     
 private:
     
     bool OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req,lcar_msgs::InitRequest::Response& res);
-    bool OnInitFinalAck(lcar_msgs::InitFinalAck::Request& req, lcar_msgs::InitFinalAck::Response& res);
-    
+    int IdfromVehicleString(QString v_type);
     
     QMap<int/*VehicleType*/, QMap<int, VehicleControl*>> db; //the database
     QMap<int, QString> init_requests; //vehicle initialization requests, storing machine_name and potential id
@@ -67,7 +86,6 @@ private:
     ros::NodeHandle nh;
     ros::ServiceServer srv_init_request;
     ros::Publisher pub_init_response;
-    ros::ServiceServer srv_init_final_ack;
     
     int UGV_ID,
         QUAD_ID,

@@ -724,3 +724,6 @@ bool UAVControl::CanRequest()
 }
 
 }//End Namespace
+>>>>>>> c2f8fd8630dd7212a11ce423bf474c1ce4d02655
+
+}//End Namespace

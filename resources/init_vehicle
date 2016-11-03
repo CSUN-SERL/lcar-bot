@@ -1,0 +1,30 @@
+#!/bin/bash
+
+trap "ctrl_c" INT SIGINT SIGTSTP
+
+ctrl_c()
+{
+    for node in $( rosnode list | grep UAV$ID ); do
+        uavid=$( echo node | egrep -o [0-9]+ )
+        if [ "$uavid" = "$ID" ]; then
+            rosnode kill $node
+        fi
+    done
+
+    exit
+}
+
+rosrun rqt_gcs init_node # this node writes the vehicle_id given to it to a file
+
+file_name="$HOME/vehicle_id"
+if [ -f  $file_name ]; then
+    ID=`cat $file_name` # parse the file to a variable
+    echo "$file_name contains $ID"
+
+    if [ "$ID" != "-1" ]; then
+      roslaunch rqt_gcs lcarbot_isolated.launch uav_id:="$ID"
+#       ./lcar-bot $ID
+    fi
+fi
+
+rm -f $file_name
