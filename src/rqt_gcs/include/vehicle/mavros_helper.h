@@ -1,5 +1,5 @@
-#ifndef UAV_CONTROL
-#define UAV_CONTROL
+#ifndef MAVROS_HELPER
+#define MAVROS_HELPER
 
 #include <stdio.h>
 #include <vector>
@@ -11,6 +11,7 @@
 #include <angles/angles.h>
 #include <tf/transform_datatypes.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <util/data_types.h>
 
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/CommandTOL.h>
@@ -32,38 +33,20 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
-
-
-namespace rqt_gcs
-{
+#include <vehicle/vehicle_control.h>
 
 #define PI 3.14159265
 #define QUEUE_SIZE 100
-#define PI 3.14159265          //Message Queue size for publishers
 #define CHECK_FREQUENCY 1         //Frequency for checking change of state
 #define TIMEOUT 3*CHECK_FREQUENCY //3 Second timeout
-#define TRAVEL_WT 0.5
-#define SCOUT_WT 0.5
-#define THRESHOLD_XY 0.08
-#define THRESHOLD_Z 0.08
-#define THRESHOLD_XY_GPS 0.00001
-#define THRESHOLD_Z_GPS 0.5
-#define THRESHOLD_YAW 0.1
-#define THRESHOLD_GPS 0.001        //Lat & Lon tolerances
-#define THRESHOLD_ALT 1            //Altitude tolerance for GPS
-#define THRESHOLD_DEPTH 2
-#define ALT_RTL 2
-#define BATTERY_MIN 0.10    //Minimum battery level for RTL
-#define DEF_NS "UAV"
-#define R_EARTH 6371        //Earth's radius in km
 #define SC_INTERVAL 3       //Time, in seconds, between service calls
 #define MAX_TRIES 5
 
-class MavrosHelper : public VehicleControl
+class MavrosHelper: public VehicleControl
 {
 public:
 
-    MavrosHelper(int uav_id);
+    MavrosHelper(int id);
     ~MavrosHelper();
 
     /**
@@ -71,7 +54,7 @@ public:
     *
     * @param value Pass true for arm, false for disarm
     */
-    void Arm(bool value) override;
+    void Arm(bool value);
 
     /**
       Takeoff to a set altitude. Requires the UAV to be first armed and then
@@ -92,7 +75,7 @@ public:
       @param mode Mode to Set: Choose from Stabilize, Alt Hold, Auto, Guided,
       Loiter, RTL, or Circle
     */
-    void SetMode(std::string mode) override;
+    void SetMode(std::string mode);
 
     /**
       Enable OFFBOARD mode on the PX4
@@ -102,7 +85,7 @@ public:
     /**
       Returns the current location of the UAV in JSON format.
     */
-    sensor_msgs::NavSatFix GetLocation() override;
+    sensor_msgs::NavSatFix GetLocation();
 
     /**
       Add the passed GPS location to the current set of waypoints to visit.
@@ -208,8 +191,13 @@ public:
     sensor_msgs::BatteryState GetBatteryState() { return battery; }
     sensor_msgs::Imu  GetImu() { return imu; }
 
-private:
-    void InitialSetup();
+protected:
+
+    /*!
+     * \brief Determines if it is safe to call a service
+     * \return True if safe, false otherwise
+     */
+    bool CanRequest();
 
     //Callback Prototypes
     void StateCallback(const mavros_msgs::State& msg_state) { state = msg_state; }
@@ -246,7 +234,6 @@ private:
                                     sub_vel;
 
     //UAV State Variables
-    std::string                     ns;
     mavros_msgs::State              state;
     sensor_msgs::BatteryState       battery;
     sensor_msgs::Imu                imu;
@@ -260,5 +247,4 @@ private:
     int                             tries = 0;
 };
 
-}
 #endif

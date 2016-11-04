@@ -1,23 +1,11 @@
 
 #include "vehicle/mavros_helper.h"
 
-namespace rqt_gcs
-{
 
-MavrosHelper::MavrosHelper(int uav_id) :  //Class constructor
-VehicleControl(uav_id)
+MavrosHelper::MavrosHelper(int uav_id): VehicleControl(uav_id) //Class constructor
 {
-    this->InitialSetup();
-}
-
-MavrosHelper::~MavrosHelper()
-{
-    //Class destructor
-}
-
-void MavrosHelper::InitialSetup()
-{
-    ros::NodeHandle nh(DEF_NS + std::to_string(id));
+    //TODO: Fix the namespace
+    ros::NodeHandle nh("UAV" + std::to_string(id));
 
     //Initialize Service Clients
     sc_arm      = nh.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
@@ -44,9 +32,13 @@ void MavrosHelper::InitialSetup()
     sub_vel        = nh.subscribe("mavros/local_position/velocity", QUEUE_SIZE, &MavrosHelper::VelocityCallback, this);
     sub_pos_global = nh.subscribe("mavros/global_position/global", QUEUE_SIZE, &MavrosHelper::NavSatFixCallback, this);
     sub_pos_local  = nh.subscribe("mavros/local_position/pose", QUEUE_SIZE, &MavrosHelper::LocalPosCallback, this);
-    sub_depth      = nh.subscribe("object_avoidance/depth", QUEUE_SIZE, &MavrosHelper::DepthCallback, this);
 
     battery.percentage = -1;
+}
+
+MavrosHelper::~MavrosHelper()
+{
+    //Class destructor
 }
 
 void MavrosHelper::Arm(bool value)
@@ -169,9 +161,9 @@ void MavrosHelper::SetMode(std::string mode)
 void MavrosHelper::EnableOffboard()
 {
     geometry_msgs::PoseStamped pose;
-    pose.pose.position.x = pose_previous.position.x;
-    pose.pose.position.y = pose_previous.position.y;
-    pose.pose.position.z = pose_previous.position.z;
+    pose.pose.position.x = pose_local.position.x;
+    pose.pose.position.y = pose_local.position.y;
+    pose.pose.position.z = pose_local.position.z;
 
     this->Arm(true);
 
@@ -219,56 +211,36 @@ void MavrosHelper::OverrideRC(int channel, int value)
 
 void MavrosHelper::SetPosition(float x, float y, float z, float yaw)
 {
-    if(position_mode == global){
-        mavros_msgs::GlobalPositionTarget target_global;
+    //Create the message object
+    geometry_msgs::PoseStamped position_stamped;
 
-        target_global.latitude  = x;
-        target_global.longitude = y;
-        target_global.altitude  = z;
-
-        this->SetPosition(target_global);
+    //Update the message with the new position
+    position_stamped.pose.position.x = x;
+    position_stamped.pose.position.y = y;
+    position_stamped.pose.position.z = z;
+    if(yaw > 360){ //Default or invalid value passed, use current Yaw value
+        position_stamped.pose.orientation = pose_local.orientation;
     }
-    else{
-        //Create the message object
-        geometry_msgs::PoseStamped position_stamped;
-
-        //Update the message with the new position
-        position_stamped.pose.position.x = x;
-        position_stamped.pose.position.y = y;
-        position_stamped.pose.position.z = z;
-        if(yaw == 361){ //Default or invalid value passed, use current Yaw value
-            position_stamped.pose.orientation = pose_previous.orientation;
-        }
-        else{ //Use the specified Yaw value
-            quaternionTFToMsg(tf::createQuaternionFromYaw(yaw*(PI/180)), position_stamped.pose.orientation);
-        }
-
-        //Publish the message
-        pub_setpoint_position.publish(position_stamped);
+    else{ //Use the specified Yaw value
+        quaternionTFToMsg(tf::createQuaternionFromYaw(yaw*(PI/180)), position_stamped.pose.orientation);
     }
+
+    //Publish the message
+    pub_setpoint_position.publish(position_stamped);
 }
 
 void MavrosHelper::SetPosition(geometry_msgs::Pose new_pose)
 {
-    if(position_mode == global){
-        mavros_msgs::GlobalPositionTarget target_global;
 
-        target_global.latitude  = new_pose.position.x;
-        target_global.longitude = new_pose.position.y;
-        target_global.altitude  = new_pose.position.z;
+    //Create the message object
+    geometry_msgs::PoseStamped position_stamped;
 
-        this->SetPosition(target_global);
-    }
-    else{
-        //Create the message object
-        geometry_msgs::PoseStamped position_stamped;
+    //Update the message with the new position
+    position_stamped.pose = new_pose;
 
-        //Update the message with the new position
-        position_stamped.pose = new_pose;
+    //Publish the message
+    pub_setpoint_position.publish(position_stamped);
 
-        //Publish the message
-        pub_setpoint_position.publish(position_stamped);
-    }
 }
 
 void MavrosHelper::SetPosition(mavros_msgs::GlobalPositionTarget new_pose)
@@ -335,5 +307,3 @@ bool MavrosHelper::CanRequest()
 {
     return ((ros::Time::now() - last_request) > ros::Duration(SC_INTERVAL));
 }
-
-}//End Namespace

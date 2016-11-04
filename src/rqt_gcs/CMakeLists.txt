@@ -90,6 +90,7 @@ add_executable(${PROJECT_NAME} src/rqt_gcs/main.cpp)
 
 #add_dependencies(uav_control ${catkin_EXPORTED_TARGETS})
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+add_dependencies(init_node ${catkin_EXPORTED_TARGETS})
 #add_dependencies(gps_demo ${catkin_EXPORTED_TARGETS})
 
 #Specify libraries against which to link
