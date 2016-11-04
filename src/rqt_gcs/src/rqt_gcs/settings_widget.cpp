@@ -20,6 +20,9 @@ gcs(sgcs)
 
     widget_.setupUi(this);
 
+    connect(this, &SettingsWidget::machineLearningModeToggled,
+            gcs, &GCS::OnToggleMachineLearningMode);
+    
     //apply and cancel buttons
     connect(widget_.apply_btn, &QPushButton::clicked,
             this, &SettingsWidget::onApplyClicked);

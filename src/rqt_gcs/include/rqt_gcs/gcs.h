@@ -68,6 +68,9 @@ public:
 public slots:
     void OnTimedUpdate();
 
+    void OnAddVehicleWidget(int v_id);
+    void OnDeleteVehicleWidget(int v_id);
+    
     //////////// Buttons
     void OnExecutePlay();
     void OnCancelPlay();
@@ -83,7 +86,7 @@ public slots:
     void OnSettingsTriggered();
     void OnUnansweredQueriesTriggered();
     void OnAddVehicleTriggered();
-    void OnUpdateCameraFeed();
+    void OnUpdateCameraFeed(const QPixmap& img);
 
     void OnAddUav(int);
     void OnDeleteUav(int);
@@ -93,17 +96,17 @@ public slots:
     virtual void OnToggleMachineLearningMode(bool);
     
     signals:
-        void NewCameraFeedFrame();
+        void NewCameraFeedFrame(const QPixmap& img);
     
 protected:
     void closeEvent(QCloseEvent* event) override;
     
 private:
 
-    void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
+//    void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
     void ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg);
-    VehicleWidget* VehicleWidgetAt(int index);
+    VehicleWidget* VehicleWidgetAt(int v_type, int index);
     
     //methods for publishing object detection paramerter updates
     void PublishHitThreshold(double thresh);
@@ -121,6 +124,7 @@ private:
     void InitSettings();
     void InitHelperThread();
 
+    void SelectVehicleWidget(int v_type, int index);
     void SelectUav(int);
     void UpdateFlightStateWidgets(); // both the PFD and the text based widget
     void UpdateVehicleWidgets();
@@ -137,14 +141,12 @@ private:
     
     Ui::GCS widget;
     
-    ros::NodeHandle nh;
+    //ros::NodeHandle nh;
     ros::ServiceServer server;
     lcar_msgs::Query msg;
-    image_transport::ImageTransport it_stereo{nh};
-    QQueue<QPixmap> img_q;
-    int img_q_max_size;
+//    image_transport::ImageTransport it_stereo{nh};
     
-    int cur_uav;
+    int cur_vehicle;
     int time_counter;
     int NUM_UAV; //Total number of UAV's in the system
     int num_queries_last;
@@ -180,6 +182,8 @@ private:
     QVector<UAVControl*> active_uavs;
     QMap<int, UAVControl*> uav_db;
     VehicleManager * vm;
+    
+    QMap<int/*VehicleType*/, QVBoxLayout*> layout_by_v_type;
 
     std::vector<lcar_msgs::QueryPtr> *vec_uav_queries_ptr;
 
@@ -191,8 +195,7 @@ private:
     QSettings *settings;
 
     GCSHelperThread *thread_uav_monitor;
-    QMutex uav_mutex,
-           img_mutex;
+    QMutex uav_mutex;
     QWaitCondition num_uav_changed;
     
 };

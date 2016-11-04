@@ -19,6 +19,7 @@ void Timeout(const ros::TimerEvent& e);
 
 void InitResponseCallback(const lcar_msgs::InitResponseConstPtr& msg)
 {
+    //TODO UNCOMMENT THIS after machine_name override is undone inside main()
 //    if(machine_name != msg->machine_name || vehicle_id != msg->vehicle_id)
 //        return;
     
@@ -62,6 +63,7 @@ int main(int argc, char ** argv)
     gethostname(host, HOST_NAME_MAX);
     machine_name = std::string(host);
     machine_name = "quad1"; //  TODO REMOVE THIS temporary for testing purposes only
+                            //  uncomment if() check in InitResponseCallback() above 
     
     lcar_msgs::InitRequest init_request;
     init_request.request.machine_name = machine_name;

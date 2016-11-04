@@ -21,34 +21,39 @@ VehicleManager::VehicleManager(QObject *parent):
     UGV_ID(0),
     QUAD_ID(0),
     OCTO_ID(0),
-    VTOL_ID(0)
+    VTOL_ID(0),
+    it_stereo(nh)
 {   
-    srv_init_request = nh.advertiseService("vehicle/init/request", &VehicleManager::OnVehicleInitRequested, this);
+    srv_init_request = nh.advertiseService("vehicle/init/request", 
+                                           &VehicleManager::OnVehicleInitRequested, this);
     pub_init_response = nh.advertise<lcar_msgs::InitResponse>("vehicle/init/response", 2);
+    
+    this->AdvertiseObjectDetection();
 }
 
 VehicleManager::~VehicleManager()
 {
 }
 
-void VehicleManager::AddVehicle(int id)
+void VehicleManager::AddVehicle(int v_id)
 {
-    if(id <= VehicleType::invalid_low || VehicleType::invalid_high <= id)
+    if(v_id <= VehicleType::invalid_low || VehicleType::invalid_high <= v_id)
     {
-        emit NotifyOperator("tried to add Vehicle with invalid id: " % QString::number(id));
-        ROS_ERROR_STREAM("tried to add Vehicle with invalid id: " << id);
+        emit NotifyOperator("tried to add Vehicle with invalid id: " % QString::number(v_id));
+        ROS_ERROR_STREAM("tried to add Vehicle with invalid id: " << v_id);
         return;
     }
-    int v_type = this->VehicleTypeFromId(id);
+    
+    int v_type = this->VehicleTypeFromId(v_id);
     VehicleControl* vehicle = nullptr;
     
     //todo uncomment these after their classes are added to the system
 //    if(v_type == VehicleType::ugv)
-//        this->AddVehicle(new UGVControl(id), db[v_type], NUM_UGV);
+//        vehicle = new UGVControl(id);
     if(v_type == VehicleType::quad_rotor) // quad-rotor
-        vehicle = new UAVControl(id);
+        vehicle = new UAVControl(v_id);
     if(v_type == VehicleType::octo_rotor) // octo-rotor
-        vehicle = new UAVControl(id);
+        vehicle = new UAVControl(v_id);
 //    if(v_type == VehicleType::vtol) // vtol
 //        vehicle = new VTOLControl(id);
 //    if(v_type == VehicleControl::humanoid) // humanoid
@@ -56,16 +61,16 @@ void VehicleManager::AddVehicle(int id)
     
     if(vehicle != nullptr)
     {
-        db[v_type].insert(id, vehicle);
+        db[v_type].insert(v_id, vehicle);
         ROS_INFO_STREAM("Added vehicle of type: "
-                        << this->VehicleStringFromId(id).toStdString()
-                        << " with id: " << id <<  " to database.");
+                        << this->VehicleStringFromId(v_id).toStdString()
+                        << " with id: " << v_id <<  " to database.");
+        
+        emit AddVehicleWidget(v_id);
     }
     else
-    {
         ROS_ERROR_STREAM("Tried to add vehicle of invalid type: "
-                         << this->VehicleStringFromId(id).toStdString());
-    }
+                         << this->VehicleStringFromId(v_id).toStdString());
 }
 
 void VehicleManager::DeleteVehicle(int v_id)
@@ -83,58 +88,34 @@ void VehicleManager::DeleteVehicle(int v_id)
         VehicleControl* vehicle = it.value();
         v_db->erase(it);
         delete vehicle;
+        
+        emit DeleteVehicleWidget(v_id);
     }
     else
-    {
         ROS_ERROR_STREAM("Tried to delete non existent " 
                         << this->VehicleStringFromId(v_id).toStdString()
                         << " with id: "  
                         << (v_id));
-    }
-    
 }
 
-void VehicleManager::SetWaypoint(std::string v_string, const sensor_msgs::NavSatFix& location) 
-{
-    int v_id = this->IdfromVehicleString(QString(v_string.c_str()));
-    if(v_id == VehicleType::invalid_low)
-    {
-        ROS_ERROR_STREAM("Cannot set waypoint: " << v_string  
-                         << " is not a recognized vehicle");
-    }
-    else
-       this->SetWaypoint(v_id, location);
-}
-
-void VehicleManager::SetWaypoint(int v_id, const sensor_msgs::NavSatFix& location)
-{
-    int v_type = this->VehicleTypeFromId(v_id);
-    
-    ROS_ASSERT(db.find(v_type) != db.end());
-    
-    QMap<int, VehicleControl*> *v_db = &db[v_type];
-    
-    if(v_type == VehicleType::ugv)
-        ROS_WARN_STREAM("ignoring altitude for ugv");
-
-    QMap<int, VehicleControl*>::ConstIterator it = v_db->find(v_id);
-    if(it != v_db->end())
-    {   
-        VehicleControl * vc = it.value();
-        vc->SetWayPoint(location);
-    }
-    else
-        ROS_ERROR_STREAM("Cannot set waypoint: No such" 
-                         << this->VehicleStringFromId(v_id).toStdString()
-                         << "with id: " << v_id);
-}
-
-int VehicleManager::NumVehicles()
+int VehicleManager::NumTotalVehicles()
 {
     return this->NumUGVs() +
            this->NumQuadRotors() +
            this->NumOctoRotors() +
            this->NumVTOLs();
+}
+
+int VehicleManager::NumVehiclesByType(int v_type)
+{
+    switch(v_type)
+    {
+        case VehicleType::ugv: return NumUGVs();
+        case VehicleType::quad_rotor: return NumQuadRotors();
+        case VehicleType::octo_rotor: return NumOctoRotors();
+        case VehicleType::vtol: return NumVTOLs();
+        default: -1; // todo return better fail indicator
+    }
 }
 
 int VehicleManager::NumUGVs()
@@ -191,6 +172,22 @@ int VehicleManager::VehicleTypeFromId(int id)
     return (id / VEHICLE_TYPE_MAX) * VEHICLE_TYPE_MAX;
 }
 
+void VehicleManager::SubscribeToImageTopic(QString& topic)
+{
+    sub_stereo = it_stereo.subscribe(topic.toStdString(), 30,
+                                     &VehicleManager::ImageCallback, this);
+}
+
+void VehicleManager::AdvertiseObjectDetection()
+{
+    od_handlers.pub_hit_thresh = nh.advertise<std_msgs::Float64>("/object_detection/hit_threshold", 5);
+    od_handlers.pub_step_size = nh.advertise<std_msgs::Int32>("/object_detection/step_size", 5);
+    od_handlers.pub_padding = nh.advertise<std_msgs::Int32>("/object_detection/padding", 5);
+    od_handlers.pub_scale_factor = nh.advertise<std_msgs::Float64>("/object_detection/scale_factor", 5);
+    od_handlers.pub_mean_shift = nh.advertise<std_msgs::Int32>("/object_detection/mean_shift_grouping", 5);
+    od_handlers.sub_od_request = nh.subscribe("/object_detection/param_request", 5,
+                                              &VehicleManager::ReceivedObjectDetectionRequest, this);
+}
 
 //public slots://///////////////////////////////////////////////////////////////
 
@@ -202,9 +199,182 @@ void VehicleManager::OnOperatorInitResponse(const int vehicle_id)
         lcar_msgs::InitResponse res;
         res.vehicle_id = it.key(); // vehicle_id
         res.machine_name = it.value().toStdString(); // machine_name
+        
         pub_init_response.publish(res);
+        this->AddVehicle(res.vehicle_id); 
         init_requests.erase(it);
+        
     }
+}
+
+void VehicleManager::SetWaypoint(int v_id, const sensor_msgs::NavSatFix& location)
+{
+    int v_type = this->VehicleTypeFromId(v_id);
+    
+    ROS_ASSERT(db.find(v_type) != db.end());
+    
+    QMap<int, VehicleControl*> *v_db = &db[v_type];
+    
+    if(v_type == VehicleType::ugv)
+        ROS_WARN_STREAM("ignoring altitude for ugv");
+        // note this is ignored inside of the UGVControl code, to be added
+
+    QMap<int, VehicleControl*>::ConstIterator it = v_db->find(v_id);
+    if(it != v_db->end())
+    {   
+        VehicleControl * vc = it.value();
+        vc->SetWayPoint(location);
+    }
+    else
+        ROS_ERROR_STREAM("Cannot set waypoint: No such" 
+                         << this->VehicleStringFromId(v_id).toStdString()
+                         << "with id: " << v_id);
+}
+
+void VehicleManager::SetWaypoint(std::string v_string, const sensor_msgs::NavSatFix& location) 
+{
+    int v_id = this->IdfromVehicleString(QString(v_string.c_str()));
+    if(v_id != VehicleType::invalid_low)
+        this->SetWaypoint(v_id, location);
+    else
+        ROS_ERROR_STREAM("Cannot set waypoint: " << v_string  
+                         << " is not a recognized vehicle");
+}
+
+void VehicleManager::Arm(int v_id, bool value)
+{
+    int v_type = this->VehicleTypeFromId(v_id);
+    
+    ROS_ASSERT(db.find(v_type) != db.end());
+    
+    QMap<int, VehicleControl*> *v_db = &db[v_type];
+    auto it = v_db->find(v_id);
+    if(it != v_db->end())
+    {
+        VehicleControl* vc = it.value();
+        vc->Arm(value);
+    }
+    else
+        ROS_ERROR_STREAM("Cannot arm vehicle: No such" 
+                         << this->VehicleStringFromId(v_id).toStdString()
+                         << "with id: " << v_id);
+}
+
+void VehicleManager::Arm(std::string v_string, bool value)
+{
+    int v_id = this->IdfromVehicleString(QString(v_string.c_str()));
+    if(v_id != VehicleType::invalid_low)
+        this->Arm(v_id, value);
+    else
+        ROS_ERROR_STREAM("Cannot Arm vehicle: " << v_string  
+                         << " is not a recognized vehicle");
+}
+
+void VehicleManager::SetFlightMode(int v_id, std::string mode)
+{
+    int v_type = this->VehicleTypeFromId(v_id);
+    
+    ROS_ASSERT(db.find(v_type) != db.end());
+    ROS_ASSERT(v_type == VehicleType::quad_rotor ||
+               v_type == VehicleType::octo_rotor ||
+               v_type == VehicleType::vtol);
+    
+    QMap<int, VehicleControl*> *v_db = &db[v_type];
+    auto it = v_db->find(v_id);
+    if(it != v_db->end())
+    {
+        UAVControl* vc = static_cast<UAVControl*>(it.value());
+        vc->SetMode(mode);
+    }
+    else
+        ROS_ERROR_STREAM("Cannot set Flight mode for UAV. No such" 
+                         << this->VehicleStringFromId(v_id).toStdString()
+                         << "with id: " << v_id);
+}
+
+void VehicleManager::SetFlightMode(std::string v_string, std::string mode)
+{
+    int v_id = this->IdfromVehicleString(QString(v_string.c_str()));
+    if(v_id != VehicleType::invalid_low)
+        this->SetFlightMode(v_id, mode);
+    else
+        ROS_ERROR_STREAM("Cannot set flight mode for UAV: " << v_string  
+                         << " is not a recognized UAV");
+}
+
+
+UGVInfoPtr VehicleManager::GetUGVInfo(int ugv_id)
+{
+    int v_type = this->VehicleTypeFromId(ugv_id);
+    
+    ROS_ASSERT(v_type == VehicleType::ugv);
+    
+    QMap<int, VehicleControl*> *v_db = &db[v_type];
+    UGVControl *uav = nullptr;
+    UGVInfoPtr ptr;
+    
+    auto it = v_db->find(ugv_id);
+    if(it != v_db->end())
+    {
+        ptr = boost::make_shared<UGVInfo>();
+        //todo fill this out when UGVControl is finalized
+//      ptr->id = ugv_id;
+//      ptr->v_type = v_type;
+    }
+    else
+        ROS_ERROR_STREAM("Cannot retrieve UGV info for UGV: no such " 
+                << this->VehicleStringFromId(ugv_id).toStdString() << " with id: " 
+                << ugv_id);
+    
+    return ptr;
+}
+
+UAVInfoPtr VehicleManager::GetUAVInfo(int uav_id)
+{
+    int v_type = this->VehicleTypeFromId(uav_id);
+    
+    ROS_ASSERT(v_type == VehicleType::quad_rotor ||
+               v_type == VehicleType::octo_rotor ||
+               v_type == VehicleType::vtol);
+   
+    QMap<int, VehicleControl*> *v_db = &db[v_type];
+    UAVControl *uav = nullptr;
+    UAVInfoPtr ptr;
+    
+    auto it = v_db->find(uav_id);
+    if(it != v_db->end())
+    {
+        ptr = boost::make_shared<UAVInfo>();
+        uav = static_cast<UAVControl*>(it.value());
+        ptr->id = uav_id;
+        ptr->v_type = v_type;
+        ptr->flight_state = uav->GetFlightState();
+        ptr->state.battery = uav->GetBatteryState().percentage;
+        ptr->state.armed = uav->GetState().armed;
+        ptr->state.mission_progress = uav->GetMissionProgress();
+    }
+    else
+        ROS_ERROR_STREAM("Cannot retrieve UAV info for UAV: no such " 
+                << this->VehicleStringFromId(uav_id).toStdString() << " with id: " 
+                << uav_id);
+    
+    return ptr;
+}
+
+void VehicleManager::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
+{
+    QPixmap img = img::rosImgToQpixmap(msg);
+    emit NewImageFrame(img);
+}
+
+void VehicleManager::ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg)
+{
+    ROS_INFO_STREAM("received object detection paramater request");
+//    this->PublishHitThreshold(od_params.hit_thresh);
+//    this->PublishStepSize(od_params.step_size);
+//    this->PublishPadding(od_params.padding);
+//    this->PublishScaleFactor(od_params.scale_factor);
+//    this->PublishMeanShift(od_params.mean_shift);
 }
 
 //private://////////////////////////////////////////////////////////////////////
@@ -213,14 +383,13 @@ bool VehicleManager::OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req
                                             lcar_msgs::InitRequest::Response& res)
 {
     // check that this vehicle hasn't already requested initialization
-    QMap<int, QString>::Iterator it = init_requests.begin();
-    for(; it != init_requests.end(); it++)
+    for(auto it = init_requests.begin(); it != init_requests.end(); it++)
     {
         if(it.value().toStdString() == req.machine_name)
         {
             res.vehicle_id = VehicleType::invalid_low;
             res.ack = false;
-            res.message = "this vehicle already requested initilization";
+            res.message = req.machine_name + " already requested initilization";
             return false;
         }
     }
@@ -230,7 +399,9 @@ bool VehicleManager::OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req
     {
         res.ack = true;
         init_requests.insert(res.vehicle_id, req.machine_name.c_str());
-        res.message = "request for " + req.machine_name + " acknowledged with id: " + std::to_string(res.vehicle_id);
+        res.message = "request for " + req.machine_name + " acknowledged with id: " 
+                    + std::to_string(res.vehicle_id);
+        
         emit NotifyOperator("Vehicle initialization requested");
         emit AddToInitWidget(QString(req.machine_name.c_str()), res.vehicle_id);
 
@@ -238,15 +409,14 @@ bool VehicleManager::OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req
     }
     else
     {
-        res.message ="ehicle Initilization request: " 
-                + req.machine_name + " is not a recognized vehicle type";
+        res.message = "vehicle Initilization request: " 
+                    + req.machine_name + " is not a recognized vehicle type";
         
-        ROS_ERROR_STREAM("res.message");
+        ROS_ERROR_STREAM(res.message);
         
         res.ack = false;
         return false;
-    }
-        
+    }    
 }
 
 int VehicleManager::IdfromVehicleString(QString v_type)

@@ -978,7 +978,7 @@ border-radius:0px;</string>
               <number>0</number>
              </property>
              <item>
-              <layout class="QVBoxLayout" name="layout_uavs">
+              <layout class="QVBoxLayout" name="layout_quads">
                <property name="spacing">
                 <number>3</number>
                </property>

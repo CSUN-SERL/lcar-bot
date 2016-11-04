@@ -33,11 +33,14 @@ vm(vm)
             
     connect(this, &VehicleInitWidget::AddVehicleToDb,
             vm, &VehicleManager::OnOperatorInitResponse);
+            
+    connect(this, &VehicleInitWidget::AddVehicleToDb,
+            vm, &VehicleManager::OnOperatorInitResponse);
     
     connect(vm, &VehicleManager::AddToInitWidget, 
             this, &VehicleInitWidget::OnAddInitRequest);
 
-    this->DisplayVehicleInitRequests();
+    this->DisplayInitRequests();
 }
 
 VehicleInitWidget::~VehicleInitWidget() 
@@ -75,14 +78,12 @@ void VehicleInitWidget::OnAddInitRequest(QString machine_name, int vehicle_id)
 
 //private://////////////////////////////////////////////////////////////////////
 
-void VehicleInitWidget::DisplayVehicleInitRequests()
+void VehicleInitWidget::DisplayInitRequests()
 {
     const QMap<int, QString> requests = vm->GetInitRequests();
     QMap<int, QString>::ConstIterator it = requests.begin();
     for(; it != requests.end(); it++)
         this->OnAddInitRequest(it.value(),it.key());
 }
-
-
 
 }
