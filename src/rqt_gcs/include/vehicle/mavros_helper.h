@@ -42,6 +42,9 @@
 #define SC_INTERVAL 3       //Time, in seconds, between service calls
 #define MAX_TRIES 5
 
+
+namespace rqt_gcs {
+
 class MavrosHelper: public VehicleControl
 {
 public:
@@ -187,12 +190,26 @@ public:
     void SetAcceleration(float x, float y, float z);
 
     //Getter Functions
-    mavros_msgs::State GetState() { return state; }
+    mavros_msgs::State GetState()               { return state; }
     sensor_msgs::BatteryState GetBatteryState() { return battery; }
-    sensor_msgs::Imu  GetImu() { return imu; }
+    sensor_msgs::Imu  GetImu()                  { return imu; }
 
 protected:
 
+    //UAV State Variables
+    mavros_msgs::State              state;
+    sensor_msgs::BatteryState       battery;
+    sensor_msgs::Imu                imu;
+    sensor_msgs::NavSatFix          pos_global;
+    geometry_msgs::TwistStamped     velocity;
+    geometry_msgs::Pose             pose_local;
+    std_msgs::Float64               altitude_rel,
+                                    heading_deg;
+    ros::Time                       last_request;
+    PositionMode                    position_mode = local;
+    int                             tries = 0;
+
+private:
     /*!
      * \brief Determines if it is safe to call a service
      * \return True if safe, false otherwise
@@ -233,18 +250,8 @@ protected:
                                     sub_heading,
                                     sub_vel;
 
-    //UAV State Variables
-    mavros_msgs::State              state;
-    sensor_msgs::BatteryState       battery;
-    sensor_msgs::Imu                imu;
-    sensor_msgs::NavSatFix          pos_global;
-    geometry_msgs::TwistStamped     velocity;
-    geometry_msgs::Pose             pose_local;
-    nav_msgs::Path                  path_mission;
-    std_msgs::Float64               altitude_rel,
-                                    heading_deg;
-    ros::Time                       last_request;
-    int                             tries = 0;
 };
+
+}//End Namespace
 
 #endif

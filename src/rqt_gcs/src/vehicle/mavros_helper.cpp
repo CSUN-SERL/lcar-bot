@@ -1,6 +1,7 @@
 
 #include "vehicle/mavros_helper.h"
 
+namespace rqt_gcs {
 
 MavrosHelper::MavrosHelper(int uav_id): VehicleControl(uav_id) //Class constructor
 {
@@ -211,36 +212,56 @@ void MavrosHelper::OverrideRC(int channel, int value)
 
 void MavrosHelper::SetPosition(float x, float y, float z, float yaw)
 {
-    //Create the message object
-    geometry_msgs::PoseStamped position_stamped;
+    if(position_mode == global){
+            mavros_msgs::GlobalPositionTarget target_global;
 
-    //Update the message with the new position
-    position_stamped.pose.position.x = x;
-    position_stamped.pose.position.y = y;
-    position_stamped.pose.position.z = z;
-    if(yaw > 360){ //Default or invalid value passed, use current Yaw value
-        position_stamped.pose.orientation = pose_local.orientation;
-    }
-    else{ //Use the specified Yaw value
-        quaternionTFToMsg(tf::createQuaternionFromYaw(yaw*(PI/180)), position_stamped.pose.orientation);
-    }
+            target_global.latitude  = x;
+            target_global.longitude = y;
+            target_global.altitude  = z;
 
-    //Publish the message
-    pub_setpoint_position.publish(position_stamped);
+            this->SetPosition(target_global);
+    }
+    else{
+        //Create the message object
+        geometry_msgs::PoseStamped position_stamped;
+
+        //Update the message with the new position
+        position_stamped.pose.position.x = x;
+        position_stamped.pose.position.y = y;
+        position_stamped.pose.position.z = z;
+        if(yaw > 360){ //Default or invalid value passed, use current Yaw value
+            position_stamped.pose.orientation = pose_local.orientation;
+        }
+        else{ //Use the specified Yaw value
+            quaternionTFToMsg(tf::createQuaternionFromYaw(yaw*(PI/180)), position_stamped.pose.orientation);
+        }
+
+        //Publish the message
+        pub_setpoint_position.publish(position_stamped);
+    }
 }
 
 void MavrosHelper::SetPosition(geometry_msgs::Pose new_pose)
 {
+    if(position_mode == global){
+        mavros_msgs::GlobalPositionTarget target_global;
 
-    //Create the message object
-    geometry_msgs::PoseStamped position_stamped;
+        target_global.latitude  = new_pose.position.x;
+        target_global.longitude = new_pose.position.y;
+        target_global.altitude  = new_pose.position.z;
 
-    //Update the message with the new position
-    position_stamped.pose = new_pose;
+        this->SetPosition(target_global);
+    }
+    else{
+        //Create the message object
+        geometry_msgs::PoseStamped position_stamped;
 
-    //Publish the message
-    pub_setpoint_position.publish(position_stamped);
+        //Update the message with the new position
+        position_stamped.pose = new_pose;
 
+        //Publish the message
+        pub_setpoint_position.publish(position_stamped);
+    }
 }
 
 void MavrosHelper::SetPosition(mavros_msgs::GlobalPositionTarget new_pose)
@@ -307,3 +328,5 @@ bool MavrosHelper::CanRequest()
 {
     return ((ros::Time::now() - last_request) > ros::Duration(SC_INTERVAL));
 }
+
+}//End Namespace

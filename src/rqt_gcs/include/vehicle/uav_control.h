@@ -145,17 +145,14 @@ public:
 
 
     //Getter Functions
-    mavros_msgs::State GetState() { return state; }
-    sensor_msgs::BatteryState GetBatteryState() { return battery; }
-    sensor_msgs::Imu  GetImu() { return imu; }
-    FlightState GetFlightState() { return UpdateFlightState(); }
-    int GetDistanceToWP() { return CalculateDistance(pose_target, pose_local); }
+    FlightState GetFlightState()                                        { return UpdateFlightState(); }
+    int GetDistanceToWP()                                               { return CalculateDistance(pose_target, pose_local); }
     float GetMissionProgress();
-    MissionMode GetMissionMode(){return mission_mode;}
+    MissionMode GetMissionMode()                                        { return mission_mode;}
     std::vector<lcar_msgs::AccessPointStampedPtr>* GetRefAccessPoints() { return &access_pts; }
-    std::vector<lcar_msgs::QueryPtr>* GetDoorQueries() { return &queries_door; }
-    bool RecievedHeartbeat() { return heartbeat_recieved; }
-    Mode getMode(){ return goal; }
+    std::vector<lcar_msgs::QueryPtr>* GetDoorQueries()                  { return &queries_door; }
+    bool RecievedHeartbeat()                                            { return heartbeat_recieved; }
+    Mode getMode()                                                      { return goal; }
 
     void SetRejected_images(int rejected_images)
     {
@@ -302,7 +299,6 @@ private:
     std_msgs::Float64               object_distance;
     Mode                            goal = idle,
                                     goal_prev = null;
-    PositionMode                    position_mode = local;
     MissionMode                     mission_mode = stopped;
     ros::Time                       last_request;
     std::vector<lcar_msgs::AccessPointStampedPtr>        access_pts;
