@@ -12,6 +12,7 @@
 #include "rqt_gcs/gcs.h"
 #include "util/image.h"
 #include "util/debug.h"
+#include "util/strings.h"
 #include "rqt_gcs/vehicle_init_widget.h"
 
 #include <ros/package.h>
@@ -19,10 +20,10 @@
 
 namespace rqt_gcs
 {
-
+    
     namespace img
     {
-        QString image_root_dir_; // defined globally in util/image.h
+        QString image_root_dir_; // defined globally in util/strings.h
     }
 
 GCS::GCS():
@@ -34,6 +35,12 @@ GCS::GCS():
     vm(new VehicleManager())
 {
     widget.setupUi(this);
+    
+    //todo add these layouts to the GUI
+    //layout_by_v_type.insert(VehicleType::ugv, widget.layout_ugvs);
+    layout_by_v_type.insert(VehicleType::quad_rotor, widget.layout_quads);
+    //layout_by_v_type.insert(VehicleType::octo_rotor, widget.layout_octo);
+    //layout_by_v_type.insert(VehicleType::vtol, widget.layout_vtol);
 
     //setup button logic for the widgets
     connect(widget.btn_exec_play, &QPushButton::clicked, 
@@ -51,27 +58,21 @@ GCS::GCS():
             this, &GCS::OnAccessPointsTriggered);
     connect(widget.btn_arm_uav, &QPushButton::clicked, 
             this, &GCS::OnArmOrDisarmSelectedUav);
-    connect(this, &GCS::NewCameraFeedFrame, 
-            this, &GCS::OnUpdateCameraFeed);
     connect(update_timer, &QTimer::timeout,
             this, &GCS::OnTimedUpdate);
+    
+    connect(vm, &VehicleManager::NewImageFrame, 
+            this, &GCS::OnUpdateCameraFeed);
+    connect(vm, &VehicleManager::AddVehicleWidget,
+            this, &GCS::OnAddVehicleWidget);
     
     dbg::InitDbg();
     this->InitMenuBar();
     this->InitSettings();
     this->InitHelperThread();
     this->InitMap();
-    this->AdvertiseObjectDetection();
+//    this->AdvertiseObjectDetection();
     this->ToggleScoutButtons(true);
-
-    //todo add these layouts to the GUI
-    //layout_by_v_type.insert(VehicleType::ugv, widget.layout_ugvs);
-    layout_by_v_type.insert(VehicleType::quad_rotor, widget.layout_quads);
-    //layout_by_v_type.insert(VehicleType::octo_rotor, widget.layout_octo);
-    //layout_by_v_type.insert(VehicleType::vtol, widget.layout_vtol);
-    
-    connect(vm, &VehicleManager::AddVehicleWidget,
-            this, &GCS::OnAddVehicleWidget);
     
     update_timer->start(0);
 }
@@ -131,7 +132,8 @@ void GCS::OnAddVehicleWidget(int v_id)
     w->SetNumber(v_id - v_type);
     w->SetName("UAV " % QString::number(v_id - v_type));
 
-    // - 1 accounts for the vehicle that was added before the GUI was told to add a new widget
+    // - 1 accounts for the vehicle corresponding to this widget
+    // that was added before the GUI was told to add this widget.
     int num_vehicle = vm->NumVehiclesByType(v_type) - 1;
     int index = 0;
     while(index < num_vehicle && v_id > this->VehicleWidgetAt(v_type, index)->Id())
@@ -150,8 +152,20 @@ void GCS::OnDeleteVehicleWidget(int v_id)
     Q_ASSERT(v_type != VehicleType::invalid_low);
     
     VehicleWidget * w = this->VehicleWidgetAt(v_type, v_id - v_type);
-    
     delete w;
+    
+    int num_vehicle = vm->NumVehiclesByType(v_type);
+    if(num_vehicle == 0)
+    {
+        this->ClearQueries();
+        this->ToggleScoutButtons(true);  // reset scout buttons
+        this->ToggleArmDisarmButton(false); //set [dis]arm button to arm
+
+        widget.image_frame->setPixmap(QPixmap::fromImage(QImage()));
+        widget.lbl_cur_uav->setText("NO UAVS");
+        cur_vehicle = -1;
+    }
+    //todo handle cases where num_vehicle != 0
 }
 
 void GCS::OnDeleteUav(int index)
@@ -198,8 +212,8 @@ void GCS::OnDeleteUav(int index)
             this->SelectUav(0);
     }
 
-   num_uav_changed.wakeAll();
-   uav_mutex.unlock();
+    num_uav_changed.wakeAll();
+    uav_mutex.unlock();
 }
 
 void GCS::SaveUavQueries(int uav_id, const std::vector<lcar_msgs::QueryPtr> *queries, const QString ap_type)
@@ -504,11 +518,15 @@ void GCS::SelectVehicleWidget(int v_type, int index)
     if(cur_vehicle == index)
         return;
     
-    widget.lbl_cur_uav->setText("UAV " % QString::number(index));
+    QString vehicle_type = "UAV";
+    if(v_type == VehicleType::ugv)
+        vehicle_type = "UGV";
+    
+    widget.lbl_cur_uav->setText(vehicle_type % " " % QString::number(index));
     
     widget.image_frame->setPixmap(QPixmap::fromImage(QImage()));
     this->ClearQueries(); // new uav selected, so make room for its queries
-    QString topic ("/UAV" % QString::number(index) % "/stereo_cam/left/image_rect");
+    QString topic ("/" % vehicle_type % QString::number(index) % "/stereo_cam/left/image_rect");
     vm->SubscribeToImageTopic(topic);
     
     if(fl_widgets.ap_menu != nullptr)
@@ -587,7 +605,6 @@ void GCS::UpdateFlightStateWidgets()
     temp_data = "UAV " + QString::number(uav->id);
     widget.lbl_cur_uav->setText(temp_data);
     widget.pgs_bar_mission->setValue(uav->GetMissionProgress() * 100);
-
 }
 
 void GCS::OnArmOrDisarmSelectedUav()
@@ -608,17 +625,6 @@ void GCS::ToggleArmDisarmButton(bool arm)
         widget.btn_arm_uav->setText("Disarm");
     else
         widget.btn_arm_uav->setText("Arm");
-}
-
-void GCS::AdvertiseObjectDetection()
-{
-//    od_handlers.pub_hit_thresh = nh.advertise<std_msgs::Float64>("/object_detection/hit_threshold", 5);
-//    od_handlers.pub_step_size = nh.advertise<std_msgs::Int32>("/object_detection/step_size", 5);
-//    od_handlers.pub_padding = nh.advertise<std_msgs::Int32>("/object_detection/padding", 5);
-//    od_handlers.pub_scale_factor = nh.advertise<std_msgs::Float64>("/object_detection/scale_factor", 5);
-//    od_handlers.pub_mean_shift = nh.advertise<std_msgs::Int32>("/object_detection/mean_shift_grouping", 5);
-//    od_handlers.sub_od_request = nh.subscribe("/object_detection/param_request", 5,
-//                                              &GCS::ReceivedObjectDetectionRequest, this);
 }
 
 void GCS::InitHelperThread()
@@ -676,30 +682,19 @@ void GCS::InitMenuBar()
 void GCS::InitSettings()
 {
     //initialize settings and uav queries display
-    settings = new QSettings("SERL", "LCAR_Bot", this);
+    QSettings settings(COMPANY, APPLICATION);
 
-    settings->beginGroup("general_tab");
+    settings.beginGroup("general_tab");
 
-    if(settings->value("machine_learning", "online").toString() == "online")
-        OnToggleMachineLearningMode(true);
+    if(settings.value("machine_learning", "online").toString() == "online")
+        this->OnToggleMachineLearningMode(true);
     else
-        OnToggleMachineLearningMode(false);
+        this->OnToggleMachineLearningMode(false);
 
     QString default_path = QProcessEnvironment::systemEnvironment().value("HOME") % "/Pictures/LCAR_Bot";
-    img::image_root_dir_ = settings->value("images_root_directory", default_path).toString();
+    img::image_root_dir_ = settings.value("images_root_directory", default_path).toString();
 
-    settings->endGroup();
-
-    settings->beginGroup("object_detection_tab");
-
-    QString params = "tuning_paramaters";
-    od_params.hit_thresh = settings->value(params % "/hit_threshold", od_params.hit_thresh).toDouble();
-    od_params.step_size = settings->value(params % "/step_size", od_params.step_size).toInt();
-    od_params.padding = settings->value(params % "/padding", od_params.padding).toInt();
-    od_params.scale_factor = settings->value(params % "/scale_factor", od_params.scale_factor).toDouble();
-    od_params.mean_shift = settings->value(params % "/mean_shift_grouping", od_params.mean_shift).toBool();
-
-    settings->endGroup();
+    settings.endGroup();
 }
 
 void GCS::OnAccessPointsTriggered()
@@ -731,13 +726,16 @@ void GCS::OnSettingsTriggered()
 {
     if(fl_widgets.settings == nullptr)
     {
-        fl_widgets.settings = new SettingsWidget(this);
+        fl_widgets.settings = new SettingsWidget(vm);
 
         QRect window = this->window()->geometry();
         int x = (this->width() / 2) - (fl_widgets.settings->width() / 2);
         int y = (this->height() / 2) - (fl_widgets.settings->height() / 2);
         fl_widgets.settings->move(window.x() + x, window.y() + y);
         fl_widgets.settings->setVisible(true);
+        
+        connect(fl_widgets.settings, &SettingsWidget::machineLearningModeToggled,
+                this, &GCS::OnToggleMachineLearningMode);
 
         connect(fl_widgets.settings, &SettingsWidget::destroyed,
                 this, [=](){ fl_widgets.settings = nullptr; });
@@ -861,11 +859,11 @@ void GCS::UpdateVehicleWidgets()
 {
     for(int i = 0; i < NUM_UAV; i++)
     {
-        VehicleWidget * vw = this->VehicleWidgetAt(VehicleType::quad_rotor, i);
+        VehicleWidget * widget = this->VehicleWidgetAt(VehicleType::quad_rotor, i);
         int num = active_uavs[i]->GetBatteryState().percentage * 100;
-        vw->SetBattery(num);
+        widget->SetBattery(num);
         temp_data = active_uavs[i]->GetState().mode.c_str();
-        vw->SetCondition(temp_data);
+        widget->SetCondition(temp_data);
     }
 }
 
@@ -880,41 +878,6 @@ void GCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
     QPixmap image = img::rosImgToQpixmap(msg);
     emit NewCameraFeedFrame(image);
-}
-
-void GCS::PublishHitThreshold(double thresh)
-{
-    std_msgs::Float64 msg;
-    msg.data = thresh;
-    od_handlers.pub_hit_thresh.publish(msg);
-}
-
-void GCS::PublishStepSize(int step)
-{
-    std_msgs::Int32 msg;
-    msg.data = step;
-    od_handlers.pub_step_size.publish(msg);
-}
-
-void GCS::PublishPadding(int padding)
-{
-    std_msgs::Int32 msg;
-    msg.data = padding;
-    od_handlers.pub_padding.publish(msg);
-}
-
-void GCS::PublishScaleFactor(double scale)
-{
-    std_msgs::Float64 msg;
-    msg.data = scale;
-    od_handlers.pub_scale_factor.publish(msg);
-}
-
-void GCS::PublishMeanShift(bool on)
-{
-    std_msgs::Int32 msg;
-    msg.data = on;
-    od_handlers.pub_mean_shift.publish(msg);
 }
 
 void GCS::closeEvent(QCloseEvent* event)

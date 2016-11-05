@@ -189,6 +189,46 @@ void VehicleManager::AdvertiseObjectDetection()
                                               &VehicleManager::ReceivedObjectDetectionRequest, this);
 }
 
+ObjectDetectionParameters* VehicleManager::GetObjectDetectionParams()
+{
+    return &od_params;
+}
+
+void VehicleManager::PublishHitThreshold(double thresh)
+{
+    std_msgs::Float64 msg;
+    msg.data = thresh;
+    od_handlers.pub_hit_thresh.publish(msg);
+}
+
+void VehicleManager::PublishStepSize(int step)
+{
+    std_msgs::Int32 msg;
+    msg.data = step;
+    od_handlers.pub_step_size.publish(msg);
+}
+
+void VehicleManager::PublishPadding(int padding)
+{
+    std_msgs::Int32 msg;
+    msg.data = padding;
+    od_handlers.pub_padding.publish(msg);
+}
+
+void VehicleManager::PublishScaleFactor(double scale)
+{
+    std_msgs::Float64 msg;
+    msg.data = scale;
+    od_handlers.pub_scale_factor.publish(msg);
+}
+
+void VehicleManager::PublishMeanShift(bool on)
+{
+    std_msgs::Int32 msg;
+    msg.data = on;
+    od_handlers.pub_mean_shift.publish(msg);
+}
+
 //public slots://///////////////////////////////////////////////////////////////
 
 void VehicleManager::OnOperatorInitResponse(const int vehicle_id)
@@ -370,14 +410,31 @@ void VehicleManager::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 void VehicleManager::ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg)
 {
     ROS_INFO_STREAM("received object detection paramater request");
-//    this->PublishHitThreshold(od_params.hit_thresh);
-//    this->PublishStepSize(od_params.step_size);
-//    this->PublishPadding(od_params.padding);
-//    this->PublishScaleFactor(od_params.scale_factor);
-//    this->PublishMeanShift(od_params.mean_shift);
+    this->PublishHitThreshold(od_params.hit_thresh);
+    this->PublishStepSize(od_params.step_size);
+    this->PublishPadding(od_params.padding);
+    this->PublishScaleFactor(od_params.scale_factor);
+    this->PublishMeanShift(od_params.mean_shift);
 }
 
 //private://////////////////////////////////////////////////////////////////////
+
+// SettingsWidget and QSettings related stuff
+void VehicleManager::InitSettings()
+{
+    QSettings settings(COMPANY, APPLICATION);
+    
+    settings->beginGroup("object_detection_tab");
+
+    QString params = "tuning_paramaters";
+    od_params.hit_thresh = settings->value(params % "/hit_threshold", od_params.hit_thresh).toDouble();
+    od_params.step_size = settings->value(params % "/step_size", od_params.step_size).toInt();
+    od_params.padding = settings->value(params % "/padding", od_params.padding).toInt();
+    od_params.scale_factor = settings->value(params % "/scale_factor", od_params.scale_factor).toDouble();
+    od_params.mean_shift = settings->value(params % "/mean_shift_grouping", od_params.mean_shift).toBool();
+
+    settings->endGroup();
+}
 
 bool VehicleManager::OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req, 
                                             lcar_msgs::InitRequest::Response& res)

@@ -13,15 +13,16 @@
 namespace rqt_gcs
 {
 
-SettingsWidget::SettingsWidget(GCS * sgcs) :
-gcs(sgcs)
+SettingsWidget::SettingsWidget(VehicleManager * vm) :
+vm(vm)
 {
     this->setAttribute(Qt::WA_DeleteOnClose);
 
     widget_.setupUi(this);
-
-    connect(this, &SettingsWidget::machineLearningModeToggled,
-            gcs, &GCS::OnToggleMachineLearningMode);
+    
+    settings = new QSettings("SERL", "LCAR_Bot", this);
+    
+    od_params = vm->GetObjectDetectionParams();
     
     //apply and cancel buttons
     connect(widget_.apply_btn, &QPushButton::clicked,
@@ -105,14 +106,15 @@ gcs(sgcs)
     connect(widget_.radio_off_mean_shift, &QRadioButton::clicked,
             this, &SettingsWidget::onMeanShiftRadioChange);
 
-    setToolTips();
-    readGeneralSettings();
-    readObjectDetectionSettings();
+    this->setToolTips();
+    this->readGeneralSettings();
+    this->readObjectDetectionSettings(); 
 }
 
 SettingsWidget::~SettingsWidget()
 {
-   gcs = nullptr;
+   vm = nullptr;
+   delete settings;
 }
 
 void SettingsWidget::setToolTips()
@@ -158,9 +160,9 @@ void SettingsWidget::setToolTips()
 
 void SettingsWidget::readGeneralSettings()
 {
-    gcs->settings->beginGroup("general_tab");
+    settings->beginGroup("general_tab");
 
-    QString ml = gcs->settings->value("machine_learning", "online").toString();
+    QString ml = settings->value("machine_learning", "online").toString();
     if(ml == "online")
         widget_.online_btn->setChecked(true);
     else
@@ -168,7 +170,7 @@ void SettingsWidget::readGeneralSettings()
 
     ml_state_ = ml;
 
-    QString vehicle_link = gcs->settings->value("connection_drop/vehicle_gcs_link",
+    QString vehicle_link = settings->value("connection_drop/vehicle_gcs_link",
                                             "marginal").toString();
     if(vehicle_link == "nominal")
         widget_.nominal_btn->setChecked(true);
@@ -184,11 +186,11 @@ void SettingsWidget::readGeneralSettings()
 
     QString conn_freq = "connection_drop/frequency";
 
-    QString frequency = gcs->settings->value(conn_freq, "random").toString();
+    QString frequency = settings->value(conn_freq, "random").toString();
     if(frequency == "interval")
     {
         widget_.interval_btn->setChecked(true);
-        QVariant interval = gcs->settings->value(conn_freq + "/interval_text");
+        QVariant interval = settings->value(conn_freq + "/interval_text");
         if(!interval.isNull())
             widget_.interval_text_box->setText(interval.toString());
 
@@ -200,11 +202,11 @@ void SettingsWidget::readGeneralSettings()
         widget_.interval_text_box->setEnabled(false);
     }
 
-    bool length_specified = gcs->settings->value(conn_freq + "/length_box_checked",
+    bool length_specified = settings->value(conn_freq + "/length_box_checked",
                                              false).toBool();
     if(length_specified)
     {
-        QVariant length = gcs->settings->value(conn_freq + "/length_text");
+        QVariant length = settings->value(conn_freq + "/length_text");
         if(!length.isNull())
             widget_.length_text_box->setText(length.toString());
 
@@ -216,15 +218,15 @@ void SettingsWidget::readGeneralSettings()
         widget_.length_text_box->setEnabled(false);
     }
 
-    QString img_dir = gcs->settings->value("images_root_directory", img::image_root_dir_).toString();
+    QString img_dir = settings->value("images_root_directory", img::image_root_dir_).toString();
     widget_.line_edit_images_dir->setText(img_dir);
 
-    gcs->settings->endGroup();
+    settings->endGroup();
 }
 
 void SettingsWidget::writeGeneralSettings()
 {
-    gcs->settings->beginGroup("general_tab");
+    settings->beginGroup("general_tab");
 
     QString ml;
     if(widget_.online_btn->isChecked())
@@ -233,7 +235,7 @@ void SettingsWidget::writeGeneralSettings()
         ml = "offline";
 
     ml_state_ = ml;
-    gcs->settings->setValue("machine_learning", ml);
+    settings->setValue("machine_learning", ml);
 
 
     QString conn = "connection_drop";
@@ -246,7 +248,7 @@ void SettingsWidget::writeGeneralSettings()
     else
         vehicle_link = "poor";
 
-    gcs->settings->setValue(conn % "/vehicle_gcs_link", vehicle_link);
+    settings->setValue(conn % "/vehicle_gcs_link", vehicle_link);
 
     QString conn_freq = "connection_drop/frequency";
     if(vehicle_link != "nominal") // write frequency settings to config
@@ -256,38 +258,38 @@ void SettingsWidget::writeGeneralSettings()
             frequency = "interval";
         else
             frequency = "random";
-        gcs->settings->setValue(conn_freq, frequency);
+        settings->setValue(conn_freq, frequency);
 
         if(frequency == "interval")
         {   //already guaranteed text is valid in validateGeneralSettings()
             QString interval_text = widget_.interval_text_box->text();
-            gcs->settings->setValue(conn_freq % "/interval_text", interval_text);
+            settings->setValue(conn_freq % "/interval_text", interval_text);
         }
         else
-            gcs->settings->remove(conn_freq % "/interval_text");
+            settings->remove(conn_freq % "/interval_text");
 
         bool length_specified = widget_.length_check_box->isChecked();
-        gcs->settings->setValue(conn_freq % "/length_box_checked", length_specified);
+        settings->setValue(conn_freq % "/length_box_checked", length_specified);
 
         if(length_specified)
         {   //already guaranteed text is valid in validateGeneralSettings()
             QString length_text = widget_.length_text_box->text();
-            gcs->settings->setValue(conn_freq % "/length_text", length_text);
+            settings->setValue(conn_freq % "/length_text", length_text);
         }
         else
-            gcs->settings->remove(conn_freq % "/length_text");
+            settings->remove(conn_freq % "/length_text");
     }
     else // remove all frequency related settings from config
-        gcs->settings->remove(conn_freq);
+        settings->remove(conn_freq);
 
     QString img_dir = widget_.line_edit_images_dir->text();
     if(!img_dir.isNull())
     {
-        gcs->settings->setValue("images_root_directory", img_dir);
+        settings->setValue("images_root_directory", img_dir);
         img::image_root_dir_ = widget_.line_edit_images_dir->text();
     }
 
-    gcs->settings->endGroup(); //general_tab
+    settings->endGroup(); //general_tab
 }
 
     bool SettingsWidget::validateGeneralSettings()
@@ -351,62 +353,56 @@ void SettingsWidget::writeGeneralSettings()
 
 void SettingsWidget::readObjectDetectionSettings()
 {
-    gcs->settings->beginGroup("object_detection_tab");
+    settings->beginGroup("object_detection_tab");
 
-    QString node_loc = gcs->settings->value("node_location", "gcs").toString();
+    QString node_loc = settings->value("node_location", "gcs").toString();
     if(node_loc == "gcs")
         widget_.gcs_btn->setChecked(true);
     else
         widget_.uav_btn->setChecked(true);
     // todo apply logic for determining where node will be run
 
-    QString params = "tuning_paramaters";
-    gcs->od_params.hit_thresh = gcs->settings->value(params % "/hit_threshold", 0.45).toDouble();    
-    gcs->od_params.step_size = gcs->settings->value(params % "/step_size", 8).toInt();
-    gcs->od_params.padding = gcs->settings->value(params % "/padding", 4).toInt();
-    gcs->od_params.scale_factor = gcs->settings->value(params % "/scale_factor", 1.15).toDouble();
-    gcs->od_params.mean_shift = gcs->settings->value(params % "/mean_shift_grouping", true).toBool();
+    widget_.line_edit_hit_thresh->setText(QString::number(od_params->hit_thresh, 'f', 2));
+    widget_.sl_hit_thresh->setValue(od_params->hit_thresh * 100);
 
-    widget_.line_edit_hit_thresh->setText(QString::number(gcs->od_params.hit_thresh, 'f', 2));
-    widget_.sl_hit_thresh->setValue(gcs->od_params.hit_thresh * 100);
+    widget_.line_edit_step_size->setText(QString::number(od_params->step_size));
+    widget_.sl_step_size->setValue(od_params->step_size / 4);
 
-    widget_.line_edit_step_size->setText(QString::number(gcs->od_params.step_size));
-    widget_.sl_step_size->setValue(gcs->od_params.step_size / 4);
+    widget_.line_edit_padding->setText(QString::number(od_params->padding));
+    widget_.sl_padding->setValue(od_params->padding / 8);
 
-    widget_.line_edit_padding->setText(QString::number(gcs->od_params.padding));
-    widget_.sl_padding->setValue(gcs->od_params.padding / 8);
+    widget_.line_edit_scale_factor->setText(QString::number(od_params->scale_factor, 'f', 2));
+    widget_.sl_scale_factor->setValue(od_params->scale_factor * 100);
 
-    widget_.line_edit_scale_factor->setText(QString::number(gcs->od_params.scale_factor, 'f', 2));
-    widget_.sl_scale_factor->setValue(gcs->od_params.scale_factor * 100);
-
-    if(gcs->od_params.mean_shift == true)
+    if(od_params->mean_shift == true)
         widget_.radio_on_mean_shift->setChecked(true);
     else 
         widget_.radio_off_mean_shift->setChecked(true);
-    onMeanShiftRadioChange();
+    this->onMeanShiftRadioChange();
 
-    gcs->settings->endGroup();
+    settings->endGroup();
 }
 
 void SettingsWidget::writeObjectDetectionSettings()
 {
-    gcs->settings->beginGroup("object_detection_tab");
+    settings->beginGroup("object_detection_tab");
 
     if(widget_.uav_btn->isChecked())
-        gcs->settings->setValue("node_location", "uav");
+        settings->setValue("node_location", "uav");
     else if(widget_.gcs_btn->isChecked())
-        gcs->settings->setValue("node_location", "gcs");
+        settings->setValue("node_location", "gcs");
 
     QString params = "tuning_paramaters";
-    QString thresh = QString::number(gcs->od_params.hit_thresh,'f', 2);
-    gcs->settings->setValue(params % "/hit_threshold", thresh);
-    gcs->settings->setValue(params % "/step_size", gcs->od_params.step_size);
-    gcs->settings->setValue(params % "/padding", gcs->od_params.padding);
-    QString scale = QString::number(gcs->od_params.scale_factor, 'f', 2);
-    gcs->settings->setValue(params % "/scale_factor", scale);
-    gcs->settings->setValue(params % "/mean_shift_grouping", gcs->od_params.mean_shift);
+    
+    QString thresh = QString::number(od_params->hit_thresh,'f', 2);
+    settings->setValue(params % "/hit_threshold", thresh);
+    settings->setValue(params % "/step_size", od_params->step_size);
+    settings->setValue(params % "/padding", od_params->padding);
+    QString scale = QString::number(od_params->scale_factor, 'f', 2);
+    settings->setValue(params % "/scale_factor", scale);
+    settings->setValue(params % "/mean_shift_grouping", od_params->mean_shift);
 
-    gcs->settings->endGroup();
+    settings->endGroup();
 }
 
 bool SettingsWidget::onApplyClicked()
@@ -470,11 +466,11 @@ void SettingsWidget::onToggleLengthLine()
 void SettingsWidget::onHitThresholdSliderChange(int new_thresh)
 {
     double thresh = ( ((double)new_thresh) / 100 );
-    if(gcs->od_params.hit_thresh != thresh)
+    if(od_params->hit_thresh != thresh)
     {
-        gcs->od_params.hit_thresh = thresh;
+        od_params->hit_thresh = thresh;
         widget_.line_edit_hit_thresh->setText(QString::number(thresh, 'f', 2));
-        gcs->PublishHitThreshold(thresh);
+        vm->PublishHitThreshold(thresh);
     }
 }
 
@@ -503,18 +499,18 @@ void SettingsWidget::onHitThresholdLineChange()
     if(thresh != thresh_old)
          widget_.line_edit_hit_thresh->setText(QString::number(thresh, 'f', 2));
 
-    gcs->od_params.hit_thresh = thresh;
+    od_params->hit_thresh = thresh;
     widget_.sl_hit_thresh->setValue(thresh * 100);
 }
 
 void SettingsWidget::onStepSizeSliderChange(int new_step)
 {
     new_step *= 4; // map to 4, 8, 12 or 16
-    if(gcs->od_params.step_size != new_step)
+    if(od_params->step_size != new_step)
     {
-        gcs->od_params.step_size = new_step;
+        od_params->step_size = new_step;
         widget_.line_edit_step_size->setText(QString::number(new_step));
-        gcs->PublishStepSize(new_step);
+        vm->PublishStepSize(new_step);
     }
 }
 
@@ -541,18 +537,18 @@ void SettingsWidget::onStepSizeLineChange()
     if(step != step_old)
          widget_.line_edit_step_size->setText(QString::number(step));
 
-    gcs->od_params.step_size = step;
+    od_params->step_size = step;
     widget_.sl_step_size->setValue(step / 4);
 }
 
 void SettingsWidget::onPaddingSliderChange(int new_padding)
 {
     new_padding *= 8; // map to 0, 8, 16, 24 or 32
-    if(gcs->od_params.padding != new_padding)
+    if(od_params->padding != new_padding)
     {
-        gcs->od_params.padding = new_padding;
+        od_params->padding = new_padding;
         widget_.line_edit_padding->setText(QString::number(new_padding));
-        gcs->PublishPadding(new_padding);
+        vm->PublishPadding(new_padding);
     }
 }
 
@@ -579,18 +575,18 @@ void SettingsWidget::onPaddingLineChange()
     if(padding != padding_old)
         widget_.line_edit_padding->setText(QString::number(padding));
 
-    gcs->od_params.padding = padding;
+    od_params->padding = padding;
     widget_.sl_padding->setValue(padding / 8);
 }
 
 void SettingsWidget::onScaleFactorSliderChange(int new_scale)
 {
     double scale = ( ((double)new_scale) / 100 );
-    if(gcs->od_params.scale_factor != scale)
+    if(od_params->scale_factor != scale)
     {
-        gcs->od_params.scale_factor = scale;
+        od_params->scale_factor = scale;
         widget_.line_edit_scale_factor->setText(QString::number(scale, 'f', 2));
-        gcs->PublishScaleFactor(scale);
+        vm->PublishScaleFactor(scale);
     }
 }
 
@@ -619,17 +615,17 @@ void SettingsWidget::onScaleFactorLineChange()
     if(scale != scale_old)
         widget_.line_edit_scale_factor->setText(QString::number(scale, 'f', 2));
 
-    gcs->od_params.scale_factor = scale;
+    od_params->scale_factor = scale;
     widget_.sl_scale_factor->setValue(scale * 100);
 }
 
 void SettingsWidget::onMeanShiftRadioChange()
 {
     bool on = widget_.radio_on_mean_shift->isChecked();
-    if(gcs->od_params.mean_shift != on)
+    if(od_params->mean_shift != on)
     {
-        gcs->od_params.mean_shift = on;
-        gcs->PublishMeanShift(on);
+        od_params->mean_shift = on;
+        vm->PublishMeanShift(on);
     }
 }
     

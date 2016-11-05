@@ -107,13 +107,6 @@ private:
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
     void ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg);
     VehicleWidget* VehicleWidgetAt(int v_type, int index);
-    
-    //methods for publishing object detection paramerter updates
-    void PublishHitThreshold(double thresh);
-    void PublishStepSize(int step);
-    void PublishPadding(int padding);
-    void PublishScaleFactor(double scale);
-    void PublishMeanShift(bool on);
 
     std::string GetMissionType(std::string file_name);
     lcar_msgs::TargetLocal GetMissionLocal(std::string file_name);
@@ -124,8 +117,11 @@ private:
     void InitSettings();
     void InitHelperThread();
 
+    // new
     void SelectVehicleWidget(int v_type, int index);
+    //old
     void SelectUav(int);
+    
     void UpdateFlightStateWidgets(); // both the PFD and the text based widget
     void UpdateVehicleWidgets();
 
@@ -136,8 +132,6 @@ private:
 
     void ToggleScoutButtons(bool visible, QString icon_type = "pause");
     void ToggleArmDisarmButton(bool arm);
-
-    void AdvertiseObjectDetection();
     
     Ui::GCS widget;
     
@@ -150,26 +144,6 @@ private:
     int time_counter;
     int NUM_UAV; //Total number of UAV's in the system
     int num_queries_last;
-
-    struct ObjectDetectionMessageHandlers // publishers and subscribers
-    {
-        ros::Publisher pub_hit_thresh;
-        ros::Publisher pub_step_size;
-        ros::Publisher pub_padding;
-        ros::Publisher pub_scale_factor;
-        ros::Publisher pub_mean_shift;
-        ros::Subscriber sub_od_request;
-    } od_handlers;
-
-    struct ObjectDetectionParamaters // object detection parameters
-    {
-        //defaults
-        double hit_thresh = 0; // displayed as a decimal
-        int step_size = 16;
-        int padding = 8;
-        double scale_factor = 1.15; // displayed as a decimal
-        bool mean_shift = false;
-    } od_params;
 
     struct FloatingWidgets
     {
@@ -191,8 +165,6 @@ private:
 
     QTimer *update_timer;
     QString temp_data;
-
-    QSettings *settings;
 
     GCSHelperThread *thread_uav_monitor;
     QMutex uav_mutex;

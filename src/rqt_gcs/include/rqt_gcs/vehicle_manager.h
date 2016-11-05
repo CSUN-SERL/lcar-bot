@@ -32,6 +32,16 @@ namespace rqt_gcs
     class VTOLControl;
     class NAOCOntrol;
     
+    typedef struct ObjectDetectionParameters_
+    {
+        //defaults
+        double hit_thresh = 0; // displayed as a decimal
+        int step_size = 16;
+        int padding = 8;
+        double scale_factor = 1.15; // displayed as a decimal
+        bool mean_shift = false;
+    } ObjectDetectionParameters;
+    
 class VehicleManager : public QObject
 {
     Q_OBJECT
@@ -70,6 +80,15 @@ public:
 
     void SubscribeToImageTopic(QString& topic);
     void AdvertiseObjectDetection();
+    
+    ObjectDetectionParameters* GetObjectDetectionParams();
+    
+    //methods for publishing object detection paramerter updates
+    void PublishHitThreshold(double thresh);
+    void PublishStepSize(int step);
+    void PublishPadding(int padding);
+    void PublishScaleFactor(double scale);
+    void PublishMeanShift(bool on);
     
 signals:
     //todo add slot to connect to this signal in GCS
@@ -166,11 +185,13 @@ public slots:
     //end Vehicle info queries//////////////////////////////////////////////////
     
     
-    //ros callbacks/////////////////////////////////////////////////////////////
+    //ros related///////////////////////////////////////////////////////////////
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
     void ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg);
     
 private:
+    
+    void InitSettings();
     
     /*
      * \brief the ros ServiceServer callback that for service InitRequests
@@ -223,15 +244,7 @@ private:
         ros::Subscriber sub_od_request;
     } od_handlers;
 
-    struct ObjectDetectionParamaters // object detection parameters
-    {
-        //defaults
-        double hit_thresh = 0; // displayed as a decimal
-        int step_size = 16;
-        int padding = 8;
-        double scale_factor = 1.15; // displayed as a decimal
-        bool mean_shift = false;
-    } od_params;
+    ObjectDetectionParameters od_params;
 };
 
 }
