@@ -27,7 +27,7 @@
 namespace rqt_gcs
 {
     
-    //todo implement these forware declarations
+    //todo implement these forward declarations
     class UGVControl;
     class VTOLControl;
     class NAOCOntrol;
@@ -67,21 +67,30 @@ public:
     int NumOctoRotors();
     int NumVTOLs();
     
+    QString VehicleStringFromId(int id);
+    int GenerateId(const QString& machine_name);
+    int VehicleTypeFromId(int id);
+    
     /**
      * Accessor function used by VehicleInitWidget to show init. reqests to the operator
      * 
      * @return const reference to the QMap containing the vehicle init. requests
      */
     const QMap<int, QString>& GetInitRequests();
-    
-    QString VehicleStringFromId(int id);
-    int GenerateId(const QString& machine_name);
-    int VehicleTypeFromId(int id);
 
-    void SubscribeToImageTopic(QString& topic);
-    void AdvertiseObjectDetection();
     
+    void SubscribeToImageTopic(QString& topic);
+    
+    /**
+     * Accessor function used by SettingsWidget to show Object Detection Parameters
+     * to the operator
+     * 
+     * @return ObjectDetectionParameters the parameters seen in the settings 
+     *         widget for tuning object detection
+     */
     ObjectDetectionParameters* GetObjectDetectionParams();
+    
+    void AdvertiseObjectDetection();
     
     //methods for publishing object detection paramerter updates
     void PublishHitThreshold(double thresh);
@@ -96,7 +105,7 @@ signals:
     void AddToInitWidget(QString machine_name, int vehicle_id);
     void AddVehicleWidget(int v_id);
     void DeleteVehicleWidget(int v_id);
-    void NewImageFrame(QPixmap& img);
+    void NewImageFrame(QPixmap img);
     
 public slots:
     void OnOperatorInitResponse(const int vehicle_id);

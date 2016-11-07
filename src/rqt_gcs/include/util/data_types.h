@@ -15,7 +15,7 @@ namespace rqt_gcs
     
 typedef enum VehicleType_
 {   // the id space for each vehicle type  
-    invalid_low = 999,
+    invalid_low = VEHICLE_TYPE_MAX - 1,
     ugv =                     VEHICLE_TYPE_MAX, //1000
     quad_rotor =        ugv + VEHICLE_TYPE_MAX, //2000
     octo_rotor = quad_rotor + VEHICLE_TYPE_MAX, //3000

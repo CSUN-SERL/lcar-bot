@@ -7,6 +7,7 @@
 
 #include "rqt_gcs/settings_widget.h"
 #include "util/image.h"
+#include "util/strings.h"
 #include <iostream>
 #include <QStringBuilder>
 

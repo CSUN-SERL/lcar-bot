@@ -86,7 +86,7 @@ public slots:
     void OnSettingsTriggered();
     void OnUnansweredQueriesTriggered();
     void OnAddVehicleTriggered();
-    void OnUpdateCameraFeed(const QPixmap& img);
+    void OnUpdateCameraFeed(QPixmap img);
 
     void OnAddUav(int);
     void OnDeleteUav(int);
@@ -102,10 +102,6 @@ protected:
     void closeEvent(QCloseEvent* event) override;
     
 private:
-
-//    void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
-    void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
-    void ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg);
     VehicleWidget* VehicleWidgetAt(int v_type, int index);
 
     std::string GetMissionType(std::string file_name);
@@ -135,11 +131,6 @@ private:
     
     Ui::GCS widget;
     
-    //ros::NodeHandle nh;
-    ros::ServiceServer server;
-    lcar_msgs::Query msg;
-//    image_transport::ImageTransport it_stereo{nh};
-    
     int cur_vehicle;
     int time_counter;
     int NUM_UAV; //Total number of UAV's in the system
@@ -164,7 +155,6 @@ private:
     image_transport::Subscriber sub_stereo;
 
     QTimer *update_timer;
-    QString temp_data;
 
     GCSHelperThread *thread_uav_monitor;
     QMutex uav_mutex;

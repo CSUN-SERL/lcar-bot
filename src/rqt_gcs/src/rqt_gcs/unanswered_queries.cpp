@@ -9,6 +9,7 @@
 #include "rqt_gcs/query_widget.h"
 #include "util/image.h"
 #include "util/debug.h"
+#include "util/strings.h"
 
 #include <QDir>
 #include <QDirIterator>

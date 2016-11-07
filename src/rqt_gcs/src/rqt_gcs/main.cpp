@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
         return -2;
     
     ros::init(argc, argv, "GCS");
-    ros::AsyncSpinner spinner(2);
+    ros::AsyncSpinner spinner(0); // use all processor cores
     spinner.start();
     
     rqt_gcs::GCS gcs;

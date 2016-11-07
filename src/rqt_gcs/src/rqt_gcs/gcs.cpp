@@ -71,7 +71,6 @@ GCS::GCS():
     this->InitSettings();
     this->InitHelperThread();
     this->InitMap();
-//    this->AdvertiseObjectDetection();
     this->ToggleScoutButtons(true);
     
     update_timer->start(0);
@@ -518,6 +517,8 @@ void GCS::SelectVehicleWidget(int v_type, int index)
     if(cur_vehicle == index)
         return;
     
+    cur_vehicle = index;
+    
     QString vehicle_type = "UAV";
     if(v_type == VehicleType::ugv)
         vehicle_type = "UGV";
@@ -526,7 +527,7 @@ void GCS::SelectVehicleWidget(int v_type, int index)
     
     widget.image_frame->setPixmap(QPixmap::fromImage(QImage()));
     this->ClearQueries(); // new uav selected, so make room for its queries
-    QString topic ("/" % vehicle_type % QString::number(index) % "/stereo_cam/left/image_rect");
+    QString topic ("/" % vehicle_type % QString::number(v_type+index) % "/stereo_cam/left/image_rect");
     vm->SubscribeToImageTopic(topic);
     
     if(fl_widgets.ap_menu != nullptr)
@@ -587,6 +588,7 @@ void GCS::UpdateFlightStateWidgets()
     widget.pfd->setClimbRate(uav->GetFlightState().vertical_speed);
     widget.pfd->update();
 
+    QString temp_data;
     //text based widget
     temp_data.setNum(uav->GetFlightState().yaw, 'f', 2);
     widget.lbl_yaw_val->setText(temp_data);
@@ -862,22 +864,16 @@ void GCS::UpdateVehicleWidgets()
         VehicleWidget * widget = this->VehicleWidgetAt(VehicleType::quad_rotor, i);
         int num = active_uavs[i]->GetBatteryState().percentage * 100;
         widget->SetBattery(num);
-        temp_data = active_uavs[i]->GetState().mode.c_str();
+        QString temp_data = active_uavs[i]->GetState().mode.c_str();
         widget->SetCondition(temp_data);
     }
 }
 
-void GCS::OnUpdateCameraFeed(const QPixmap& img)
+void GCS::OnUpdateCameraFeed(QPixmap img)
 {
     int w = widget.image_frame->width();
     int h = widget.image_frame->height();
     widget.image_frame->setPixmap(img.scaled(w, h, Qt::KeepAspectRatio));
-}
-
-void GCS::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
-{
-    QPixmap image = img::rosImgToQpixmap(msg);
-    emit NewCameraFeedFrame(image);
 }
 
 void GCS::closeEvent(QCloseEvent* event)

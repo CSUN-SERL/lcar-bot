@@ -6,10 +6,12 @@
  */
 
 #include <QStringBuilder>
+#include <QSettings>
 
 #include "rqt_gcs/vehicle_manager.h"
 #include "vehicle/uav_control.h"
 #include "lcar_msgs/InitResponse.h"
+#include "util/strings.h"
 
 namespace rqt_gcs
 {
@@ -108,14 +110,10 @@ int VehicleManager::NumTotalVehicles()
 
 int VehicleManager::NumVehiclesByType(int v_type)
 {
-    switch(v_type)
-    {
-        case VehicleType::ugv: return NumUGVs();
-        case VehicleType::quad_rotor: return NumQuadRotors();
-        case VehicleType::octo_rotor: return NumOctoRotors();
-        case VehicleType::vtol: return NumVTOLs();
-        default: -1; // todo return better fail indicator
-    }
+    if(v_type <= VehicleType::invalid_low || v_type >= VehicleType::invalid_high)
+        return VehicleType::invalid_low;
+    
+    return  db[v_type].size();
 }
 
 int VehicleManager::NumUGVs()
@@ -136,11 +134,6 @@ int VehicleManager::NumOctoRotors()
 int VehicleManager::NumVTOLs()
 {
     return db[VehicleType::vtol].size();
-}
-
-const QMap<int, QString>& VehicleManager::GetInitRequests()
-{
-    return init_requests;
 }
 
 QString VehicleManager::VehicleStringFromId(int id)
@@ -168,14 +161,29 @@ int VehicleManager::GenerateId(const QString& machine_name)
 }
 
 int VehicleManager::VehicleTypeFromId(int id)
-{ 
+{   
+    if(id <= VehicleType::invalid_low || id >= VehicleType::invalid_high)
+        return VehicleType::invalid_low;
+
     return (id / VEHICLE_TYPE_MAX) * VEHICLE_TYPE_MAX;
+}
+
+const QMap<int, QString>& VehicleManager::GetInitRequests()
+{
+    return init_requests;
 }
 
 void VehicleManager::SubscribeToImageTopic(QString& topic)
 {
-    sub_stereo = it_stereo.subscribe(topic.toStdString(), 30,
+    std::string new_topic = topic.toStdString();
+    ROS_INFO_STREAM("subscribing to new image topic: " << new_topic);
+    sub_stereo = it_stereo.subscribe(new_topic, 30,
                                      &VehicleManager::ImageCallback, this);
+}
+
+ObjectDetectionParameters* VehicleManager::GetObjectDetectionParams()
+{
+    return &od_params;
 }
 
 void VehicleManager::AdvertiseObjectDetection()
@@ -187,11 +195,6 @@ void VehicleManager::AdvertiseObjectDetection()
     od_handlers.pub_mean_shift = nh.advertise<std_msgs::Int32>("/object_detection/mean_shift_grouping", 5);
     od_handlers.sub_od_request = nh.subscribe("/object_detection/param_request", 5,
                                               &VehicleManager::ReceivedObjectDetectionRequest, this);
-}
-
-ObjectDetectionParameters* VehicleManager::GetObjectDetectionParams()
-{
-    return &od_params;
 }
 
 void VehicleManager::PublishHitThreshold(double thresh)
@@ -243,7 +246,6 @@ void VehicleManager::OnOperatorInitResponse(const int vehicle_id)
         pub_init_response.publish(res);
         this->AddVehicle(res.vehicle_id); 
         init_requests.erase(it);
-        
     }
 }
 
@@ -424,16 +426,16 @@ void VehicleManager::InitSettings()
 {
     QSettings settings(COMPANY, APPLICATION);
     
-    settings->beginGroup("object_detection_tab");
+    settings.beginGroup("object_detection_tab");
 
     QString params = "tuning_paramaters";
-    od_params.hit_thresh = settings->value(params % "/hit_threshold", od_params.hit_thresh).toDouble();
-    od_params.step_size = settings->value(params % "/step_size", od_params.step_size).toInt();
-    od_params.padding = settings->value(params % "/padding", od_params.padding).toInt();
-    od_params.scale_factor = settings->value(params % "/scale_factor", od_params.scale_factor).toDouble();
-    od_params.mean_shift = settings->value(params % "/mean_shift_grouping", od_params.mean_shift).toBool();
+    od_params.hit_thresh = settings.value(params % "/hit_threshold", od_params.hit_thresh).toDouble();
+    od_params.step_size = settings.value(params % "/step_size", od_params.step_size).toInt();
+    od_params.padding = settings.value(params % "/padding", od_params.padding).toInt();
+    od_params.scale_factor = settings.value(params % "/scale_factor", od_params.scale_factor).toDouble();
+    od_params.mean_shift = settings.value(params % "/mean_shift_grouping", od_params.mean_shift).toBool();
 
-    settings->endGroup();
+    settings.endGroup();
 }
 
 bool VehicleManager::OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req, 
