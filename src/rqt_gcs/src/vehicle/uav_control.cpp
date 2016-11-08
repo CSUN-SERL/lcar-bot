@@ -117,7 +117,7 @@ FlightState UAVControl::UpdateFlightState()
     return flight_state;
 }
 
-  int UAVControl::ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
+int UAVControl::ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
 {
     int result;
 
@@ -406,6 +406,11 @@ void UAVControl::StopMission(std::string flight_mode)
     mission_mode = stopped;
     this->SetMode(flight_mode);
     goal = idle;
+}
+
+bool UAVControl::IsArmed()
+{
+    return state.armed;
 }
 
 }//End Namespace

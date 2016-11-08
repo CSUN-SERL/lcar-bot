@@ -13,15 +13,19 @@
 
 #include "util/data_types.h"
 
+namespace rqt_gcs
+{
+
 class VehicleControl
 {
     
 public:
     const int id; // child classes provide id to this class' constructor
     
-    VehicleControl(int id): id(id){ }
+    VehicleControl(int id): id(id){};
     virtual ~VehicleControl(){};
     virtual void Arm(bool value)=0;
+    virtual bool IsArmed()=0;
     virtual void SetMode(std::string)=0;
     virtual void SetWayPoint(const sensor_msgs::NavSatFix& location){};
     virtual sensor_msgs::NavSatFix GetLocation()=0;
@@ -40,5 +44,6 @@ protected:
     
 };
 
+}
 #endif /* VEHICLECONTROL_H */
 

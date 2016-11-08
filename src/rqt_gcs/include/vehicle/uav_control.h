@@ -143,6 +143,7 @@ public:
      */
     void StopMission(std::string flight_mode);
 
+    bool IsArmed() override;
 
     //Getter Functions
     FlightState GetFlightState()                                        { return UpdateFlightState(); }

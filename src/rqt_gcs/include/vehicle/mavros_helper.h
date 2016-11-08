@@ -43,7 +43,8 @@
 #define MAX_TRIES 5
 
 
-namespace rqt_gcs {
+namespace rqt_gcs 
+{
 
 class MavrosHelper: public VehicleControl
 {
