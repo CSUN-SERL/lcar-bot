@@ -149,7 +149,7 @@ public:
     FlightState GetFlightState()                                        { return UpdateFlightState(); }
     int GetDistanceToWP() override                                      { return CalculateDistance(pose_target, pose_local); }
     float GetMissionProgress();
-    MissionMode GetMissionMode()                                        { return mission_mode;}
+    MissionMode GetMissionMode() override                               { return mission_mode;}
     std::vector<lcar_msgs::AccessPointStampedPtr>* GetRefAccessPoints() { return &access_pts; }
     std::vector<lcar_msgs::QueryPtr>* GetDoorQueries()                  { return &queries_door; }
     bool RecievedHeartbeat()                                            { return heartbeat_recieved; }

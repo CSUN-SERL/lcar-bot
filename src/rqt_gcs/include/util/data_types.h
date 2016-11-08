@@ -34,7 +34,8 @@ typedef enum MissionMode_
 {
     active,
     paused,
-    stopped
+    stopped,
+    invalid
 } MissionMode;
 
 enum Mode

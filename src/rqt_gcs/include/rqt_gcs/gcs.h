@@ -46,8 +46,6 @@
 namespace rqt_gcs
 {
 
-#define MAX_UAV 100 // the total number of UAV's manageable by our system
-
 class GCSHelperThread;
 class UnansweredQueries;
 class SettingsWidget;
@@ -147,8 +145,6 @@ private:
     VehicleManager * vm;
     
     QMap<int/*VehicleType*/, QVBoxLayout*> layout_by_v_type;
-
-    std::vector<lcar_msgs::QueryPtr> *vec_uav_queries_ptr;
 
     image_transport::Subscriber sub_stereo;
 

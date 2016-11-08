@@ -13,16 +13,22 @@
 #include <QSet>
 #include <QObject>
 #include <QProcess>
+#include <QMutex>
+#include <QWaitCondition>
 
 #include <ros/ros.h>
 #include <std_msgs/Int32.h>
+#include <sensor_msgs/NavSatFix.h>
 #include <image_transport/image_transport.h>
 
-#include "vehicle/vehicle_control.h"
-#include "util/data_types.h"
 #include "util/image.h"
+#include "util/data_types.h"
+#include "lcar_msgs/Query.h"
+#include "lcar_msgs/TargetLocal.h"
 #include "lcar_msgs/InitRequest.h"
-#include "sensor_msgs/NavSatFix.h"
+#include "lcar_msgs/TargetGlobal.h"
+#include "vehicle/vehicle_control.h"
+
 
 namespace rqt_gcs
 {
@@ -65,21 +71,48 @@ public:
     
     /**
      * 
-     * @return the number of strictly ugv's in the system
+     * @return the number of strictly Unmanned Ground Vehicles in the system
      */
     int NumUGVs();
     
     /**
-     * 
-     * @return the number of vtosl, quad-rotors, and octo-rotors
+     * \brief the number of strictly Unmanned Aerial Vehicles:
+     *        it is the number of vtols, quad-rotors, and octo-rotors
+     * @return the number of vtols, quad-rotors, and octo-rotors
      */
     int NumUAVs();
+    
+    /**
+     * 
+     * @return the number of strictly quad_rotors in the system
+     */
     int NumQuadRotors();
+    
+    /**
+     * 
+     * @return the number of strictly octo_rotors in the system
+     */
     int NumOctoRotors();
+    
+    /**
+     * 
+     * @return the number of strictly vtols in the system
+     */
     int NumVTOLs();
     
+    /**
+     * \brief parses the vehicle type into a string from the specified id
+     * @param id the id to convert to vehicle type string
+     * @return string containing the vehicle type
+     */
     QString VehicleStringFromId(int id);
     int GenerateId(const QString& machine_name);
+    
+    /**
+     * \brief return the VehicleType (as an integer) associated with this id
+     * @param id the id
+     * @return (int) VehicleType::[ugv|quad_rotor|octo_rotor|vtol] or (int)VehicleType::invalid_low if invalid
+     */
     int VehicleTypeFromId(int id);
     
     /**
@@ -122,6 +155,9 @@ public slots:
     void OnOperatorInitResponse(const int vehicle_id);
     // todo add all main gui button slots
     
+    void OnExecutePlay();
+    void OnCancelPlay();
+    
     //Vehicle Commands//////////////////////////////////////////////////////////
     /**
      * Vehicle commands use ros to transmit messages to vehicles, so they may 
@@ -138,7 +174,7 @@ public slots:
     void SetWaypoint(int v_id, const sensor_msgs::NavSatFix& location);
     
      /**
-     * convenience function: set the way point for the specified vehicle, where
+     * \brief convenience function: set the way point for the specified vehicle, where
      * vehicle type and number are specified in v_string
      * @param v_string the human readable vehicle type containing its number ("quad1")
      * @param location the container for latitude, longitude, and latitude
@@ -146,7 +182,7 @@ public slots:
     void SetWaypoint(std::string v_string, const sensor_msgs::NavSatFix& location);
     
     /**
-     * \briefnegates the armed status of the vehicle with id v_id
+     * \brief negates the armed status of the vehicle with id v_id
      * 
      * @param v_id the id of the vehicle to arm or disarm 
      */
@@ -161,16 +197,14 @@ public slots:
     void Arm(std::string v_string, bool value);
     
     /**
-     * \brief Set the UAV Flight Mode for UAV(quad, octo, or vtol) with given id.
-     *        Note: this function assumes UAV type vehicles such
-     *        VehicleType::[quad_rotor|octo_rotor|vtol] and will fail if not one 
-     *        of these.
-     * 
+     * \brief Set the UAV Flight Mode for the desired UAV, which could be of type
+     *        VehicleType::[quad_rotor|octo_rotor|vtol].
+     *        This function will fail if the Vehicle is not one of these types
      * @param the vehicle id of the UAV to send the command to
      * @param mode Mode to Set: Choose from Stabilize, Alt Hold, Auto, Guided,
      *        Loiter, RTL, or Circle
     */
-    void SetFlightMode(int v_id, std::string mode);
+    void SetMode(int v_id, std::string mode);
     
     /**
      * \brief voice command overloaded function for @SetFlightMode(int v_id, std::string mode)
@@ -178,20 +212,46 @@ public slots:
      * @param mode Mode to Set: Choose from Stabilize, Alt Hold, Auto, Guided,
      *        Loiter, RTL, or Circle
      */
-    void SetFlightMode(std::string v_string, std::string mode);
+    void SetMode(std::string v_string, std::string mode);
     
     //todo the rest of the vehicle commands
     //end VehicleCommands///////////////////////////////////////////////////////
     
     
+    /**
+     * causes the vehicle to return to launch
+     * @param v_id the id of the vehicle on which to call return to launch
+     */
+    void SetRTL(int v_id);
+
+    /**
+     * \brief command a quad-rotor to scout a building
+     * @param quad_id the id of the desired quad-rotor
+     * @param target the local position target for scouting
+     */
+    void ScoutBuilding(int quad_id, lcar_msgs::TargetLocal target);
+    
+     /**
+     * \brief command a quad-rotor to scout a building
+     * @param quad_id the id of the desired quad-rotor
+     * @param target the global position target for scouting
+     */
+    void ScoutBuilding(int quad_id, lcar_msgs::TargetGlobal target);
     //Vehicle Info queries//////////////////////////////////////////////////////
 
      /**
      * \brief returns the armed status of the vehicle with specified id
      * @param v_id the id of the vehicle
-     * @return bool armed or disarmed value
+     * @return integer +1 for armed, 0 for disarmed, and -1 if the vehicle couldn't be found
      */
-    bool IsArmed(int v_id);
+    int IsArmed(int v_id);
+    
+    /**
+     * \brief get the door queries for the specifies QUADROTOR
+     * @param quad_id the id for the specified quad-rotor
+     * @return a pointer to an std::vector<lcar_msgs::QueryPtr> containing access queries
+     */
+    std::vector<lcar_msgs::QueryPtr> * GetUAVDoorQueries(int quad_id);
     
     /**
      * \brief retrieve information like state, battery, and mission progress about
@@ -215,9 +275,33 @@ public slots:
      */
     FlightState GetFlightState(int uav_id);
     
+    /**
+     * \brief return the distance in meters to the desired vehicles current waypoint
+     * @param v_id the id of the vehicle
+     * @return distance in meters to the next waypoint
+     */
     int GetDistanceToWP(int v_id);
+    
+    /**
+     * \brief get the MissionMode for the desired vehicle
+     * @param v_id the id of the desired vehicle
+     * @return the vehicles' MissionMode. stopped, paused, or active
+     */
+    MissionMode GetMissionMode(int v_id);
     //end Vehicle info queries//////////////////////////////////////////////////
     
+    /**
+     * \brief the mutex used to guarantee the a gui update doesn't happen on a vehicle widget
+     *        for which the vehicle has been deleted
+     * @return the Qmutex to wait on 
+     */
+    QMutex* GetWidgetMutex();
+    
+    /**
+     * \breif the wait condition associated with the widget mutex
+     * @return the wait condition assoicated with the widget mutex
+     */
+    QWaitCondition* GetWaitCondition();
     
     //ros related///////////////////////////////////////////////////////////////
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
@@ -225,10 +309,14 @@ public slots:
     
 private:
     
+    /**
+     * \brief Initializes ObjectDetectionSettings for the publishing to vehicles.
+     *        The settings are visible in the Settings Widget.
+     */
     void InitSettings();
     
     /*
-     * \brief the ros ServiceServer callback that for service InitRequests
+     * \brief the ros callback for the InitRequests server
      */
     bool OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req,lcar_msgs::InitRequest::Response& res);
     
@@ -254,6 +342,8 @@ private:
      */
     QMap<int, QString> init_requests; //vehicle init. requests, storing machine_name and potential id
     
+    QMutex widget_mutex;
+    QWaitCondition widget_deleted;
     
     ros::NodeHandle nh;
     ros::ServiceServer srv_init_request;

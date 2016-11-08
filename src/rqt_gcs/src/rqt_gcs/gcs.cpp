@@ -147,6 +147,10 @@ void GCS::OnAddVehicleWidget(int v_id)
 
 void GCS::OnDeleteVehicleWidget(int v_id)
 {
+    QMutex *widget_mutex = vm->GetWidgetMutex();
+    QWaitCondition *widget_deleted = vm->GetWaitCondition();
+    widget_mutex->lock();
+    
     int v_type = vm->VehicleTypeFromId(v_id);
     Q_ASSERT(v_type != VehicleType::invalid_low);
     
@@ -164,7 +168,11 @@ void GCS::OnDeleteVehicleWidget(int v_id)
         widget.lbl_cur_uav->setText("NO UAVS");
         cur_v_id = -1;
     }
+    
     //todo handle cases where num_vehicle != 0
+    
+    widget_deleted->wakeAll();
+    widget_mutex->unlock();
 }
 
 //void GCS::OnDeleteUav(int index)
@@ -284,13 +292,13 @@ void GCS::UpdateQueries()
     if(vm->NumQuadRotors() == 0 || !widget.frame_queries_cntnr->isVisible())
         return;
 
-    vec_uav_queries_ptr = active_uavs[cur_vehicle]->GetDoorQueries();
-    int pqv_size = vec_uav_queries_ptr->size();
+    std::vector<lcar_msgs::QueryPtr> *queries = vm->GetUAVDoorQueries(cur_v_id);
+    int pqv_size = queries->size();
 
     for(int i = num_queries_last; i < pqv_size; i++)
     {
         //retrieve Query msg for door image
-        lcar_msgs::QueryPtr doorQuery = vec_uav_queries_ptr->at(i);
+        lcar_msgs::QueryPtr doorQuery = queries->at(i);
 
         QPixmap image = img::rosImgToQpixmap(doorQuery->img_framed);
 
@@ -312,31 +320,32 @@ void GCS::UpdateQueries()
 
 void GCS::AnswerQuery(QWidget * qw, QString ap_type, bool accepted)
 {
-    int index = widget.layout_queries->indexOf(qw);
-    lcar_msgs::QueryPtr door = vec_uav_queries_ptr->at(index);
-
-    UAVControl* uav = active_uavs[cur_vehicle];
-    QString path = img::image_root_dir_ % "/queries";
-    QString file;
-    if(accepted)
-    {
-        path.append("/accepted/" % ap_type % "/uav_" % QString::number(uav->id));
-        file.append("img_" % QString::number(uav->accepted_images++) % ".jpg");
-    }
-    else
-    {
-        path.append("/rejected/" % ap_type % "/uav_" % QString::number(uav->id));
-        file.append("img_" % QString::number(uav->rejected_images++) % ".jpg");
-    }
-
-    img::saveImage(path, file, door->img);
-
-    vec_uav_queries_ptr->erase(vec_uav_queries_ptr->begin() + index);
-    delete qw;
-
-    door->is_accepted = accepted;
-    num_queries_last--;
-    //uav->SendDoorResponse(doormsg);
+//    int index = widget.layout_queries->indexOf(qw);
+//    std::vector<lcar_msgs::QueryPtr> * vec_uav_queries_ptr = active_uavs[cur_v_id]->GetRefDoorQueries();
+//    lcar_msgs::QueryPtr door = vec_uav_queries_ptr->at(index);
+//
+//    UAVControl* uav = active_uavs[cur_v_id];
+//    QString path = img::image_root_dir_ % "/queries";
+//    QString file;
+//    if(accepted)
+//    {
+//        path.append("/accepted/" % ap_type % "/uav_" % QString::number(uav->id));
+//        file.append("img_" % QString::number(uav->accepted_images++) % ".jpg");
+//    }
+//    else
+//    {
+//        path.append("/rejected/" % ap_type % "/uav_" % QString::number(uav->id));
+//        file.append("img_" % QString::number(uav->rejected_images++) % ".jpg");
+//    }
+//
+//    img::saveImage(path, file, door->img);
+//
+//    vec_uav_queries_ptr->erase(vec_uav_queries_ptr->begin() + index);
+//    delete qw;
+//
+//    door->is_accepted = accepted;
+//    num_queries_last--;
+//    //uav->SendDoorResponse(doormsg);
 }
 
 void GCS::OnAcceptDoorQuery(QWidget *qw)
@@ -351,24 +360,27 @@ void GCS::OnRejectDoorQuery(QWidget * qw)
 
 void GCS::OnExecutePlay()
 {
-    if(NUM_UAV == 0)
+    if(vm->NumTotalVehicles() == 0)
         return;
 
     int play_num = widget.cmbo_box_play_book->currentIndex();
 
     if(play_num == 0)
     {
-        for(int i = 0; i < NUM_UAV; i++)
+        for(int i = 0; i < vm->NumQuadRotors(); i++)
         {
             std::string file_name = "play " + std::to_string(i + 1);
 
-            active_uavs[i]->Arm(true);
+            
+            vm->Arm(VehicleType::quad_rotor+i, true);
             std::string mission_type = this->GetMissionType(file_name);
             ROS_WARN_STREAM("called get mission type");
             if(mission_type.compare("local") == 0)
-                active_uavs[i]->ScoutBuilding(GetMissionLocal(file_name));
+            {
+//                vm->ScoutBuilding(GetMissionLocal(file_name));
+            }
             else
-                active_uavs[i]->ScoutBuilding(GetMissionGlobal(file_name));
+//                active_uavs[i]->ScoutBuilding(GetMissionGlobal(file_name));
 
             ROS_INFO_STREAM("Scouting Building " << i);
         }
@@ -387,11 +399,11 @@ void GCS::OnExecutePlay()
 
 void GCS::OnCancelPlay()
 {
-    if(NUM_UAV == 0)
+    if(vm->NumTotalVehicles() == 0)
         return;
 
-    for(int i = 0; i < NUM_UAV; i++)
-        active_uavs[i]->StopMission();
+    for(int i = 0; i < vm->NumQuadRotors(); i++)
+//        active_uavs[i]->StopMission();
     
 
     this->ToggleScoutButtons(true);
@@ -399,16 +411,16 @@ void GCS::OnCancelPlay()
 
 void GCS::OnScoutBuilding()
 {
-    if(NUM_UAV == 0)
+    if(vm->NumQuadRotors() == 0)
         return;
 
     int building_index = widget.cmbo_box_buildings->currentIndex() + 1;
     std::string file_name = "building" + std::to_string(building_index) + ".txt";
 
     if(this->GetMissionType(file_name).compare("local") == 0)
-        active_uavs[cur_vehicle]->ScoutBuilding(GetMissionLocal(file_name));
+        vm->ScoutBuilding(cur_v_id, this->GetMissionLocal(file_name));
     else
-        active_uavs[cur_vehicle]->ScoutBuilding(GetMissionGlobal(file_name));
+        vm->ScoutBuilding(cur_v_id, this->GetMissionGlobal(file_name));
 
     this->ToggleScoutButtons(false);
 
@@ -417,10 +429,10 @@ void GCS::OnScoutBuilding()
 
 void GCS::OnPauseOrResumeScout()
 {
-    if (NUM_UAV == 0)
+    if (vm->NumQuadRotors() == 0)
         return;
 
-    if(active_uavs[cur_vehicle]->GetMissionMode() == MissionMode::active)
+    if(vm->GetMissionMode(cur_v_id) == MissionMode::active)
     {
         active_uavs[cur_vehicle]->PauseMission();
         widget.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/play.png"));
@@ -434,60 +446,60 @@ void GCS::OnPauseOrResumeScout()
 
 void GCS::OnStopScout()
 {
-    if(NUM_UAV == 0)
+    if(vm->NumQuadRotors() == 0)
         return;
 
-    active_uavs[cur_vehicle]->StopMission();
+    active_uavs[cur_v_id]->StopMission();
     this->ToggleScoutButtons(true);
 }
 
 void GCS::OnChangeFlightMode(int index)
 {
-    if(NUM_UAV == 0)
+    if(vm->NumQuadRotors() == 0)
         return;
     
     if(index == 0)
     {
         ROS_INFO_STREAM("Quadrotor Stablized");
-        active_uavs[cur_vehicle]->SetMode("STABILIZED");
+        vm->SetMode(cur_v_id, "STABILIZED");
     }
     else if(index == 1)
     {
         ROS_INFO_STREAM("Quadrotor Loiter");
-        active_uavs[cur_vehicle]->SetMode("AUTO.LOITER");
+        vm->SetMode(cur_v_id, "AUTO.LOITER");
     }
     else if(index == 2)
     {
         ROS_INFO_STREAM("Quadrotor Land");
-        active_uavs[cur_vehicle]->SetMode("AUTO.LAND");
+        vm->SetMode(cur_v_id, "AUTO.LAND");
     }
     else if(index == 3)
     {
         ROS_INFO_STREAM("Altitude Hold");
-        active_uavs[cur_vehicle]->SetMode("ALTCTL");
+        vm->SetMode(cur_v_id, "ALTCTL");
     }
     else if( index == 4)
     {
         ROS_INFO_STREAM("Position Hold");
-        active_uavs[cur_vehicle]->SetMode("POSCTL");
+        vm->SetMode(cur_v_id, "POSCTL");
     }
     else if(index == 5)
     {
         ROS_INFO_STREAM("Quadrotor Return-To-Launch");
-        active_uavs[cur_vehicle]->SetRTL();
+        vm->SetRTL(cur_v_id);
     }
     else if(index == 6)
     {
         ROS_INFO_STREAM("Quadrotor Auto");
-        active_uavs[cur_vehicle]->SetMode("AUTO");
+        active_uavs[cur_v_id]->SetMode("AUTO");
     }
     else if(index == 7)
     {
         ROS_INFO_STREAM("Quadrotor Offboard");
-        active_uavs[cur_vehicle]->SetMode("OFFBOARD");
+        active_uavs[cur_v_idd]->SetMode("OFFBOARD");
     }
 
-    if(active_uavs[cur_vehicle]->GetMissionMode() != MissionMode::stopped)
+    if(active_uavs[cur_v_id]->GetMissionMode() != MissionMode::stopped)
         this->OnStopScout();
 }
 
