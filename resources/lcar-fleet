@@ -21,7 +21,7 @@ lcar-kill()
     local id=$low
 
     while [ $id -lt $high ]; do
-        for node in $( rosnode list | grep UAV$id ); do 
+        for node in $( rosnode list | grep V$id ); do 
             rosnode kill $node
         done
         let id=id+1

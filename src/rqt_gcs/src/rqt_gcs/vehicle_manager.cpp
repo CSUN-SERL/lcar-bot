@@ -102,10 +102,10 @@ void VehicleManager::DeleteVehicle(int v_id)
 
 int VehicleManager::NumTotalVehicles()
 {
-    return this->NumUGVs() +
-           this->NumQuadRotors() +
-           this->NumOctoRotors() +
-           this->NumVTOLs();
+    return db[VehicleType::ugv].size() +
+           db[VehicleType::quad_rotor].size() +
+           db[VehicleType::octo_rotor].size() +
+           db[VehicleType::vtol].size();
 }
 
 int VehicleManager::NumVehiclesByType(int v_type)
@@ -119,6 +119,13 @@ int VehicleManager::NumVehiclesByType(int v_type)
 int VehicleManager::NumUGVs()
 {
     return db[VehicleType::ugv].size();
+}
+
+int VehicleManager::NumUAVs()
+{
+    return db[VehicleType::quad_rotor].size() +
+           db[VehicleType::octo_rotor].size() +
+           db[VehicleType::vtol].size();
 }
 
 int VehicleManager::NumQuadRotors()
@@ -344,6 +351,23 @@ void VehicleManager::SetFlightMode(std::string v_string, std::string mode)
                          << " is not a recognized UAV");
 }
 
+bool VehicleManager::IsArmed(int v_id)
+{
+    int v_type = this->VehicleTypeFromId(v_id);
+    
+    ROS_ASSERT(db.find(v_type) != db.end());
+    
+    QMap<int, VehicleControl*> * v_db = &db[v_type];
+    auto it = v_db->find(v_id);
+    if(it != v_db->end())
+        return it.value()->IsArmed();
+
+    
+    ROS_ERROR_STREAM("Cannot get armed state for vehicle. No such" 
+                     << this->VehicleStringFromId(v_id).toStdString()
+                     << "with id: " << v_id);    
+    return false;
+}
 
 UGVInfoPtr VehicleManager::GetUGVInfo(int ugv_id)
 {
@@ -401,6 +425,42 @@ UAVInfoPtr VehicleManager::GetUAVInfo(int uav_id)
                 << uav_id);
     
     return ptr;
+}
+
+FlightState VehicleManager::GetFlightState(int uav_id)
+{
+    int v_type = this->VehicleTypeFromId(uav_id);
+    ROS_ASSERT(db.find(v_type) != db.end());
+    ROS_ASSERT(v_type == VehicleType::quad_rotor ||
+               v_type == VehicleType::octo_rotor ||
+               v_type == VehicleType::vtol);
+    
+    QMap<int, VehicleControl*> *v_db = &db[v_type];
+    auto it = v_db->find(uav_id);
+    if(it != v_db->end())
+    {
+        UAVControl *uav = static_cast<UAVControl*> (it.value());
+        return uav->GetFlightState();
+    }
+    
+    ROS_ERROR_STREAM("Cannot retrieve flight state UAV: no such " 
+                << this->VehicleStringFromId(uav_id).toStdString() << " with id: " 
+                << uav_id);
+    
+    return FlightState();
+}
+
+int VehicleManager::GetDistanceToWP(int v_id)
+{
+    int v_type = this->VehicleTypeFromId(v_id);
+    ROS_ASSERT(db.find(v_type) != db.end());
+    
+    QMap<int, VehicleControl*> *v_db = &db[v_type];
+    auto it = v_db->find(v_id);
+    if(it != v_db->end())
+       return it.value()->GetDistanceToWP();
+    
+    return -1;
 }
 
 void VehicleManager::ImageCallback(const sensor_msgs::ImageConstPtr& msg)

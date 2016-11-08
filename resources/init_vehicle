@@ -4,7 +4,7 @@ trap "ctrl_c" INT SIGINT SIGTSTP
 
 ctrl_c()
 {
-    for node in $( rosnode list | grep UAV$ID ); do
+    for node in $( rosnode list | grep V$ID ); do
         uavid=$( echo node | egrep -o [0-9]+ )
         if [ "$uavid" = "$ID" ]; then
             rosnode kill $node

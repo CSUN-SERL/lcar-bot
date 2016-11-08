@@ -13,19 +13,17 @@
              password="ubuntu"
              env-loader="$HOME/lcar-bot-files/lcar_env.sh" />
 
-   <group name="QUAD" ns="QUAD$(arg uav_id)" >
 
-        <include file="$(find machine_vision)/launch/node_object_detection.launch" >
-            <arg name="machine_name" value="$(arg gcs_machine)" />
-        </include>
+    <include file="$(find machine_vision)/launch/node_object_detection.launch" >
+        <arg name="machine_name" value="$(arg gcs_machine)" />
+    </include>
 
-        <include file="$(find rqt_gcs)/launch/jetson.launch" >
-            <arg name="tgt_system" value="$(arg uav_id)" />
-            <arg name="uav_id" value="$(arg uav_id)" required="true" />
-            <arg name="machine_name" value="$(arg robot_machine)" />
-        </include>
+    <include file="$(find rqt_gcs)/launch/jetson.launch" >
+        <arg name="tgt_system" value="$(arg uav_id)" />
+        <arg name="uav_id" value="$(arg uav_id)" required="true" />
+        <arg name="machine_name" value="$(arg robot_machine)" />
+    </include>
 
-        <!--<include file="$(find rqt_gcs)/launch/gcs.launch"/>-->
+    <!--<include file="$(find rqt_gcs)/launch/gcs.launch"/>-->
 
-   </group>
 </launch>

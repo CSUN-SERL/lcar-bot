@@ -62,7 +62,18 @@ public:
      * @return the number of vehicles in the system of type specified by v_type
      */
     int NumVehiclesByType(int v_type);
+    
+    /**
+     * 
+     * @return the number of strictly ugv's in the system
+     */
     int NumUGVs();
+    
+    /**
+     * 
+     * @return the number of vtosl, quad-rotors, and octo-rotors
+     */
+    int NumUAVs();
     int NumQuadRotors();
     int NumOctoRotors();
     int NumVTOLs();
@@ -135,11 +146,11 @@ public slots:
     void SetWaypoint(std::string v_string, const sensor_msgs::NavSatFix& location);
     
     /**
-     * \brief Arm (or Disarm) the vehicle with given v_id
-     *  
-     * @param v_id the vehicle id of the vehicle you want to arm
-     * @param value whether or not to arm the vehicle
+     * \briefnegates the armed status of the vehicle with id v_id
+     * 
+     * @param v_id the id of the vehicle to arm or disarm 
      */
+    
     void Arm(int v_id, bool value);
     
     /**
@@ -175,6 +186,13 @@ public slots:
     
     //Vehicle Info queries//////////////////////////////////////////////////////
 
+     /**
+     * \brief returns the armed status of the vehicle with specified id
+     * @param v_id the id of the vehicle
+     * @return bool armed or disarmed value
+     */
+    bool IsArmed(int v_id);
+    
     /**
      * \brief retrieve information like state, battery, and mission progress about
      *        for the specified UGV (eg, a vehicle of type VehicleType::ugv)
@@ -191,6 +209,13 @@ public slots:
      */
     UAVInfoPtr GetUAVInfo(int uav_id);
     
+    /**
+     * \brief returns the flight state for the vehicle with the given id;
+     * @param uav_id the id of the given uav;
+     */
+    FlightState GetFlightState(int uav_id);
+    
+    int GetDistanceToWP(int v_id);
     //end Vehicle info queries//////////////////////////////////////////////////
     
     

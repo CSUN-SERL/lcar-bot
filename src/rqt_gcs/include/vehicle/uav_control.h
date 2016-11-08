@@ -147,7 +147,7 @@ public:
 
     //Getter Functions
     FlightState GetFlightState()                                        { return UpdateFlightState(); }
-    int GetDistanceToWP()                                               { return CalculateDistance(pose_target, pose_local); }
+    int GetDistanceToWP() override                                      { return CalculateDistance(pose_target, pose_local); }
     float GetMissionProgress();
     MissionMode GetMissionMode()                                        { return mission_mode;}
     std::vector<lcar_msgs::AccessPointStampedPtr>* GetRefAccessPoints() { return &access_pts; }

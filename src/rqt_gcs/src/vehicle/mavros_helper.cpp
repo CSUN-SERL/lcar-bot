@@ -5,8 +5,7 @@ namespace rqt_gcs {
 
 MavrosHelper::MavrosHelper(int uav_id): VehicleControl(uav_id) //Class constructor
 {
-    //TODO: Fix the namespace
-    ros::NodeHandle nh("UAV" + std::to_string(id));
+    ros::NodeHandle nh("V" + std::to_string(id));
 
     //Initialize Service Clients
     sc_arm      = nh.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");

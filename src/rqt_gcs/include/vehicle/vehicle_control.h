@@ -28,6 +28,7 @@ public:
     virtual bool IsArmed()=0;
     virtual void SetMode(std::string)=0;
     virtual void SetWayPoint(const sensor_msgs::NavSatFix& location){};
+    virtual int GetDistanceToWP(){};
     virtual sensor_msgs::NavSatFix GetLocation()=0;
     virtual void SetRTL()=0;
     virtual void StartMission(){}; // todo make pure virtual and add override implementation to UAVControl
@@ -40,7 +41,8 @@ protected:
     virtual void Run()=0;
     virtual void RunLocal()=0;
     virtual void RunGlobal()=0;
-    //virtual void SetWayPoint()=0; // todo implement this in UAVControl
+    
+    ros::Timer run_timer;
     
 };
 

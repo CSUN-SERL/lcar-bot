@@ -47,14 +47,13 @@ UAVControl::~UAVControl()
 
 void UAVControl::InitialSetup()
 {
-    ros::NodeHandle nh(DEF_NS + std::to_string(id));
+    ros::NodeHandle nh("V" + std::to_string(id));
 
-    pub_door_answer         = nh.advertise<lcar_msgs::Query>("object_detection/door/answer",QUEUE_SIZE);
-    pub_heartbeat           = nh.advertise<std_msgs::Int32>("heartbeat/gcs", 0);
+    pub_door_answer = nh.advertise<lcar_msgs::Query>("object_detection/door/answer", QUEUE_SIZE);
+    pub_heartbeat   = nh.advertise<std_msgs::Int32>("heartbeat/gcs", 0);
 
     //Initialize Subscribers
     sub_depth       = nh.subscribe("object_avoidance/depth", QUEUE_SIZE, &UAVControl::DepthCallback, this);
-    //sub_door_query = nh.subscribe("objectdetection/door/query", QUEUE_SIZE, &UAVControl::DoorQueryCallback, this);
     sub_detection  = nh.subscribe("object_detection/access_point/door", QUEUE_SIZE, &UAVControl::DetectionCallback, this);
     sub_heartbeat  = nh.subscribe("heartbeat/uav", 0, &UAVControl::UavHeartbeatCallback, this);
 

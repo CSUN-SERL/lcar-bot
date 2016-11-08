@@ -77,7 +77,7 @@ public slots:
     void OnScoutBuilding();
     void OnStopScout();
     void OnChangeFlightMode(int);
-    void OnUavSelected(QWidget*);
+    void OnUavSelected(VehicleWidget *w);
     void OnArmOrDisarmSelectedUav();
     void OnPauseOrResumeScout();
     void OnAcceptDoorQuery(QWidget *);
@@ -88,9 +88,9 @@ public slots:
     void OnAddVehicleTriggered();
     void OnUpdateCameraFeed(QPixmap img);
 
-    void OnAddUav(int);
-    void OnDeleteUav(int);
-    void OnUAVConnectionToggled(int, int, bool);
+//    void OnAddUav(int);
+//    void OnDeleteUav(int);
+//    void OnUAVConnectionToggled(int, int, bool);
 
     //SETTINGS RELATED
     virtual void OnToggleMachineLearningMode(bool);
@@ -114,7 +114,7 @@ private:
     void InitHelperThread();
 
     // new
-    void SelectVehicleWidget(int v_type, int index);
+    void SelectVehicleWidgetById(int v_id);
     //old
     void SelectUav(int);
     
@@ -130,10 +130,9 @@ private:
     void ToggleArmDisarmButton(bool arm);
     
     Ui::GCS widget;
-    
-    int cur_vehicle;
+        
+    int cur_v_id; // the current selected vehicles id
     int time_counter;
-    int NUM_UAV; //Total number of UAV's in the system
     int num_queries_last;
 
     struct FloatingWidgets
@@ -144,7 +143,6 @@ private:
         VehicleInitWidget *vehicle_init = nullptr;
     } fl_widgets;
 
-    QVector<UAVControl*> active_uavs;
     QMap<int, UAVControl*> uav_db;
     VehicleManager * vm;
     

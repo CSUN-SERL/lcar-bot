@@ -5,7 +5,7 @@ trap "ctrl_c" INT SIGINT SIGTSTP
 
 ctrl_c()
 {
-    for node in $( rosnode list | grep UAV$ID ); do
+    for node in $( rosnode list | grep V$ID ); do
         uavid=$( echo node | egrep -o [0-9]+ )
         if [ "$uavid" = "$ID" ]; then
             rosnode kill $node
@@ -29,12 +29,12 @@ else
 fi
 
 
-NS=UAV$ID
+NS="V$ID"
 
 
 if [ $(lsusb | grep 'ID 2a0b:00f5' | wc -c) -ne 0 -a $# -ne 2 -a "$1" != "mono" ]; then
     ROS_NAMESPACE="$NS"            rosrun machine_vision stereo_driver &
-    ROS_NAMESPACE="$NS"/stereo_cam rosrun stereo_image_proc stereo_image_proc &
+    ROS_NAMESPACE="$NS/stereo_cam" rosrun stereo_image_proc stereo_image_proc &
     ROS_NAMESPACE="$NS"            rosrun machine_vision object_detection &
    # ROS_NAMESPACE="$NS" rosrun machine_vision disparity_view _topic:=stereo_cam/disparity &
 elif [ $(ls /dev/video* | wc -c) -ne 0 ]; then
