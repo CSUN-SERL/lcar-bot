@@ -4,6 +4,7 @@
 #include "rqt_gcs/access_points_container_widget.h"
 #include "rqt_gcs/access_point_widget.h"
 #include "util/image.h"
+#include "util/strings.h"
 
 namespace rqt_gcs
 {

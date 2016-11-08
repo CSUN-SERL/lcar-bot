@@ -8,8 +8,9 @@
 #ifndef _SETTINGSWIDGET_H
 #define _SETTINGSWIDGET_H
 
-#include "rqt_gcs/gcs.h"
+#include "rqt_gcs/vehicle_manager.h"
 #include "ui_SettingsWidget.h"
+#include <QSettings>
 
 namespace rqt_gcs
 {
@@ -20,14 +21,17 @@ namespace rqt_gcs
     {
         Q_OBJECT
     public:
-        SettingsWidget(GCS *);
+        SettingsWidget(VehicleManager * vm);
         virtual ~SettingsWidget();
         
     private:
         Ui::SettingsWidget widget_;
         QString ml_state_;
-        GCS * gcs;
+        VehicleManager *vm;
+        QSettings *settings; 
         
+        ObjectDetectionParameters* od_params;
+
         void setToolTips();
         
         void readGeneralSettings();

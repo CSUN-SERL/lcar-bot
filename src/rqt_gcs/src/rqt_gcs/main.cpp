@@ -6,8 +6,14 @@
  */
 
 #include <QApplication>
+#include "util/strings.h"
 #include "rqt_gcs/gcs.h"
 
+namespace rqt_gcs
+{                        // these are defined globally in util/strings.h
+    QString COMPANY; 
+    QString APPLICATION;
+}
 
 bool LockThisPC()
 {
@@ -29,14 +35,18 @@ int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
     
+    rqt_gcs::COMPANY = "SERL";
+    rqt_gcs::APPLICATION = "LCAR_Bot";
+    
+    
     if(!LockThisPC())
         return -1;
     
     if(!ROSLockThisNetwork())
         return -2;
     
-    ros::init(argc, argv, "ISLURP_GCS");
-    ros::AsyncSpinner spinner(2);
+    ros::init(argc, argv, "GCS");
+    ros::AsyncSpinner spinner(0); // use all processor cores
     spinner.start();
     
     rqt_gcs::GCS gcs;

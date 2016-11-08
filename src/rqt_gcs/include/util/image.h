@@ -14,9 +14,6 @@ namespace rqt_gcs
 
 namespace img 
 {   
-    
-    extern QString image_root_dir_;
-    
     QImage matToQimg(const cv::Mat& in);
     QImage rosImgToQimg(const sensor_msgs::Image& in);
     QImage rosImgToQimg(const sensor_msgs::ImageConstPtr& in);

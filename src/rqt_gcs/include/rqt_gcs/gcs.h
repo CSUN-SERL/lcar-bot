@@ -68,6 +68,9 @@ public:
 public slots:
     void OnTimedUpdate();
 
+    void OnAddVehicleWidget(int v_id);
+    void OnDeleteVehicleWidget(int v_id);
+    
     //////////// Buttons
     void OnExecutePlay();
     void OnCancelPlay();
@@ -83,7 +86,7 @@ public slots:
     void OnSettingsTriggered();
     void OnUnansweredQueriesTriggered();
     void OnAddVehicleTriggered();
-    void OnUpdateCameraFeed();
+    void OnUpdateCameraFeed(QPixmap img);
 
     void OnAddUav(int);
     void OnDeleteUav(int);
@@ -93,24 +96,13 @@ public slots:
     virtual void OnToggleMachineLearningMode(bool);
     
     signals:
-        void NewCameraFeedFrame();
+        void NewCameraFeedFrame(const QPixmap& img);
     
 protected:
     void closeEvent(QCloseEvent* event) override;
     
 private:
-
-    void GetMessage(const geometry_msgs::PoseWithCovarianceStamped& msg);
-    void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
-    void ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg);
-    VehicleWidget* VehicleWidgetAt(int index);
-    
-    //methods for publishing object detection paramerter updates
-    void PublishHitThreshold(double thresh);
-    void PublishStepSize(int step);
-    void PublishPadding(int padding);
-    void PublishScaleFactor(double scale);
-    void PublishMeanShift(bool on);
+    VehicleWidget* VehicleWidgetAt(int v_type, int index);
 
     std::string GetMissionType(std::string file_name);
     lcar_msgs::TargetLocal GetMissionLocal(std::string file_name);
@@ -121,7 +113,11 @@ private:
     void InitSettings();
     void InitHelperThread();
 
+    // new
+    void SelectVehicleWidget(int v_type, int index);
+    //old
     void SelectUav(int);
+    
     void UpdateFlightStateWidgets(); // both the PFD and the text based widget
     void UpdateVehicleWidgets();
 
@@ -132,42 +128,13 @@ private:
 
     void ToggleScoutButtons(bool visible, QString icon_type = "pause");
     void ToggleArmDisarmButton(bool arm);
-
-    void AdvertiseObjectDetection();
     
     Ui::GCS widget;
     
-    ros::NodeHandle nh;
-    ros::ServiceServer server;
-    lcar_msgs::Query msg;
-    image_transport::ImageTransport it_stereo{nh};
-    QQueue<QPixmap> img_q;
-    int img_q_max_size;
-    
-    int cur_uav;
+    int cur_vehicle;
     int time_counter;
     int NUM_UAV; //Total number of UAV's in the system
     int num_queries_last;
-
-    struct ObjectDetectionMessageHandlers // publishers and subscribers
-    {
-        ros::Publisher pub_hit_thresh;
-        ros::Publisher pub_step_size;
-        ros::Publisher pub_padding;
-        ros::Publisher pub_scale_factor;
-        ros::Publisher pub_mean_shift;
-        ros::Subscriber sub_od_request;
-    } od_handlers;
-
-    struct ObjectDetectionParamaters // object detection parameters
-    {
-        //defaults
-        double hit_thresh = 0; // displayed as a decimal
-        int step_size = 16;
-        int padding = 8;
-        double scale_factor = 1.15; // displayed as a decimal
-        bool mean_shift = false;
-    } od_params;
 
     struct FloatingWidgets
     {
@@ -180,19 +147,17 @@ private:
     QVector<UAVControl*> active_uavs;
     QMap<int, UAVControl*> uav_db;
     VehicleManager * vm;
+    
+    QMap<int/*VehicleType*/, QVBoxLayout*> layout_by_v_type;
 
     std::vector<lcar_msgs::QueryPtr> *vec_uav_queries_ptr;
 
     image_transport::Subscriber sub_stereo;
 
     QTimer *update_timer;
-    QString temp_data;
-
-    QSettings *settings;
 
     GCSHelperThread *thread_uav_monitor;
-    QMutex uav_mutex,
-           img_mutex;
+    QMutex uav_mutex;
     QWaitCondition num_uav_changed;
     
 };

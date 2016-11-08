@@ -25,6 +25,8 @@ public:
     void SetBattery(int battery);
     void SetCondition(const QString& cond); 
     void SetName(const QString name);
+    void SetId(int id);
+    int Id();
     
     bool ToggleButton(bool enable);
     bool IsButtonEnabled();
@@ -32,6 +34,7 @@ public:
     
 private:
     Ui::VehicleListWidget widget;
+    int v_id; //vehicle_id;
 };
 
 }

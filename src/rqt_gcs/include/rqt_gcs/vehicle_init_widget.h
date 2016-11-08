@@ -30,7 +30,7 @@ public slots:
     void OnAddInitRequest(QString machine_name, int vehicle_id);
     
 private:
-    void DisplayVehicleInitRequests();
+    void DisplayInitRequests();
     
     Ui::VehicleInitWidget widget;\
     VehicleManager *vm;

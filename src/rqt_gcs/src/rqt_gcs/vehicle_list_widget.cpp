@@ -13,8 +13,9 @@
 namespace rqt_gcs
 {
 
+//public////////////////////////////////////////////////////////////////////////
 VehicleWidget::VehicleWidget(QWidget * parent):
-MyQWidget(parent)
+    MyQWidget(parent)
 {
     widget.setupUi(this);
 }
@@ -45,6 +46,16 @@ void VehicleWidget::SetName(const QString name)
     widget.VehicleNameLine->setText(name);
 }
 
+void VehicleWidget::SetId(int id)
+{
+    this->v_id = id;
+}
+
+int VehicleWidget::Id()
+{
+    return v_id;
+}
+
 bool VehicleWidget::ToggleButton(bool enable)
 {
     widget.VehicleSelectButton->setEnabled(enable); 
@@ -64,5 +75,7 @@ const QPushButton* VehicleWidget::Button()
 {
     return widget.VehicleSelectButton;
 }
+
+
 
 }
