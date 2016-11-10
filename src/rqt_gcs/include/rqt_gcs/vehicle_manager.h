@@ -56,9 +56,7 @@ class VehicleManager : public QObject
 public:
     VehicleManager(QObject *parent=0);
     virtual~VehicleManager();
-    
-    void AddVehicle(int v_id);
-    void DeleteVehicle(int v_id);
+    void ConnectToUIAdapter();
     
     /**
      * @return the number of vehicles in the system
@@ -100,8 +98,16 @@ public:
      */
     const QMap<int, QString>& GetInitRequests();
 
-    
+    /**
+     * \brief subscribes the GCS to the given image topic
+     * @param topic the fully formed image topic
+     */
     void SubscribeToImageTopic(QString& topic);
+    
+    int * GetAcceptedUAVImages(int quad_id);
+    
+    int * GetRejectedUAVImages(int quad_id);
+    
     
     /**
      * Accessor function used by SettingsWidget to show Object Detection Parameters
@@ -114,33 +120,30 @@ public:
     
     void AdvertiseObjectDetection();
     
-    //methods for publishing object detection paramerter updates
-    void PublishHitThreshold(double thresh);
-    void PublishStepSize(int step);
-    void PublishPadding(int padding);
-    void PublishScaleFactor(double scale);
-    void PublishMeanShift(bool on);
-    
-signals:
-    //todo add slot to connect to this signal in GCS
-    void NotifyOperator(QString message);
-    void AddToInitWidget(QString machine_name, int vehicle_id);
-    void AddVehicleWidget(int v_id);
-    void DeleteVehicleWidget(int v_id);
-    void NewImageFrame(QPixmap img);
-    
 public slots:
-    void OnOperatorInitResponse(const int vehicle_id);
+    
+    void AddVehicle(int v_id);
+    void OnDeleteVehicle(int v_id);\
+
+    void OnOperatorAddVehicle(const int vehicle_id);
     // todo add all main gui button slots
     
-    void OnExecutePlay();
-    void OnCancelPlay();
     void OnScoutBuilding(int quad_id, QString Building);
-    void OnStopScout();
-    void OnChangeFlightMode(int);
-    void OnPauseOrResumeScout();
-    void OnAcceptDoorQuery(QWidget *);
-    void OnRejectDoorQuery(QWidget *);
+    void OnPauseMission(int v_id);
+    void OnResumeMission(int v_id);
+    void OnCancelMission(int v_id);
+    
+    void OnExecutePlay();
+    void OnPausePlay();
+    void OnResumePlay();
+    void OnCancelPlay();
+    
+    //methods for publishing object detection paramerter updates
+    void OnPublishHitThreshold(double thresh);
+    void OnPublishStepSize(int step);
+    void OnPublishPadding(int padding);
+    void OnPublishScaleFactor(double scale);
+    void OnPublishMeanShift(bool on);
     
     //Vehicle Commands//////////////////////////////////////////////////////////
     /**
@@ -155,7 +158,7 @@ public slots:
      * @param v_id the vehicles internal id
      * @param location the container for latitude, longitude, and latitude
      */
-    void SetWaypoint(int v_id, const sensor_msgs::NavSatFix& location);
+    void OnSetWaypoint(int v_id, const sensor_msgs::NavSatFix& location);
     
     /**
      * \brief negates the armed status of the vehicle with id v_id
@@ -163,7 +166,7 @@ public slots:
      * @param v_id the id of the vehicle to arm or disarm 
      */
     
-    void Arm(int v_id, bool value);
+    void OnArm(int v_id, bool value);
     
     /**
      * \brief Set the UAV Flight Mode for the desired UAV, which could be of type
@@ -173,7 +176,7 @@ public slots:
      * @param mode Mode to Set: Choose from Stabilize, Alt Hold, Auto, Guided,
      *        Loiter, RTL, or Circle
     */
-    void SetMode(int v_id, std::string mode);
+    void OnSetMode(int v_id, QString mode);
     
     //todo the rest of the vehicle commands
     //end VehicleCommands///////////////////////////////////////////////////////
@@ -182,7 +185,7 @@ public slots:
      * causes the vehicle to return to launch
      * @param v_id the id of the vehicle on which to call return to launch
      */
-    void SetRTL(int v_id);
+    void OnSetRTL(int v_id);
 
     //Vehicle Info queries//////////////////////////////////////////////////////
 
@@ -207,6 +210,8 @@ public slots:
      * @param uav_id the id of the given uav;
      */
     FlightState GetFlightState(int uav_id);
+    
+    StatePtr GetState(int v_id);
     
     /**
      * \brief return the distance in meters to the desired vehicles current waypoint
@@ -289,8 +294,6 @@ private:
      * have the vehicle id as the key, and a VehicleControl* as the value. 
      */
     QMap<int/*VehicleType*/, QMap<int, VehicleControl*>> db; //the database
-    
-    UIAdapter *ui_adapter;
     
     /*
      * contains all the vehicle init. requests. see @OnVehicleInitRequested().

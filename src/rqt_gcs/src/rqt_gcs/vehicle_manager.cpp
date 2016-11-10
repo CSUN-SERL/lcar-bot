@@ -41,6 +41,63 @@ VehicleManager::~VehicleManager()
 {
 }
 
+void VehicleManager::ConnectToUIAdapter()
+{
+    UIAdapter *ui_adapter = UIAdapter::Instance();
+    
+    connect(ui_adapter, &UIAdapter::Arm,
+            this, &VehicleManager::OnArm);
+    
+    connect(ui_adapter, &UIAdapter::SetWayPoint,
+            this, &VehicleManager::OnSetWaypoint);
+    
+    connect(ui_adapter, &UIAdapter::SetMode,
+            this, &VehicleManager::OnSetMode);
+    
+    connect(ui_adapter, &UIAdapter::ScoutBuilding,
+            this, &VehicleManager::OnScoutBuilding);
+    
+    connect(ui_adapter, &UIAdapter::PauseMission,
+            this, &VehicleManager::OnPauseMission);
+    
+    connect(ui_adapter, &UIAdapter::ResumeMission, 
+            this, &VehicleManager::OnResumeMission);
+    
+    connect(ui_adapter, &UIAdapter::CancelMission,
+            this, &VehicleManager::OnCancelPlay);
+    
+    connect(ui_adapter, &UIAdapter::ExecutePlay,
+            this, &VehicleManager::OnExecutePlay);
+    
+    connect(ui_adapter, &UIAdapter::PausePlay,
+            this, &VehicleManager::OnPausePlay);
+    
+    connect(ui_adapter, &UIAdapter::ResumePlay,
+            this, &VehicleManager::OnResumePlay);
+    
+    connect(ui_adapter, &UIAdapter::CancelPlay,
+            this, &VehicleManager::OnCancelPlay);
+    
+    connect(ui_adapter, &UIAdapter::PublishHitThreshold,
+            this, &VehicleManager::OnPublishHitThreshold);
+    
+    connect(ui_adapter, &UIAdapter::PublishStepSize,
+            this, &VehicleManager::OnPublishStepSize);
+    
+    connect(ui_adapter, &UIAdapter::PublishPadding,
+            this, &VehicleManager::OnPublishPadding);
+    
+    connect(ui_adapter, &UIAdapter::PublishMeanShift,
+            this, &VehicleManager::OnPublishMeanShift);
+        
+    connect(ui_adapter, &UIAdapter::AddVehicle,
+            this, &VehicleManager::OnOperatorAddVehicle);
+    
+    connect(ui_adapter, &UIAdapter::DeleteVehicle,
+            this, &VehicleManager::OnDeleteVehicle);
+    
+}
+
 void VehicleManager::AddVehicle(int v_id)
 {
     int v_type = this->VehicleTypeFromId(v_id);
@@ -65,14 +122,14 @@ void VehicleManager::AddVehicle(int v_id)
                         << this->VehicleStringFromId(v_id).toStdString()
                         << " with id: " << v_id <<  " to database.");
         
-        emit ui_adapter->AddVehicleWidget(v_id);
+        emit UIAdapter::Instance()->AddVehicleWidget(v_id);
     }
     else
         ROS_ERROR_STREAM("Tried to add vehicle of invalid type: "
                          << this->VehicleStringFromId(v_id).toStdString());
 }
 
-void VehicleManager::DeleteVehicle(int v_id)
+void VehicleManager::OnDeleteVehicle(int v_id)
 {          
     widget_mutex.lock();
     
@@ -84,7 +141,7 @@ void VehicleManager::DeleteVehicle(int v_id)
     QMap<int, VehicleControl*>::Iterator it = v_db->find(v_id);
     if(it != v_db->end())
     {
-        emit ui_adapter->DeleteVehicleWidget(v_id);
+        emit UIAdapter::Instance()->DeleteVehicleWidget(v_id);
         VehicleControl *vehicle = it.value();
         v_db->erase(it);
 
@@ -166,6 +223,36 @@ void VehicleManager::SubscribeToImageTopic(QString& topic)
                                      &VehicleManager::ImageCallback, this);
 }
 
+int * VehicleManager::GetAcceptedUAVImages(int quad_id)
+{
+    int v_type = this->VehicleTypeFromId(quad_id);
+    Q_ASSERT(v_type == VehicleType::quad_rotor);
+    
+    VehicleControl *vc = this->FindVehicle(v_type, quad_id);
+    if(vc != nullptr)
+    {
+        UAVControl * uav = static_cast<UAVControl*>(vc);
+        return uav->GetAccepted_images();
+    }
+    
+    return nullptr;
+}
+
+int * VehicleManager::GetRejectedUAVImages(int quad_id)
+{
+    int v_type = this->VehicleTypeFromId(quad_id);
+    Q_ASSERT(v_type == VehicleType::quad_rotor);
+    
+    VehicleControl *vc = this->FindVehicle(v_type, quad_id);
+    if(vc != nullptr)
+    {
+        UAVControl * uav = static_cast<UAVControl*>(vc);
+        return uav->GetRejected_images();
+    }
+    
+    return nullptr;
+}
+
 ObjectDetectionParameters* VehicleManager::GetObjectDetectionParams()
 {
     return &od_params;
@@ -182,35 +269,35 @@ void VehicleManager::AdvertiseObjectDetection()
                                               &VehicleManager::ReceivedObjectDetectionRequest, this);
 }
 
-void VehicleManager::PublishHitThreshold(double thresh)
+void VehicleManager::OnPublishHitThreshold(double thresh)
 {
     std_msgs::Float64 msg;
     msg.data = thresh;
     od_handlers.pub_hit_thresh.publish(msg);
 }
 
-void VehicleManager::PublishStepSize(int step)
+void VehicleManager::OnPublishStepSize(int step)
 {
     std_msgs::Int32 msg;
     msg.data = step;
     od_handlers.pub_step_size.publish(msg);
 }
 
-void VehicleManager::PublishPadding(int padding)
+void VehicleManager::OnPublishPadding(int padding)
 {
     std_msgs::Int32 msg;
     msg.data = padding;
     od_handlers.pub_padding.publish(msg);
 }
 
-void VehicleManager::PublishScaleFactor(double scale)
+void VehicleManager::OnPublishScaleFactor(double scale)
 {
     std_msgs::Float64 msg;
     msg.data = scale;
     od_handlers.pub_scale_factor.publish(msg);
 }
 
-void VehicleManager::PublishMeanShift(bool on)
+void VehicleManager::OnPublishMeanShift(bool on)
 {
     std_msgs::Int32 msg;
     msg.data = on;
@@ -219,7 +306,7 @@ void VehicleManager::PublishMeanShift(bool on)
 
 //public slots://///////////////////////////////////////////////////////////////
 
-void VehicleManager::OnOperatorInitResponse(const int vehicle_id)
+void VehicleManager::OnOperatorAddVehicle(const int vehicle_id)
 {
     QMap<int, QString>::Iterator it = init_requests.find(vehicle_id);
     if(it != init_requests.end())
@@ -235,6 +322,16 @@ void VehicleManager::OnOperatorInitResponse(const int vehicle_id)
 }
 
 void VehicleManager::OnExecutePlay()
+{
+    //todo
+}
+
+void VehicleManager::OnPausePlay()
+{
+    //todo
+}
+
+void VehicleManager::OnResumePlay()
 {
     //todo
 }
@@ -278,11 +375,60 @@ void VehicleManager::OnScoutBuilding(int quad_id, QString building)
     }
     else
         ROS_ERROR_STREAM("Cannot set waypoint: No such" 
-                         << this->VehicleStringFromId(quad_id).toStdString()
-                         << "with id: " << quad_id);
+                << this->VehicleStringFromId(quad_id).toStdString()
+                << "with id: " << quad_id);
 }
 
-void VehicleManager::SetWaypoint(int v_id, const sensor_msgs::NavSatFix& location)
+void VehicleManager::OnPauseMission(int v_id)
+{
+    VehicleControl *vc = this->FindVehicle(v_id);
+    if(vc != nullptr)
+    {
+        MissionMode m = vc->GetMissionMode();
+        if(m == MissionMode::active)
+            vc->PauseMission();
+        else
+            ROS_WARN_STREAM("Cannot pause non existent mission for "
+                    << this->VehicleStringFromId(v_id).toStdString()
+                    << "with id: " << v_id);
+    }
+    else
+        ROS_ERROR_STREAM("Cannot pause mission: No such" 
+                << this->VehicleStringFromId(v_id).toStdString()
+                << "with id: " << v_id);
+}
+
+void VehicleManager::OnResumeMission(int v_id)
+{
+    VehicleControl *vc = this->FindVehicle(v_id);
+    if(vc != nullptr)
+    {
+        MissionMode m = vc->GetMissionMode();
+        if(m == MissionMode::paused)
+            vc->ResumeMission();
+        else
+            ROS_WARN_STREAM("Cannot resume non existent mission for "
+                    << this->VehicleStringFromId(v_id).toStdString()
+                    << "with id: " << v_id);
+    }
+    else
+        ROS_ERROR_STREAM("Cannot pause mission: No such" 
+                << this->VehicleStringFromId(v_id).toStdString()
+                << "with id: " << v_id);
+}
+
+void VehicleManager::OnCancelMission(int v_id)
+{
+    VehicleControl *vc = this->FindVehicle(v_id);
+    if(vc != nullptr)
+        vc->StopMission();
+    else
+        ROS_ERROR_STREAM("Cannot cancel mission: No such" 
+                         << this->VehicleStringFromId(v_id).toStdString()
+                         << "with id: " << v_id);
+}
+
+void VehicleManager::OnSetWaypoint(int v_id, const sensor_msgs::NavSatFix& location)
 {
     VehicleControl *vc = this->FindVehicle(v_id);
     if(vc != nullptr)
@@ -293,7 +439,7 @@ void VehicleManager::SetWaypoint(int v_id, const sensor_msgs::NavSatFix& locatio
                          << "with id: " << v_id);
 }
 
-void VehicleManager::Arm(int v_id, bool value)
+void VehicleManager::OnArm(int v_id, bool value)
 {
     VehicleControl *vc = this->FindVehicle(v_id);
     if(vc != nullptr)
@@ -304,7 +450,7 @@ void VehicleManager::Arm(int v_id, bool value)
                          << "with id: " << v_id);
 }
 
-void VehicleManager::SetMode(int v_id, std::string mode)
+void VehicleManager::OnSetMode(int v_id, QString mode)
 {
     int v_type = this->VehicleTypeFromId(v_id);
     Q_ASSERT(v_type == VehicleType::quad_rotor ||
@@ -313,14 +459,14 @@ void VehicleManager::SetMode(int v_id, std::string mode)
     
     VehicleControl *vc = this->FindVehicle(v_type, v_id);
     if(vc != nullptr)
-        vc->SetMode(mode);
+        vc->SetMode(mode.toStdString());
     else
         ROS_ERROR_STREAM("Cannot set Flight mode for UAV. No such" 
                          << this->VehicleStringFromId(v_id).toStdString()
                          << "with id: " << v_id);
 }
 
-void VehicleManager::SetRTL(int v_id)
+void VehicleManager::OnSetRTL(int v_id)
 {
     VehicleControl *vc = this->FindVehicle(v_id);
     if(vc != nullptr)
@@ -394,6 +540,21 @@ FlightState VehicleManager::GetFlightState(int uav_id)
     return FlightState();
 }
 
+StatePtr VehicleManager::GetState(int v_id)
+{
+    StatePtr ptr;
+    VehicleControl * vc = this->FindVehicle(v_id);
+    if(vc != nullptr)
+    {
+        ptr = boost::make_shared<State>();
+        ptr->armed = vc->IsArmed();
+        ptr->battery = vc->GetBattery();
+        ptr->mode = vc->GetMode();
+    }
+    
+    return ptr;
+}
+
 int VehicleManager::GetDistanceToWP(int v_id)
 {
     VehicleControl *vc = this->FindVehicle(v_id);
@@ -433,17 +594,17 @@ QWaitCondition* VehicleManager::GetWaitCondition()
 void VehicleManager::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
     QPixmap img = img::rosImgToQpixmap(msg);
-    emit ui_adapter->NewImageFrame(img);
+    emit UIAdapter::Instance()->NewImageFrame(img);
 }
 
 void VehicleManager::ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg)
 {
     ROS_INFO_STREAM("received object detection paramater request");
-    this->PublishHitThreshold(od_params.hit_thresh);
-    this->PublishStepSize(od_params.step_size);
-    this->PublishPadding(od_params.padding);
-    this->PublishScaleFactor(od_params.scale_factor);
-    this->PublishMeanShift(od_params.mean_shift);
+    this->OnPublishHitThreshold(od_params.hit_thresh);
+    this->OnPublishStepSize(od_params.step_size);
+    this->OnPublishPadding(od_params.padding);
+    this->OnPublishScaleFactor(od_params.scale_factor);
+    this->OnPublishMeanShift(od_params.mean_shift);
 }
 
 //private://////////////////////////////////////////////////////////////////////
@@ -512,8 +673,8 @@ bool VehicleManager::OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req
         res.message = "request for " + req.machine_name + " acknowledged with id: " 
                     + std::to_string(res.vehicle_id);
         
-        emit ui_adapter->NotifyOperator("Vehicle initialization requested");
-        emit ui_adapter->AddToInitWidget(QString(req.machine_name.c_str()), res.vehicle_id);
+        emit UIAdapter::Instance()->NotifyOperator("Vehicle initialization requested");
+        emit UIAdapter::Instance()->AddToInitWidget(QString(req.machine_name.c_str()), res.vehicle_id);
 
         return true;
     }

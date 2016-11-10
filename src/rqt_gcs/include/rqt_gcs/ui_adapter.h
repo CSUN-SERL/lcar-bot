@@ -10,6 +10,9 @@
 #define UIADAPTER_H
 
 #include <QObject>
+#include <QPixmap>
+
+#include <sensor_msgs/NavSatFix.h>
 
 namespace rqt_gcs
 {
@@ -18,18 +21,24 @@ class UIAdapter : public QObject
 {
     Q_OBJECT
 public:
-    UIAdapter();
-    virtual ~UIAdapter();
+    UIAdapter(){};
+    virtual ~UIAdapter(){};
+    
+    static UIAdapter* Instance() 
+    { 
+        if(!instance)
+            instance = new UIAdapter();
+    
+        return instance;
+    };
     
 signals:
 
-    // backend -> ui
-    void NotifyOperator(QString message);
-    
-    // ui -> backend
+    // GCSMainWindow/VOCE -> backend
     void Arm(int v_id, bool value);
     void SetWayPoint(int v_id, sensor_msgs::NavSatFix waypoint);
     void SetMode(int v_id, QString mode);
+    void SetRTL(int v_id);
     
     void ScoutBuilding(int quad_id, QString building);
     void PauseMission(int v_id);
@@ -41,20 +50,35 @@ signals:
     void ResumePlay();
     void CancelPlay();
     
-    void SetOnlineMode(bool on);
+    void SetMachineLearningMode(bool online);
+    void PublishHitThreshold(double hit_thresh);
+    void PublishStepSize(int step_size);
+    void PublishPadding(int padding);
+    void PublishScaleFactor(double scale);
+    void PublishMeanShift(bool mean_shift);
+    
+    void AddVehicle(int v_id);
+    void DeleteVehicle(int v_id);
     
     
-    // GUI specific
+    // backend -> GCSMainWindow/VOCE
+    void NotifyOperator(QString message);
+
+    
+    // backend -> GCSMainWindow
     void NewImageFrame(QPixmap img);
-    void AddToInitWidget(QString machine_name, int vehicle_id);
     void AddVehicleWidget(int v_id);
     void DeleteVehicleWidget(int v_id);
     
-    // VOICE UI specific
+    // backend -> VehicleInitWidget
+    void AddToInitWidget(QString machine_name, int v_id);
+    
+    
+    // backend -> VOCE
     
     
 private:
-
+    static UIAdapter *instance;
 };
 
 }

@@ -160,9 +160,9 @@ public:
         this->rejected_images = rejected_images;
     }
 
-    int GetRejected_images() const
+    int* GetRejected_images()
     {
-        return rejected_images;
+        return &rejected_images;
     }
 
     void SetAccepted_images(int accepted_images)
@@ -170,9 +170,9 @@ public:
         this->accepted_images = accepted_images;
     }
 
-    int GetAccepted_images() const
+    int* GetAccepted_images()
     {
-        return accepted_images;
+        return &accepted_images;
     }
 
 private:

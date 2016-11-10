@@ -21,9 +21,6 @@ class VehicleInitWidget : public QWidget
 public:
     VehicleInitWidget(VehicleManager *vm);
     virtual ~VehicleInitWidget();
-    
-signals:
-    void AddVehicleToDb(int machine_name);
 
 public slots:
     void OnAddVehicleBtnClicked();

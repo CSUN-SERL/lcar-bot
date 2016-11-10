@@ -6,11 +6,12 @@
  * Created on October 19, 2016, 4:04 PM
  */
 
-#include "rqt_gcs/vehicle_init_widget.h"
-#include "rqt_gcs/vehicle_manager.h"
 #include "ui_VehicleInitWidget.h"
 
 #include "util/debug.h"
+#include "rqt_gcs/ui_adapter.h"
+#include "rqt_gcs/vehicle_manager.h"
+#include "rqt_gcs/vehicle_init_widget.h"
 
 namespace rqt_gcs
 {
@@ -30,14 +31,9 @@ vm(vm)
     
     connect(widget.btn_close, &QPushButton::clicked,
             this, [=](){ this->close(); } );
-            
-    connect(this, &VehicleInitWidget::AddVehicleToDb,
-            vm, &VehicleManager::OnOperatorInitResponse);
-            
-    connect(this, &VehicleInitWidget::AddVehicleToDb,
-            vm, &VehicleManager::OnOperatorInitResponse);
     
-    connect(vm, &VehicleManager::AddToInitWidget, 
+    UIAdapter *ui_adapter = UIAdapter::Instance();
+    connect(ui_adapter, &UIAdapter::AddToInitWidget, 
             this, &VehicleInitWidget::OnAddInitRequest);
 
     this->DisplayInitRequests();
@@ -58,22 +54,22 @@ void VehicleInitWidget::OnAddVehicleBtnClicked()
     {
         if(items[i]->column() == 2)
         {
-            emit AddVehicleToDb(items[i]->text().toInt());
+            emit UIAdapter::Instance()->AddVehicle(items[i]->text().toInt());
             widget.view->removeRow(items[i]->row());
         }
     }
 }
 
-void VehicleInitWidget::OnAddInitRequest(QString machine_name, int vehicle_id)
+void VehicleInitWidget::OnAddInitRequest(QString machine_name, int v_id)
 {
-    qCDebug(lcar_bot) << "vehicle_id: " << vehicle_id;
-    QString v_type = vm->VehicleStringFromId(vehicle_id);
+    qCDebug(lcar_bot) << "vehicle_id: " << v_id;
+    QString v_type = vm->VehicleStringFromId(v_id);
 
     int row = widget.view->rowCount();
     widget.view->insertRow(row); // rowCount goes up by 1
     widget.view->setItem(row, 0, new QTableWidgetItem(machine_name));
     widget.view->setItem(row, 1, new QTableWidgetItem(v_type));
-    widget.view->setItem(row, 2, new QTableWidgetItem(QString::number(vehicle_id)));
+    widget.view->setItem(row, 2, new QTableWidgetItem(QString::number(v_id)));
 }
 
 //private://////////////////////////////////////////////////////////////////////

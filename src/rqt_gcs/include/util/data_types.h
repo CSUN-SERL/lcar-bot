@@ -54,6 +54,7 @@ typedef struct State_
 {
     float battery;
     int mission_progress;
+    std::string mode;
     bool armed;
 } State;
 typedef boost::shared_ptr<State> StatePtr;

@@ -60,7 +60,7 @@ class GCS : public QMainWindow
     friend class SettingsWidget;
 
 public:
-    GCS(UIAdapter * uia);
+    GCS(VehicleManager * vm);
     virtual ~GCS();
     
     
@@ -126,7 +126,6 @@ private:
     void ToggleArmDisarmButton(bool arm);
     
     Ui::GCS widget;
-    UIAdapter *ui_adapter;
     
     int cur_v_id; // the current selected vehicles id
     int time_counter;
@@ -145,39 +144,8 @@ private:
     
     QMap<int/*VehicleType*/, QVBoxLayout*> layout_by_v_type;
 
-    image_transport::Subscriber sub_stereo;
-
     QTimer *update_timer;
-
-    GCSHelperThread *thread_uav_monitor;
-    QMutex uav_mutex;
-    QWaitCondition num_uav_changed;
     
-};
-
-class GCSHelperThread : public QThread
-{
-  Q_OBJECT
-
-public:
-    GCSHelperThread(GCS *);
-    ~GCSHelperThread();
-    virtual void Stop();
-    
-signals:
-    void AddUav(int); // uav_id
-    void DeleteUav(int);
-    void ToggleUavConnection(int, int, bool);
-    
-private:
-    GCS * gcs;
-    
-    void ParseUavNamespace(std::map<int, int>&);
-    void MonitorUavNamespace();
-    void MonitorUavConnections();
-    void RunUavs();
-    
-    virtual void run() override;
 };
 
 }

@@ -36,6 +36,8 @@ public:
     virtual void ResumeMission(){ mission_mode = active; };
     virtual void StopMission(){ mission_mode = stopped; };
     virtual MissionMode GetMissionMode(){ return mission_mode; };
+    virtual int GetBattery() { return battery; };
+    virtual std::string GetMode() { return  mode; }
     
 protected:
 
@@ -45,6 +47,8 @@ protected:
     
     ros::Timer run_timer;
     MissionMode mission_mode;
+    int battery;
+    std::string mode;
     
 };
 

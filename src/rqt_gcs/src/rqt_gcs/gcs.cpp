@@ -27,13 +27,12 @@ namespace rqt_gcs
         QString image_root_dir_; // defined globally in util/strings.h
     }
 
-GCS::GCS(UIAdapter *uia):
-    ui_adapter(uia),
+GCS::GCS(VehicleManager *vm):
     cur_v_id(-1),
     time_counter(0),
     num_queries_last(0),
     update_timer(new QTimer(this)),
-    vm(new VehicleManager())
+    vm(vm)
 {
     widget.setupUi(this);
     
@@ -62,10 +61,13 @@ GCS::GCS(UIAdapter *uia):
     connect(update_timer, &QTimer::timeout,
             this, &GCS::OnTimedUpdate);
     
-    connect(vm, &VehicleManager::NewImageFrame, 
+    UIAdapter *ui_adapter = UIAdapter::Instance();
+    connect(ui_adapter, &UIAdapter::NewImageFrame, 
             this, &GCS::OnUpdateCameraFeed);
-    connect(vm, &VehicleManager::AddVehicleWidget,
+    connect(ui_adapter, &UIAdapter::AddVehicleWidget,
             this, &GCS::OnAddVehicleWidget);
+    connect(ui_adapter, &UIAdapter::SetMachineLearningMode,
+            this, &GCS::OnToggleMachineLearningMode);
     
     dbg::InitDbg();
     this->InitMenuBar();
@@ -265,8 +267,6 @@ void GCS::OnTimedUpdate()
     if(vm->NumVehiclesByType(VehicleType::quad_rotor) == 0)
         return;
 
-    uav_mutex.lock();
-
     if(time_counter++ >= 100)
     {
         this->UpdateQueries();
@@ -275,8 +275,6 @@ void GCS::OnTimedUpdate()
 
     this->UpdateFlightStateWidgets();
     this->UpdateVehicleWidgets();
-
-    uav_mutex.unlock();
 }
 
 void GCS::ClearQueries()
@@ -308,9 +306,9 @@ void GCS::UpdateQueries()
         qw->SetImage(image);
 
         connect(qw->YesButton(), &QPushButton::clicked,
-                this, [=](){OnAcceptDoorQuery(qw); });
+                this, [=](){ OnAcceptDoorQuery(qw); });
         connect(qw->RejectButton(), &QPushButton::clicked,
-                this, [=](){OnRejectDoorQuery(qw); });
+                this, [=](){ OnRejectDoorQuery(qw); });
                 
         //add to user interface
         widget.layout_queries->addWidget(qw);
@@ -321,32 +319,42 @@ void GCS::UpdateQueries()
 
 void GCS::AnswerQuery(QWidget * qw, QString ap_type, bool accepted)
 {
-//    int index = widget.layout_queries->indexOf(qw);
-//    std::vector<lcar_msgs::QueryPtr> * vec_uav_queries_ptr = active_uavs[cur_v_id]->GetRefDoorQueries();
-//    lcar_msgs::QueryPtr door = vec_uav_queries_ptr->at(index);
-//
-//    UAVControl* uav = active_uavs[cur_v_id];
-//    QString path = img::image_root_dir_ % "/queries";
-//    QString file;
-//    if(accepted)
-//    {
-//        path.append("/accepted/" % ap_type % "/uav_" % QString::number(uav->id));
-//        file.append("img_" % QString::number(uav->accepted_images++) % ".jpg");
-//    }
-//    else
-//    {
-//        path.append("/rejected/" % ap_type % "/uav_" % QString::number(uav->id));
-//        file.append("img_" % QString::number(uav->rejected_images++) % ".jpg");
-//    }
-//
-//    img::saveImage(path, file, door->img);
-//
-//    vec_uav_queries_ptr->erase(vec_uav_queries_ptr->begin() + index);
-//    delete qw;
-//
-//    door->is_accepted = accepted;
-//    num_queries_last--;
-//    //uav->SendDoorResponse(doormsg);
+    int index = widget.layout_queries->indexOf(qw);
+    std::vector<lcar_msgs::QueryPtr> * vec_uav_queries_ptr = vm->GetUAVDoorQueries(cur_v_id);
+    lcar_msgs::QueryPtr door = vec_uav_queries_ptr->at(index);
+
+    QString path = img::image_root_dir_ % "/queries";
+    QString file;
+    if(accepted)
+    {
+        path.append("/accepted/" % ap_type % "/uav_" % QString::number(cur_v_id));
+        int * accepted_images = vm->GetAcceptedUAVImages(cur_v_id);
+        if(accepted_images)
+        {
+            file.append("img_" % QString::number(*accepted_images) % ".jpg");
+            (*accepted_images)++;
+            img::saveImage(path, file, door->img);
+        }
+        else
+            qCDebug(lcar_bot) << "unable to find quad_rotor with id: " << cur_v_id;
+    }
+    else
+    {
+        path.append("/rejected/" % ap_type % "/uav_" % QString::number(cur_v_id));
+        int * rejected_images = vm->GetRejectedUAVImages(cur_v_id);
+        if(rejected_images)
+        {
+        file.append("img_" % QString::number(*rejected_images) % ".jpg");
+        (*rejected_images)++;
+        img::saveImage(path, file, door->img);
+        }
+    }
+
+    vec_uav_queries_ptr->erase(vec_uav_queries_ptr->begin() + index);
+    delete qw;
+
+    door->is_accepted = accepted;
+    num_queries_last--;
 }
 
 void GCS::OnAcceptDoorQuery(QWidget *qw)
@@ -364,38 +372,11 @@ void GCS::OnExecutePlay()
     if(vm->NumTotalVehicles() == 0)
         return;
 
-    int play_num = widget.cmbo_box_play_book->currentIndex();
+    QString play = widget.cmbo_box_play_book->currentText();
 
-    if(play_num == 0)
-    {
-        for(int i = 0; i < vm->NumVehiclesByType(VehicleType::quad_rotor); i++)
-        {
-            std::string file_name = "play " + std::to_string(i + 1);
+    emit UIAdapter::Instance()->ExecutePlay(play);
 
-            
-            vm->Arm(VehicleType::quad_rotor+i, true);
-            std::string mission_type = this->GetMissionType(file_name);
-            ROS_WARN_STREAM("called get mission type");
-            if(mission_type.compare("local") == 0)
-            {
-//                vm->ScoutBuilding(GetMissionLocal(file_name));
-            }
-            else
-//                active_uavs[i]->ScoutBuilding(GetMissionGlobal(file_name));
-
-            ROS_INFO_STREAM("Scouting Building " << i);
-        }
-    }
-    else if(play_num == 1)
-    {
-        //todo
-    }
-    else if(play_num == 2)
-    {
-        //todo
-    }
-
-    ROS_INFO_STREAM("Play " << play_num << " initiated");
+    ROS_INFO_STREAM("Play " << play.toStdString() << " initiated");
 }
 
 void GCS::OnCancelPlay()
@@ -403,9 +384,7 @@ void GCS::OnCancelPlay()
     if(vm->NumTotalVehicles() == 0)
         return;
 
-    for(int i = 0; i < vm->NumVehiclesByType(VehicleType::quad_rotor); i++)
-//        active_uavs[i]->StopMission();
-    
+    emit UIAdapter::Instance()->CancelPlay();
 
     this->ToggleScoutButtons(true);
 }
@@ -416,7 +395,7 @@ void GCS::OnScoutBuilding()
         return;
 
     QString building = widget.cmbo_box_buildings->currentText();
-    emit ui_adapter->ScoutBuilding(cur_v_id, building);
+    emit UIAdapter::Instance()->ScoutBuilding(cur_v_id, building);
 
     this->ToggleScoutButtons(false);
 
@@ -430,12 +409,12 @@ void GCS::OnPauseOrResumeScout()
 
     if(vm->GetMissionMode(cur_v_id) == MissionMode::active)
     {
-//        active_uavs[cur_vehicle]->PauseMission();
+        emit UIAdapter::Instance()->PauseMission(cur_v_id);
         widget.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/play.png"));
     }
     else
     {
-//        active_uavs[cur_vehicle]->ResumeMission();
+        emit UIAdapter::Instance()->ResumeMission(cur_v_id);
         widget.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/pause.png"));
     }
 }
@@ -445,7 +424,7 @@ void GCS::OnStopScout()
     if(vm->NumVehiclesByType(VehicleType::quad_rotor) == 0)
         return;
 
-//    active_uavs[cur_v_id]->StopMission();
+    emit UIAdapter::Instance()->CancelMission(cur_v_id);
     this->ToggleScoutButtons(true);
 }
 
@@ -457,46 +436,46 @@ void GCS::OnChangeFlightMode(int index)
     if(index == 0)
     {
         ROS_INFO_STREAM("Quadrotor Stablized");
-        vm->SetMode(cur_v_id, "STABILIZED");
+        emit UIAdapter::Instance()->SetMode(cur_v_id, "STABILIZED");
     }
     else if(index == 1)
     {
         ROS_INFO_STREAM("Quadrotor Loiter");
-        vm->SetMode(cur_v_id, "AUTO.LOITER");
+        emit UIAdapter::Instance()->SetMode(cur_v_id, "AUTO.LOITER");
     }
     else if(index == 2)
     {
         ROS_INFO_STREAM("Quadrotor Land");
-        vm->SetMode(cur_v_id, "AUTO.LAND");
+        emit UIAdapter::Instance()->SetMode(cur_v_id, "AUTO.LAND");
     }
     else if(index == 3)
     {
         ROS_INFO_STREAM("Altitude Hold");
-        vm->SetMode(cur_v_id, "ALTCTL");
+        emit UIAdapter::Instance()->SetMode(cur_v_id, "ALTCTL");
     }
     else if( index == 4)
     {
         ROS_INFO_STREAM("Position Hold");
-        vm->SetMode(cur_v_id, "POSCTL");
+        emit UIAdapter::Instance()->SetMode(cur_v_id, "POSCTL");
     }
     else if(index == 5)
     {
         ROS_INFO_STREAM("Quadrotor Return-To-Launch");
-        vm->SetRTL(cur_v_id);
+        emit UIAdapter::Instance()->SetRTL(cur_v_id);
     }
     else if(index == 6)
     {
         ROS_INFO_STREAM("Quadrotor Auto");
-//        active_uavs[cur_v_id]->SetMode("AUTO");
+        emit UIAdapter::Instance()->SetMode(cur_v_id, "AUTO");
     }
     else if(index == 7)
     {
         ROS_INFO_STREAM("Quadrotor Offboard");
-//        active_uavs[cur_v_idd]->SetMode("OFFBOARD");
+        emit UIAdapter::Instance()->SetMode(cur_v_id, "OFFBOARD");
     }
 
-//    if(active_uavs[cur_v_id]->GetMissionMode() != MissionMode::stopped)
-//        this->OnStopScout();
+    if(vm->GetMissionMode(cur_v_id) != MissionMode::stopped)
+        emit UIAdapter::Instance()->CancelMission(cur_v_id);
 }
 
 void GCS::ToggleScoutButtons(bool visible, QString icon_type)
@@ -537,12 +516,19 @@ void GCS::SelectVehicleWidgetById(int v_id)
     vm->SubscribeToImageTopic(topic);
     
     if(fl_widgets.ap_menu != nullptr)
-    {
-        //todo change ap_menu to accept a given uav's access point queue instead of actual uav
-    }
+        fl_widgets.ap_menu->SetUAVAccessPointsAndId(vm->GetUAVAccessPoints(cur_v_id), cur_v_id - v_type);
+    
     
     //todo update gui buttons according to current vehicles mission status 
-    
+    MissionMode m = vm->GetMissionMode(cur_v_id);
+    if(m == MissionMode::stopped)
+        this->ToggleScoutButtons(true);
+    else if(m == MissionMode::active)
+        this->ToggleScoutButtons(false, "pause");
+    else
+        this->ToggleScoutButtons(false, "play");
+
+    this->ToggleArmDisarmButton(vm->GetState(cur_v_id)->armed);
 }
 
 //
@@ -626,7 +612,7 @@ void GCS::OnArmOrDisarmSelectedUav()
 
     this->ToggleArmDisarmButton(armed);
 
-    emit ui_adapter->Arm(cur_v_id, !armed);
+    emit UIAdapter::Instance()->Arm(cur_v_id, !armed);
 }
 
 void GCS::ToggleArmDisarmButton(bool arm)
@@ -636,20 +622,6 @@ void GCS::ToggleArmDisarmButton(bool arm)
     else
         widget.btn_arm_uav->setText("Arm");
 }
-
-//void GCS::InitHelperThread()
-//{
-//    thread_uav_monitor = new GCSHelperThread(this);
-//    
-//    connect(thread_uav_monitor, &GCSHelperThread::AddUav,
-//            this, &GCS::OnAddUav);
-//    connect(thread_uav_monitor, &GCSHelperThread::DeleteUav,
-//            this, &GCS::OnDeleteUav);
-//    connect(thread_uav_monitor, &GCSHelperThread::ToggleUavConnection,
-//            this, &GCS::OnUAVConnectionToggled);
-//            
-//    thread_uav_monitor->start();
-//}
 
 void GCS::InitMap()
 {
@@ -746,9 +718,6 @@ void GCS::OnSettingsTriggered()
         int y = (this->height() / 2) - (fl_widgets.settings->height() / 2);
         fl_widgets.settings->move(window.x() + x, window.y() + y);
         fl_widgets.settings->setVisible(true);
-        
-        connect(fl_widgets.settings, &SettingsWidget::machineLearningModeToggled,
-                this, &GCS::OnToggleMachineLearningMode);
 
         connect(fl_widgets.settings, &SettingsWidget::destroyed,
                 this, [=](){ fl_widgets.settings = nullptr; });
@@ -808,9 +777,6 @@ void GCS::OnToggleMachineLearningMode(bool toggle)
 {
     widget.frame_queries_cntnr->setVisible(toggle);
     widget.frame_queries_cntnr->setEnabled(toggle);
-
-    for(int i = 0; i < vm->NumVehiclesByType(VehicleType::quad_rotor); i++)
-        active_uavs[i]->SetOnlineMode(toggle);
 }
 
 std::string GCS::GetMissionType(std::string file_name)
@@ -824,61 +790,17 @@ std::string GCS::GetMissionType(std::string file_name)
     return mission_type;
 }
 
-lcar_msgs::TargetLocal GCS::GetMissionLocal(std::string file_name)
-{
-    float pos_x, pos_y, pos_z, radius;
-    std::string mission_type;
-
-    lcar_msgs::TargetLocal building_local;
-
-    std::ifstream fileIn(file_name);
-
-    fileIn >> mission_type;
-    fileIn >> pos_x;
-    fileIn >> pos_y;
-    fileIn >> pos_z;
-    fileIn >> radius;
-
-    building_local.target.position.x = pos_x;
-    building_local.target.position.y = pos_y;
-    building_local.target.position.z = pos_z;
-    building_local.radius = radius;
-
-    return building_local;
-}
-
-lcar_msgs::TargetGlobal GCS::GetMissionGlobal(std::string file_name)
-{
-    float pos_x, pos_y, pos_z, radius;
-    lcar_msgs::TargetGlobal building_global;
-    std::string mission_type;
-
-    std::ifstream fileIn(file_name);
-
-    fileIn >> mission_type;
-    fileIn >> pos_x;
-    fileIn >> pos_y;
-    fileIn >> pos_z;
-    fileIn >> radius;
-
-    building_global.target.latitude = pos_x;
-    building_global.target.longitude = pos_y;
-    building_global.target.altitude = pos_z;
-
-    return building_global;
-}
-
 void GCS::UpdateVehicleWidgets()
 {
+    //todo unhard code this v_type
     int v_type = VehicleType::quad_rotor;
     int num_vehicle = vm->NumVehiclesByType(v_type);
     for(int i = 0; i < num_vehicle; i++)
     {
         VehicleWidget * widget = this->VehicleWidgetAt(v_type, i);
-        int num = active_uavs[i]->GetBatteryState().percentage * 100;
-        widget->SetBattery(num);
-        QString temp_data = active_uavs[i]->GetState().mode.c_str();
-        widget->SetCondition(temp_data);
+        StatePtr ptr = vm->GetState(v_type + i);
+        widget->SetBattery(ptr->battery);
+        widget->SetCondition(ptr->mode.c_str());
     }
 }
 
@@ -890,14 +812,11 @@ void GCS::OnUpdateCameraFeed(QPixmap img)
 }
 
 void GCS::closeEvent(QCloseEvent* event)
-{
-    thread_uav_monitor->Stop();
-    thread_uav_monitor->wait();
-    delete thread_uav_monitor;
-    
+{    
     // move backwards because OnDeleteUav decrements NUM_UAV
-    for(int i = NUM_UAV - 1; i >= 0; i--)
-        this->OnDeleteUav(i);
+    int v_type = VehicleType::quad_rotor;
+    for(int i = vm->NumVehiclesByType(v_type) - 1; i >= 0; i--)
+        emit UIAdapter::Instance()->DeleteVehicle(v_type + i);
     
     // this wouldn't work in the destructor
     if(fl_widgets.ap_menu != nullptr) 
@@ -921,132 +840,6 @@ VehicleWidget* GCS::VehicleWidgetAt(int v_type, int index)
 //    Q_ASSERT(index < vm->NumVehiclesByType(v_type));
     
     return static_cast<VehicleWidget*>(layout_by_v_type[v_type]->itemAt(index)->widget());
-}
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////  SimpleGCSHelper  /////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-GCSHelperThread::GCSHelperThread(GCS * sgcs) :
-    gcs(sgcs)
-{
-}
-
-GCSHelperThread::~GCSHelperThread()
-{
-    gcs = nullptr;
-}
-
-void GCSHelperThread::ParseUavNamespace(std::map<int, int>& map)
-{  
-    ros::V_string nodes;
-    ros::master::getNodes(nodes);
-    
-    for(const std::string & node : nodes)
-    {
-        int index = node.find("/V");
-        if(index == node.npos)
-        {   //nodes are printed alphabetically, if we passed UAV namespace, there are no more
-            if(map.size() > 0)
-                break;
-            else  // skip nodes in front of /UAV namespace
-                continue;
-        }
-
-        std::string id_string = node.substr(index+4, id_string.length());
-        id_string = id_string.substr(0,id_string.find("/"));
-        char * end;
-        int uav_id = std::strtol(&id_string[0], &end, 10);
-
-        if(map.count(uav_id) == 0)
-            map.insert(std::pair<int,int>(uav_id, uav_id));
-    }
-}
-
-void GCSHelperThread::MonitorUavNamespace()
-{
-    std::map<int,int> uav_map;
-    ParseUavNamespace(uav_map);
-
-    gcs->uav_mutex.lock();
-
-    if(gcs->NUM_UAV < uav_map.size()) // uav added
-    {
-        for(auto const& uav : uav_map)
-        {
-            if(!gcs->uav_db.contains(uav.first))
-            {
-                emit AddUav(uav.first);
-                gcs->num_uav_changed.wait(&gcs->uav_mutex);
-            }
-        }
-    }
-    else if(gcs->NUM_UAV > uav_map.size()) // uav shutdown
-    {
-        for(int i = 0; i < gcs->active_uavs.size(); i++)
-        {
-            if(uav_map.count(gcs->active_uavs[i]->id) == 0)
-            {
-                emit DeleteUav(i);
-                gcs->num_uav_changed.wait(&gcs->uav_mutex);
-                i--;
-            }
-        }
-    }
-
-    gcs->uav_mutex.unlock();
-}
-
-void GCSHelperThread::MonitorUavConnections()
-{
-    /*
-     * under normal conditions (recieved a heartbeat), button stylesheet is:
-     *      background-color: rgb(64, 89, 140);
-     *      color: rgb(240, 240, 240);
-     *
-     * when heartbeat is not recieved, we grey it out:
-     *      background-color: rgb(80, 90, 100);
-     *      color: rgb(150, 150, 150);
-     */
-    
-    for(int i = 0; i < gcs->NUM_UAV; i++)
-    {
-        UAVControl* uav = gcs->active_uavs[i];
-        VehicleWidget * vw = gcs->VehicleWidgetAt(VehicleType::quad_rotor, i);
-        bool enabled = vw ->IsButtonEnabled();
-
-        if(!uav->RecievedHeartbeat()) // no heartbeat
-        {
-            if(enabled) // is the button already disabled?
-                emit ToggleUavConnection(i, uav->id, false);
-        }
-        else
-        {
-            if(!enabled) // is the button already enabled?
-                emit ToggleUavConnection(i, uav->id, true);
-        }
-    }
-}
-
-void GCSHelperThread::RunUavs()
-{
-    for(auto const& uav : gcs->active_uavs)
-        uav->Run();
-}
-
-void GCSHelperThread::run()
-{
-    while(!this->isInterruptionRequested())
-    {
-//        MonitorUavNamespace();
-//        MonitorUavConnections();
-        RunUavs();  
-    }
-}
-
-void GCSHelperThread::Stop()
-{
-    this->requestInterruption();
 }
 
 } // namespace

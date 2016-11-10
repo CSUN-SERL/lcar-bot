@@ -5,11 +5,15 @@
  * Created on June 7, 2016, 3:40 PM
  */
 
-#include "rqt_gcs/settings_widget.h"
+#include <QStringBuilder>
+
+#include <iostream>
+
 #include "util/image.h"
 #include "util/strings.h"
-#include <iostream>
-#include <QStringBuilder>
+#include "rqt_gcs/ui_adapter.h"
+#include "rqt_gcs/settings_widget.h"
+
 
 namespace rqt_gcs
 {
@@ -418,7 +422,7 @@ bool SettingsWidget::onApplyClicked()
     writeGeneralSettings();
 
     if(ml_state_ != ml_state_previous)
-        emit machineLearningModeToggled(widget_.online_btn->isChecked());
+        emit UIAdapter::Instance()->SetMachineLearningMode(widget_.online_btn->isChecked());
 
     return true;
 }
@@ -471,7 +475,7 @@ void SettingsWidget::onHitThresholdSliderChange(int new_thresh)
     {
         od_params->hit_thresh = thresh;
         widget_.line_edit_hit_thresh->setText(QString::number(thresh, 'f', 2));
-        vm->PublishHitThreshold(thresh);
+        emit UIAdapter::Instance()->PublishHitThreshold(new_thresh);
     }
 }
 
@@ -511,7 +515,7 @@ void SettingsWidget::onStepSizeSliderChange(int new_step)
     {
         od_params->step_size = new_step;
         widget_.line_edit_step_size->setText(QString::number(new_step));
-        vm->PublishStepSize(new_step);
+        emit UIAdapter::Instance()->PublishStepSize(new_step);
     }
 }
 
@@ -549,7 +553,7 @@ void SettingsWidget::onPaddingSliderChange(int new_padding)
     {
         od_params->padding = new_padding;
         widget_.line_edit_padding->setText(QString::number(new_padding));
-        vm->PublishPadding(new_padding);
+        emit UIAdapter::Instance()->PublishPadding(new_padding);
     }
 }
 
@@ -587,7 +591,7 @@ void SettingsWidget::onScaleFactorSliderChange(int new_scale)
     {
         od_params->scale_factor = scale;
         widget_.line_edit_scale_factor->setText(QString::number(scale, 'f', 2));
-        vm->PublishScaleFactor(scale);
+        emit UIAdapter::Instance()->PublishScaleFactor(new_scale);
     }
 }
 
@@ -626,7 +630,7 @@ void SettingsWidget::onMeanShiftRadioChange()
     if(od_params->mean_shift != on)
     {
         od_params->mean_shift = on;
-        vm->PublishMeanShift(on);
+        emit UIAdapter::Instance()->PublishMeanShift(od_params->mean_shift);
     }
 }
     
