@@ -30,6 +30,7 @@
 #include "rqt_gcs/access_points_container_widget.h"
 #include "rqt_gcs/vehicle_init_widget.h"
 #include "rqt_gcs/vehicle_manager.h"
+#include "rqt_gcs/ui_adapter.h"
 
 #include "util/data_types.h"
 #include "util/debug.h"
@@ -59,7 +60,7 @@ class GCS : public QMainWindow
     friend class SettingsWidget;
 
 public:
-    GCS();
+    GCS(UIAdapter * uia);
     virtual ~GCS();
     
     
@@ -93,9 +94,6 @@ public slots:
     //SETTINGS RELATED
     virtual void OnToggleMachineLearningMode(bool);
     
-    signals:
-        void NewCameraFeedFrame(const QPixmap& img);
-    
 protected:
     void closeEvent(QCloseEvent* event) override;
     
@@ -109,12 +107,12 @@ private:
     void InitMap();
     void InitMenuBar();
     void InitSettings();
-    void InitHelperThread();
+//    void InitHelperThread();
 
     // new
     void SelectVehicleWidgetById(int v_id);
     //old
-    void SelectUav(int);
+//    void SelectUav(int);
     
     void UpdateFlightStateWidgets(); // both the PFD and the text based widget
     void UpdateVehicleWidgets();
@@ -128,7 +126,8 @@ private:
     void ToggleArmDisarmButton(bool arm);
     
     Ui::GCS widget;
-        
+    UIAdapter *ui_adapter;
+    
     int cur_v_id; // the current selected vehicles id
     int time_counter;
     int num_queries_last;

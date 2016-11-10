@@ -22,14 +22,14 @@ AccessPointsContainerWidget::AccessPointsContainerWidget() :
 AccessPointsContainerWidget::~AccessPointsContainerWidget()
 {
     this->ClearAccessPoints();
-    uav = nullptr;
+    ap_vec = nullptr;
 }
 
-void AccessPointsContainerWidget::SetUAV(UAVControl* uav)
+void AccessPointsContainerWidget::SetUAVAccessPointsAndId(std::vector<lcar_msgs::AccessPointStampedPtr> * ap_vec, int id)
 {
-    this->uav = uav;
-    if(uav != nullptr)
-        widget.lbl_uav->setText("UAV " % QString::number(uav->id));
+    this->ap_vec = ap_vec;
+    if(ap_vec != nullptr)
+        widget.lbl_uav->setText("UAV " % QString::number(id));
     else
         widget.lbl_uav->setText("NO UAVS");
     
@@ -47,11 +47,8 @@ void AccessPointsContainerWidget::ClearAccessPoints()
 
 void AccessPointsContainerWidget::UpdateAccessPoints()
 {
-    if(!this->isVisible() || uav == nullptr)
+    if(!this->isVisible() || ap_vec == nullptr)
         return;
-
-    //retreive access points
-    std::vector<lcar_msgs::AccessPointStampedPtr> * ap_vec = uav->GetRefAccessPoints();
 
     //Get our new number of Access points
     int apv_size = ap_vec->size();
@@ -99,17 +96,15 @@ void AccessPointsContainerWidget::OnDeleteAccessPoint(QWidget* w)
     int index = widget.layout_access_points->indexOf(w);
     delete w;
     
-    std::vector<lcar_msgs::AccessPointStampedPtr>* ap_vector = uav->GetRefAccessPoints();
-    ap_vector->erase(ap_vector->begin()+index);
+    ap_vec->erase(ap_vec->begin()+index);
     num_access_points_last--;
 }
 
 
-void AccessPointsContainerWidget::SaveUavAccessPoints(UAVControl * uav, QString ap_type)
+void AccessPointsContainerWidget::SaveUavAccessPoints(std::vector<lcar_msgs::AccessPointStampedPtr> * ap_vector, int id, QString ap_type)
 {
     QString path = img::image_root_dir_ % "/access_points/" % ap_type;
-    path.append("/uav_" + QString::number(uav->id));
-    std::vector<lcar_msgs::AccessPointStampedPtr> * ap_vector = uav->GetRefAccessPoints();
+    path.append("/uav_" + QString::number(id));
     for(int i = 0; i < ap_vector->size(); i++)
     {
         QString file = "img_" + QString::number(i) + ".jpg";

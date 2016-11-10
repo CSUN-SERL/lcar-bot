@@ -5,15 +5,16 @@
  * Created on September 8, 2016, 11:41 AM
  */
 
-#include <QStringBuilder>
 #include <QSettings>
-#include <qt5/QtCore/qmutex.h>
-#include <qt5/QtCore/qwaitcondition.h>
+#include <QTextStream>
+#include <QStringBuilder>
 
-#include "rqt_gcs/vehicle_manager.h"
+#include <ros/package.h>
+
+#include "util/strings.h"
 #include "vehicle/uav_control.h"
 #include "lcar_msgs/InitResponse.h"
-#include "util/strings.h"
+#include "rqt_gcs/vehicle_manager.h"
 
 namespace rqt_gcs
 {
@@ -32,6 +33,7 @@ VehicleManager::VehicleManager(QObject *parent):
                                            &VehicleManager::OnVehicleInitRequested, this);
     pub_init_response = nh.advertise<lcar_msgs::InitResponse>("vehicle/init/response", 2);
     
+    this->InitSettings();
     this->AdvertiseObjectDetection();
 }
 
@@ -44,28 +46,26 @@ void VehicleManager::AddVehicle(int v_id)
     int v_type = this->VehicleTypeFromId(v_id);
     ROS_ASSERT(v_type != VehicleType::invalid_low);
     
-    VehicleControl* vehicle = nullptr;
+    VehicleControl* vc = nullptr;
     
     //todo uncomment these after their classes are added to the system
 //    if(v_type == VehicleType::ugv)
 //        vehicle = new UGVControl(id);
     if(v_type == VehicleType::quad_rotor) // quad-rotor
-        vehicle = new UAVControl(v_id);
+        vc = new UAVControl(v_id);
     if(v_type == VehicleType::octo_rotor) // octo-rotor
-        vehicle = new UAVControl(v_id);
-//    if(v_type == VehicleType::vtol) // vtol
-//        vehicle = new VTOLControl(id);
-//    if(v_type == VehicleControl::humanoid) // humanoid
-//        vehicle = new NAOControl(id);
+        vc = new UAVControl(v_id);
+    if(v_type == VehicleType::vtol) // vtol
+        vc = new UAVControl(v_id);
     
-    if(vehicle != nullptr)
+    if(vc != nullptr)
     {
-        db[v_type].insert(v_id, vehicle);
+        db[v_type].insert(v_id, vc);
         ROS_INFO_STREAM("Added vehicle of type: "
                         << this->VehicleStringFromId(v_id).toStdString()
                         << " with id: " << v_id <<  " to database.");
         
-        emit AddVehicleWidget(v_id);
+        emit ui_adapter->AddVehicleWidget(v_id);
     }
     else
         ROS_ERROR_STREAM("Tried to add vehicle of invalid type: "
@@ -78,14 +78,13 @@ void VehicleManager::DeleteVehicle(int v_id)
     
     int v_type = this->VehicleTypeFromId(v_id);
     
-    ROS_ASSERT(v_type != VehicleType::invalid_low);
+    Q_ASSERT(v_type != VehicleType::invalid_low);
     
     QMap<int, VehicleControl*> *v_db = &db[v_type];
     QMap<int, VehicleControl*>::Iterator it = v_db->find(v_id);
-    
     if(it != v_db->end())
     {
-        emit DeleteVehicleWidget(v_id);
+        emit ui_adapter->DeleteVehicleWidget(v_id);
         VehicleControl *vehicle = it.value();
         v_db->erase(it);
 
@@ -95,8 +94,7 @@ void VehicleManager::DeleteVehicle(int v_id)
     else
         ROS_ERROR_STREAM("Tried to delete non existent " 
                         << this->VehicleStringFromId(v_id).toStdString()
-                        << " with id: "  
-                        << (v_id));
+                        << " with id: " << v_id);
     
     widget_mutex.unlock();
 }
@@ -111,15 +109,10 @@ int VehicleManager::NumTotalVehicles()
 
 int VehicleManager::NumVehiclesByType(int v_type)
 {
-    if(v_type <= VehicleType::invalid_low || v_type >= VehicleType::invalid_high)
-        return VehicleType::invalid_low;
+    if(v_type <= VehicleType::invalid_low || VehicleType::invalid_high <= v_type)
+        return VehicleType::invalid_high;
     
     return  db[v_type].size();
-}
-
-int VehicleManager::NumUGVs()
-{
-    return db[VehicleType::ugv].size();
 }
 
 int VehicleManager::NumUAVs()
@@ -129,33 +122,17 @@ int VehicleManager::NumUAVs()
            db[VehicleType::vtol].size();
 }
 
-int VehicleManager::NumQuadRotors()
+QString VehicleManager::VehicleStringFromId(int v_id)
 {
-    return db[VehicleType::quad_rotor].size();
-}
-
-int VehicleManager::NumOctoRotors()
-{
-    return db[VehicleType::octo_rotor].size();
-}
-
-int VehicleManager::NumVTOLs()
-{
-    return db[VehicleType::vtol].size();
-}
-
-QString VehicleManager::VehicleStringFromId(int id)
-{
-    int v_type = this->VehicleTypeFromId(id);
-
+    int v_type = this->VehicleTypeFromId(v_id);
     switch(v_type)
     {
         case VehicleType::ugv:        return "ugv";
         case VehicleType::quad_rotor: return "quad-rotor";
         case VehicleType::octo_rotor: return "octo-rotor";
-        case VehicleType::humanoid:   return "humanoid";
-        default:                      return QString();  
+        case VehicleType::vtol:       return "vtol";
     }
+    return QString();
 }
 
 int VehicleManager::GenerateId(const QString& machine_name)
@@ -257,125 +234,108 @@ void VehicleManager::OnOperatorInitResponse(const int vehicle_id)
     }
 }
 
+void VehicleManager::OnExecutePlay()
+{
+    //todo
+}
+
+void VehicleManager::OnCancelPlay()
+{
+    //todo
+}
+
+void VehicleManager::OnScoutBuilding(int quad_id, QString building)
+{
+    int v_type = this->VehicleTypeFromId(quad_id);
+    Q_ASSERT(v_type == VehicleType::quad_rotor);
+    
+    QString path = QString(ros::package::getPath("rqt_gcs").c_str()) % "/bulding";
+    // can be local or global
+    path.append("/" % coordinate_system % "/" % building);
+    
+    VehicleControl *vc = this->FindVehicle(v_type, quad_id);
+    if(vc != nullptr)
+    {
+        UAVControl* uav = static_cast<UAVControl*> (vc);
+        if (coordinate_system == "global")
+        {
+            lcar_msgs::TargetGlobalPtr target = this->GetTargetGlobal(path);
+            if(target)
+                uav->ScoutBuilding(*target);
+            else
+                ROS_ERROR_STREAM("error sending target to uav. no such mission file: "
+                        << path.toStdString());
+        }
+        else
+        {
+            lcar_msgs::TargetLocalPtr target = this->GetTargetLocal(path);
+            if(target)
+                uav->ScoutBuilding(*target);
+            else
+                ROS_ERROR_STREAM("error sending target to uav. no such mission file: "
+                        << path.toStdString());
+        }
+    }
+    else
+        ROS_ERROR_STREAM("Cannot set waypoint: No such" 
+                         << this->VehicleStringFromId(quad_id).toStdString()
+                         << "with id: " << quad_id);
+}
+
 void VehicleManager::SetWaypoint(int v_id, const sensor_msgs::NavSatFix& location)
 {
-    int v_type = this->VehicleTypeFromId(v_id);
-    
-    ROS_ASSERT(v_type != VehicleType::invalid_low);
-    
-    QMap<int, VehicleControl*> *v_db = &db[v_type];
-    
-    if(v_type == VehicleType::ugv)
-        ROS_WARN_STREAM("ignoring altitude for ugv");
-        // note this is ignored inside of the UGVControl code, to be added
-
-    QMap<int, VehicleControl*>::ConstIterator it = v_db->find(v_id);
-    if(it != v_db->end())
-    {   
-        VehicleControl * vc = it.value();
+    VehicleControl *vc = this->FindVehicle(v_id);
+    if(vc != nullptr)
         vc->SetWayPoint(location);
-    }
     else
         ROS_ERROR_STREAM("Cannot set waypoint: No such" 
                          << this->VehicleStringFromId(v_id).toStdString()
                          << "with id: " << v_id);
 }
 
-void VehicleManager::SetWaypoint(std::string v_string, const sensor_msgs::NavSatFix& location) 
-{
-    int v_id = this->IdfromVehicleString(QString(v_string.c_str()));
-    if(v_id != VehicleType::invalid_low)
-        this->SetWaypoint(v_id, location);
-    else
-        ROS_ERROR_STREAM("Cannot set waypoint: " << v_string  
-                         << " is not a recognized vehicle");
-}
-
 void VehicleManager::Arm(int v_id, bool value)
 {
-    int v_type = this->VehicleTypeFromId(v_id);
-    
-    ROS_ASSERT(v_type != VehicleType::invalid_low);
-    
-    QMap<int, VehicleControl*> *v_db = &db[v_type];
-    auto it = v_db->find(v_id);
-    if(it != v_db->end())
-    {
-        VehicleControl* vc = it.value();
+    VehicleControl *vc = this->FindVehicle(v_id);
+    if(vc != nullptr)
         vc->Arm(value);
-    }
     else
         ROS_ERROR_STREAM("Cannot arm vehicle: No such" 
                          << this->VehicleStringFromId(v_id).toStdString()
                          << "with id: " << v_id);
 }
 
-void VehicleManager::Arm(std::string v_string, bool value)
-{
-    int v_id = this->IdfromVehicleString(QString(v_string.c_str()));
-    if(v_id != VehicleType::invalid_low)
-        this->Arm(v_id, value);
-    else
-        ROS_ERROR_STREAM("Cannot Arm vehicle: " << v_string  
-                         << " is not a recognized vehicle");
-}
-
 void VehicleManager::SetMode(int v_id, std::string mode)
 {
     int v_type = this->VehicleTypeFromId(v_id);
+    Q_ASSERT(v_type == VehicleType::quad_rotor ||
+             v_type == VehicleType::octo_rotor ||
+             v_type == VehicleType::vtol);
     
-    ROS_ASSERT(v_type == VehicleType::quad_rotor ||
-               v_type == VehicleType::octo_rotor ||
-               v_type == VehicleType::vtol);
-    
-    QMap<int, VehicleControl*> *v_db = &db[v_type];
-    auto it = v_db->find(v_id);
-    if(it != v_db->end())
-        it.value()->SetMode(mode);
+    VehicleControl *vc = this->FindVehicle(v_type, v_id);
+    if(vc != nullptr)
+        vc->SetMode(mode);
     else
         ROS_ERROR_STREAM("Cannot set Flight mode for UAV. No such" 
                          << this->VehicleStringFromId(v_id).toStdString()
                          << "with id: " << v_id);
-}
-
-void VehicleManager::SetMode(std::string v_string, std::string mode)
-{
-    int v_id = this->IdfromVehicleString(QString(v_string.c_str()));
-    if(v_id != VehicleType::invalid_low)
-        this->SetMode(v_id, mode);
-    else
-        ROS_ERROR_STREAM("Cannot set flight mode for UAV: " << v_string  
-                         << " is not a recognized UAV");
 }
 
 void VehicleManager::SetRTL(int v_id)
 {
-    int v_type = this->VehicleTypeFromId(v_id);
-    
-    ROS_ASSERT(v_type != VehicleType::invalid_low);
-    
-    QMap<int, VehicleControl*> *v_db = &db[v_type];
-    auto it = v_db->find(v_id);
-    if(it != v_db->end())
-        it.value()->SetRTL();
+    VehicleControl *vc = this->FindVehicle(v_id);
+    if(vc != nullptr)
+        return vc->SetRTL();
     else
         ROS_ERROR_STREAM("Cannot set Flight mode for UAV. No such" 
                          << this->VehicleStringFromId(v_id).toStdString()
                          << "with id: " << v_id);
-    
 }
 
 int VehicleManager::IsArmed(int v_id)
 {
-    int v_type = this->VehicleTypeFromId(v_id);
-    
-    ROS_ASSERT(db.find(v_type) != db.end());
-    
-    QMap<int, VehicleControl*> * v_db = &db[v_type];
-    auto it = v_db->find(v_id);
-    if(it != v_db->end())
-        return it.value()->IsArmed();
-
+    VehicleControl *vc = this->FindVehicle(v_id);
+    if(vc != nullptr)
+        return vc->IsArmed();
     
     ROS_ERROR_STREAM("Cannot get armed state for vehicle. No such" 
                      << this->VehicleStringFromId(v_id).toStdString()
@@ -385,14 +345,10 @@ int VehicleManager::IsArmed(int v_id)
 
 std::vector<lcar_msgs::QueryPtr> * VehicleManager::GetUAVDoorQueries(int quad_id)
 {
-    int v_type = this->VehicleTypeFromId(quad_id);
-    ROS_ASSERT(v_type == VehicleType::quad_rotor);
-    
-    QMap<int, VehicleControl*> * v_db = &db[v_type];
-    auto it = v_db->find(quad_id);
-    if(it != v_db->end())
+    VehicleControl *vc = this->FindVehicle(quad_id);
+    if(vc != nullptr)
     {
-        UAVControl *quad = static_cast<UAVControl*> (it.value());
+        UAVControl *quad = static_cast<UAVControl*> (vc);
         return quad->GetDoorQueries();
     }
     
@@ -402,76 +358,32 @@ std::vector<lcar_msgs::QueryPtr> * VehicleManager::GetUAVDoorQueries(int quad_id
     return nullptr;
 }
 
-UGVInfoPtr VehicleManager::GetUGVInfo(int ugv_id)
+std::vector<lcar_msgs::AccessPointStampedPtr> * VehicleManager::GetUAVAccessPoints(int quad_id)
 {
-    int v_type = this->VehicleTypeFromId(ugv_id);
-    
-    ROS_ASSERT(v_type == VehicleType::ugv);
-    
-    QMap<int, VehicleControl*> *v_db = &db[v_type];
-    UGVControl *uav = nullptr;
-    UGVInfoPtr ptr;
-    
-    auto it = v_db->find(ugv_id);
-    if(it != v_db->end())
+    VehicleControl *vc = this->FindVehicle(quad_id);
+    if(vc != nullptr)
     {
-        ptr = boost::make_shared<UGVInfo>();
-        //todo fill this out when UGVControl is finalized
-//      ptr->id = ugv_id;
-//      ptr->v_type = v_type;
+        UAVControl *quad = static_cast<UAVControl*> (vc);
+        return quad->GetRefAccessPoints();
     }
-    else
-        ROS_ERROR_STREAM("Cannot retrieve UGV info for UGV: no such " 
-                << this->VehicleStringFromId(ugv_id).toStdString() << " with id: " 
-                << ugv_id);
     
-    return ptr;
-}
-
-UAVInfoPtr VehicleManager::GetUAVInfo(int uav_id)
-{
-    int v_type = this->VehicleTypeFromId(uav_id);
-    
-    ROS_ASSERT(v_type == VehicleType::quad_rotor ||
-               v_type == VehicleType::octo_rotor ||
-               v_type == VehicleType::vtol);
-   
-    QMap<int, VehicleControl*> *v_db = &db[v_type];
-    UAVControl *uav = nullptr;
-    UAVInfoPtr ptr;
-    
-    auto it = v_db->find(uav_id);
-    if(it != v_db->end())
-    {
-        ptr = boost::make_shared<UAVInfo>();
-        uav = static_cast<UAVControl*>(it.value());
-        ptr->id = uav_id;
-        ptr->v_type = v_type;
-        ptr->flight_state = uav->GetFlightState();
-        ptr->state.battery = uav->GetBatteryState().percentage;
-        ptr->state.armed = uav->GetState().armed;
-        ptr->state.mission_progress = uav->GetMissionProgress();
-    }
-    else
-        ROS_ERROR_STREAM("Cannot retrieve UAV info for UAV: no such " 
-                << this->VehicleStringFromId(uav_id).toStdString() << " with id: " 
-                << uav_id);
-    
-    return ptr;
+    ROS_ERROR_STREAM("Cannot get door queries for vehicle. No such" 
+                     << this->VehicleStringFromId(quad_id).toStdString()
+                     << "with id: " << quad_id);    
+    return nullptr;
 }
 
 FlightState VehicleManager::GetFlightState(int uav_id)
 {
     int v_type = this->VehicleTypeFromId(uav_id);
-    ROS_ASSERT(v_type == VehicleType::quad_rotor ||
-               v_type == VehicleType::octo_rotor ||
-               v_type == VehicleType::vtol);
+    Q_ASSERT(v_type == VehicleType::quad_rotor ||
+             v_type == VehicleType::octo_rotor ||
+             v_type == VehicleType::vtol);
     
-    QMap<int, VehicleControl*> *v_db = &db[v_type];
-    auto it = v_db->find(uav_id);
-    if(it != v_db->end())
+    VehicleControl *vc = this->FindVehicle(v_type, uav_id);
+    if(vc != nullptr)
     {
-        UAVControl *uav = static_cast<UAVControl*> (it.value());
+        UAVControl *uav = static_cast<UAVControl*> (vc);
         return uav->GetFlightState();
     }
     
@@ -484,13 +396,9 @@ FlightState VehicleManager::GetFlightState(int uav_id)
 
 int VehicleManager::GetDistanceToWP(int v_id)
 {
-    int v_type = this->VehicleTypeFromId(v_id);
-    ROS_ASSERT(v_type != VehicleType::invalid_low);
-    
-    QMap<int, VehicleControl*> *v_db = &db[v_type];
-    auto it = v_db->find(v_id);
-    if(it != v_db->end())
-       return it.value()->GetDistanceToWP();
+    VehicleControl *vc = this->FindVehicle(v_id);
+    if(vc != nullptr)
+       return vc->GetDistanceToWP();
     
     ROS_ERROR_STREAM("Cannot retrieve distance to waypoint for vehicle: no such " 
                 << this->VehicleStringFromId(v_id).toStdString() << " with id: " 
@@ -501,13 +409,9 @@ int VehicleManager::GetDistanceToWP(int v_id)
 
 MissionMode VehicleManager::GetMissionMode(int v_id)
 {
-    int v_type = this->VehicleTypeFromId(v_id);
-    ROS_ASSERT(v_type != VehicleType::invalid_low);
-    
-    QMap<int, VehicleControl*> *v_db = &db[v_type];
-    auto it = v_db->find(v_id);
-    if(it != v_db->end())
-        return it.value()->GetMissionMode();
+    VehicleControl *vc = this->FindVehicle(v_id);
+    if(vc != nullptr)
+        return vc->GetMissionMode();
     
     ROS_ERROR_STREAM("Cannot retrieve MissionMode for vehicle: no such " 
                 << this->VehicleStringFromId(v_id).toStdString() << " with id: " 
@@ -529,7 +433,7 @@ QWaitCondition* VehicleManager::GetWaitCondition()
 void VehicleManager::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
     QPixmap img = img::rosImgToQpixmap(msg);
-    emit NewImageFrame(img);
+    emit ui_adapter->NewImageFrame(img);
 }
 
 void VehicleManager::ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg)
@@ -543,6 +447,24 @@ void VehicleManager::ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPt
 }
 
 //private://////////////////////////////////////////////////////////////////////
+
+VehicleControl* VehicleManager::FindVehicle(int v_type, int v_id)
+{   
+    QMap<int, VehicleControl*> * v_db = &db[v_type];
+    QMap<int, VehicleControl*>::Iterator it = v_db->find(v_id);
+    if(it != v_db->end()) //found it
+        return it.value();
+    
+    return nullptr; //couldn't find it
+}
+
+VehicleControl* VehicleManager::FindVehicle(int v_id)
+{
+    int v_type = this->VehicleTypeFromId(v_id);
+    Q_ASSERT(v_type != VehicleType::invalid_low);
+    
+    return this->FindVehicle(v_type, v_id);
+}
 
 // SettingsWidget and QSettings related stuff
 void VehicleManager::InitSettings()
@@ -558,6 +480,12 @@ void VehicleManager::InitSettings()
     od_params.scale_factor = settings.value(params % "/scale_factor", od_params.scale_factor).toDouble();
     od_params.mean_shift = settings.value(params % "/mean_shift_grouping", od_params.mean_shift).toBool();
 
+    settings.endGroup();
+
+    settings.beginGroup("general_tab");
+    
+    coordinate_system = settings.value("coordinate_system", "local").toString();
+    
     settings.endGroup();
 }
 
@@ -584,8 +512,8 @@ bool VehicleManager::OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req
         res.message = "request for " + req.machine_name + " acknowledged with id: " 
                     + std::to_string(res.vehicle_id);
         
-        emit NotifyOperator("Vehicle initialization requested");
-        emit AddToInitWidget(QString(req.machine_name.c_str()), res.vehicle_id);
+        emit ui_adapter->NotifyOperator("Vehicle initialization requested");
+        emit ui_adapter->AddToInitWidget(QString(req.machine_name.c_str()), res.vehicle_id);
 
         return true;
     }
@@ -612,6 +540,43 @@ int VehicleManager::IdfromVehicleString(QString v_type)
            v_type.contains("octo", cs) ? VehicleType::octo_rotor + number:
            v_type.contains("vtol", cs) ? VehicleType::vtol + number:
                                          VehicleType::invalid_low;
+}
+
+lcar_msgs::TargetGlobalPtr VehicleManager::GetTargetGlobal(QString target_path)
+{
+    QFile file(target_path);
+    lcar_msgs::TargetGlobalPtr ptr;
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return ptr;
+
+    ptr = boost::make_shared<lcar_msgs::TargetGlobal>();
+    QTextStream in(&file);
+    
+    //todo setup global file read
+    
+    file.close();
+    return ptr;
+}
+
+lcar_msgs::TargetLocalPtr VehicleManager::GetTargetLocal(QString target_path)
+{
+    QFile file(target_path);
+    lcar_msgs::TargetLocalPtr ptr;
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return ptr;
+
+    ptr = boost::make_shared<lcar_msgs::TargetLocal>();
+    QTextStream in(&file);
+    
+    QStringList line = in.readLine().split(" ");
+    
+    ptr->target.position.x = line.at(0).toDouble();
+    ptr->target.position.y = line.at(1).toDouble();
+    ptr->target.position.z = line.at(2).toDouble();
+    ptr->radius = line.at(3).toDouble();
+    
+    file.close();
+    return ptr;
 }
 
 }

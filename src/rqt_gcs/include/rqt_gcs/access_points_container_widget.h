@@ -6,7 +6,7 @@
 #include <QSignalMapper>
 
 #include "ui_AccessPointsContainerWidget.h"
-#include "vehicle/uav_control.h"
+#include "lcar_msgs/AccessPointStamped.h"
 
 namespace rqt_gcs
 {
@@ -19,8 +19,8 @@ public:
     virtual ~AccessPointsContainerWidget();
     void ClearAccessPoints();
     void UpdateAccessPoints();
-    static void SaveUavAccessPoints(UAVControl * uav, QString ap_type);
-    void SetUAV(UAVControl* uav);
+    static void SaveUavAccessPoints(std::vector<lcar_msgs::AccessPointStampedPtr> * ap_vector, int id, QString ap_type);
+    void SetUAVAccessPointsAndId(std::vector<lcar_msgs::AccessPointStampedPtr> * ap_vec, int id = -1);
     
 public slots:
     void OnDeleteAccessPoint(QWidget* w);
@@ -30,7 +30,7 @@ private:
     QTimer* timer;
     int num_access_points_last;
     
-    UAVControl* uav;
+    std::vector<lcar_msgs::AccessPointStampedPtr> * ap_vec;
 };
 
 }

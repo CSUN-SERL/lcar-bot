@@ -27,7 +27,8 @@ namespace rqt_gcs
         QString image_root_dir_; // defined globally in util/strings.h
     }
 
-GCS::GCS():
+GCS::GCS(UIAdapter *uia):
+    ui_adapter(uia),
     cur_v_id(-1),
     time_counter(0),
     num_queries_last(0),
@@ -69,7 +70,7 @@ GCS::GCS():
     dbg::InitDbg();
     this->InitMenuBar();
     this->InitSettings();
-    this->InitHelperThread();
+//    this->InitHelperThread();
     this->InitMap();
     this->ToggleScoutButtons(true);
     
@@ -289,7 +290,7 @@ void GCS::ClearQueries()
 
 void GCS::UpdateQueries()
 {
-    if(vm->NumQuadRotors() == 0 || !widget.frame_queries_cntnr->isVisible())
+    if(vm->NumVehiclesByType(VehicleType::quad_rotor) == 0 || !widget.frame_queries_cntnr->isVisible())
         return;
 
     std::vector<lcar_msgs::QueryPtr> *queries = vm->GetUAVDoorQueries(cur_v_id);
@@ -367,7 +368,7 @@ void GCS::OnExecutePlay()
 
     if(play_num == 0)
     {
-        for(int i = 0; i < vm->NumQuadRotors(); i++)
+        for(int i = 0; i < vm->NumVehiclesByType(VehicleType::quad_rotor); i++)
         {
             std::string file_name = "play " + std::to_string(i + 1);
 
@@ -402,7 +403,7 @@ void GCS::OnCancelPlay()
     if(vm->NumTotalVehicles() == 0)
         return;
 
-    for(int i = 0; i < vm->NumQuadRotors(); i++)
+    for(int i = 0; i < vm->NumVehiclesByType(VehicleType::quad_rotor); i++)
 //        active_uavs[i]->StopMission();
     
 
@@ -411,51 +412,46 @@ void GCS::OnCancelPlay()
 
 void GCS::OnScoutBuilding()
 {
-    if(vm->NumQuadRotors() == 0)
+    if(vm->NumVehiclesByType(VehicleType::quad_rotor) == 0)
         return;
 
-    int building_index = widget.cmbo_box_buildings->currentIndex() + 1;
-    std::string file_name = "building" + std::to_string(building_index) + ".txt";
-
-    if(this->GetMissionType(file_name).compare("local") == 0)
-        vm->ScoutBuilding(cur_v_id, this->GetMissionLocal(file_name));
-    else
-        vm->ScoutBuilding(cur_v_id, this->GetMissionGlobal(file_name));
+    QString building = widget.cmbo_box_buildings->currentText();
+    emit ui_adapter->ScoutBuilding(cur_v_id, building);
 
     this->ToggleScoutButtons(false);
 
-    ROS_INFO_STREAM("Scouting Building " << building_index);
+    ROS_INFO_STREAM("Scouting " << building.toStdString());
 }
 
 void GCS::OnPauseOrResumeScout()
 {
-    if (vm->NumQuadRotors() == 0)
+    if(vm->NumVehiclesByType(VehicleType::quad_rotor) == 0)
         return;
 
     if(vm->GetMissionMode(cur_v_id) == MissionMode::active)
     {
-        active_uavs[cur_vehicle]->PauseMission();
+//        active_uavs[cur_vehicle]->PauseMission();
         widget.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/play.png"));
     }
     else
     {
-        active_uavs[cur_vehicle]->ResumeMission();
+//        active_uavs[cur_vehicle]->ResumeMission();
         widget.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/pause.png"));
     }
 }
 
 void GCS::OnStopScout()
 {
-    if(vm->NumQuadRotors() == 0)
+    if(vm->NumVehiclesByType(VehicleType::quad_rotor) == 0)
         return;
 
-    active_uavs[cur_v_id]->StopMission();
+//    active_uavs[cur_v_id]->StopMission();
     this->ToggleScoutButtons(true);
 }
 
 void GCS::OnChangeFlightMode(int index)
 {
-    if(vm->NumQuadRotors() == 0)
+    if(vm->NumVehiclesByType(VehicleType::quad_rotor) == 0)
         return;
     
     if(index == 0)
@@ -491,16 +487,16 @@ void GCS::OnChangeFlightMode(int index)
     else if(index == 6)
     {
         ROS_INFO_STREAM("Quadrotor Auto");
-        active_uavs[cur_v_id]->SetMode("AUTO");
+//        active_uavs[cur_v_id]->SetMode("AUTO");
     }
     else if(index == 7)
     {
         ROS_INFO_STREAM("Quadrotor Offboard");
-        active_uavs[cur_v_idd]->SetMode("OFFBOARD");
+//        active_uavs[cur_v_idd]->SetMode("OFFBOARD");
     }
 
-    if(active_uavs[cur_v_id]->GetMissionMode() != MissionMode::stopped)
-        this->OnStopScout();
+//    if(active_uavs[cur_v_id]->GetMissionMode() != MissionMode::stopped)
+//        this->OnStopScout();
 }
 
 void GCS::ToggleScoutButtons(bool visible, QString icon_type)
@@ -515,14 +511,14 @@ void GCS::ToggleScoutButtons(bool visible, QString icon_type)
 void GCS::OnUavSelected(VehicleWidget *w)
 {
 //    this->SelectUav(layout_by_v_type[VehicleType::quad_rotor]->indexOf(w));
-    this->SelectVehicleWidget(w->Id());
+    this->SelectVehicleWidgetById(w->Id());
 }
 
 
 void GCS::SelectVehicleWidgetById(int v_id)
 {
     int v_type = vm->VehicleTypeFromId(v_id);
-    Q_ASSERT(VehicleType::invalid_low < v_type && v_type < VehicleType::invalid_high);
+    Q_ASSERT(v_type != VehicleType::invalid_low);
     
     if(cur_v_id == v_id)
         return;
@@ -533,7 +529,7 @@ void GCS::SelectVehicleWidgetById(int v_id)
     if(v_type == VehicleType::ugv)
         vehicle_type = "UGV";
     
-    widget.lbl_cur_uav->setText(vehicle_type % " " % QString::number(index));
+    widget.lbl_cur_uav->setText(vehicle_type % " " % QString::number(v_id - v_type));
     
     widget.image_frame->setPixmap(QPixmap::fromImage(QImage()));
     this->ClearQueries(); // new uav selected, so make room for its queries
@@ -549,38 +545,38 @@ void GCS::SelectVehicleWidgetById(int v_id)
     
 }
 
-
-//needed in addUav(int) and deleteUav(int)
-void GCS::SelectUav(int uav_number)
-{
-    Q_ASSERT(0 <= uav_number && uav_number < vm->NumVehiclesByType(VehicleType::quad_rotor));
-
-    if(uav_number == cur_vehicle)
-        return; // no use resetting everything to the way it was
-
-    cur_vehicle = uav_number;
-    widget.image_frame->setPixmap(QPixmap::fromImage(QImage()));
-    this->ClearQueries(); // new uav selected, so make room for its queries
-
-    UAVControl * uav = active_uavs[cur_vehicle];
-    // handle image topic subscription and image refresh for new uav
-//    sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav->id) + "/stereo_cam/left/image_rect",
-//                                     30, &GCS::ImageCallback, this);
-    
-    if(fl_widgets.ap_menu != nullptr)
-        fl_widgets.ap_menu->SetUAV(uav);
-
-    //handle mission and arm buttons for new uav
-    MissionMode m = uav->GetMissionMode();
-    if(m == MissionMode::stopped)
-        this->ToggleScoutButtons(true);
-    else if(m == MissionMode::active)
-        this->ToggleScoutButtons(false, "pause");
-    else
-        this->ToggleScoutButtons(false, "play");
-
-    this->ToggleArmDisarmButton(active_uavs[cur_vehicle]->GetState().armed);
-}
+//
+////needed in addUav(int) and deleteUav(int)
+//void GCS::SelectUav(int uav_number)
+//{
+//    Q_ASSERT(0 <= uav_number && uav_number < vm->NumVehiclesByType(VehicleType::quad_rotor));
+//
+//    if(uav_number == cur_vehicle)
+//        return; // no use resetting everything to the way it was
+//
+//    cur_vehicle = uav_number;
+//    widget.image_frame->setPixmap(QPixmap::fromImage(QImage()));
+//    this->ClearQueries(); // new uav selected, so make room for its queries
+//
+//    UAVControl * uav = active_uavs[cur_vehicle];
+//    // handle image topic subscription and image refresh for new uav
+////    sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav->id) + "/stereo_cam/left/image_rect",
+////                                     30, &GCS::ImageCallback, this);
+//    
+//    if(fl_widgets.ap_menu != nullptr)
+//        fl_widgets.ap_menu->SetUAV(uav);
+//
+//    //handle mission and arm buttons for new uav
+//    MissionMode m = uav->GetMissionMode();
+//    if(m == MissionMode::stopped)
+//        this->ToggleScoutButtons(true);
+//    else if(m == MissionMode::active)
+//        this->ToggleScoutButtons(false, "pause");
+//    else
+//        this->ToggleScoutButtons(false, "play");
+//
+//    this->ToggleArmDisarmButton(active_uavs[cur_vehicle]->GetState().armed);
+//}
 
 void GCS::UpdateFlightStateWidgets()
 {
@@ -626,14 +622,14 @@ void GCS::OnArmOrDisarmSelectedUav()
     if(vm->NumVehiclesByType(VehicleType::quad_rotor) == 0)
         return;
 
-    bool armed = active_uavs[cur_vehicle]->GetState().armed;
+    bool armed = vm->IsArmed(cur_v_id);
 
     this->ToggleArmDisarmButton(armed);
 
-    active_uavs[cur_vehicle]->Arm(!armed);
+    emit ui_adapter->Arm(cur_v_id, !armed);
 }
 
-void GCS::ToggleArmDisarmButton(QString arm)
+void GCS::ToggleArmDisarmButton(bool arm)
 {
     if(arm)
         widget.btn_arm_uav->setText("Disarm");
@@ -641,19 +637,19 @@ void GCS::ToggleArmDisarmButton(QString arm)
         widget.btn_arm_uav->setText("Arm");
 }
 
-void GCS::InitHelperThread()
-{
-    thread_uav_monitor = new GCSHelperThread(this);
-    
-    connect(thread_uav_monitor, &GCSHelperThread::AddUav,
-            this, &GCS::OnAddUav);
-    connect(thread_uav_monitor, &GCSHelperThread::DeleteUav,
-            this, &GCS::OnDeleteUav);
-    connect(thread_uav_monitor, &GCSHelperThread::ToggleUavConnection,
-            this, &GCS::OnUAVConnectionToggled);
-            
-    thread_uav_monitor->start();
-}
+//void GCS::InitHelperThread()
+//{
+//    thread_uav_monitor = new GCSHelperThread(this);
+//    
+//    connect(thread_uav_monitor, &GCSHelperThread::AddUav,
+//            this, &GCS::OnAddUav);
+//    connect(thread_uav_monitor, &GCSHelperThread::DeleteUav,
+//            this, &GCS::OnDeleteUav);
+//    connect(thread_uav_monitor, &GCSHelperThread::ToggleUavConnection,
+//            this, &GCS::OnUAVConnectionToggled);
+//            
+//    thread_uav_monitor->start();
+//}
 
 void GCS::InitMap()
 {
@@ -726,10 +722,13 @@ void GCS::OnAccessPointsTriggered()
         connect(fl_widgets.ap_menu, &AccessPointsContainerWidget::destroyed,
                 this, [=](){ fl_widgets.ap_menu = nullptr; });
 
-        if(vm->NumQuadRotors() > 0)
-            fl_widgets.ap_menu->SetUAV(active_uavs[cur_vehicle]);
+        if(vm->NumVehiclesByType(VehicleType::quad_rotor) > 0)
+        {
+            int v_type = vm->VehicleTypeFromId(cur_v_id);
+            fl_widgets.ap_menu->SetUAVAccessPointsAndId(vm->GetUAVAccessPoints(cur_v_id), cur_v_id - v_type);
+        }
         else
-            fl_widgets.ap_menu->SetUAV(nullptr);
+            fl_widgets.ap_menu->SetUAVAccessPointsAndId(nullptr, -1);
     }
     else
         fl_widgets.ap_menu->showNormal();
@@ -810,7 +809,7 @@ void GCS::OnToggleMachineLearningMode(bool toggle)
     widget.frame_queries_cntnr->setVisible(toggle);
     widget.frame_queries_cntnr->setEnabled(toggle);
 
-    for(int i = 0; i < NUM_UAV; i++)
+    for(int i = 0; i < vm->NumVehiclesByType(VehicleType::quad_rotor); i++)
         active_uavs[i]->SetOnlineMode(toggle);
 }
 

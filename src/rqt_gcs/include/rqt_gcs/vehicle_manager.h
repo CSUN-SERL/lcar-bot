@@ -27,7 +27,9 @@
 #include "lcar_msgs/TargetLocal.h"
 #include "lcar_msgs/InitRequest.h"
 #include "lcar_msgs/TargetGlobal.h"
+#include "lcar_msgs/AccessPointStamped.h"
 #include "vehicle/vehicle_control.h"
+#include "rqt_gcs/ui_adapter.h"
 
 
 namespace rqt_gcs
@@ -70,35 +72,11 @@ public:
     int NumVehiclesByType(int v_type);
     
     /**
-     * 
-     * @return the number of strictly Unmanned Ground Vehicles in the system
-     */
-    int NumUGVs();
-    
-    /**
-     * \brief the number of strictly Unmanned Aerial Vehicles:
-     *        it is the number of vtols, quad-rotors, and octo-rotors
-     * @return the number of vtols, quad-rotors, and octo-rotors
+     * \brief the number of strictly Unmanned Aerial Vehicles, that is, 
+     *        the number of vtols, quad-rotors, and octo-rotors
+     * @return the number of vtols, quad-rotors, and octo-rotors in the system
      */
     int NumUAVs();
-    
-    /**
-     * 
-     * @return the number of strictly quad_rotors in the system
-     */
-    int NumQuadRotors();
-    
-    /**
-     * 
-     * @return the number of strictly octo_rotors in the system
-     */
-    int NumOctoRotors();
-    
-    /**
-     * 
-     * @return the number of strictly vtols in the system
-     */
-    int NumVTOLs();
     
     /**
      * \brief parses the vehicle type into a string from the specified id
@@ -157,6 +135,12 @@ public slots:
     
     void OnExecutePlay();
     void OnCancelPlay();
+    void OnScoutBuilding(int quad_id, QString Building);
+    void OnStopScout();
+    void OnChangeFlightMode(int);
+    void OnPauseOrResumeScout();
+    void OnAcceptDoorQuery(QWidget *);
+    void OnRejectDoorQuery(QWidget *);
     
     //Vehicle Commands//////////////////////////////////////////////////////////
     /**
@@ -173,14 +157,6 @@ public slots:
      */
     void SetWaypoint(int v_id, const sensor_msgs::NavSatFix& location);
     
-     /**
-     * \brief convenience function: set the way point for the specified vehicle, where
-     * vehicle type and number are specified in v_string
-     * @param v_string the human readable vehicle type containing its number ("quad1")
-     * @param location the container for latitude, longitude, and latitude
-     */
-    void SetWaypoint(std::string v_string, const sensor_msgs::NavSatFix& location);
-    
     /**
      * \brief negates the armed status of the vehicle with id v_id
      * 
@@ -188,13 +164,6 @@ public slots:
      */
     
     void Arm(int v_id, bool value);
-    
-    /**
-     * \brief voice command overloaded function for @Arm(int v_id, bool value)
-     * @param v_string the vehicle string to arm, eg "quad1, ground vehicle1"
-     * @param value whether or not to arm the vehicle
-     */
-    void Arm(std::string v_string, bool value);
     
     /**
      * \brief Set the UAV Flight Mode for the desired UAV, which could be of type
@@ -206,17 +175,8 @@ public slots:
     */
     void SetMode(int v_id, std::string mode);
     
-    /**
-     * \brief voice command overloaded function for @SetFlightMode(int v_id, std::string mode)
-     * @param v_string the vehicle string to set flight mode for, eg "quad1, husky1"
-     * @param mode Mode to Set: Choose from Stabilize, Alt Hold, Auto, Guided,
-     *        Loiter, RTL, or Circle
-     */
-    void SetMode(std::string v_string, std::string mode);
-    
     //todo the rest of the vehicle commands
     //end VehicleCommands///////////////////////////////////////////////////////
-    
     
     /**
      * causes the vehicle to return to launch
@@ -224,19 +184,6 @@ public slots:
      */
     void SetRTL(int v_id);
 
-    /**
-     * \brief command a quad-rotor to scout a building
-     * @param quad_id the id of the desired quad-rotor
-     * @param target the local position target for scouting
-     */
-    void ScoutBuilding(int quad_id, lcar_msgs::TargetLocal target);
-    
-     /**
-     * \brief command a quad-rotor to scout a building
-     * @param quad_id the id of the desired quad-rotor
-     * @param target the global position target for scouting
-     */
-    void ScoutBuilding(int quad_id, lcar_msgs::TargetGlobal target);
     //Vehicle Info queries//////////////////////////////////////////////////////
 
      /**
@@ -253,21 +200,7 @@ public slots:
      */
     std::vector<lcar_msgs::QueryPtr> * GetUAVDoorQueries(int quad_id);
     
-    /**
-     * \brief retrieve information like state, battery, and mission progress about
-     *        for the specified UGV (eg, a vehicle of type VehicleType::ugv)
-     * @param ugv_id the id of the UGV to get info about
-     * @return UGVInfoPtr the info container. will be NULL if vehicle isn't found
-     */
-    UGVInfoPtr GetUGVInfo(int ugv_id);
-    
-     /**
-     * \brief retrieve information like state, battery, and mission progress about
-     *        for the specified UAV (eg, a vehicle of type VehicleType::[quad-rotor | octo-rotor | vtol]
-     * @param ugv_id the id of the UAV to get info about
-     * @return UAVInfoPtr the info container. will be NULL if vehicle isn't found
-     */
-    UAVInfoPtr GetUAVInfo(int uav_id);
+    std::vector<lcar_msgs::AccessPointStampedPtr> * GetUAVAccessPoints(int quad_id);
     
     /**
      * \brief returns the flight state for the vehicle with the given id;
@@ -310,6 +243,23 @@ public slots:
 private:
     
     /**
+     * \brief Finds and return a vehicle in the database for the specified vehicle type.
+     *        Assumes v_type is a valid VehicleType.
+     * @param v_type the VehicleType of the vehicle as an integer
+     * @param v_id the id of the vehicle
+     * @return pointer to the vehicle if found or nullptr if not found
+     */
+    VehicleControl* FindVehicle(int v_type, int v_id);
+    
+    /**
+     * \brief get a pointer to the desired vehicle by ID. this function asserts that
+     *        the VehicleType extracted from the id is valid.
+     * @param v_id the id of the vehicle
+     * @return a pointer to the vehicle if found or nullptr if not found
+     */
+    VehicleControl* FindVehicle(int v_id);
+    
+    /**
      * \brief Initializes ObjectDetectionSettings for the publishing to vehicles.
      *        The settings are visible in the Settings Widget.
      */
@@ -329,6 +279,9 @@ private:
     */
     int IdfromVehicleString(QString v_type);
     
+    lcar_msgs::TargetGlobalPtr GetTargetGlobal(QString target_path);
+    
+    lcar_msgs::TargetLocalPtr GetTargetLocal(QString target_path);
     /*
      * this is the database containing all the vehicles.
      * its a double nested QMap where the outer maps' key is the VehicleType casted to an integer,
@@ -336,6 +289,8 @@ private:
      * have the vehicle id as the key, and a VehicleControl* as the value. 
      */
     QMap<int/*VehicleType*/, QMap<int, VehicleControl*>> db; //the database
+    
+    UIAdapter *ui_adapter;
     
     /*
      * contains all the vehicle init. requests. see @OnVehicleInitRequested().
@@ -357,6 +312,7 @@ private:
         OCTO_ID,
         VTOL_ID;
     
+    QString coordinate_system; // can be "global" or "local"
     
     struct ObjectDetectionMessageHandlers // publishers and subscribers
     {

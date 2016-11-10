@@ -31,11 +31,11 @@ public:
     virtual int GetDistanceToWP(){};
     virtual sensor_msgs::NavSatFix GetLocation()=0;
     virtual void SetRTL(){};
-    virtual void StartMission(){}; // todo make pure virtual and add override implementation to UAVControl
-    virtual void PauseMission(){};
-    virtual void ResumeMission(){};
-    virtual void StopMission(){};
-    virtual MissionMode GetMissionMode()=0;
+    virtual void StartMission(){ mission_mode = active; }; // todo make pure virtual and add override implementation to UAVControl
+    virtual void PauseMission(){ mission_mode = paused; };
+    virtual void ResumeMission(){ mission_mode = active; };
+    virtual void StopMission(){ mission_mode = stopped; };
+    virtual MissionMode GetMissionMode(){ return mission_mode; };
     
 protected:
 
@@ -44,6 +44,7 @@ protected:
     virtual void RunGlobal()=0;
     
     ros::Timer run_timer;
+    MissionMode mission_mode;
     
 };
 
