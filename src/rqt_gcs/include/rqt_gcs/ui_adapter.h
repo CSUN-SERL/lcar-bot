@@ -16,25 +16,19 @@
 
 namespace rqt_gcs
 {
-
+    
 class UIAdapter : public QObject
 {
     Q_OBJECT
 public:
-    UIAdapter(){};
-    virtual ~UIAdapter(){};
+    UIAdapter();
+    virtual ~UIAdapter();
     
-    static UIAdapter* Instance() 
-    { 
-        if(!instance)
-            instance = new UIAdapter();
-    
-        return instance;
-    };
+    static UIAdapter* Instance() ;
     
 signals:
 
-    // GCSMainWindow/VOCE -> backend
+    // any ui -> backend
     void Arm(int v_id, bool value);
     void SetWayPoint(int v_id, sensor_msgs::NavSatFix waypoint);
     void SetMode(int v_id, QString mode);
@@ -60,8 +54,9 @@ signals:
     void AddVehicle(int v_id);
     void DeleteVehicle(int v_id);
     
+    void SetCoordinateSystem(QString system);
     
-    // backend -> GCSMainWindow/VOCE
+    // backend -> any ui
     void NotifyOperator(QString message);
 
     

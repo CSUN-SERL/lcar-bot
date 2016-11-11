@@ -15,14 +15,9 @@
 #include <image_transport/image_transport.h>
 
 #include <QTimer>
-#include <QQueue>
-#include <QThread>
 #include <QMenuBar>
 #include <QSettings>
-#include <QSignalMapper>
-#include <QWaitCondition>
 #include <QCloseEvent>
-#include <QMutex>
 
 #include "rqt_gcs/vehicle_list_widget.h"
 #include "rqt_gcs/unanswered_queries.h"

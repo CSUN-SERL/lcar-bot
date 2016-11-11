@@ -25,8 +25,9 @@ namespace rqt_gcs
         virtual ~SettingsWidget();
         
     private:
-        Ui::SettingsWidget widget_;
-        QString ml_state_;
+        Ui::SettingsWidget widget;
+        QString ml_state;
+        QString coordinate_system;
         VehicleManager *vm;
         QSettings *settings; 
         
@@ -40,10 +41,6 @@ namespace rqt_gcs
         
         void readObjectDetectionSettings();
         void writeObjectDetectionSettings();
-        
-        
-    signals:
-        void machineLearningModeToggled(bool);
 
     private slots:
         bool onApplyClicked();
@@ -52,6 +49,7 @@ namespace rqt_gcs
         void onToggleFrequencyGroup();
         void onToggleIntervalLine();
         void onToggleLengthLine();
+        void OnCoordinateSystemChange();
         
         //object detection tab sliders and line_edits
         void onHitThresholdSliderChange(int);

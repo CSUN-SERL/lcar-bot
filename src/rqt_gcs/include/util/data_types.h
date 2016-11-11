@@ -20,8 +20,7 @@ typedef enum VehicleType_
     quad_rotor =        ugv + VEHICLE_TYPE_MAX, //2000
     octo_rotor = quad_rotor + VEHICLE_TYPE_MAX, //3000
     vtol =       octo_rotor + VEHICLE_TYPE_MAX, //4000
-    humanoid =         vtol + VEHICLE_TYPE_MAX, //5000
-    invalid_high = humanoid + VEHICLE_TYPE_MAX
+    invalid_high =     vtol + VEHICLE_TYPE_MAX
 } VehicleType;
     
 typedef enum PositionMode_
@@ -53,7 +52,7 @@ enum Mode
 typedef struct State_
 {
     float battery;
-    int mission_progress;
+    float mission_progress;
     std::string mode;
     bool armed;
 } State;

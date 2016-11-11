@@ -54,7 +54,10 @@ void VehicleInitWidget::OnAddVehicleBtnClicked()
     {
         if(items[i]->column() == 2)
         {
-            emit UIAdapter::Instance()->AddVehicle(items[i]->text().toInt());
+            QString text = items[i]->text();
+            int id = text.toInt();
+//            qCDebug(lcar_bot) << "adding vehicle with id: " << id;
+            emit UIAdapter::Instance()->AddVehicle(id);
             widget.view->removeRow(items[i]->row());
         }
     }
@@ -62,7 +65,7 @@ void VehicleInitWidget::OnAddVehicleBtnClicked()
 
 void VehicleInitWidget::OnAddInitRequest(QString machine_name, int v_id)
 {
-    qCDebug(lcar_bot) << "vehicle_id: " << v_id;
+//    qCDebug(lcar_bot) << "vehicle_id: " << v_id;
     QString v_type = vm->VehicleStringFromId(v_id);
 
     int row = widget.view->rowCount();

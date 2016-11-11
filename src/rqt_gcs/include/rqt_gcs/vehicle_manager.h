@@ -82,14 +82,20 @@ public:
      * @return string containing the vehicle type
      */
     QString VehicleStringFromId(int id);
-    int GenerateId(const QString& machine_name);
     
     /**
      * \brief return the VehicleType (as an integer) associated with this id
      * @param id the id
      * @return (int) VehicleType::[ugv|quad_rotor|octo_rotor|vtol] or (int)VehicleType::invalid_low if invalid
      */
-    int VehicleTypeFromId(int id);
+    int VehicleTypeFromId(int v_id);
+    
+    /**
+     * 
+     * @return the order of the vehicle within the database ordered against 
+     *         other vehicle of the same type 
+     */
+    int VehicleIndexFromId(int v_id);
     
     /**
      * Accessor function used by VehicleInitWidget to show init. reqests to the operator
@@ -103,11 +109,13 @@ public:
      * @param topic the fully formed image topic
      */
     void SubscribeToImageTopic(QString& topic);
+
+    float GetMissionProgress(int v_id);
     
     int * GetAcceptedUAVImages(int quad_id);
     
     int * GetRejectedUAVImages(int quad_id);
-    
+
     
     /**
      * Accessor function used by SettingsWidget to show Object Detection Parameters
@@ -122,10 +130,9 @@ public:
     
 public slots:
     
-    void AddVehicle(int v_id);
-    void OnDeleteVehicle(int v_id);\
+    void OnAddVehicle(const int vehicle_id);
+    void OnDeleteVehicle(int v_id);
 
-    void OnOperatorAddVehicle(const int vehicle_id);
     // todo add all main gui button slots
     
     void OnScoutBuilding(int quad_id, QString Building);
@@ -138,12 +145,15 @@ public slots:
     void OnResumePlay();
     void OnCancelPlay();
     
+    void OnSetMachineLearningMode(bool on);
     //methods for publishing object detection paramerter updates
     void OnPublishHitThreshold(double thresh);
     void OnPublishStepSize(int step);
     void OnPublishPadding(int padding);
     void OnPublishScaleFactor(double scale);
     void OnPublishMeanShift(bool on);
+    
+    void OnSetCoordinateSystem(QString new_system);
     
     //Vehicle Commands//////////////////////////////////////////////////////////
     /**
@@ -158,7 +168,7 @@ public slots:
      * @param v_id the vehicles internal id
      * @param location the container for latitude, longitude, and latitude
      */
-    void OnSetWaypoint(int v_id, const sensor_msgs::NavSatFix& location);
+    void OnSetWaypoint(int v_id, const sensor_msgs::NavSatFix location);
     
     /**
      * \brief negates the armed status of the vehicle with id v_id
@@ -246,6 +256,15 @@ public slots:
     void ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg);
     
 private:
+    
+    void AddVehiclePrivate(int v_id);
+    
+    /**
+     * \brief generates an id for the vehicle based on its machine_name
+     * @param machine_name the name of the vehicles computer
+     * @return an id cooresponding to its vehicle type
+     */
+    int GenerateId(const QString& machine_name);
     
     /**
      * \brief Finds and return a vehicle in the database for the specified vehicle type.

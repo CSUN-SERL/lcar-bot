@@ -36,6 +36,7 @@ public:
     virtual void ResumeMission(){ mission_mode = active; };
     virtual void StopMission(){ mission_mode = stopped; };
     virtual MissionMode GetMissionMode(){ return mission_mode; };
+    virtual float GetMissiontProgress() { return -1; }
     virtual int GetBattery() { return battery; };
     virtual std::string GetMode() { return  mode; }
     

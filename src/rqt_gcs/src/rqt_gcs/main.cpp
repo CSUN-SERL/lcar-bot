@@ -9,6 +9,7 @@
 #include <QThread>
 
 #include "util/strings.h"
+#include "util/debug.h"
 #include "rqt_gcs/gcs.h"
 #include "rqt_gcs/vehicle_manager.h"
 
@@ -45,6 +46,8 @@ int main(int argc, char *argv[])
     if(!ROSLockThisNetwork())
         return -2;
     
+    rqt_gcs::dbg::InitDbg();
+    
     rqt_gcs::COMPANY = "SERL";
     rqt_gcs::APPLICATION = "LCAR_Bot";
     
@@ -52,14 +55,19 @@ int main(int argc, char *argv[])
     ros::AsyncSpinner spinner(0); // use all processor cores
     spinner.start();
     
-    rqt_gcs::VehicleManager vm;
+    rqt_gcs::VehicleManager *vm = new rqt_gcs::VehicleManager();
     QThread background;
-    vm.moveToThread(&background);
-    vm.ConnectToUIAdapter();
+    vm->moveToThread(&background);
+    vm->ConnectToUIAdapter();
     background.start();
     
-    rqt_gcs::GCS gcs(&vm);
+    rqt_gcs::GCS gcs(vm);
     gcs.showMaximized();
     
-    return app.exec();
+    int ret = app.exec();
+    
+    background.quit();
+    delete vm;
+    
+    return ret;
 }

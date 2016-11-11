@@ -1,14 +1,11 @@
 #include "rqt_gcs/ui_adapter.h"
 
 namespace rqt_gcs 
-{
-    UIAdapter * UIAdapter::instance = nullptr;
+{   
     
-    UIAdapter::UIAdapter(){    
-    }
+    UIAdapter::UIAdapter(){ }
     
-    UIAdapter::~UIAdapter(){
-    }
+    UIAdapter::~UIAdapter(){ }
     
     UIAdapter * UIAdapter::Instance()
     {
@@ -17,6 +14,8 @@ namespace rqt_gcs
         
         return instance;
     }
+    
+    UIAdapter *UIAdapter::instance = nullptr;
 }
     
 

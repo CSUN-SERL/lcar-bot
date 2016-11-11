@@ -9,8 +9,15 @@ Q_LOGGING_CATEGORY(lcar_bot, "lcar_bot");
 namespace dbg
 {
     
+    bool initialized = false;
+    
     void InitDbg()
     {
+        if(initialized)
+            return;
+        
+        initialized = true;
+        
         QLoggingCategory::setFilterRules("*.debug=false\n"
                                          "*.warning=false\n"
                                          "lcar_bot.debug=true\n"
@@ -19,7 +26,6 @@ namespace dbg
         qInstallMessageHandler(MsgHandler
                             //,0
                                );
-
     }
     
     void MsgHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)

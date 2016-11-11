@@ -6,6 +6,8 @@
 #include <QDesktopWidget>
 #include <QMainWindow>
 #include <QStringBuilder>
+#include <QWaitCondition>
+#include <QMutex>
 #include <QMetaType>
 
 #include "rqt_gcs/query_widget.h"
@@ -68,8 +70,7 @@ GCS::GCS(VehicleManager *vm):
             this, &GCS::OnAddVehicleWidget);
     connect(ui_adapter, &UIAdapter::SetMachineLearningMode,
             this, &GCS::OnToggleMachineLearningMode);
-    
-    dbg::InitDbg();
+
     this->InitMenuBar();
     this->InitSettings();
 //    this->InitHelperThread();
@@ -131,8 +132,9 @@ void GCS::OnAddVehicleWidget(int v_id)
     
     VehicleWidget *w = new VehicleWidget();
     w->SetId(v_id);
-    w->SetNumber(v_id - v_type);
-    w->SetName("UAV " % QString::number(v_id - v_type));
+    int v_index = vm->VehicleIndexFromId(v_id);
+    w->SetNumber(v_index);
+    w->SetName(vm->VehicleStringFromId(v_id) % " " % QString::number(v_index));
 
     // - 1 accounts for the vehicle corresponding to this widget
     // that was added before the GUI was told to add this widget.
@@ -146,6 +148,8 @@ void GCS::OnAddVehicleWidget(int v_id)
             this, [=](){ OnUavSelected(w); } );
     
     layout_by_v_type[v_type]->insertWidget(index, w);  
+    if(vm->NumVehiclesByType(v_type) == 1)
+        this->SelectVehicleWidgetById(w->Id());
 }
 
 void GCS::OnDeleteVehicleWidget(int v_id)
@@ -170,6 +174,13 @@ void GCS::OnDeleteVehicleWidget(int v_id)
         widget.image_frame->setPixmap(QPixmap::fromImage(QImage()));
         widget.lbl_cur_uav->setText("NO UAVS");
         cur_v_id = -1;
+    }
+    if(v_id == cur_v_id) // current vehicle was just deleted
+    {
+        if(vm->VehicleIndexFromId(v_id) > 0)
+            this->SelectVehicleWidgetById(cur_v_id - 1);
+        else
+            cur_v_id = -1;
     }
     
     //todo handle cases where num_vehicle != 0
@@ -264,7 +275,7 @@ void GCS::SaveUavQueries(int uav_id, const std::vector<lcar_msgs::QueryPtr> *que
 //Timed update of GCS gui
 void GCS::OnTimedUpdate()
 {
-    if(vm->NumVehiclesByType(VehicleType::quad_rotor) == 0)
+    if(cur_v_id == -1)
         return;
 
     if(time_counter++ >= 100)
@@ -288,7 +299,7 @@ void GCS::ClearQueries()
 
 void GCS::UpdateQueries()
 {
-    if(vm->NumVehiclesByType(VehicleType::quad_rotor) == 0 || !widget.frame_queries_cntnr->isVisible())
+    if(cur_v_id == -1 || !widget.frame_queries_cntnr->isVisible())
         return;
 
     std::vector<lcar_msgs::QueryPtr> *queries = vm->GetUAVDoorQueries(cur_v_id);
@@ -381,7 +392,7 @@ void GCS::OnExecutePlay()
 
 void GCS::OnCancelPlay()
 {
-    if(vm->NumTotalVehicles() == 0)
+    if(cur_v_id == -1)
         return;
 
     emit UIAdapter::Instance()->CancelPlay();
@@ -391,7 +402,7 @@ void GCS::OnCancelPlay()
 
 void GCS::OnScoutBuilding()
 {
-    if(vm->NumVehiclesByType(VehicleType::quad_rotor) == 0)
+    if(cur_v_id == -1)
         return;
 
     QString building = widget.cmbo_box_buildings->currentText();
@@ -404,7 +415,7 @@ void GCS::OnScoutBuilding()
 
 void GCS::OnPauseOrResumeScout()
 {
-    if(vm->NumVehiclesByType(VehicleType::quad_rotor) == 0)
+    if(cur_v_id == -1)
         return;
 
     if(vm->GetMissionMode(cur_v_id) == MissionMode::active)
@@ -421,7 +432,7 @@ void GCS::OnPauseOrResumeScout()
 
 void GCS::OnStopScout()
 {
-    if(vm->NumVehiclesByType(VehicleType::quad_rotor) == 0)
+    if(cur_v_id == -1)
         return;
 
     emit UIAdapter::Instance()->CancelMission(cur_v_id);
@@ -430,7 +441,7 @@ void GCS::OnStopScout()
 
 void GCS::OnChangeFlightMode(int index)
 {
-    if(vm->NumVehiclesByType(VehicleType::quad_rotor) == 0)
+    if(cur_v_id == -1)
         return;
     
     if(index == 0)
@@ -504,20 +515,20 @@ void GCS::SelectVehicleWidgetById(int v_id)
     
     cur_v_id = v_id;
     
-    QString vehicle_type = "UAV";
+    QString vehicle_type = "UAV ";
     if(v_type == VehicleType::ugv)
-        vehicle_type = "UGV";
+        vehicle_type = "UGV ";
     
-    widget.lbl_cur_uav->setText(vehicle_type % " " % QString::number(v_id - v_type));
+    widget.lbl_cur_uav->setText(vehicle_type % QString::number(v_id - v_type));
     
-    widget.image_frame->setPixmap(QPixmap::fromImage(QImage()));
-    this->ClearQueries(); // new uav selected, so make room for its queries
     QString topic("/V" % QString::number(v_id) % "/stereo_cam/left/image_rect");
     vm->SubscribeToImageTopic(topic);
     
+    widget.image_frame->setPixmap(QPixmap::fromImage(QImage()));
+    this->ClearQueries(); // new uav selected, so make room for its queries
     if(fl_widgets.ap_menu != nullptr)
-        fl_widgets.ap_menu->SetUAVAccessPointsAndId(vm->GetUAVAccessPoints(cur_v_id), cur_v_id - v_type);
-    
+        fl_widgets.ap_menu->SetUAVAccessPointsAndId(vm->GetUAVAccessPoints(cur_v_id), 
+                                                    cur_v_id - v_type);
     
     //todo update gui buttons according to current vehicles mission status 
     MissionMode m = vm->GetMissionMode(cur_v_id);
@@ -566,46 +577,52 @@ void GCS::SelectVehicleWidgetById(int v_id)
 
 void GCS::UpdateFlightStateWidgets()
 {
-    if(vm->NumUAVs() == 0)
+    if(cur_v_id == -1)
         return;
 
-    FlightState state = vm->GetFlightState(cur_v_id);
+    FlightState flight_state = vm->GetFlightState(cur_v_id);
     
     // PFD
-    widget.pfd->setRoll(state.roll*180);
-    widget.pfd->setPitch(state.pitch*90);
-    widget.pfd->setHeading(state.heading);
-    widget.pfd->setAirspeed(state.ground_speed);
-    widget.pfd->setAltitude(state.altitude);
-    widget.pfd->setClimbRate(state.vertical_speed);
+    widget.pfd->setRoll(flight_state.roll*180);
+    widget.pfd->setPitch(flight_state.pitch*90);
+    widget.pfd->setHeading(flight_state.heading);
+    widget.pfd->setAirspeed(flight_state.ground_speed);
+    widget.pfd->setAltitude(flight_state.altitude);
+    widget.pfd->setClimbRate(flight_state.vertical_speed);
     widget.pfd->update();
-
-    UAVControl* uav;
     
     QString temp_data;
     //text based widget
-    temp_data.setNum(state.yaw, 'f', 2);
+    temp_data.setNum(flight_state.yaw, 'f', 2);
     widget.lbl_yaw_val->setText(temp_data);
-    temp_data.setNum(state.roll, 'f', 2);
+    
+    temp_data.setNum(flight_state.roll, 'f', 2);
     widget.lbl_roll_val->setText(temp_data);
-    temp_data.setNum(state.pitch, 'f', 2);
+    
+    temp_data.setNum(flight_state.pitch, 'f', 2);
     widget.lbl_pitch_val->setText(temp_data);
-    temp_data.setNum(state.ground_speed, 'f', 2);
-    temp_data.append(" m/s");
+    
+    temp_data.setNum(flight_state.ground_speed, 'f', 2).append(" m/s");
     widget.lbl_gnd_spd_val->setText(temp_data);
-    temp_data.setNum(uav->GetDistanceToWP());
-    temp_data.append(" m");
+    
+    temp_data.setNum(vm->GetDistanceToWP(cur_v_id)).append(" m");
     widget.lbl_dist_wp_val->setText(temp_data);
-    temp_data.setNum(uav->GetBatteryState().percentage * 100);
+    
+    
+    StatePtr state = vm->GetState(cur_v_id);
+    temp_data.setNum(state->battery * 100);
     widget.pgs_bar_battery->setValue(temp_data.toInt());
-    temp_data = "UAV " + QString::number(uav->id);
+    
+    int v_index = vm->VehicleIndexFromId(cur_v_id);
+    temp_data = "UAV " + QString::number(v_index);
     widget.lbl_cur_uav->setText(temp_data);
-    widget.pgs_bar_mission->setValue(uav->GetMissionProgress() * 100);
+    
+    widget.pgs_bar_mission->setValue(state->mission_progress * 100);
 }
 
 void GCS::OnArmOrDisarmSelectedUav()
 {
-    if(vm->NumVehiclesByType(VehicleType::quad_rotor) == 0)
+    if(cur_v_id == -1)
         return;
 
     bool armed = vm->IsArmed(cur_v_id);
@@ -813,10 +830,15 @@ void GCS::OnUpdateCameraFeed(QPixmap img)
 
 void GCS::closeEvent(QCloseEvent* event)
 {    
-    // move backwards because OnDeleteUav decrements NUM_UAV
-    int v_type = VehicleType::quad_rotor;
-    for(int i = vm->NumVehiclesByType(v_type) - 1; i >= 0; i--)
-        emit UIAdapter::Instance()->DeleteVehicle(v_type + i);
+    int v_type = VehicleType::invalid_low + 1;
+    for(; v_type < VehicleType::invalid_high; v_type += VEHICLE_TYPE_MAX)
+    {
+        for(int i = vm->NumVehiclesByType(v_type) - 1; i >= 0; i--)
+        {
+            VehicleWidget * w = this->VehicleWidgetAt(v_type, i);
+            emit UIAdapter::Instance()->DeleteVehicle(w->Id());
+        }
+    }
     
     // this wouldn't work in the destructor
     if(fl_widgets.ap_menu != nullptr) 
@@ -836,8 +858,8 @@ void GCS::closeEvent(QCloseEvent* event)
 
 VehicleWidget* GCS::VehicleWidgetAt(int v_type, int index)
 {
-    Q_ASSERT(v_type != VehicleType::invalid_low);
-//    Q_ASSERT(index < vm->NumVehiclesByType(v_type));
+    Q_ASSERT(VehicleType::invalid_low < v_type && v_type < VehicleType::invalid_high);
+    Q_ASSERT(index < vm->NumVehiclesByType(v_type));
     
     return static_cast<VehicleWidget*>(layout_by_v_type[v_type]->itemAt(index)->widget());
 }
