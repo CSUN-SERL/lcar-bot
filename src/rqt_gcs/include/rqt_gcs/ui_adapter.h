@@ -29,47 +29,51 @@ public:
 signals:
 
     // any ui -> backend
-    void Arm(int v_id, bool value);
-    void SetWayPoint(int v_id, sensor_msgs::NavSatFix waypoint);
-    void SetMode(int v_id, QString mode);
-    void SetRTL(int v_id);
+        //vehicle commands
+        void Arm(int v_id, bool value);
+        void SetWayPoint(int v_id, sensor_msgs::NavSatFix waypoint);
+        void SetMode(int v_id, QString mode);
+        void SetRTL(int v_id);
+        
+        void ScoutBuilding(int quad_id, QString building);
+        void PauseMission(int v_id);
+        void ResumeMission(int v_id);
+        void CancelMission(int v_id);
+
+        void ExecutePlay(QString play);
+        void PausePlay();
+        void ResumePlay();
+        void CancelPlay();
+   
+        //object detection settings for quad-rotors
+        void SetMachineLearningMode(bool online);
+        void PublishHitThreshold(double hit_thresh);
+        void PublishStepSize(int step_size);
+        void PublishPadding(int padding);
+        void PublishScaleFactor(double scale);
+        void PublishMeanShift(bool mean_shift);
+
+        //database commands (and potentially voice commands)
+        void AddVehicle(int v_id);
+        void DeleteVehicle(int v_id);
     
-    void ScoutBuilding(int quad_id, QString building);
-    void PauseMission(int v_id);
-    void ResumeMission(int v_id);
-    void CancelMission(int v_id);
-    
-    void ExecutePlay(QString play);
-    void PausePlay();
-    void ResumePlay();
-    void CancelPlay();
-    
-    void SetMachineLearningMode(bool online);
-    void PublishHitThreshold(double hit_thresh);
-    void PublishStepSize(int step_size);
-    void PublishPadding(int padding);
-    void PublishScaleFactor(double scale);
-    void PublishMeanShift(bool mean_shift);
-    
-    void AddVehicle(int v_id);
-    void DeleteVehicle(int v_id);
-    
-    void SetCoordinateSystem(QString system);
+        //a necessary evil for determing the way vehicles navigate. global(outdoors) or global(indoors)
+        void SetCoordinateSystem(QString system);
     
     // backend -> any ui
     void NotifyOperator(QString message);
 
-    
     // backend -> GCSMainWindow
     void NewImageFrame(QPixmap img);
     void AddVehicleWidget(int v_id);
     void DeleteVehicleWidget(int v_id);
-    
+
     // backend -> VehicleInitWidget
     void AddToInitWidget(QString machine_name, int v_id);
     
     
     // backend -> VOCE
+    //nothing here yet
     
     
 private:
