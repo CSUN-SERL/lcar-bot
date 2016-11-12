@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
     spinner.start();
     
     rqt_gcs::VehicleManager *vm = new rqt_gcs::VehicleManager();
+    
     QThread background;
     vm->moveToThread(&background);
     vm->ConnectToUIAdapter();

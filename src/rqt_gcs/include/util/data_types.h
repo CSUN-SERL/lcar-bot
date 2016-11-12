@@ -8,6 +8,8 @@
 #ifndef DATA_TYPES_H
 #define DATA_TYPES_H
 
+#include <boost/shared_ptr.hpp>
+
 namespace rqt_gcs
 {
     
@@ -23,6 +25,8 @@ typedef enum VehicleType_
     invalid_high =     vtol + VEHICLE_TYPE_MAX
 } VehicleType;
     
+//todo ADD FLIGHTMODE STRINGS
+
 typedef enum PositionMode_
 {
     local,

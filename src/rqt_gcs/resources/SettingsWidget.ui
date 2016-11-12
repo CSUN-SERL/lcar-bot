@@ -448,6 +448,13 @@ QPushButton{
              <layout class="QVBoxLayout" name="verticalLayout_5">
               <item>
                <widget class="QRadioButton" name="global_btn">
+                <property name="font">
+                 <font>
+                  <pointsize>11</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
                 <property name="text">
                  <string>Global</string>
                 </property>
@@ -455,6 +462,13 @@ QPushButton{
               </item>
               <item>
                <widget class="QRadioButton" name="local_btn">
+                <property name="font">
+                 <font>
+                  <pointsize>11</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
                 <property name="text">
                  <string>Local</string>
                 </property>

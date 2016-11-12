@@ -28,6 +28,8 @@ public:
     virtual bool IsArmed()=0;
     virtual void SetMode(std::string){};
     virtual void SetWayPoint(const sensor_msgs::NavSatFix& location){};
+    virtual void SetWayPoint(double lat, double lng, double alt){};
+    virtual void SetWayPoint(int x, int y, int z){};
     virtual int GetDistanceToWP(){};
     virtual sensor_msgs::NavSatFix GetLocation()=0;
     virtual void SetRTL(){};

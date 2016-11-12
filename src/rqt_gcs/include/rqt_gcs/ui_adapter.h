@@ -31,16 +31,16 @@ signals:
     // any ui -> backend
         //vehicle commands
         void Arm(int v_id, bool value);
-        void SetWayPoint(int v_id, sensor_msgs::NavSatFix waypoint);
+        void SetWayPoint(int v_id, int lat, int lng, int alt=0);
         void SetMode(int v_id, QString mode);
         void SetRTL(int v_id);
         
-        void ScoutBuilding(int quad_id, QString building);
+        void ScoutBuilding(int quad_id, int num);
         void PauseMission(int v_id);
         void ResumeMission(int v_id);
         void CancelMission(int v_id);
 
-        void ExecutePlay(QString play);
+        void ExecutePlay(int play);
         void PausePlay();
         void ResumePlay();
         void CancelPlay();

@@ -384,8 +384,11 @@ void GCS::OnExecutePlay()
         return;
 
     QString play = widget.cmbo_box_play_book->currentText();
-
-    emit UIAdapter::Instance()->ExecutePlay(play);
+    
+    int number;
+    sscanf(play.toStdString().c_str(), "%d", &number);
+    
+    emit UIAdapter::Instance()->ExecutePlay(number);
 
     ROS_INFO_STREAM("Play " << play.toStdString() << " initiated");
 }
@@ -406,7 +409,11 @@ void GCS::OnScoutBuilding()
         return;
 
     QString building = widget.cmbo_box_buildings->currentText();
-    emit UIAdapter::Instance()->ScoutBuilding(cur_v_id, building);
+    
+    int number;
+    sscanf(building.toStdString().c_str(), "%d", &number);
+    
+    emit UIAdapter::Instance()->ScoutBuilding(cur_v_id, number);
 
     this->ToggleScoutButtons(false);
 

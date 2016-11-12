@@ -135,7 +135,7 @@ public slots:
 
     // todo add all main gui button slots
     
-    void OnScoutBuilding(int quad_id, QString Building);
+    void OnScoutBuilding(int quad_id, int Building);
     void OnPauseMission(int v_id);
     void OnResumeMission(int v_id);
     void OnCancelMission(int v_id);
@@ -168,7 +168,7 @@ public slots:
      * @param v_id the vehicles internal id
      * @param location the container for latitude, longitude, and latitude
      */
-    void OnSetWaypoint(int v_id, const sensor_msgs::NavSatFix location);
+    void OnSetWaypoint(int v_id, double lat, double lng, double alt);
     
     /**
      * \brief negates the armed status of the vehicle with id v_id

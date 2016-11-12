@@ -47,7 +47,6 @@ void VehicleManager::ConnectToUIAdapter()
 {
     UIAdapter *ui_adapter = UIAdapter::Instance();
     
-    //ui commands
     connect(ui_adapter, &UIAdapter::Arm,
             this, &VehicleManager::OnArm);
     
@@ -285,14 +284,14 @@ void VehicleManager::OnDeleteVehicle(int v_id)
     widget_mutex.unlock();
 }
 
-void VehicleManager::OnScoutBuilding(int quad_id, QString building)
+void VehicleManager::OnScoutBuilding(int quad_id, int building)
 {
     int v_type = this->VehicleTypeFromId(quad_id);
     Q_ASSERT(v_type == VehicleType::quad_rotor);
     
     QString path = QString(ros::package::getPath("rqt_gcs").c_str()) % "/building";
     // can be local or global
-    path.append("/" % coordinate_system % "/" % building);
+    path.append("/" % coordinate_system % "/" % "building" % QString::number(building));
     
     VehicleControl *vc = this->FindVehicle(v_type, quad_id);
     if(vc != nullptr)
@@ -440,16 +439,19 @@ void VehicleManager::OnPublishMeanShift(bool on)
 
 void VehicleManager::OnSetCoordinateSystem(QString new_system)
 {
-    if(coordinate_system != new_system)
-        coordinate_system = new_system;
+    if(new_system == "global" || new_system == "local")
+    {
+        if(coordinate_system != new_system)
+            coordinate_system = new_system;
+    }
 }
 
 
-void VehicleManager::OnSetWaypoint(int v_id, const sensor_msgs::NavSatFix location)
+void VehicleManager::OnSetWaypoint(int v_id, double lat, double lng, double alt)
 {
     VehicleControl *vc = this->FindVehicle(v_id);
     if(vc != nullptr)
-        vc->SetWayPoint(location);
+        vc->SetWayPoint(lat, lng, alt);
     else
         ROS_ERROR_STREAM("Cannot set waypoint: No such" 
                 << this->VehicleStringFromId(v_id).toStdString()
