@@ -64,6 +64,7 @@ public slots:
 
     void OnAddVehicleWidget(int v_id);
     void OnDeleteVehicleWidget(int v_id);
+    void OnSetVehicleWidgetEnabled(int v_id, bool enabled);
     
     //////////// Buttons
     void OnExecutePlay();

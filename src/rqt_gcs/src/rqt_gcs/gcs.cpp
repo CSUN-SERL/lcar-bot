@@ -70,6 +70,8 @@ GCS::GCS(VehicleManager *vm):
             this, &GCS::OnAddVehicleWidget);
     connect(ui_adapter, &UIAdapter::SetMachineLearningMode,
             this, &GCS::OnToggleMachineLearningMode);
+    connect(ui_adapter, &UIAdapter::SetVehicleWidgetEnabled,
+            this, &GCS::OnSetVehicleWidgetEnabled);
 
     this->InitMenuBar();
     this->InitSettings();
@@ -187,6 +189,18 @@ void GCS::OnDeleteVehicleWidget(int v_id)
     
     widget_deleted->wakeAll();
     widget_mutex->unlock();
+}
+
+void GCS::OnSetVehicleWidgetEnabled(int v_id, bool enabled)
+{
+    int v_type = vm->VehicleTypeFromId(v_id);
+    Q_ASSERT(v_type != VehicleType::invalid_low);
+    
+    int index = v_id - v_type;
+    
+    VehicleWidget * w = this->VehicleWidgetAt(v_type, index);
+    if(w->IsButtonEnabled() != enabled)
+        w->SetButtonEnabled(enabled);
 }
 
 //void GCS::OnDeleteUav(int index)

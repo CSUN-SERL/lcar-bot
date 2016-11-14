@@ -28,7 +28,7 @@ public:
     void SetId(int id);
     int Id();
     
-    bool ToggleButton(bool enable);
+    bool SetButtonEnabled(bool enable);
     bool IsButtonEnabled();
     const QPushButton* Button();
     

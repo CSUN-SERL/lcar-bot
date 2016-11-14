@@ -149,10 +149,8 @@ public:
     FlightState GetFlightState()                                        { return UpdateFlightState(); }
     int GetDistanceToWP() override                                      { return CalculateDistance(pose_target, pose_local); }
     float GetMissionProgress();
-    MissionMode GetMissionMode() override                               { return mission_mode;}
     std::vector<lcar_msgs::AccessPointStampedPtr>* GetRefAccessPoints() { return &access_pts; }
     std::vector<lcar_msgs::QueryPtr>* GetDoorQueries()                  { return &queries_door; }
-    bool RecievedHeartbeat()                                            { return heartbeat_recieved; }
     Mode getMode()                                                      { return goal; }
 
     void SetRejected_images(int rejected_images)
@@ -284,8 +282,7 @@ private:
     FlightState UpdateFlightState();
 
     //ROS NodeHandle, Service Client, Publisher, and Subscriber Variables
-    ros::Publisher                  pub_door_answer,
-                                    pub_heartbeat;
+    ros::Publisher                  pub_door_answer;
     ros::Subscriber                 sub_vrpn,
                                     sub_depth,
                                     sub_door_query,
@@ -305,13 +302,7 @@ private:
     std::vector<lcar_msgs::AccessPointStampedPtr>        access_pts;
     std::vector<lcar_msgs::QueryPtr> queries_door;
     bool                            collision = false,
-                                    online_mode = true,
-                                    connection_dropped = false,
-                                    heartbeat_recieved = true;
-    ros::Timer                      timer_heartbeat_uav,
-                                    timer_heartbeat_gcs;
-    std_msgs::Int32                 gcs_heartbeat,
-                                    uav_heartbeat;
+                                    online_mode = true;
     int                             tries = 0;
 };
 

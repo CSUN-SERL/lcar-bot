@@ -32,8 +32,10 @@ VehicleManager::VehicleManager(QObject *parent):
     it_stereo(nh)
 {   
     srv_init_request = nh.advertiseService("vehicle/init/request", 
-                                           &VehicleManager::OnVehicleInitRequested, this);
+                                           &VehicleManager::VehicleInitRequested, this);
     pub_init_response = nh.advertise<lcar_msgs::InitResponse>("vehicle/init/response", 2);
+    
+    heartbeat_timer = nh.createTimer(ros::Duration(1), &VehicleManager::TimedHeartBeatCheck, this);
     
     this->InitSettings();
     this->AdvertiseObjectDetection();
@@ -186,9 +188,7 @@ float VehicleManager::GetMissionProgress(int v_id)
 {
     VehicleControl * vc = this->FindVehicle(v_id);
     if(vc != nullptr)
-    {
         return vc->GetMissiontProgress();
-    }
     else 
         return -1;
 }
@@ -614,6 +614,49 @@ QWaitCondition* VehicleManager::GetWaitCondition()
     return &widget_deleted;
 }
 
+//private://////////////////////////////////////////////////////////////////////
+
+
+bool VehicleManager::VehicleInitRequested(lcar_msgs::InitRequest::Request& req, 
+                                            lcar_msgs::InitRequest::Response& res)
+{
+    // check that this vehicle hasn't already requested initialization
+    for(auto it = init_requests.begin(); it != init_requests.end(); it++)
+    {
+        if(it.value().toStdString() == req.machine_name)
+        {
+            res.vehicle_id = VehicleType::invalid_low;
+            res.ack = false;
+            res.message = req.machine_name + " already requested initilization";
+            return false;
+        }
+    }
+    
+    res.vehicle_id = this->GenerateId(QString(req.machine_name.c_str()));
+    if(res.vehicle_id != VehicleType::invalid_low)
+    {
+        res.ack = true;
+        init_requests.insert(res.vehicle_id, req.machine_name.c_str());
+        res.message = "request for " + req.machine_name + " acknowledged with id: " 
+                    + std::to_string(res.vehicle_id);
+        
+        emit UIAdapter::Instance()->NotifyOperator("Vehicle initialization requested");
+        emit UIAdapter::Instance()->AddToInitWidget(QString(req.machine_name.c_str()), res.vehicle_id);
+
+        return true;
+    }
+    else
+    {
+        res.message = "vehicle Initilization request: " 
+                    + req.machine_name + " is not a recognized vehicle type";
+        
+        ROS_ERROR_STREAM(res.message);
+        
+        res.ack = false;
+        return false;
+    }    
+}
+
 void VehicleManager::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
     QPixmap img = img::rosImgToQpixmap(msg);
@@ -630,23 +673,42 @@ void VehicleManager::ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPt
     this->OnPublishMeanShift(od_params.mean_shift);
 }
 
-//private://////////////////////////////////////////////////////////////////////
+void VehicleManager::TimedHeartBeatCheck(const ros::TimerEvent& e)
+{
+    int v_type = VehicleType::invalid_low +1;
+    for(; v_type < VehicleType::invalid_high; v_type += VEHICLE_TYPE_MAX)
+    {
+        QMap<int, VehicleControl*> * v_db = &db[v_type];   
+        auto it = v_db->begin();
+        for(; it != v_db->end(); it++)
+        {
+            int v_id = it.key();
+            VehicleControl* vc = it.value();
+            emit UIAdapter::Instance()->SetVehicleWidgetEnabled(v_id, vc->RecievedHeartbeat());
+        }
+    }
+}
 
 void VehicleManager::AddVehiclePrivate(int v_id)
 {
     int v_type = this->VehicleTypeFromId(v_id);
     Q_ASSERT(v_type != VehicleType::invalid_low);
     
-    VehicleControl* vc = nullptr;
+    VehicleControl* vc;
+    switch(v_type)
+    {
+        //todo uncomment these after their classes are added to the system
+//      case        VehicleType::ugv: 
+//                                    vehicle = new UGVControl(id);
+//                                    break;
+        case VehicleType::quad_rotor:
+        case VehicleType::octo_rotor: 
+        case       VehicleType::vtol: 
+                                      vc = new UAVControl(v_id);
+                                      break;
+        default: vc = nullptr;
+    }
     
-    //todo uncomment these after their classes are added to the system
-//    if(v_type == VehicleType::ugv)
-//        vehicle = new UGVControl(id);
-    if(v_type == VehicleType::quad_rotor || 
-       v_type == VehicleType::octo_rotor || 
-       v_type == VehicleType::vtol)
-            vc = new UAVControl(v_id);
-   
     if(vc != nullptr)
     {
         db[v_type].insert(v_id, vc);
@@ -700,46 +762,6 @@ void VehicleManager::InitSettings()
     coordinate_system = settings.value("coordinate_system", "local").toString();
     
     settings.endGroup();
-}
-
-bool VehicleManager::OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req, 
-                                            lcar_msgs::InitRequest::Response& res)
-{
-    // check that this vehicle hasn't already requested initialization
-    for(auto it = init_requests.begin(); it != init_requests.end(); it++)
-    {
-        if(it.value().toStdString() == req.machine_name)
-        {
-            res.vehicle_id = VehicleType::invalid_low;
-            res.ack = false;
-            res.message = req.machine_name + " already requested initilization";
-            return false;
-        }
-    }
-    
-    res.vehicle_id = this->GenerateId(QString(req.machine_name.c_str()));
-    if(res.vehicle_id != VehicleType::invalid_low)
-    {
-        res.ack = true;
-        init_requests.insert(res.vehicle_id, req.machine_name.c_str());
-        res.message = "request for " + req.machine_name + " acknowledged with id: " 
-                    + std::to_string(res.vehicle_id);
-        
-        emit UIAdapter::Instance()->NotifyOperator("Vehicle initialization requested");
-        emit UIAdapter::Instance()->AddToInitWidget(QString(req.machine_name.c_str()), res.vehicle_id);
-
-        return true;
-    }
-    else
-    {
-        res.message = "vehicle Initilization request: " 
-                    + req.machine_name + " is not a recognized vehicle type";
-        
-        ROS_ERROR_STREAM(res.message);
-        
-        res.ack = false;
-        return false;
-    }    
 }
 
 int VehicleManager::IdfromVehicleString(QString v_type)

@@ -251,12 +251,22 @@ public slots:
      */
     QWaitCondition* GetWaitCondition();
     
-    //ros related///////////////////////////////////////////////////////////////
-    void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
-    void ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg);
-    
 private:
     
+    //ros related///////////////////////////////////////////////////////////////
+    /*
+     * \brief the ros callback for the InitRequests server
+     */
+    bool VehicleInitRequested(lcar_msgs::InitRequest::Request& req,lcar_msgs::InitRequest::Response& res);
+    
+    void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
+    void ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg);
+    void TimedHeartBeatCheck(const ros::TimerEvent& e);
+    
+    /**
+     * \brief adds a vehicle to the database
+     * @param v_id the id to assign to the new vehicle
+     */
     void AddVehiclePrivate(int v_id);
     
     /**
@@ -290,11 +300,6 @@ private:
     void InitSettings();
     
     /*
-     * \brief the ros callback for the InitRequests server
-     */
-    bool OnVehicleInitRequested(lcar_msgs::InitRequest::Request& req,lcar_msgs::InitRequest::Response& res);
-    
-    /*
     * \brief convenience function for voice recognition software. when a voice command is 
     * issued for a given vehicle, say "quad1" parse that into its internal id
     * before issuing the command.
@@ -325,6 +330,7 @@ private:
     ros::NodeHandle nh;
     ros::ServiceServer srv_init_request;
     ros::Publisher pub_init_response;
+    ros::Timer heartbeat_timer;
     
     image_transport::ImageTransport it_stereo;
     image_transport::Subscriber sub_stereo;

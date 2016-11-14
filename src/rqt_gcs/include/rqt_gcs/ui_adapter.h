@@ -67,6 +67,7 @@ signals:
     void NewImageFrame(QPixmap img);
     void AddVehicleWidget(int v_id);
     void DeleteVehicleWidget(int v_id);
+    void SetVehicleWidgetEnabled(int v_id, bool enabled);
 
     // backend -> VehicleInitWidget
     void AddToInitWidget(QString machine_name, int v_id);

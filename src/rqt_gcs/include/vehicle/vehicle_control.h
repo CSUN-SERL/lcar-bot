@@ -27,9 +27,9 @@ public:
     virtual void Arm(bool value){};
     virtual bool IsArmed()=0;
     virtual void SetMode(std::string){};
-    virtual void SetWayPoint(const sensor_msgs::NavSatFix& location){};
-    virtual void SetWayPoint(double lat, double lng, double alt){};
-    virtual void SetWayPoint(int x, int y, int z){};
+    virtual void SetWayPoint(const sensor_msgs::NavSatFix& location){}; // for global
+    virtual void SetWayPoint(double lat, double lng, double alt){}; // overload for global
+    virtual void SetWayPoint(int x, int y, int z){}; // overload for local
     virtual int GetDistanceToWP(){};
     virtual sensor_msgs::NavSatFix GetLocation()=0;
     virtual void SetRTL(){};
@@ -38,9 +38,11 @@ public:
     virtual void ResumeMission(){ mission_mode = active; };
     virtual void StopMission(){ mission_mode = stopped; };
     virtual MissionMode GetMissionMode(){ return mission_mode; };
-    virtual float GetMissiontProgress() { return -1; }
+    virtual float GetMissiontProgress() { return -1; };
     virtual int GetBattery() { return battery; };
-    virtual std::string GetMode() { return  mode; }
+    virtual std::string GetMode() { return  mode; };
+    
+    bool RecievedHeartbeat() { return heartbeat_recieved; };
     
 protected:
 
@@ -52,6 +54,14 @@ protected:
     MissionMode mission_mode;
     int battery;
     std::string mode;
+    
+    ros::Publisher                  pub_heartbeat;
+    bool                            connection_dropped = false,
+                                    heartbeat_recieved = true;
+    ros::Timer                      timer_heartbeat_uav,
+                                    timer_heartbeat_gcs;
+    std_msgs::Int32                 gcs_heartbeat,
+                                    uav_heartbeat;
     
 };
 

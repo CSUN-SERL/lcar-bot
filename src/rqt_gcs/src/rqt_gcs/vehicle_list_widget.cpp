@@ -56,7 +56,7 @@ int VehicleWidget::Id()
     return v_id;
 }
 
-bool VehicleWidget::ToggleButton(bool enable)
+bool VehicleWidget::SetButtonEnabled(bool enable)
 {
     widget.VehicleSelectButton->setEnabled(enable); 
     QString style_sheet = enable ?
