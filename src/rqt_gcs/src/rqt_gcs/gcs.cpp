@@ -139,10 +139,10 @@ void GCS::OnAddVehicleWidget(int v_id)
     w->SetName(vm->VehicleStringFromId(v_id) % " " % QString::number(v_index));
 
     // - 1 accounts for the vehicle corresponding to this widget
-    // that was added before the GUI was told to add this widget.
-    int num_vehicle = vm->NumVehiclesByType(v_type) - 1;
+    // that was added before the GUI was told to create this widget.
+    int num_vehicles = vm->NumVehiclesByType(v_type) - 1;
     int index = 0;
-    while(index < num_vehicle && v_id > this->VehicleWidgetAt(v_type, index)->Id())
+    while(index < num_vehicles && v_id > this->VehicleWidgetAt(v_type, index)->Id())
         index++;
     
     //map this widgets vehicle select button to selecting this widget
@@ -351,29 +351,13 @@ void GCS::AnswerQuery(QWidget * qw, QString ap_type, bool accepted)
     QString path = img::image_root_dir_ % "/queries";
     QString file;
     if(accepted)
-    {
-        path.append("/accepted/" % ap_type % "/uav_" % QString::number(cur_v_id));
-        int * accepted_images = vm->GetAcceptedUAVImages(cur_v_id);
-        if(accepted_images)
-        {
-            file.append("img_" % QString::number(*accepted_images) % ".jpg");
-            (*accepted_images)++;
-            img::saveImage(path, file, door->img);
-        }
-        else
-            qCDebug(lcar_bot) << "unable to find quad_rotor with id: " << cur_v_id;
-    }
+        path.append("/accepted/" % ap_type);
     else
-    {
-        path.append("/rejected/" % ap_type % "/uav_" % QString::number(cur_v_id));
-        int * rejected_images = vm->GetRejectedUAVImages(cur_v_id);
-        if(rejected_images)
-        {
-        file.append("img_" % QString::number(*rejected_images) % ".jpg");
-        (*rejected_images)++;
-        img::saveImage(path, file, door->img);
-        }
-    }
+         path.append("/rejected/" % ap_type);
+        
+    int num_images = img::numImagesInDir(path);
+    file.append("img_" % QString::number(num_images) % ".jpg");
+    img::saveImage(path, file, door->img);
 
     vec_uav_queries_ptr->erase(vec_uav_queries_ptr->begin() + index);
     delete qw;

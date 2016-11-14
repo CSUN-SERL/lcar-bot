@@ -135,7 +135,6 @@ private:
         VehicleInitWidget *vehicle_init = nullptr;
     } fl_widgets;
 
-    QMap<int, UAVControl*> uav_db;
     VehicleManager * vm;
     
     QMap<int/*VehicleType*/, QVBoxLayout*> layout_by_v_type;
