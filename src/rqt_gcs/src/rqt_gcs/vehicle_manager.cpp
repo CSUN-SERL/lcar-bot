@@ -186,41 +186,11 @@ void VehicleManager::SubscribeToImageTopic(QString& topic)
 
 float VehicleManager::GetMissionProgress(int v_id)
 {
-    VehicleControl * vc = this->FindVehicle(v_id);
+    VehicleControl *vc = this->FindVehicle(v_id);
     if(vc != nullptr)
         return vc->GetMissiontProgress();
     else 
         return -1;
-}
-
-int * VehicleManager::GetAcceptedUAVImages(int quad_id)
-{
-    int v_type = this->VehicleTypeFromId(quad_id);
-    Q_ASSERT(v_type == VehicleType::quad_rotor);
-    
-    VehicleControl *vc = this->FindVehicle(v_type, quad_id);
-    if(vc != nullptr)
-    {
-        UAVControl * uav = static_cast<UAVControl*>(vc);
-        return uav->GetAccepted_images();
-    }
-    
-    return nullptr;
-}
-
-int * VehicleManager::GetRejectedUAVImages(int quad_id)
-{
-    int v_type = this->VehicleTypeFromId(quad_id);
-    Q_ASSERT(v_type == VehicleType::quad_rotor);
-    
-    VehicleControl *vc = this->FindVehicle(v_type, quad_id);
-    if(vc != nullptr)
-    {
-        UAVControl * uav = static_cast<UAVControl*>(vc);
-        return uav->GetRejected_images();
-    }
-    
-    return nullptr;
 }
 
 ObjectDetectionParameters* VehicleManager::GetObjectDetectionParams()
@@ -675,7 +645,7 @@ void VehicleManager::ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPt
 
 void VehicleManager::TimedHeartBeatCheck(const ros::TimerEvent& e)
 {
-    int v_type = VehicleType::invalid_low +1;
+    int v_type = VehicleType::invalid_low + 1;
     for(; v_type < VehicleType::invalid_high; v_type += VEHICLE_TYPE_MAX)
     {
         QMap<int, VehicleControl*> * v_db = &db[v_type];   
@@ -697,7 +667,7 @@ void VehicleManager::AddVehiclePrivate(int v_id)
     VehicleControl* vc;
     switch(v_type)
     {
-        //todo uncomment these after their classes are added to the system
+        //todo uncomment this after UGVControl is added to the system
 //      case        VehicleType::ugv: 
 //                                    vehicle = new UGVControl(id);
 //                                    break;

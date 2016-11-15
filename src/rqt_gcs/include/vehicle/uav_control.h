@@ -52,9 +52,6 @@ class UAVControl : public MavrosHelper
 {
 public:
 
-    int accepted_images = 0,
-        rejected_images = 0;
-
     UAVControl(int id);
     ~UAVControl();
 
@@ -152,26 +149,6 @@ public:
     std::vector<lcar_msgs::AccessPointStampedPtr>* GetRefAccessPoints() { return &access_pts; }
     std::vector<lcar_msgs::QueryPtr>* GetDoorQueries()                  { return &queries_door; }
     Mode getMode()                                                      { return goal; }
-
-    void SetRejected_images(int rejected_images)
-    {
-        this->rejected_images = rejected_images;
-    }
-
-    int* GetRejected_images()
-    {
-        return &rejected_images;
-    }
-
-    void SetAccepted_images(int accepted_images)
-    {
-        this->accepted_images = accepted_images;
-    }
-
-    int* GetAccepted_images()
-    {
-        return &accepted_images;
-    }
 
 private:
     void InitialSetup();
