@@ -112,11 +112,6 @@ public:
 
     float GetMissionProgress(int v_id);
     
-    int * GetAcceptedUAVImages(int quad_id);
-    
-    int * GetRejectedUAVImages(int quad_id);
-
-    
     /**
      * Accessor function used by SettingsWidget to show Object Detection Parameters
      * to the operator
