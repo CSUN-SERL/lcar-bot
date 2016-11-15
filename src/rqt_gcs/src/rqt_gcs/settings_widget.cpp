@@ -6,6 +6,7 @@
  */
 
 #include <QStringBuilder>
+#include <QMessageBox>
 
 #include <iostream>
 
@@ -176,13 +177,13 @@ void SettingsWidget::readGeneralSettings()
 
     ml_state = ml;
     
-    QString coord_system = settings->value("coordinate_system", "global").toString();
-    if(coord_system == "global")
+    QString cs = settings->value("coordinate_system", "global").toString();
+    if(cs == "global")
         widget.global_btn->setChecked(true);
     else
         widget.local_btn->setChecked(true);
     
-    coordinate_system = coord_system;
+    coordinate_system = cs;
 
     QString vehicle_link = settings->value("connection_drop/vehicle_gcs_link",
                                             "marginal").toString();
@@ -217,7 +218,7 @@ void SettingsWidget::readGeneralSettings()
     }
 
     bool length_specified = settings->value(conn_freq + "/length_box_checked",
-                                             false).toBool();
+                                            false).toBool();
     if(length_specified)
     {
         QVariant length = settings->value(conn_freq + "/length_text");
@@ -440,7 +441,7 @@ bool SettingsWidget::onApplyClicked()
 
 void SettingsWidget::onOkClicked()
 {
-    if(onApplyClicked())
+    if(onApplyClicked()) // see if the settings are valid and applied
         this->close();
 }
 
