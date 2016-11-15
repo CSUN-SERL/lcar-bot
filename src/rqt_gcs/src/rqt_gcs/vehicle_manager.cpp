@@ -668,8 +668,8 @@ void VehicleManager::AddVehiclePrivate(int v_id)
     switch(v_type)
     {
         //todo uncomment this after UGVControl is added to the system
-//      case        VehicleType::ugv: 
-//                                    vehicle = new UGVControl(id);
+//        case        VehicleType::ugv: 
+//                                    vc = new UGVControl(v_d);
 //                                    break;
         case VehicleType::quad_rotor:
         case VehicleType::octo_rotor: 

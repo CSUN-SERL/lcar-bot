@@ -37,7 +37,6 @@ namespace rqt_gcs
     
     //todo implement these forward declarations
     class UGVControl;
-    class VTOLControl;
     class NAOCOntrol;
     
     typedef struct ObjectDetectionParameters_

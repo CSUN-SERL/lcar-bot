@@ -119,6 +119,7 @@ vm(vm)
 SettingsWidget::~SettingsWidget()
 {
    vm = nullptr;
+   od_params = nullptr;
    delete settings;
 }
 
@@ -174,6 +175,14 @@ void SettingsWidget::readGeneralSettings()
         widget.offline_btn->setChecked(true); 
 
     ml_state = ml;
+    
+    QString coord_system = settings->value("coordinate_system", "global").toString();
+    if(coord_system == "global")
+        widget.global_btn->setChecked(true);
+    else
+        widget.local_btn->setChecked(true);
+    
+    coordinate_system = coord_system;
 
     QString vehicle_link = settings->value("connection_drop/vehicle_gcs_link",
                                             "marginal").toString();

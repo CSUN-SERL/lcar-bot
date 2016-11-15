@@ -24,7 +24,7 @@ public:
     UIAdapter();
     virtual ~UIAdapter();
     
-    static UIAdapter* Instance() ;
+    static UIAdapter* Instance();
     
 signals:
 
@@ -57,7 +57,8 @@ signals:
         void AddVehicle(int v_id);
         void DeleteVehicle(int v_id);
     
-        //a necessary evil for determing the way vehicles navigate. global(outdoors) or global(indoors)
+        //a necessary evil for determing the way vehicles navigate. 
+        //can be "global"(outdoors) or "local"(indoors)
         void SetCoordinateSystem(QString system);
     
     // backend -> any ui

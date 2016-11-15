@@ -199,7 +199,7 @@ QPushButton{
              <item row="0" column="0">
               <layout class="QVBoxLayout" name="verticalLayout_3">
                <property name="spacing">
-                <number>0</number>
+                <number>3</number>
                </property>
                <property name="sizeConstraint">
                 <enum>QLayout::SetDefaultConstraint</enum>
@@ -235,7 +235,7 @@ QPushButton{
             <property name="maximumSize">
              <size>
               <width>16777215</width>
-              <height>115</height>
+              <height>16777215</height>
              </size>
             </property>
             <property name="font">
@@ -261,10 +261,10 @@ QPushButton{
              <item row="0" column="0">
               <layout class="QGridLayout" name="gridLayout_6">
                <property name="bottomMargin">
-                <number>6</number>
+                <number>0</number>
                </property>
-               <property name="verticalSpacing">
-                <number>6</number>
+               <property name="spacing">
+                <number>3</number>
                </property>
                <item row="2" column="0">
                 <widget class="QRadioButton" name="random_btn">
@@ -316,6 +316,9 @@ QPushButton{
              </item>
              <item row="1" column="0" colspan="6">
               <layout class="QHBoxLayout" name="horizontalLayout_3">
+               <property name="spacing">
+                <number>3</number>
+               </property>
                <property name="leftMargin">
                 <number>18</number>
                </property>
@@ -397,7 +400,7 @@ QPushButton{
             <item row="0" column="0">
              <layout class="QVBoxLayout" name="verticalLayout_4">
               <property name="spacing">
-               <number>0</number>
+               <number>3</number>
               </property>
               <item>
                <widget class="QRadioButton" name="online_btn">
@@ -446,6 +449,9 @@ QPushButton{
            <layout class="QGridLayout" name="gridLayout_11">
             <item row="0" column="0">
              <layout class="QVBoxLayout" name="verticalLayout_5">
+              <property name="spacing">
+               <number>3</number>
+              </property>
               <item>
                <widget class="QRadioButton" name="global_btn">
                 <property name="font">
