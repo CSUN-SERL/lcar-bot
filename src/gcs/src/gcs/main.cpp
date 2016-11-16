@@ -60,5 +60,6 @@ int main(int argc, char *argv[])
     int ret = app.exec();
     
     background.quit();
+    ros::shutdown();
     return ret;
 }

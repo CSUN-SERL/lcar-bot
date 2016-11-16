@@ -24,7 +24,7 @@ else
     printf "    usage: lcar-bot [<number>] [mono]\n\n"
     printf "       eg: lcar-bot           | launches an lcar-bot with id 1 with stereo_cam\n"
     printf "           lcar-bot 10        | launches an lcar-bot with id 10 with stereo_cam\n"
-    printf "           lcar-bot 10 mono   | launches an lcar-bot with id 10 with mono_cam\n" 
+    printf "           lcar-bot 10 mono   | launches an lcar-bot with id 10 with mono_cam\n"
     exit
 fi
 
@@ -42,6 +42,6 @@ elif [ $(ls /dev/video* | wc -c) -ne 0 ]; then
     ROS_NAMESPACE="$NS" rosrun machine_vision object_detection &
 fi
 
-ROS_NAMESPACE="$NS" rosrun rqt_gcs backup_control _id:=$ID &
+ROS_NAMESPACE="$NS" rosrun gcs backup_control _id:=$ID &
 
 wait

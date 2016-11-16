@@ -45,6 +45,8 @@ void UnansweredQueries::addUnansweredQueriesFromDisk()
         path.setNameFilters(QStringList()<<"*.jpg");
         QFileInfoList img_list = path.entryInfoList(); 
         int num_imgs = img_list.size();
+        if(num_imgs > 200) // more than 200 and the gui starts to hang
+            num_imgs = 200;
         for(int j = 0; j < num_imgs; j++)
         {
             QString file_name = img_list[j].fileName();

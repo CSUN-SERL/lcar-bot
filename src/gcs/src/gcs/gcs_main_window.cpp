@@ -79,48 +79,7 @@ GCSMainWindow::GCSMainWindow(VehicleManager *vm):
 
 GCSMainWindow::~GCSMainWindow()
 {
-    ros::shutdown();
 }
-
-//void GCS::OnAddUav(int uav_id)
-//{
-//    uav_mutex.lock();
-//
-//    UAVControl * uav = new UAVControl(uav_id);
-//
-//    //todo loop and get num_image for each acess point type;
-//    //create separate accepted and rejected counts for each ap_type
-//    QString path = img::image_root_dir_ + "/queries/accepted/door/uav_" + QString::number(uav_id);
-//    uav->accepted_images = img::numImagesInDir(path);
-//
-//    path = img::image_root_dir_ % "/queries/unanswered/door/uav_" % QString::number(uav_id);
-//    uav->rejected_images = img::numImagesInDir(path);
-//
-//    int index = 0;
-//    while(index < NUM_UAV && uav_id > active_uavs[index]->id)
-//        index++;
-//
-//    uav_db.insert(uav_id, uav);
-//    active_uavs.insert(active_uavs.begin() + index, uav);
-//
-//    VehicleWidget *uav_widget = new VehicleWidget();
-//    uav_widget->SetNumber(uav_id);
-//    uav_widget->SetName("UAV " % QString::number(uav_id));
-//
-//    //map this widgets vehicle select button to selecting this widget
-//    connect(uav_widget->Button(), &QPushButton::clicked,
-//            this, [=](){ OnUavSelected(uav_widget); } );
-//
-//    widget.layout_quads->insertWidget(index, uav_widget);
-//
-//    NUM_UAV++;
-//
-//    if(NUM_UAV == 1)
-//        SelectUav(0);
-//
-//    num_uav_changed.wakeAll();
-//    uav_mutex.unlock();
-//}
 
 void GCSMainWindow::OnAddVehicleWidget(int v_id)
 {
@@ -142,10 +101,11 @@ void GCSMainWindow::OnAddVehicleWidget(int v_id)
     
     //map this widgets vehicle select button to selecting this widget
     connect(w->Button(), &QPushButton::clicked,
-            this, [=](){ OnUavSelected(w); } );
+            this, [=](){ OnVehicleSelected(w); } );
     
     layout_by_v_type[v_type]->insertWidget(index, w);  
-    if(vm->NumVehiclesByType(v_type) == 1)
+    
+    if (cur_v_id == -1) //is this the first vehicle added?
         this->SelectVehicleWidgetById(w->Id());
 }
 
@@ -172,12 +132,15 @@ void GCSMainWindow::OnDeleteVehicleWidget(int v_id)
         widget.lbl_cur_uav->setText("NO UAVS");
         cur_v_id = -1;
     }
-    if(v_id == cur_v_id) // current vehicle was just deleted
+    if(v_id == cur_v_id) //current vehicle was just deleted
     {
-        if(vm->VehicleIndexFromId(v_id) > 0)
-            this->SelectVehicleWidgetById(cur_v_id - 1);
-        else
-            cur_v_id = -1;
+        if(num_vehicle - 1 > 0)
+        {
+            if(vm->VehicleIndexFromId(v_id) > 0)
+                this->SelectVehicleWidgetById(cur_v_id - 1);
+            else
+                cur_v_id = -1;
+        }
     }
     
     //todo handle cases where num_vehicle != 0
@@ -498,7 +461,7 @@ void GCSMainWindow::ToggleScoutButtons(bool visible, QString icon_type)
 }
 
 // slot gets called when user click on a uav button
-void GCSMainWindow::OnUavSelected(VehicleWidget *w)
+void GCSMainWindow::OnVehicleSelected(VehicleWidget *w)
 {
 //    this->SelectUav(layout_by_v_type[VehicleType::quad_rotor]->indexOf(w));
     this->SelectVehicleWidgetById(w->Id());
@@ -640,6 +603,94 @@ void GCSMainWindow::ToggleArmDisarmButton(bool arm)
         widget.btn_arm_uav->setText("Arm");
 }
 
+
+void GCSMainWindow::CenterFloatingWidget(QWidget* w)
+{
+    QRect window = this->window()->geometry();
+    int x = (this->width() / 2) - (w->width() / 2);
+    int y = (this->height() / 2) - (w->height() / 2);
+    w->move(window.x() + x, window.y() + y);
+    w->setVisible(true);
+}
+
+void GCSMainWindow::OnAccessPointsTriggered()
+{
+    if(fl_widgets.ap_menu == nullptr)
+    {
+        fl_widgets.ap_menu = new AccessPointsContainerWidget();
+
+        this->CenterFloatingWidget(fl_widgets.ap_menu);
+
+        connect(fl_widgets.ap_menu, &AccessPointsContainerWidget::destroyed,
+                this, [=](){ fl_widgets.ap_menu = nullptr; });
+
+        if(vm->NumVehiclesByType(VehicleType::quad_rotor) > 0)
+        {
+            int v_type = vm->VehicleTypeFromId(cur_v_id);
+            fl_widgets.ap_menu->SetUAVAccessPointsAndId(vm->GetUAVAccessPoints(cur_v_id), cur_v_id - v_type);
+        }
+        else
+            fl_widgets.ap_menu->SetUAVAccessPointsAndId(nullptr, -1);
+    }
+    else
+        fl_widgets.ap_menu->showNormal();
+        fl_widgets.ap_menu->activateWindow();
+}
+
+void GCSMainWindow::OnSettingsTriggered()
+{
+    if(fl_widgets.settings == nullptr)
+    {
+        fl_widgets.settings = new SettingsWidget(vm);
+
+        this->CenterFloatingWidget(fl_widgets.settings);
+
+        connect(fl_widgets.settings, &SettingsWidget::destroyed,
+                this, [=](){ fl_widgets.settings = nullptr; });
+    }
+    else
+    {
+        fl_widgets.settings->showNormal();
+        fl_widgets.settings->activateWindow();
+    }
+}
+
+void GCSMainWindow::OnUnansweredQueriesTriggered()
+{
+    if(fl_widgets.unanswered_queries == nullptr)
+    {
+        fl_widgets.unanswered_queries = new UnansweredQueries(this);
+
+        this->CenterFloatingWidget(fl_widgets.unanswered_queries);
+
+        connect(fl_widgets.unanswered_queries, &UnansweredQueries::destroyed,
+                this, [=](){ fl_widgets.unanswered_queries = nullptr; });
+    }
+    else
+    {
+        fl_widgets.unanswered_queries->showNormal();
+        fl_widgets.unanswered_queries->activateWindow();
+    }
+}
+
+void GCSMainWindow::OnAddVehicleTriggered()
+{
+    if(fl_widgets.vehicle_init == nullptr)
+    {
+        fl_widgets.vehicle_init = new VehicleInitWidget(vm);
+
+        this->CenterFloatingWidget(fl_widgets.vehicle_init);
+
+        connect(fl_widgets.vehicle_init, &VehicleInitWidget::destroyed,
+                this, [=](){ fl_widgets.vehicle_init = nullptr; });
+    }
+    else
+    {
+        fl_widgets.vehicle_init->showNormal();
+        fl_widgets.vehicle_init->activateWindow();
+    }
+}
+
 void GCSMainWindow::InitMap()
 {
     QString s = ros::package::getPath("gcs").c_str();
@@ -694,100 +745,6 @@ void GCSMainWindow::InitSettings()
     img::image_root_dir_ = settings.value("images_root_directory", default_path).toString();
 
     settings.endGroup();
-}
-
-void GCSMainWindow::OnAccessPointsTriggered()
-{
-    if(fl_widgets.ap_menu == nullptr)
-    {
-        fl_widgets.ap_menu = new AccessPointsContainerWidget();
-
-        QRect window = this->window()->geometry();
-        int x = (this->width() / 2) - (fl_widgets.ap_menu->width() / 2);
-        int y = (this->height() / 2) - (fl_widgets.ap_menu->height() / 2);
-        fl_widgets.ap_menu->move(window.x() + x, window.y() + y);
-        fl_widgets.ap_menu->setVisible(true);
-
-        connect(fl_widgets.ap_menu, &AccessPointsContainerWidget::destroyed,
-                this, [=](){ fl_widgets.ap_menu = nullptr; });
-
-        if(vm->NumVehiclesByType(VehicleType::quad_rotor) > 0)
-        {
-            int v_type = vm->VehicleTypeFromId(cur_v_id);
-            fl_widgets.ap_menu->SetUAVAccessPointsAndId(vm->GetUAVAccessPoints(cur_v_id), cur_v_id - v_type);
-        }
-        else
-            fl_widgets.ap_menu->SetUAVAccessPointsAndId(nullptr, -1);
-    }
-    else
-        fl_widgets.ap_menu->showNormal();
-        fl_widgets.ap_menu->activateWindow();
-}
-
-void GCSMainWindow::OnSettingsTriggered()
-{
-    if(fl_widgets.settings == nullptr)
-    {
-        fl_widgets.settings = new SettingsWidget(vm);
-
-        QRect window = this->window()->geometry();
-        int x = (this->width() / 2) - (fl_widgets.settings->width() / 2);
-        int y = (this->height() / 2) - (fl_widgets.settings->height() / 2);
-        fl_widgets.settings->move(window.x() + x, window.y() + y);
-        fl_widgets.settings->setVisible(true);
-
-        connect(fl_widgets.settings, &SettingsWidget::destroyed,
-                this, [=](){ fl_widgets.settings = nullptr; });
-    }
-    else
-    {
-        fl_widgets.settings->showNormal();
-        fl_widgets.settings->activateWindow();
-    }
-}
-
-void GCSMainWindow::OnUnansweredQueriesTriggered()
-{
-    if(fl_widgets.unanswered_queries == nullptr)
-    {
-        fl_widgets.unanswered_queries = new UnansweredQueries(this);
-
-        QRect window = this->window()->geometry();
-        int x = (this->width() / 2) - (fl_widgets.unanswered_queries->width() / 2);
-        int y = (this->height() / 2) - (fl_widgets.unanswered_queries->height() / 2);
-        fl_widgets.unanswered_queries->move(window.x() + x, window.y() + y);
-        fl_widgets.unanswered_queries->setVisible(true);
-
-        connect(fl_widgets.unanswered_queries, &UnansweredQueries::destroyed,
-                this, [=](){ fl_widgets.unanswered_queries = nullptr; });
-    }
-    else
-    {
-        fl_widgets.unanswered_queries->showNormal();
-        fl_widgets.unanswered_queries->activateWindow();
-    }
-}
-
-void GCSMainWindow::OnAddVehicleTriggered()
-{
-    if(fl_widgets.vehicle_init == nullptr)
-    {
-        fl_widgets.vehicle_init = new VehicleInitWidget(vm);
-
-        QRect window = this->window()->geometry();
-        int x = (this->width() / 2) - (fl_widgets.vehicle_init->width() / 2);
-        int y = (this->height() / 2) - (fl_widgets.vehicle_init->height() / 2);
-        fl_widgets.vehicle_init->move(window.x() + x, window.y() + y);
-        fl_widgets.vehicle_init->setVisible(true);
-
-        connect(fl_widgets.vehicle_init, &VehicleInitWidget::destroyed,
-                this, [=](){ fl_widgets.vehicle_init = nullptr; });
-    }
-    else
-    {
-        fl_widgets.vehicle_init->showNormal();
-        fl_widgets.vehicle_init->activateWindow();
-    }
 }
 
 void GCSMainWindow::OnToggleMachineLearningMode(bool toggle)

@@ -72,15 +72,11 @@ public slots:
     void OnScoutBuilding();
     void OnStopScout();
     void OnChangeFlightMode(int);
-    void OnUavSelected(VehicleWidget *w);
+    void OnVehicleSelected(VehicleWidget *w);
     void OnArmOrDisarmSelectedUav();
     void OnPauseOrResumeScout();
     void OnAcceptDoorQuery(QWidget *);
     void OnRejectDoorQuery(QWidget *);
-    void OnAccessPointsTriggered();
-    void OnSettingsTriggered();
-    void OnUnansweredQueriesTriggered();
-    void OnAddVehicleTriggered();
     void OnUpdateCameraFeed(QPixmap img);
 
 //    void OnAddUav(int);
@@ -121,6 +117,13 @@ private:
     void ToggleScoutButtons(bool visible, QString icon_type = "pause");
     void ToggleArmDisarmButton(bool arm);
     
+    void CenterFloatingWidget(QWidget * w);
+    void OnAccessPointsTriggered();
+    void OnSettingsTriggered();
+    void OnUnansweredQueriesTriggered();
+    void OnAddVehicleTriggered();
+
+    
     Ui::GCSMainWindow widget;
     
     int cur_v_id; // the current selected vehicles id
@@ -137,6 +140,9 @@ private:
 
     VehicleManager * vm;
     
+    //this is a convenience data structure for quickly accessing the different
+    //layouts corresponding to vehicle type, provided you add them in the class 
+    //constructor
     QMap<int/*VehicleType*/, QVBoxLayout*> layout_by_v_type;
 
     QTimer *update_timer;

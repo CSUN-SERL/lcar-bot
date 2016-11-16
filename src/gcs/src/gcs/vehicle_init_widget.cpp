@@ -32,8 +32,7 @@ vm(vm)
     connect(widget.btn_close, &QPushButton::clicked,
             this, [=](){ this->close(); } );
     
-    UIAdapter *ui_adapter = UIAdapter::Instance();
-    connect(ui_adapter, &UIAdapter::AddToInitWidget, 
+    connect(UIAdapter::Instance(), &UIAdapter::AddToInitWidget, 
             this, &VehicleInitWidget::OnAddInitRequest);
 
     this->DisplayInitRequests();
@@ -55,9 +54,8 @@ void VehicleInitWidget::OnAddVehicleBtnClicked()
         if(items[i]->column() == 2)
         {
             QString text = items[i]->text();
-            int id = text.toInt();
-//            qCDebug(lcar_bot) << "adding vehicle with id: " << id;
-            emit UIAdapter::Instance()->AddVehicle(id);
+            int v_id = text.toInt();
+            emit UIAdapter::Instance()->AddVehicle(v_id);
             widget.view->removeRow(items[i]->row());
         }
     }
@@ -65,7 +63,6 @@ void VehicleInitWidget::OnAddVehicleBtnClicked()
 
 void VehicleInitWidget::OnAddInitRequest(QString machine_name, int v_id)
 {
-//    qCDebug(lcar_bot) << "vehicle_id: " << v_id;
     QString v_type = vm->VehicleStringFromId(v_id);
 
     int row = widget.view->rowCount();
@@ -82,7 +79,7 @@ void VehicleInitWidget::DisplayInitRequests()
     const QMap<int, QString> requests = vm->GetInitRequests();
     QMap<int, QString>::ConstIterator it = requests.begin();
     for(; it != requests.end(); it++)
-        this->OnAddInitRequest(it.value(),it.key());
+        this->OnAddInitRequest(it.value(), it.key());
 }
 
 }
