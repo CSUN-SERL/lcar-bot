@@ -3,7 +3,7 @@
 trap ctrl_cz SIGINT SIGTSTP
 
 ctrl_cz()
-{  
+{
     lcar-kill $LOW $HIGH
     exit
 }
@@ -16,19 +16,19 @@ lcar-kill()
     ylw='\033[1;33m' #Yellow
     nc='\033[0m' # No Color
 
-    printf "\n\n${ylw}calling rosnode kill on UAV[$low-$last]${nc}\n\n"
+    printf "\n\n${ylw}calling rosnode kill on Vehicle[$low-$last]${nc}\n\n"
 
     local id=$low
 
     while [ $id -lt $high ]; do
-        for node in $( rosnode list | grep V$id ); do 
+        for node in $( rosnode list | grep V$id ); do
             rosnode kill $node
         done
         let id=id+1
     done
 }
 
-if [ -z "$1" ]; then 
+if [ -z "$1" ]; then
     printf "    usage: lcar-fleet { kill <number> [<larger-number>] } | { <number> [<larger-number>] [mono] }\n\n"
     printf "       eg: lcar-fleet kill 10     | kills 10 lcar-bots with id's 0 - 9\n"
     printf "           lcar-fleet kill 10 20  | kills 10 lcar-bots with id's 10 - 19\n"
@@ -42,7 +42,7 @@ fi
 if [ "$1" == "kill" ]; then
     if [ $3 ]; then
         lcar-kill $2 $3
-    else 
+    else
         lcar-kill 0 $2
     fi
     exit

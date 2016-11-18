@@ -14,7 +14,7 @@ ctrl_c()
     exit
 }
 
-rosrun rqt_gcs init_node # this node writes the vehicle_id given to it to a file
+rosrun gcs init_node # this node writes the vehicle_id given to it to a file
 
 file_name="$HOME/vehicle_id"
 if [ -f  $file_name ]; then
@@ -23,7 +23,7 @@ if [ -f  $file_name ]; then
 
     if [ "$ID" != "-1" ]; then
         # roslaunch rqt_gcs lcarbot_isolated.launch uav_id:="$ID"
-      ./lcar-bot $ID
+      lcar-bot $ID
     fi
 fi
 

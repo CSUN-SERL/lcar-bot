@@ -15,7 +15,7 @@
 #include "gcs/vehicle_init_widget.h"
 #include "util/image.h"
 #include "util/debug.h"
-#include "util/strings.h"
+#include "util/global_vars.h"
 #include "util/data_types.h"
 
 #include <ros/package.h>
@@ -72,7 +72,7 @@ GCSMainWindow::GCSMainWindow(VehicleManager *vm):
     this->InitSettings();
 //    this->InitHelperThread();
     this->InitMap();
-    this->ToggleScoutButtons(true);
+    this->ToggleScoutButtons("scout");
     
     update_timer->start(0);
 }
@@ -125,8 +125,8 @@ void GCSMainWindow::OnDeleteVehicleWidget(int v_id)
     if(num_vehicle == 0)
     {
         this->ClearQueries();
-        this->ToggleScoutButtons(true);  // reset scout buttons
-        this->ToggleArmDisarmButton(false); //set [dis]arm button to arm
+        this->ToggleScoutButtons("scout");  // reset scout buttons
+        this->ToggleArmDisarmButton("Arm"); //set [dis]arm button to arm
 
         widget.image_frame->setPixmap(QPixmap::fromImage(QImage()));
         widget.lbl_cur_uav->setText("NO UAVS");
@@ -211,7 +211,7 @@ void GCSMainWindow::OnSetVehicleWidgetEnabled(int v_id, bool enabled)
 
 void GCSMainWindow::SaveUavQueries(int uav_id, const std::vector<lcar_msgs::QueryPtr> *queries, const QString ap_type)
 {
-    QString path = img::image_root_dir_ % "/queries/unanswered/"
+    QString path = image_root_dir_ % "/queries/unanswered/"
         % ap_type % "/uav_" % QString::number(uav_id);
 
     int num_images = img::numImagesInDir(path);
@@ -306,7 +306,7 @@ void GCSMainWindow::AnswerQuery(QWidget * qw, QString ap_type, bool accepted)
     std::vector<lcar_msgs::QueryPtr> * vec_uav_queries_ptr = vm->GetUAVDoorQueries(cur_v_id);
     lcar_msgs::QueryPtr door = vec_uav_queries_ptr->at(index);
 
-    QString path = img::image_root_dir_ % "/queries";
+    QString path = image_root_dir_ % "/queries";
     QString file;
     if(accepted)
         path.append("/accepted/" % ap_type);
@@ -356,7 +356,7 @@ void GCSMainWindow::OnCancelPlay()
 
     emit UIAdapter::Instance()->CancelPlay();
 
-    this->ToggleScoutButtons(true);
+    this->ToggleScoutButtons("scout");
 }
 
 void GCSMainWindow::OnScoutBuilding()
@@ -367,11 +367,13 @@ void GCSMainWindow::OnScoutBuilding()
     QString building = widget.cmbo_box_buildings->currentText();
     
     int number;
-    sscanf(building.toStdString().c_str(), "%d", &number);
+    char b[16];
+    sscanf(building.toStdString().c_str(), "%s %d", b, &number);
+    qCDebug(lcar_bot) << number;
     
     emit UIAdapter::Instance()->ScoutBuilding(cur_v_id, number);
 
-    this->ToggleScoutButtons(false);
+    this->ToggleScoutButtons("pause");
 
     ROS_INFO_STREAM("Scouting " << building.toStdString());
 }
@@ -399,7 +401,7 @@ void GCSMainWindow::OnStopScout()
         return;
 
     emit UIAdapter::Instance()->CancelMission(cur_v_id);
-    this->ToggleScoutButtons(true);
+    this->ToggleScoutButtons("scout");
 }
 
 void GCSMainWindow::OnChangeFlightMode(int index)
@@ -410,27 +412,27 @@ void GCSMainWindow::OnChangeFlightMode(int index)
     if(index == 0)
     {
         ROS_INFO_STREAM("Quadrotor Stablized");
-        emit UIAdapter::Instance()->SetMode(cur_v_id, flight_modes_.stabilized);
+        emit UIAdapter::Instance()->SetMode(cur_v_id, FlightModes::stabilized);
     }
     else if(index == 1)
     {
         ROS_INFO_STREAM("Quadrotor Loiter");
-        emit UIAdapter::Instance()->SetMode(cur_v_id, flight_modes_.loiter);
+        emit UIAdapter::Instance()->SetMode(cur_v_id, FlightModes::loiter);
     }
     else if(index == 2)
     {
         ROS_INFO_STREAM("Quadrotor Land");
-        emit UIAdapter::Instance()->SetMode(cur_v_id, flight_modes_.land);
+        emit UIAdapter::Instance()->SetMode(cur_v_id, FlightModes::land);
     }
     else if(index == 3)
     {
         ROS_INFO_STREAM("Altitude Hold");
-        emit UIAdapter::Instance()->SetMode(cur_v_id, flight_modes_.altitude_control);
+        emit UIAdapter::Instance()->SetMode(cur_v_id, FlightModes::altitude_control);
     }
     else if( index == 4)
     {
         ROS_INFO_STREAM("Position Hold");
-        emit UIAdapter::Instance()->SetMode(cur_v_id, flight_modes_.position_control);
+        emit UIAdapter::Instance()->SetMode(cur_v_id, FlightModes::position_control);
     }
     else if(index == 5)
     {
@@ -440,24 +442,28 @@ void GCSMainWindow::OnChangeFlightMode(int index)
     else if(index == 6)
     {
         ROS_INFO_STREAM("Quadrotor Auto");
-        emit UIAdapter::Instance()->SetMode(cur_v_id, flight_modes_.mode_auto);
+        emit UIAdapter::Instance()->SetMode(cur_v_id, FlightModes::mode_auto);
     }
     else if(index == 7)
     {
         ROS_INFO_STREAM("Quadrotor Offboard");
-        emit UIAdapter::Instance()->SetMode(cur_v_id, flight_modes_.offboard);
+        emit UIAdapter::Instance()->SetMode(cur_v_id, FlightModes::offboard);
     }
 
     if(vm->GetMissionMode(cur_v_id) != MissionMode::stopped)
         emit UIAdapter::Instance()->CancelMission(cur_v_id);
 }
 
-void GCSMainWindow::ToggleScoutButtons(bool visible, QString icon_type)
+void GCSMainWindow::ToggleScoutButtons(QString mode)
 { // icon_type should be "play" or "pause"
-    widget.btn_scout->setVisible(visible);
-    widget.btn_scout_play_pause->setVisible(!visible);
-    widget.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/"%icon_type%".png"));
-    widget.btn_scout_stop->setVisible(!visible);
+    Q_ASSERT(mode == "scout" || mode == "play" || mode == "pause");
+    
+    bool scout = (mode == "scout");
+    widget.btn_scout->setVisible(scout);
+    widget.btn_scout_play_pause->setVisible(!scout);
+    if(!scout)
+        widget.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/"%mode%".png"));
+    widget.btn_scout_stop->setVisible(!scout);
 }
 
 // slot gets called when user click on a uav button
@@ -496,13 +502,16 @@ void GCSMainWindow::SelectVehicleWidgetById(int v_id)
     //todo update gui buttons according to current vehicles mission status 
     MissionMode m = vm->GetMissionMode(cur_v_id);
     if(m == MissionMode::stopped)
-        this->ToggleScoutButtons(true);
+        this->ToggleScoutButtons("scout");
     else if(m == MissionMode::active)
-        this->ToggleScoutButtons(false, "pause");
+        this->ToggleScoutButtons("pause");
     else
-        this->ToggleScoutButtons(false, "play");
+        this->ToggleScoutButtons("play");
 
-    this->ToggleArmDisarmButton(vm->GetState(cur_v_id)->armed);
+    if(vm->GetState(cur_v_id)->armed)
+        this->ToggleArmDisarmButton("Disarm");
+    else
+        this->ToggleArmDisarmButton("Arm");
 }
 
 //
@@ -590,17 +599,18 @@ void GCSMainWindow::OnArmOrDisarmSelectedUav()
 
     bool armed = vm->IsArmed(cur_v_id);
 
-    this->ToggleArmDisarmButton(armed);
+    if(armed)
+        this->ToggleArmDisarmButton("Disarm");
+    else
+        this->ToggleArmDisarmButton("Arm");
 
     emit UIAdapter::Instance()->Arm(cur_v_id, !armed);
 }
 
-void GCSMainWindow::ToggleArmDisarmButton(bool arm)
+void GCSMainWindow::ToggleArmDisarmButton(QString mode)
 {
-    if(arm)
-        widget.btn_arm_uav->setText("Disarm");
-    else
-        widget.btn_arm_uav->setText("Arm");
+    Q_ASSERT(mode == "Arm" || "Disarm");
+    widget.btn_arm_uav->setText(mode);
 }
 
 
@@ -742,7 +752,7 @@ void GCSMainWindow::InitSettings()
         this->OnToggleMachineLearningMode(false);
 
     QString default_path = QProcessEnvironment::systemEnvironment().value("HOME") % "/Pictures/" % company_;
-    img::image_root_dir_ = settings.value("images_root_directory", default_path).toString();
+    image_root_dir_ = settings.value("images_root_directory", default_path).toString();
 
     settings.endGroup();
 }
@@ -787,6 +797,7 @@ void GCSMainWindow::OnUpdateCameraFeed(QPixmap img)
 
 void GCSMainWindow::closeEvent(QCloseEvent* event)
 {    
+    cur_v_id = -1;
     
     // this wouldn't work in the destructor
     if(fl_widgets.ap_menu != nullptr) 

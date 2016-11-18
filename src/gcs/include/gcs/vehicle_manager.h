@@ -76,27 +76,6 @@ public:
     int NumUAVs();
     
     /**
-     * \brief parses the vehicle type into a string from the specified id
-     * @param id the id to convert to vehicle type string
-     * @return string containing the vehicle type
-     */
-    QString VehicleStringFromId(int id);
-    
-    /**
-     * \brief return the VehicleType (as an integer) associated with this id
-     * @param id the id
-     * @return (int) VehicleType::[ugv|quad_rotor|octo_rotor|vtol] or (int)VehicleType::invalid_low if invalid
-     */
-    int VehicleTypeFromId(int v_id);
-    
-    /**
-     * 
-     * @return the order of the vehicle within the database ordered against 
-     *         other vehicle of the same type 
-     */
-    int VehicleIndexFromId(int v_id);
-    
-    /**
      * Accessor function used by VehicleInitWidget to show init. reqests to the operator
      * 
      * @return const reference to the QMap containing the vehicle init. requests
@@ -122,9 +101,39 @@ public:
     
     void AdvertiseObjectDetection();
     
+    /**
+     * \brief parses the vehicle type into a string from the specified id
+     * @param id the id to convert to vehicle type string
+     * @return string containing the vehicle type
+     */
+    static QString VehicleStringFromId(int id);
+    
+    /**
+     * \brief return the VehicleType (as an integer) associated with this id
+     * @param id the id
+     * @return (int) VehicleType::[ugv|quad_rotor|octo_rotor|vtol] or (int)VehicleType::invalid_low if invalid
+     */
+    static int VehicleTypeFromId(int v_id);
+    
+    /**
+     * 
+     * @return the order of the vehicle within the database ordered against 
+     *         other vehicle of the same type 
+     */
+    static int VehicleIndexFromId(int v_id);
+    
+        /*
+    * \brief convenience function for voice recognition software. when a voice command is 
+    * issued for a given vehicle, say "quad1" parse that into its internal id
+    * before issuing the command.
+    * 
+    * @param the string containing vehicle type and order in the system (eg "quad1" or "octo2")
+    */
+    static int IdfromVehicleString(QString v_type);
+
 public slots:
     
-    void OnAddVehicle(const int vehicle_id);
+    void OnOperatorAddVehicle(const int vehicle_id);
     
     /**
      * this function should only be used when GCSMainWindow is open and running.
@@ -132,7 +141,7 @@ public slots:
      * associated with it in the GUI
      * @param v_id the id of the vehicle to delete
      */
-    void OnDeleteVehicle(int v_id);
+     void OnOperatorDeleteVehicle(int v_id);
 
     // todo add all main gui button slots
     
@@ -222,6 +231,14 @@ public slots:
      */
     FlightState GetFlightState(int uav_id);
     
+    /**
+     * @return retrun s StatePtr a shared pointer to a State struct containing:
+     *   float battery;
+         float mission_progress;
+         std::string mode;
+         bool armed;
+     * @param v_id the id of the vehicle to get the state of
+     */
     StatePtr GetState(int v_id);
     
     /**
@@ -247,7 +264,7 @@ public slots:
     QMutex* GetWidgetMutex();
     
     /**
-     * \breif the wait condition associated with the widget mutex
+     * \brief the wait condition associated with the widget mutex
      * @return the wait condition assoicated with the widget mutex
      */
     QWaitCondition* GetWaitCondition();
@@ -299,15 +316,6 @@ private:
      *        The settings are visible in the Settings Widget.
      */
     void InitSettings();
-    
-    /*
-    * \brief convenience function for voice recognition software. when a voice command is 
-    * issued for a given vehicle, say "quad1" parse that into its internal id
-    * before issuing the command.
-    * 
-    * @param the string containing vehicle type and order in the system (eg "quad1" or "octo2")
-    */
-    int IdfromVehicleString(QString v_type);
     
     lcar_msgs::TargetGlobalPtr GetTargetGlobal(QString target_path);
     

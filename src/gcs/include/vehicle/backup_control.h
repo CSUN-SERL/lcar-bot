@@ -6,9 +6,6 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <std_msgs/Int32.h>
 
-//#define QUEUE_SIZE 10 //Message Queue size for publishers
-#define DEF_NS "UAV"
-
 class BackupControl
 {
 public:

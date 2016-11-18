@@ -51,9 +51,9 @@ protected:
     virtual void RunGlobal()=0;
     
     ros::Timer run_timer;
-    MissionMode mission_mode;
-    int battery;
-    std::string mode;
+    MissionMode mission_mode = stopped;
+    int battery = 0;
+    std::string mode; // flight mode or related
     
     ros::Publisher                  pub_heartbeat;
     bool                            connection_dropped = false,

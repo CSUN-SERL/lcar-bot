@@ -25,8 +25,8 @@
 using namespace cv;
 using namespace cv::ml;
 
-ros::Publisher pub_mat_;
-ros::Publisher pub_query_;
+ros::Publisher *pub_query_;
+int all_od_params_ = 0;
 
 struct ObjectDetectionSubscribers
 {
@@ -36,8 +36,6 @@ struct ObjectDetectionSubscribers
     ros::Subscriber sub_scale_factor;
     ros::Subscriber sub_mean_shift;
 } od_subs;
-
-ros::Publisher pub_od_request;
 
 struct ObjectDetectionParams
 {
@@ -75,6 +73,7 @@ bool compareHistograms(cv::Mat&, std::string);
 /////////////////////////////////////////////////////////////////////////////
 
 void HogFeatureExtraction(Mat ImgMat) {
+    
     HOGDescriptor d;
     d.winSize = img_size_;
     std::vector< Point > location;
@@ -110,7 +109,8 @@ void ConvertToMl(const std::vector< cv::Mat > & train_samples, cv::Mat& trainDat
 }
 
 //Draw detected objects on a window
-void DrawLocations(cv::Mat& img, const std::vector< Rect > & found, const Scalar & color) {
+void DrawLocations(cv::Mat& img, const std::vector< Rect > & found, const Scalar & color) 
+{
        for (auto const& loc : found) {
                //Rect implementation used with hog.detectMultiScale
                rectangle(img, loc, color, 2); 
@@ -160,8 +160,6 @@ void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image)
         
         cv::Mat framed_image = color_image.clone();
         DrawLocations(framed_image, door_objects, Scalar(0, 255, 0));
-        //imshow("view", image);
-        //waitKey(1);
         if(door_objects.size() > 0)
         {
             sensor_msgs::ImagePtr door_img = cv_bridge::CvImage(std_msgs::Header()
@@ -180,7 +178,7 @@ void ObjectCategorize(const cv::Mat& gray_image, cv::Mat& color_image)
             bool similar = compareHistograms(color_image, "door");
             if(!similar)
             {
-                pub_query_.publish(door_query);         
+                pub_query_->publish(door_query);         
                 door_count++;
             }
         }
@@ -263,7 +261,8 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 }
 
 //extract svm weights and store in a float vector
-void GetSvmDetector(const Ptr<SVM>& svm, std::vector< float > & hog_detector) {
+void GetSvmDetector(const Ptr<SVM>& svm, std::vector< float > & hog_detector) 
+{
     // get the support vectors
     Mat sv = svm->getSupportVectors();
     //const int sv_total = sv.rows;
@@ -280,73 +279,84 @@ void GetSvmDetector(const Ptr<SVM>& svm, std::vector< float > & hog_detector) {
 
 void hitThresholdCallback(const std_msgs::Float64& msg)
 {
+    all_od_params_++;
     od_params.hit_thresh = msg.data;
     ROS_INFO_STREAM("received new hit threshold: " << msg.data);
 }
 
 void stepSizeCallback(const std_msgs::Int32& msg)
 {
+    all_od_params_++;
     od_params.step_size = msg.data;
     ROS_INFO_STREAM("received new step size: " << msg.data);
 }
 
 void paddingCallback(const std_msgs::Int32& msg)
 {
+    all_od_params_++;
     od_params.padding = msg.data;
     ROS_INFO_STREAM("received new padding: " << msg.data);
 }
 
 void scaleFactorCallback(const std_msgs::Float64& msg)
 {
+    all_od_params_++;
     od_params.scale_factor = msg.data;
     ROS_INFO_STREAM("received scale factor: " << msg.data);
 }
 
 void meanShiftCallback(const std_msgs::Int32& msg)
 {
+    all_od_params_++;
     od_params.mean_shift = msg.data;
     ROS_INFO_STREAM("received mean shift value: " << msg.data);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-int main (int argc, char** argv){
-  ros::init(argc, argv, "object_detection" /*, ros::init_options::AnonymousName*/ );
+int main (int argc, char** argv)
+{
+    ros::init(argc, argv, "object_detection" /*, ros::init_options::AnonymousName*/ );
+    ros::NodeHandle nh;
+    image_transport::ImageTransport it(nh);
 
-  ros::NodeHandle nh;
-  //cv::namedWindow("view");
-  //cv::startWindowThread();
-  image_transport::ImageTransport it(nh);
-  
-  std::string svmPath = ros::package::getPath("machine_vision");
-  svm_ = StatModel::load<SVM>( svmPath + "/LinearHOG.xml");
+    std::string svmPath = ros::package::getPath("machine_vision");
+    svm_ = StatModel::load<SVM>( svmPath + "/LinearHOG.xml");
 
-  GetSvmDetector(svm_, hog_detector_);
+    GetSvmDetector(svm_, hog_detector_);
 
-  hog_.winSize = Size(128, 256);
-  hog_.setSVMDetector(hog_detector_);
+    hog_.winSize = Size(128, 256);
+    hog_.setSVMDetector(hog_detector_);
 
-  //pub_mat_ = nh.advertise<sensor_msgs::Image>("object_detection/access_point/door", 1);
-  pub_query_ = nh.advertise<lcar_msgs::Query>("object_detection/access_point/door", 1);
-  
-  std::string ns = ros::this_node::getNamespace();
-  std::string topic = "stereo_cam/left/image_rect";
-  
-  image_transport::Subscriber sub = it.subscribe(topic, 2, imageCallback);
-  
-  od_subs.sub_hit_thresh = nh.subscribe("/object_detection/hit_threshold", 5, hitThresholdCallback);
-  od_subs.sub_step_size = nh.subscribe("/object_detection/step_size", 5, stepSizeCallback);
-  od_subs.sub_padding = nh.subscribe("/object_detection/padding", 5, paddingCallback);
-  od_subs.sub_scale_factor = nh.subscribe("/object_detection/scale_factor", 5, scaleFactorCallback);
-  od_subs.sub_mean_shift = nh.subscribe("/object_detection/mean_shift_grouping", 5, meanShiftCallback);
-  
-  pub_od_request = nh.advertise<std_msgs::Int32>("/object_detection/param_request", 2);
-  pub_od_request.publish(std_msgs::Int32());
-  
-  
-  ROS_INFO_STREAM("node: " << ros::this_node::getName() << 
-                  " is subscribed to topic: " << ns + "/" + topic);
-  
-  ros::spin();
+    ros::Publisher pub_query = nh.advertise<lcar_msgs::Query>("object_detection/access_point/door", 1);
+    pub_query_ = &pub_query;
+    
+    std::string topic = "stereo_cam/left/image_rect";
+    image_transport::Subscriber sub = it.subscribe(topic, 2, imageCallback);
+    ROS_INFO_STREAM(ros::this_node::getName() << " is subscribed to topic: " 
+                    << sub.getTopic());
 
-  //cv::destroyWindow("view");
+    od_subs.sub_hit_thresh = nh.subscribe("/object_detection/hit_threshold", 5, hitThresholdCallback);
+    od_subs.sub_step_size = nh.subscribe("/object_detection/step_size", 5, stepSizeCallback);
+    od_subs.sub_padding = nh.subscribe("/object_detection/padding", 5, paddingCallback);
+    od_subs.sub_scale_factor = nh.subscribe("/object_detection/scale_factor", 5, scaleFactorCallback);
+    od_subs.sub_mean_shift = nh.subscribe("/object_detection/mean_shift_grouping", 5, meanShiftCallback);
+
+    ros::Publisher pub_od_request = nh.advertise<std_msgs::Int32>("/object_detection/param_request", 0);
+
+    ros::Rate loop_rate (1);
+    while(ros::ok() && all_od_params_ < 5)
+    {
+        if(all_od_params_ == 0)
+        {
+            pub_od_request.publish(std_msgs::Int32());
+            ros::spinOnce();
+            loop_rate.sleep();
+        }
+    }
+    
+    ROS_INFO_STREAM(ros::this_node::getName() << " received object detection parameters");
+    
+    ros::spin();
+
+    return 0;
 }

@@ -11,7 +11,7 @@
 
 #include <ros/package.h>
 
-#include "util/strings.h"
+#include "util/global_vars.h"
 #include "util/debug.h"
 #include "vehicle/uav_control.h"
 #include "lcar_msgs/InitResponse.h"
@@ -59,6 +59,7 @@ void VehicleManager::ConnectToUIAdapter()
 {
     UIAdapter *ui_adapter = UIAdapter::Instance();
     
+    //vehicle commands/queries
     connect(ui_adapter, &UIAdapter::Arm,
             this, &VehicleManager::OnArm);
     
@@ -105,14 +106,20 @@ void VehicleManager::ConnectToUIAdapter()
     connect(ui_adapter, &UIAdapter::PublishPadding,
             this, &VehicleManager::OnPublishPadding);
     
+    connect(ui_adapter, &UIAdapter::PublishScaleFactor,
+            this, &VehicleManager::OnPublishScaleFactor);
+    
     connect(ui_adapter, &UIAdapter::PublishMeanShift,
             this, &VehicleManager::OnPublishMeanShift);
         
+    
+    //database commands from ui
     connect(ui_adapter, &UIAdapter::AddVehicle,
-            this, &VehicleManager::OnAddVehicle);
+            this, &VehicleManager::OnOperatorAddVehicle);
     
     connect(ui_adapter, &UIAdapter::DeleteVehicle,
-            this, &VehicleManager::OnDeleteVehicle);
+            this, &VehicleManager::OnOperatorDeleteVehicle);
+    
     
     //coordinate system from settings widget
     connect(ui_adapter, &UIAdapter::SetCoordinateSystem,
@@ -140,45 +147,6 @@ int VehicleManager::NumUAVs()
     return db[VehicleType::quad_rotor].size() +
            db[VehicleType::octo_rotor].size() +
            db[VehicleType::vtol].size();
-}
-
-QString VehicleManager::VehicleStringFromId(int v_id)
-{
-    int v_type = this->VehicleTypeFromId(v_id);
-    switch(v_type)
-    {
-        case VehicleType::ugv:        return "ugv";
-        case VehicleType::quad_rotor: return "quad-rotor";
-        case VehicleType::octo_rotor: return "octo-rotor";
-        case VehicleType::vtol:       return "vtol";
-    }
-    return QString();
-}
-
-int VehicleManager::GenerateId(const QString& machine_name)
-{
-    Qt::CaseSensitivity cs = Qt::CaseSensitivity::CaseInsensitive;
-    return machine_name.contains("ugv", cs)  ? VehicleType::ugv + UGV_ID++  :
-           machine_name.contains("quad", cs) ? VehicleType::quad_rotor + QUAD_ID++ :
-           machine_name.contains("octo", cs) ? VehicleType::octo_rotor + OCTO_ID++ :
-           machine_name.contains("vtol", cs) ? VehicleType::vtol + VTOL_ID++ :
-                                               VehicleType::invalid_low;
-}
-
-int VehicleManager::VehicleTypeFromId(int v_id)
-{   
-    if(v_id <= VehicleType::invalid_low || v_id >= VehicleType::invalid_high)
-        return VehicleType::invalid_low;
-
-    return (v_id / VEHICLE_TYPE_MAX) * VEHICLE_TYPE_MAX;
-}
-
-int VehicleManager::VehicleIndexFromId(int v_id)
-{
-    if(v_id <= VehicleType::invalid_low || v_id >= VehicleType::invalid_high)
-        return VehicleType::invalid_low;
-    
-    return v_id - this->VehicleTypeFromId(v_id);
 }
 
 const QMap<int, QString>& VehicleManager::GetInitRequests()
@@ -215,13 +183,66 @@ void VehicleManager::AdvertiseObjectDetection()
     od_handlers.pub_padding = nh.advertise<std_msgs::Int32>("/object_detection/padding", 5);
     od_handlers.pub_scale_factor = nh.advertise<std_msgs::Float64>("/object_detection/scale_factor", 5);
     od_handlers.pub_mean_shift = nh.advertise<std_msgs::Int32>("/object_detection/mean_shift_grouping", 5);
-    od_handlers.sub_od_request = nh.subscribe("/object_detection/param_request", 5,
+    od_handlers.sub_od_request = nh.subscribe("/object_detection/param_request", 1000,
                                               &VehicleManager::ReceivedObjectDetectionRequest, this);
+}
+
+
+QString VehicleManager::VehicleStringFromId(int v_id)
+{
+    int v_type = VehicleManager::VehicleTypeFromId(v_id);
+    switch(v_type)
+    {
+        case VehicleType::ugv:        return "ugv";
+        case VehicleType::quad_rotor: return "quad-rotor";
+        case VehicleType::octo_rotor: return "octo-rotor";
+        case VehicleType::vtol:       return "vtol";
+    }
+    return QString();
+}
+
+int VehicleManager::GenerateId(const QString& machine_name)
+{
+    Qt::CaseSensitivity cs = Qt::CaseSensitivity::CaseInsensitive;
+    return machine_name.contains("ugv", cs)  ? VehicleType::ugv + UGV_ID++  :
+           machine_name.contains("quad", cs) ? VehicleType::quad_rotor + QUAD_ID++ :
+           machine_name.contains("octo", cs) ? VehicleType::octo_rotor + OCTO_ID++ :
+           machine_name.contains("vtol", cs) ? VehicleType::vtol + VTOL_ID++ :
+                                               VehicleType::invalid_low;
+}
+
+int VehicleManager::VehicleTypeFromId(int v_id)
+{   
+    if(v_id <= VehicleType::invalid_low || v_id >= VehicleType::invalid_high)
+        return VehicleType::invalid_low;
+
+    return (v_id / VEHICLE_TYPE_MAX) * VEHICLE_TYPE_MAX;
+}
+
+int VehicleManager::VehicleIndexFromId(int v_id)
+{
+    if(v_id <= VehicleType::invalid_low || v_id >= VehicleType::invalid_high)
+        return VehicleType::invalid_low;
+    
+    return v_id - VehicleManager::VehicleTypeFromId(v_id);
+}
+
+int VehicleManager::IdfromVehicleString(QString v_type)
+{
+    int number;
+    sscanf(v_type.toStdString().c_str(), "%d", &number);
+    
+    Qt::CaseSensitivity cs = Qt::CaseSensitivity::CaseInsensitive;
+    return v_type.contains("ugv", cs)  ? VehicleType::ugv + number:
+           v_type.contains("quad", cs) ? VehicleType::quad_rotor + number:
+           v_type.contains("octo", cs) ? VehicleType::octo_rotor + number:
+           v_type.contains("vtol", cs) ? VehicleType::vtol + number:
+                                         VehicleType::invalid_low;
 }
 
 //public slots://///////////////////////////////////////////////////////////////
 
-void VehicleManager::OnAddVehicle(const int vehicle_id)
+void VehicleManager::OnOperatorAddVehicle(const int vehicle_id)
 {
     QMap<int, QString>::Iterator it = init_requests.find(vehicle_id);
     if(it != init_requests.end())
@@ -236,8 +257,7 @@ void VehicleManager::OnAddVehicle(const int vehicle_id)
     }
 }
 
-
-void VehicleManager::OnDeleteVehicle(int v_id)
+void VehicleManager::OnOperatorDeleteVehicle(int v_id)
 {          
     widget_mutex.lock();
     
@@ -269,9 +289,8 @@ void VehicleManager::OnScoutBuilding(int quad_id, int building)
     int v_type = this->VehicleTypeFromId(quad_id);
     Q_ASSERT(v_type == VehicleType::quad_rotor);
     
-    QString path = QString(ros::package::getPath("gcs").c_str()) % "/building";
-    // can be local or global
-    path.append("/" % coordinate_system % "/" % "building" % QString::number(building));
+    QString path = QString(ros::package::getPath("gcs").c_str());
+    path.append("/buildings/" % coordinate_system % "/building" % QString::number(building) % ".txt");
     
     VehicleControl *vc = this->FindVehicle(v_type, quad_id);
     if(vc != nullptr)
@@ -423,9 +442,12 @@ void VehicleManager::OnSetCoordinateSystem(QString new_system)
     {
         if(coordinate_system != new_system)
             coordinate_system = new_system;
+        
+        ROS_INFO_STREAM("Coordinate system set to " << new_system.toStdString());
     }
+    else
+        ROS_ERROR_STREAM("Cooridinate system invalid: " << new_system.toStdString());
 }
-
 
 void VehicleManager::OnSetWaypoint(int v_id, double lat, double lng, double alt)
 {
@@ -658,9 +680,8 @@ void VehicleManager::TimedHeartBeatCheck(const ros::TimerEvent& e)
     int v_type = VehicleType::invalid_low + 1;
     for(; v_type < VehicleType::invalid_high; v_type += VEHICLE_TYPE_MAX)
     {
-        QMap<int, VehicleControl*> * v_db = &db[v_type];   
-        auto it = v_db->begin();
-        for(; it != v_db->end(); it++)
+        QMap<int, VehicleControl*> *v_db = &db[v_type];   
+        for(auto it = v_db->begin(); it != v_db->end(); it++)
         {
             int v_id = it.key();
             VehicleControl* vc = it.value();
@@ -728,34 +749,20 @@ void VehicleManager::InitSettings()
     
     settings.beginGroup("object_detection_tab");
 
-    QString params = "tuning_paramaters";
-    od_params.hit_thresh = settings.value(params % "/hit_threshold", od_params.hit_thresh).toDouble();
-    od_params.step_size = settings.value(params % "/step_size", od_params.step_size).toInt();
-    od_params.padding = settings.value(params % "/padding", od_params.padding).toInt();
-    od_params.scale_factor = settings.value(params % "/scale_factor", od_params.scale_factor).toDouble();
-    od_params.mean_shift = settings.value(params % "/mean_shift_grouping", od_params.mean_shift).toBool();
+    od_params.hit_thresh = settings.value("tuning_paramaters/hit_threshold", od_params.hit_thresh).toDouble();
+    od_params.step_size = settings.value("tuning_paramaters/step_size", od_params.step_size).toInt();
+    od_params.padding = settings.value("tuning_paramaters/padding", od_params.padding).toInt();
+    od_params.scale_factor = settings.value("tuning_paramaters/scale_factor", od_params.scale_factor).toDouble();
+    od_params.mean_shift = settings.value("tuning_paramaters/mean_shift_grouping", od_params.mean_shift).toBool();
 
     settings.endGroup();
-
+    
     
     settings.beginGroup("general_tab");
     
     coordinate_system = settings.value("coordinate_system", "local").toString();
     
     settings.endGroup();
-}
-
-int VehicleManager::IdfromVehicleString(QString v_type)
-{
-    int number;
-    sscanf(v_type.toStdString().c_str(), "%d", &number);
-    
-    Qt::CaseSensitivity cs = Qt::CaseSensitivity::CaseInsensitive;
-    return v_type.contains("ugv", cs)  ? VehicleType::ugv + number:
-           v_type.contains("quad", cs) ? VehicleType::quad_rotor + number:
-           v_type.contains("octo", cs) ? VehicleType::octo_rotor + number:
-           v_type.contains("vtol", cs) ? VehicleType::vtol + number:
-                                         VehicleType::invalid_low;
 }
 
 lcar_msgs::TargetGlobalPtr VehicleManager::GetTargetGlobal(QString target_path)

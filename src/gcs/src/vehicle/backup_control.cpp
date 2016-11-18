@@ -11,27 +11,21 @@ int main(int argc, char **argv)
       id = 1;
   
   BackupControl bc(id);
-  
-  ros::Rate loop_rate(10); //10Hz
 
-  while(ros::ok())
-  {
-    ros::spinOnce();
-    loop_rate.sleep();
-  }
+  ros::spin();
 
   return 0;
 }
 
 BackupControl::BackupControl(int id)  //Class constructor
 {
-//  this->id = id;
+  // this->id = id;
   
   //Setup heartbeat timers
-  timer_heartbeat_uav   = nh.createTimer(ros::Duration(0.1), &BackupControl::PublishHeartbeat, this);
-  timer_heartbeat_gcs   = nh.createTimer(ros::Duration(0.25), &BackupControl::AssumeControl, this);
+  timer_heartbeat_uav = nh.createTimer(ros::Duration(0.1), &BackupControl::PublishHeartbeat, this);
+  timer_heartbeat_gcs = nh.createTimer(ros::Duration(0.25), &BackupControl::AssumeControl, this);
   
-  //this topic should be advertised under the /UAV* namsepace, eg. /UAV1/heartbeat/uav
+  //this topic should be advertised under the /V* namsepace, eg. /V2000/heartbeat/uav
   pub_heartbeat = nh.advertise<std_msgs::Int32>("heartbeat/uav", 0);
   pub_sp_position = nh.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 10);
 

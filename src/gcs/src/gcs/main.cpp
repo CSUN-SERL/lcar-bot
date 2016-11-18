@@ -8,7 +8,7 @@
 #include <QApplication>
 #include <QThread>
 
-#include "util/strings.h"
+#include "util/global_vars.h"
 #include "util/debug.h"
 #include "gcs/gcs_main_window.h"
 #include "gcs/vehicle_manager.h"
@@ -33,20 +33,17 @@ int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
     
-    
     if(!LockThisPC())
         return -1;
     
     if(!ROSLockThisNetwork())
         return -2;
     
-    
     ros::init(argc, argv, "GCS");
     ros::AsyncSpinner spinner(0); // use all processor cores and threads
     spinner.start();
     
     gcs::dbg::InitDbg();
-    gcs::InitStrings(); // initializes application global strings
     
     gcs::VehicleManager vm;
     QThread background;
@@ -61,5 +58,6 @@ int main(int argc, char *argv[])
     
     background.quit();
     ros::shutdown();
+    
     return ret;
 }

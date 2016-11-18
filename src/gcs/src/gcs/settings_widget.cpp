@@ -11,7 +11,7 @@
 #include <iostream>
 
 #include "util/image.h"
-#include "util/strings.h"
+#include "util/global_vars.h"
 #include "gcs/ui_adapter.h"
 #include "gcs/settings_widget.h"
 
@@ -233,7 +233,7 @@ void SettingsWidget::readGeneralSettings()
         widget.length_text_box->setEnabled(false);
     }
 
-    QString img_dir = settings->value("images_root_directory", img::image_root_dir_).toString();
+    QString img_dir = settings->value("images_root_directory", image_root_dir_).toString();
     widget.line_edit_images_dir->setText(img_dir);
 
     settings->endGroup();
@@ -299,7 +299,7 @@ void SettingsWidget::writeGeneralSettings()
     if(!img_dir.isNull())
     {
         settings->setValue("images_root_directory", img_dir);
-        img::image_root_dir_ = widget.line_edit_images_dir->text();
+        image_root_dir_ = img_dir;
     }
 
     settings->endGroup(); //general_tab

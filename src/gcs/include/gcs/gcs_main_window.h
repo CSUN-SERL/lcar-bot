@@ -114,8 +114,14 @@ private:
     void SaveUavQueries(int uav_id, const std::vector<lcar_msgs::QueryPtr> *queries, const QString ap_type);
     void AnswerQuery(QWidget *, QString ap_type, bool);
 
-    void ToggleScoutButtons(bool visible, QString icon_type = "pause");
-    void ToggleArmDisarmButton(bool arm);
+    /**
+     * \brief controls the behavior and visibility of the Scout Buttons
+     * @param mode accepts "scout" (hides the play/pause and stop buttons, making scout visible again. effectively stops a mission),
+     *                     "play" (hides the scout button, showing the play button and stop), 
+     *                     "pause (hides the scout button, showing the pause button and stop)"
+     */
+    void ToggleScoutButtons(QString mode = "scout");
+    void ToggleArmDisarmButton(QString mode = "Arm");
     
     void CenterFloatingWidget(QWidget * w);
     void OnAccessPointsTriggered();

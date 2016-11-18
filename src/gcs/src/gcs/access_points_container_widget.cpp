@@ -4,7 +4,7 @@
 #include "gcs/access_points_container_widget.h"
 #include "gcs/access_point_widget.h"
 #include "util/image.h"
-#include "util/strings.h"
+#include "util/global_vars.h"
 
 namespace gcs
 {
@@ -103,7 +103,7 @@ void AccessPointsContainerWidget::OnDeleteAccessPoint(QWidget* w)
 
 void AccessPointsContainerWidget::SaveUavAccessPoints(std::vector<lcar_msgs::AccessPointStampedPtr> * ap_vector, int id, QString ap_type)
 {
-    QString path = img::image_root_dir_ % "/access_points/" % ap_type;
+    QString path = image_root_dir_ % "/access_points/" % ap_type;
     path.append("/uav_" + QString::number(id));
     for(int i = 0; i < ap_vector->size(); i++)
     {

@@ -9,7 +9,7 @@
 #include "gcs/query_widget.h"
 #include "util/image.h"
 #include "util/debug.h"
-#include "util/strings.h"
+#include "util/global_vars.h"
 
 #include <QDir>
 #include <QDirIterator>
@@ -38,7 +38,7 @@ UnansweredQueries::~UnansweredQueries()
 
 void UnansweredQueries::addUnansweredQueriesFromDisk()
 {
-    QString path_root = img::image_root_dir_ % "/queries/unanswered";         
+    QString path_root = image_root_dir_ % "/queries/unanswered";         
     for(int i = 0; i < ap_types.size(); i++)
     {
         QDir path(path_root % "/" % ap_types[i]);
@@ -105,7 +105,7 @@ void UnansweredQueries::answerQuery(QWidget * w, QString ap_type, bool accepted)
     QueryStat * stat = queries_map[ap_type][index];
     QImage img = stat->original_img;
     
-    QString path = img::image_root_dir_ % "/queries";
+    QString path = image_root_dir_ % "/queries";
     if(accepted)
         path.append("/accepted/" % ap_type);
     else 
