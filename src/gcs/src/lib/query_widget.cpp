@@ -5,7 +5,7 @@
  * Created on September 26, 2016, 7:20 PM
  */
 
-#include "gcs/query_widget.h"
+#include "qt/query_widget.h"
 
 namespace gcs
 {

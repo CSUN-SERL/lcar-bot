@@ -25,8 +25,7 @@ class MyQWidget : public QWidget
             QStyleOption o;                                                                                                                                                                  
             o.initFrom(this);                                                                                                                                                                
             QPainter p(this);                                                                                                                                                                
-            style()->drawPrimitive(
-              QStyle::PE_Widget, &o, &p, this);                                                                                                                         
+            style()->drawPrimitive(QStyle::PE_Widget, &o, &p, this);                                                                                                                         
         };
 };
 

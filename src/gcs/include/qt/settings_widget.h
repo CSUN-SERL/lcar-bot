@@ -8,7 +8,7 @@
 #ifndef _SETTINGSWIDGET_H
 #define _SETTINGSWIDGET_H
 
-#include "gcs/vehicle_manager.h"
+#include "qt/vehicle_manager.h"
 #include "ui_SettingsWidget.h"
 #include <QSettings>
 

@@ -10,7 +10,7 @@
 #define _VEHICLEINITWIDGET_H
 
 #include "ui_VehicleInitWidget.h"
-#include "gcs/vehicle_manager.h"
+#include "qt/vehicle_manager.h"
 
 namespace gcs
 {

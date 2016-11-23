@@ -3,7 +3,7 @@
 #define _UNANSWEREDQUERIES_H
 
 
-#include <gcs/gcs_main_window.h>
+#include <qt/gcs_main_window.h>
 #include "ui_UnansweredQueries.h"
 #include <QSignalMapper>
 

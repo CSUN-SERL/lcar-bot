@@ -19,13 +19,13 @@
 #include <QSettings>
 #include <QCloseEvent>
 
-#include "gcs/vehicle_list_widget.h"
-#include "gcs/unanswered_queries.h"
-#include "gcs/settings_widget.h"
-#include "gcs/access_points_container_widget.h"
-#include "gcs/vehicle_init_widget.h"
-#include "gcs/vehicle_manager.h"
-#include "gcs/ui_adapter.h"
+#include "qt/vehicle_list_widget.h"
+#include "qt/unanswered_queries.h"
+#include "qt/settings_widget.h"
+#include "qt/access_points_container_widget.h"
+#include "qt/vehicle_init_widget.h"
+#include "qt/vehicle_manager.h"
+#include "qt/ui_adapter.h"
 
 #include "util/data_types.h"
 #include "util/debug.h"
@@ -77,8 +77,11 @@ public slots:
     void OnPauseOrResumeScout();
     void OnAcceptDoorQuery(QWidget *);
     void OnRejectDoorQuery(QWidget *);
-    void OnUpdateCameraFeed(QPixmap img);
 
+    
+    void OnUpdateCameraFeed(QPixmap img);
+    void OnOperatorNotified(QString msg);
+    
 //    void OnAddUav(int);
 //    void OnDeleteUav(int);
 //    void OnUAVConnectionToggled(int, int, bool);

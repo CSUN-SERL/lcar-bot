@@ -23,13 +23,14 @@
 
 #include "util/image.h"
 #include "util/data_types.h"
+#include "util/object_detection_parameters.h"
 #include "lcar_msgs/Query.h"
 #include "lcar_msgs/TargetLocal.h"
 #include "lcar_msgs/InitRequest.h"
 #include "lcar_msgs/TargetGlobal.h"
 #include "lcar_msgs/AccessPointStamped.h"
 #include "vehicle/vehicle_control.h"
-#include "gcs/ui_adapter.h"
+#include "qt/ui_adapter.h"
 
 
 namespace gcs
@@ -38,16 +39,6 @@ namespace gcs
     //todo implement these forward declarations
     class UGVControl;
     class NAOCOntrol;
-    
-    typedef struct ObjectDetectionParameters_
-    {
-        //defaults
-        double hit_thresh = 0; // displayed as a decimal
-        int step_size = 16;
-        int padding = 8;
-        double scale_factor = 1.15; // displayed as a decimal
-        bool mean_shift = false;
-    } ObjectDetectionParameters;
     
 class VehicleManager : public QObject
 {

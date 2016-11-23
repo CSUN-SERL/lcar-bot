@@ -10,8 +10,8 @@
 
 #include "util/global_vars.h"
 #include "util/debug.h"
-#include "gcs/gcs_main_window.h"
-#include "gcs/vehicle_manager.h"
+#include "qt/gcs_main_window.h"
+#include "qt/vehicle_manager.h"
 
 bool LockThisPC()
 {
@@ -32,6 +32,10 @@ int main(int argc, char *argv[])
     // Q_INIT_RESOURCE(resfile);
 
     QApplication app(argc, argv);
+    //these will configure QSettings automatically with "SERL/ISLURP.conf"
+    app.setOrganizationName("SERL");
+    app.setOrganizationDomain("serl.systems");
+    app.setApplicationName("ISLURP");
     
     if(!LockThisPC())
         return -1;

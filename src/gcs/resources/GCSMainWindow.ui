@@ -952,7 +952,7 @@ border-radius:0px;</string>
               <x>0</x>
               <y>0</y>
               <width>357</width>
-              <height>152</height>
+              <height>130</height>
              </rect>
             </property>
             <property name="sizePolicy">
@@ -1391,7 +1391,7 @@ color: rgb(240, 240, 240);</string>
               <x>0</x>
               <y>0</y>
               <width>348</width>
-              <height>312</height>
+              <height>290</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout">
@@ -1463,6 +1463,7 @@ color: rgb(240, 240, 240);</string>
     </rect>
    </property>
   </widget>
+  <widget class="QStatusBar" name="status_bar"/>
   <action name="actionAdd_Vehicle">
    <property name="text">
     <string>Add Vehicle</string>
@@ -1523,7 +1524,7 @@ color: rgb(240, 240, 240);</string>
   <customwidget>
    <class>qfi_PFD</class>
    <extends>QGraphicsView</extends>
-   <header>gcs/qfi_PFD.h</header>
+   <header>qt/qfi_PFD.h</header>
   </customwidget>
  </customwidgets>
  <resources>

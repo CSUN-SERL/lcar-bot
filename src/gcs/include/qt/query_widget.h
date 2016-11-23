@@ -9,7 +9,7 @@
 #define _QUERYWIDGET_H
 
 #include <QPixmap>
-#include "gcs/my_q_widget.h"
+#include "qt/my_q_widget.h"
 #include "ui_QueryWidget.h"
 
 namespace gcs

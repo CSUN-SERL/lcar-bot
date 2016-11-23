@@ -9,9 +9,9 @@
 #include "ui_VehicleInitWidget.h"
 
 #include "util/debug.h"
-#include "gcs/ui_adapter.h"
-#include "gcs/vehicle_manager.h"
-#include "gcs/vehicle_init_widget.h"
+#include "qt/ui_adapter.h"
+#include "qt/vehicle_manager.h"
+#include "qt/vehicle_init_widget.h"
 
 namespace gcs
 {

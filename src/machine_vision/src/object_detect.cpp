@@ -354,7 +354,8 @@ int main (int argc, char** argv)
         }
     }
     
-    ROS_INFO_STREAM(ros::this_node::getName() << " received object detection parameters");
+    ROS_INFO_STREAM(ros::this_node::getName() 
+            << " received object detection parameters");
     
     ros::spin();
 

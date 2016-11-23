@@ -5,7 +5,6 @@
  * Created on September 8, 2016, 11:41 AM
  */
 
-#include <QSettings>
 #include <QTextStream>
 #include <QStringBuilder>
 
@@ -13,10 +12,12 @@
 
 #include "util/global_vars.h"
 #include "util/debug.h"
+#include "util/settings.h"
 #include "vehicle/uav_control.h"
 #include "lcar_msgs/InitResponse.h"
-#include "gcs/vehicle_manager.h"
-#include "gcs/ui_adapter.h"
+#include "qt/vehicle_manager.h"
+#include "qt/ui_adapter.h"
+#include "util/settings.h"
 
 namespace gcs
 {
@@ -47,10 +48,10 @@ VehicleManager::~VehicleManager()
     for(; v_type < VehicleType::invalid_high; v_type += VEHICLE_TYPE_MAX)
     {
         QMap<int, VehicleControl*> * v_db = &db[v_type];
-        auto it = v_db->begin();
-        for(; it != v_db->end(); it++)
+        for(auto it = v_db->begin(); it != v_db->end(); it++)
         {
-            delete it.value();
+            VehicleControl *vc = it.value();
+            delete vc;
         }
     }
 }
@@ -270,11 +271,11 @@ void VehicleManager::OnOperatorDeleteVehicle(int v_id)
     if(it != v_db->end())
     {
         emit UIAdapter::Instance()->DeleteVehicleWidget(v_id);
-        VehicleControl *vehicle = it.value();
-        v_db->erase(it);
-
         widget_deleted.wait(&widget_mutex);
-        delete vehicle;
+        
+        VehicleControl *vc = it.value();
+        v_db->erase(it);
+        delete vc;
     }
     else
         ROS_ERROR_STREAM("Tried to delete non existent " 
@@ -289,7 +290,7 @@ void VehicleManager::OnScoutBuilding(int quad_id, int building)
     int v_type = this->VehicleTypeFromId(quad_id);
     Q_ASSERT(v_type == VehicleType::quad_rotor);
     
-    QString path = QString(ros::package::getPath("gcs").c_str());
+    QString path = ros::package::getPath("gcs").c_str();
     path.append("/buildings/" % coordinate_system % "/building" % QString::number(building) % ".txt");
     
     VehicleControl *vc = this->FindVehicle(v_type, quad_id);
@@ -399,7 +400,7 @@ void VehicleManager::OnSetMachineLearningMode(bool on)
         uav->SetOnlineMode(on);
     }
 }
-
+ 
 
 void VehicleManager::OnPublishHitThreshold(double thresh)
 {
@@ -745,24 +746,9 @@ VehicleControl* VehicleManager::FindVehicle(int v_id)
 // SettingsWidget and QSettings related stuff
 void VehicleManager::InitSettings()
 {
-    QSettings settings(company_, application_);
-    
-    settings.beginGroup("object_detection_tab");
-
-    od_params.hit_thresh = settings.value("tuning_paramaters/hit_threshold", od_params.hit_thresh).toDouble();
-    od_params.step_size = settings.value("tuning_paramaters/step_size", od_params.step_size).toInt();
-    od_params.padding = settings.value("tuning_paramaters/padding", od_params.padding).toInt();
-    od_params.scale_factor = settings.value("tuning_paramaters/scale_factor", od_params.scale_factor).toDouble();
-    od_params.mean_shift = settings.value("tuning_paramaters/mean_shift_grouping", od_params.mean_shift).toBool();
-
-    settings.endGroup();
-    
-    
-    settings.beginGroup("general_tab");
-    
-    coordinate_system = settings.value("coordinate_system", "local").toString();
-    
-    settings.endGroup();
+    Settings settings;
+    od_params = settings.GetObjectDetectionParams();
+    coordinate_system = settings.GetCoordinateSystem();
 }
 
 lcar_msgs::TargetGlobalPtr VehicleManager::GetTargetGlobal(QString target_path)

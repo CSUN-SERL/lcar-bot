@@ -6,7 +6,7 @@
  * Created on October 6, 2016, 2:54 PM
  */
 
-#include "gcs/access_point_widget.h"
+#include "qt/access_point_widget.h"
 #include "ui_AccessPointWidget.h"
 
 namespace gcs

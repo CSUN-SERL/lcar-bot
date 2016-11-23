@@ -1,4 +1,4 @@
-#include "gcs/ui_adapter.h"
+#include "qt/ui_adapter.h"
 
 namespace gcs 
 {   

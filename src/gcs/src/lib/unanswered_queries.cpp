@@ -5,8 +5,8 @@
  * Created on July 11, 2016, 2:24 PM
  */
 
-#include "gcs/unanswered_queries.h"
-#include "gcs/query_widget.h"
+#include "qt/unanswered_queries.h"
+#include "qt/query_widget.h"
 #include "util/image.h"
 #include "util/debug.h"
 #include "util/global_vars.h"

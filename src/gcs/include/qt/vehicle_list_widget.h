@@ -8,7 +8,7 @@
 #ifndef _VEHICLELISTWIDGET_H
 #define _VEHICLELISTWIDGET_H
 
-#include "gcs/my_q_widget.h"
+#include "qt/my_q_widget.h"
 #include "ui_VehicleListWidget.h"
 
 namespace gcs

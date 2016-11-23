@@ -337,7 +337,7 @@ QPushButton{
                   </size>
                  </property>
                  <property name="text">
-                  <string>Specify length:</string>
+                  <string>Set duration:</string>
                  </property>
                 </widget>
                </item>

@@ -1,8 +1,8 @@
 
 #include <QStringBuilder>
 
-#include "gcs/access_points_container_widget.h"
-#include "gcs/access_point_widget.h"
+#include "qt/access_points_container_widget.h"
+#include "qt/access_point_widget.h"
 #include "util/image.h"
 #include "util/global_vars.h"
 

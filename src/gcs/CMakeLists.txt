@@ -49,20 +49,18 @@ catkin_package(
   LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS roscpp std_msgs sensor_msgs )
 
-file(GLOB gcs_SRCS src/gcs/*.cpp src/vehicle/*.cpp )
-list(REMOVE_ITEM gcs_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/gcs/main.cpp )
+file(GLOB gcs_SRCS src/lib/*.cpp src/vehicle/*.cpp )
 list(REMOVE_ITEM gcs_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/vehicle/init_node.cpp )
 
-file(GLOB gcs_HDRS include/gcs/*.h )
-list(REMOVE_ITEM gcs_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/gcs/access_point.h 
-                              ${CMAKE_CURRENT_SOURCE_DIR}/include/gcs/my_q_widget.h )
+file(GLOB gcs_HDRS include/qt/*.h )
+list(REMOVE_ITEM gcs_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/qt/my_q_widget.h )
 
 file(GLOB gcs_UIS resources/*.ui )
 
 file(GLOB gcs_RCCS resources/*.qrc )
 
 #run qt rcc, moc & uic
-qt5_add_resources(gcs_VFIR ${gcs_RCCS}) #VFIR = Virtual File System Resources
+qt5_add_resources(gcs_VFS ${gcs_RCCS}) #VFIR = Virtual File System Resources
 qt5_wrap_cpp(gcs_MOCS ${gcs_HDRS})
 qt5_wrap_ui(gcs_UIS_H ${gcs_UIS})
 
@@ -84,9 +82,9 @@ add_library(_islurp
             ${gcs_SRCS}
             ${gcs_MOCS}
             ${gcs_UIS_H}
-            ${gcs_VFIR} )
+            ${gcs_VFS} )
 
-add_executable(${PROJECT_NAME} src/gcs/main.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp)
 
 #add_dependencies(uav_control ${catkin_EXPORTED_TARGETS})
 #add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})

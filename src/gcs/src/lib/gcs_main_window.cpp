@@ -10,9 +10,9 @@
 #include <QMutex>
 #include <QMetaType>
 
-#include "gcs/gcs_main_window.h"
-#include "gcs/query_widget.h"
-#include "gcs/vehicle_init_widget.h"
+#include "qt/gcs_main_window.h"
+#include "qt/query_widget.h"
+#include "qt/vehicle_init_widget.h"
 #include "util/image.h"
 #include "util/debug.h"
 #include "util/global_vars.h"
@@ -67,7 +67,13 @@ GCSMainWindow::GCSMainWindow(VehicleManager *vm):
             this, &GCSMainWindow::OnToggleMachineLearningMode);
     connect(ui_adapter, &UIAdapter::SetVehicleWidgetEnabled,
             this, &GCSMainWindow::OnSetVehicleWidgetEnabled);
-
+    connect(ui_adapter, &UIAdapter::NotifyOperator,
+            this, &GCSMainWindow::OnOperatorNotified);
+    
+    
+    connect(vm, &VehicleManager::destroyed,
+            this, [=](){ this->close(); });
+    
     this->InitMenuBar();
     this->InitSettings();
 //    this->InitHelperThread();
@@ -118,7 +124,7 @@ void GCSMainWindow::OnDeleteVehicleWidget(int v_id)
     int v_type = vm->VehicleTypeFromId(v_id);
     Q_ASSERT(v_type != VehicleType::invalid_low);
     
-    VehicleWidget * w = this->VehicleWidgetAt(v_type, v_id - v_type);
+    VehicleWidget *w = this->VehicleWidgetAt(v_type, v_id - v_type);
     delete w;
     
     int num_vehicle = vm->NumVehiclesByType(v_type);
@@ -126,7 +132,7 @@ void GCSMainWindow::OnDeleteVehicleWidget(int v_id)
     {
         this->ClearQueries();
         this->ToggleScoutButtons("scout");  // reset scout buttons
-        this->ToggleArmDisarmButton("Arm"); //set [dis]arm button to arm
+        this->ToggleArmDisarmButton("Arm"); // set [dis]arm button to arm
 
         widget.image_frame->setPixmap(QPixmap::fromImage(QImage()));
         widget.lbl_cur_uav->setText("NO UAVS");
@@ -161,58 +167,9 @@ void GCSMainWindow::OnSetVehicleWidgetEnabled(int v_id, bool enabled)
         w->SetButtonEnabled(enabled);
 }
 
-//void GCS::OnDeleteUav(int index)
-//{
-//    uav_mutex.lock();
-//    
-//    VehicleWidget * vw = this->VehicleWidgetAt(VehicleType::quad_rotor, index);
-//    UAVControl * uav = active_uavs[index];
-//    
-//    this->SaveUavQueries(uav->id, uav->GetDoorQueries(), "door");
-//
-//    // dont delete uav_db[index] as it points to same UAVControl object as active_uavs
-//    delete uav;
-//    delete vw; // removes this widget from the layout
-//
-//    active_uavs.erase(active_uavs.begin() + index);
-//    uav_db.erase(uav_db.begin() + index);
-//
-//    NUM_UAV--;
-//
-//    if(NUM_UAV == 0) // no more uav's
-//    {
-//        if(fl_widgets.ap_menu != nullptr)
-//            fl_widgets.ap_menu->SetUAV(nullptr);
-//
-//        this->ClearQueries();
-//        this->ToggleScoutButtons(true);  // reset scout buttons
-//        this->ToggleArmDisarmButton(false); //set [dis]arm button to arm
-//
-//        widget.image_frame->setPixmap(QPixmap::fromImage(QImage()));
-//        widget.lbl_cur_uav->setText("NO UAVS");
-//        cur_v_id = -1;
-//    }
-//    //deleted uav was in front of cur_uav, causing NUM_UAV to shrink. cur_uav >= NUM_UAV
-//    else if(NUM_UAV <= cur_vehicle) // subsequent calls to TimedUpdate will be invalid at this point
-//    {
-//        this->SelectUav(NUM_UAV - 1);
-//    }
-//    else if(cur_vehicle == index) // deleted current uav
-//    {
-//        if(cur_vehicle > 0)
-//            this->SelectUav(cur_vehicle - 1);
-//        else
-//            this->SelectUav(0);
-//    }
-//
-//    num_uav_changed.wakeAll();
-//    uav_mutex.unlock();
-//}
-
 void GCSMainWindow::SaveUavQueries(int uav_id, const std::vector<lcar_msgs::QueryPtr> *queries, const QString ap_type)
 {
-    QString path = image_root_dir_ % "/queries/unanswered/"
-        % ap_type % "/uav_" % QString::number(uav_id);
+    QString path = image_root_dir_ % "/queries/unanswered/" % ap_type;
 
     int num_images = img::numImagesInDir(path);
 
@@ -456,13 +413,14 @@ void GCSMainWindow::OnChangeFlightMode(int index)
 
 void GCSMainWindow::ToggleScoutButtons(QString mode)
 { // icon_type should be "play" or "pause"
-    Q_ASSERT(mode == "scout" || mode == "play" || mode == "pause");
+    mode = mode.toLower();
+    bool scout = (mode == "scout"); 
+    Q_ASSERT(scout || mode == "play" || mode == "pause");
     
-    bool scout = (mode == "scout");
     widget.btn_scout->setVisible(scout);
     widget.btn_scout_play_pause->setVisible(!scout);
     if(!scout)
-        widget.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/"%mode%".png"));
+        widget.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/" % mode % ".png"));
     widget.btn_scout_stop->setVisible(!scout);
 }
 
@@ -484,10 +442,7 @@ void GCSMainWindow::SelectVehicleWidgetById(int v_id)
     
     cur_v_id = v_id;
     
-    QString vehicle_type = "UAV ";
-    if(v_type == VehicleType::ugv)
-        vehicle_type = "UGV ";
-    
+    QString vehicle_type = vm->VehicleStringFromId(v_id);
     widget.lbl_cur_uav->setText(vehicle_type % QString::number(v_id - v_type));
     
     QString topic("/V" % QString::number(v_id) % "/stereo_cam/left/image_rect");
@@ -496,8 +451,8 @@ void GCSMainWindow::SelectVehicleWidgetById(int v_id)
     widget.image_frame->setPixmap(QPixmap::fromImage(QImage()));
     this->ClearQueries(); // new uav selected, so make room for its queries
     if(fl_widgets.ap_menu != nullptr)
-        fl_widgets.ap_menu->SetUAVAccessPointsAndId(vm->GetUAVAccessPoints(cur_v_id), 
-                                                    cur_v_id - v_type);
+        fl_widgets.ap_menu->SetUAVAccessPointsAndId(vm->GetUAVAccessPoints(v_id), 
+                                                    v_id - v_type);
     
     //todo update gui buttons according to current vehicles mission status 
     MissionMode m = vm->GetMissionMode(cur_v_id);
@@ -509,9 +464,9 @@ void GCSMainWindow::SelectVehicleWidgetById(int v_id)
         this->ToggleScoutButtons("play");
 
     if(vm->GetState(cur_v_id)->armed)
-        this->ToggleArmDisarmButton("Disarm");
+        this->ToggleArmDisarmButton("disarm");
     else
-        this->ToggleArmDisarmButton("Arm");
+        this->ToggleArmDisarmButton("arm");
 }
 
 //
@@ -600,16 +555,18 @@ void GCSMainWindow::OnArmOrDisarmSelectedUav()
     bool armed = vm->IsArmed(cur_v_id);
 
     if(armed)
-        this->ToggleArmDisarmButton("Disarm");
+        this->ToggleArmDisarmButton("disarm");
     else
-        this->ToggleArmDisarmButton("Arm");
+        this->ToggleArmDisarmButton("arm");
 
     emit UIAdapter::Instance()->Arm(cur_v_id, !armed);
 }
 
 void GCSMainWindow::ToggleArmDisarmButton(QString mode)
 {
-    Q_ASSERT(mode == "Arm" || "Disarm");
+    QString temp_mode = mode.toLower();
+    temp_mode = temp_mode[0].toUpper() % temp_mode.mid(1);
+    Q_ASSERT(temp_mode == "Arm" || temp_mode == "Disarm");
     widget.btn_arm_uav->setText(mode);
 }
 
@@ -781,7 +738,7 @@ void GCSMainWindow::UpdateVehicleWidgets()
     int num_vehicle = vm->NumVehiclesByType(v_type);
     for(int i = 0; i < num_vehicle; i++)
     {
-        VehicleWidget * widget = this->VehicleWidgetAt(v_type, i);
+        VehicleWidget *widget = this->VehicleWidgetAt(v_type, i);
         StatePtr ptr = vm->GetState(v_type + i);
         widget->SetBattery(ptr->battery);
         widget->SetCondition(ptr->mode.c_str());
@@ -793,6 +750,11 @@ void GCSMainWindow::OnUpdateCameraFeed(QPixmap img)
     int w = widget.image_frame->width();
     int h = widget.image_frame->height();
     widget.image_frame->setPixmap(img.scaled(w, h, Qt::KeepAspectRatio));
+}
+
+void GCSMainWindow::OnOperatorNotified(QString msg)
+{
+    widget.status_bar->showMessage(msg, 15000);
 }
 
 void GCSMainWindow::closeEvent(QCloseEvent* event)

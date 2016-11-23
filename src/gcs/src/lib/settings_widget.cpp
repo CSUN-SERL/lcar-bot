@@ -12,8 +12,8 @@
 
 #include "util/image.h"
 #include "util/global_vars.h"
-#include "gcs/ui_adapter.h"
-#include "gcs/settings_widget.h"
+#include "qt/ui_adapter.h"
+#include "qt/settings_widget.h"
 
 
 namespace gcs
