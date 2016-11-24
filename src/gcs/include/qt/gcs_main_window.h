@@ -27,9 +27,10 @@
 #include "qt/vehicle_manager.h"
 #include "qt/ui_adapter.h"
 
+//#include "util/debug.h"
+//#include "util/image.h"
 #include "util/data_types.h"
-#include "util/debug.h"
-#include "util/image.h"
+
 
 #include "vehicle/uav_control.h"
 
@@ -135,6 +136,9 @@ private:
     
     Ui::GCSMainWindow widget;
     
+    QTimer *update_timer;
+    QString image_root_dir;
+    
     int cur_v_id; // the current selected vehicles id
     int time_counter;
     int num_queries_last;
@@ -153,8 +157,6 @@ private:
     //layouts corresponding to vehicle type, provided you add them in the class 
     //constructor
     QMap<int/*VehicleType*/, QVBoxLayout*> layout_by_v_type;
-
-    QTimer *update_timer;
     
 };
 

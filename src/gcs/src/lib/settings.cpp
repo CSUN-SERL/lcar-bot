@@ -7,6 +7,8 @@
  */
 
 #include <QSettings>
+#include <QStringBuilder>
+#include <QCoreApplication>
 #include <QProcessEnvironment>
 
 #include "util/settings.h"
@@ -54,9 +56,112 @@ void Settings::SetCoordinateSystem(const QString system)
 
 QString Settings::GetCoordinateSystem()
 {
-    //todo
+    QStringList groups = QStringList() << Settings::group_general;
+    return this->Read(Settings::key_coordinate_system, 
+                      Settings::val_coordinate_system_local,
+                      groups).toString();
 }
 
+void Settings::SetVehicleLink(const QString vehicle_link)
+{
+    QString link = vehicle_link.toLower();
+    Q_ASSERT(link == Settings::val_vehicle_link_nominal
+                || link == Settings::val_vehicle_link_marginal
+                || link == Settings::val_vehicle_link_poor);
+    
+    QStringList groups = QStringList() << Settings::group_general << Settings::group_connection;
+    this->Write(Settings::key_vehicle_link, link, groups);
+}
+
+QString Settings::GetVehicleLink()
+{
+    QStringList groups = QStringList() << Settings::group_general << Settings::group_connection;
+    return this->Read(Settings::key_vehicle_link, 
+                      Settings::val_vehicle_link_nominal,
+                      groups).toString();
+}
+
+void Settings::SetFrequency(const QString frequency)
+{
+    QString freq = frequency.toLower();
+    Q_ASSERT(freq == Settings::val_frequency_interval
+                || freq == Settings::val_frequency_random);
+    QStringList groups = QStringList() << Settings::group_general << Settings::group_connection;
+    this->Write(Settings::key_frequency, freq, groups);
+}
+
+QString Settings::GetFrequency()
+{
+    QStringList groups = QStringList() << Settings::group_general << Settings::group_connection;
+    return this->Read(Settings::key_frequency, 
+                      Settings::val_frequency_random,
+                      groups).toString();
+}
+
+void Settings::SetInterval(const int minutes)
+{
+    Q_ASSERT(minutes >= Settings::val_interval_unspecified);
+    QStringList groups = QStringList() << Settings::group_general << Settings::group_connection;
+    this->Write(Settings::key_interval, QString::number(minutes), groups);
+}
+
+int Settings::GetInterval()
+{
+    QStringList groups = QStringList() << Settings::group_general << Settings::group_connection;
+    return this->Read(Settings::key_interval, 
+                      QString::number(Settings::val_interval_unspecified),
+                      groups).toInt();
+}
+
+void Settings::SetDuration(const int minutes)
+{
+    Q_ASSERT(minutes >= Settings::val_duration_unspecified);
+    QStringList groups = QStringList() << Settings::group_general << Settings::group_connection;
+    this->Write(Settings::key_duration, QString::number(minutes), groups);
+}
+
+int Settings::GetDuration()
+{
+    QStringList groups = QStringList() << Settings::group_general << Settings::group_connection;
+    return this->Read(Settings::key_duration,
+                      QString::number(Settings::val_duration_unspecified),
+                      groups).toInt();
+}
+
+void Settings::SetImagesRootDir(const QString dir)
+{
+    Q_ASSERT(dir.startsWith("/"));
+    QStringList groups = QStringList() << Settings::group_general;
+    this->Write(Settings::key_image_root_dir, dir, groups);
+}
+
+QString Settings::GetImagesRootDir()
+{
+    QStringList groups = QStringList() << Settings::group_general;
+    QString default_path = QProcessEnvironment::systemEnvironment().value("HOME") 
+                            % "/Pictures/" % QCoreApplication::organizationName();
+    return this->Read(Settings::key_image_root_dir,
+                      default_path, groups).toString();
+}
+
+
+ObjectDetectionParameters Settings::GetObjectDetectionParams()
+{
+    ObjectDetectionParameters od_params;
+    settings.beginGroup(Settings::group_object_detection);
+    settings.beginGroup(Settings::group_tuning_params);
+    od_params.hit_thresh = settings.value(Settings::key_hit_threshold, 
+                                          QString::number(Settings::val_hit_threshold_low)).toDouble();
+    od_params.step_size = settings.value(Settings::key_step_size,
+                                         QString::number(Settings::val_step_size_low)).toInt();
+    od_params.padding = settings.value(Settings::key_padding, 
+                                       QString::number(Settings::val_padding_low)).toInt();
+    od_params.scale_factor = settings.value(Settings::key_scale_factor,
+                                            QString::number(Settings::val_scale_factor_low)).toDouble();
+    od_params.mean_shift = settings.value(Settings::key_mean_shift,
+                                          Settings::val_mean_shift_on).toBool();
+    return od_params;
+}
 
 //private://////////////////////////////////////////////////////////////////////
 void Settings::Write(const QString key, const QVariant value, const QStringList groups, int index)
@@ -85,23 +190,6 @@ QVariant Settings::Read(const QString key, const QVariant default_value, const Q
     return var;
 }
 
-ObjectDetectionParameters Settings::GetObjectDetectionParams()
-{
-    ObjectDetectionParameters od_params;
-    settings.beginGroup(Settings::group_object_detection);
-    settings.beginGroup(Settings::group_tuning_params);
-    od_params.hit_thresh = settings.value(Settings::key_hit_threshold, 
-                                          QString::number(Settings::val_hit_threshold_low)).toDouble();
-    od_params.step_size = settings.value(Settings::key_step_size,
-                                         QString::number(Settings::val_step_size_low)).toInt();
-    od_params.padding = settings.value(Settings::key_padding, 
-                                       QString::number(Settings::val_padding_low)).toInt();
-    od_params.scale_factor = settings.value(Settings::key_scale_factor,
-                                            QString::number(Settings::val_scale_factor_low)).toDouble();
-    od_params.mean_shift = settings.value(Settings::key_mean_shift,
-                                          Settings::val_mean_shift_on).toBool();
-}
-
 const QString Settings::group_general = "general";
 const QString Settings::group_connection = "connection_drop";
 
@@ -124,10 +212,12 @@ const QString Settings::val_vehicle_link_poor = "poor";
 const QString Settings::key_frequency = "frequency";
 const QString Settings::val_frequency_random = "random";
 const QString Settings::val_frequency_interval = "interval";
-const QString Settings::key_interval_text = "interval/text";
 
-const QString Settings::key_duration = "duration/checked";
-const QString Settings::key_duration_text = "duration/text";
+const QString Settings::key_interval = "interval";
+const int Settings::val_interval_unspecified = -1;
+
+const QString Settings::key_duration = "duration";
+const int Settings::val_duration_unspecified = -1;
 
 const QString Settings::key_image_root_dir = "images_root_directory";
 
@@ -138,15 +228,19 @@ const QString Settings::val_node_location_gcs = "gcs";
 const QString Settings::key_hit_threshold = "hit_threshold";
 const double Settings::val_hit_threshold_low = 0.0;
 const double Settings::val_hit_threshold_high = 0.9;
+
 const QString Settings::key_step_size = "padding";
 const int Settings::val_step_size_low = 0;
 const int Settings::val_step_size_high = 16;
+
 const QString Settings::key_padding = "padding";
 const int Settings::val_padding_high = 32;
 const int Settings::val_padding_low = 0;
+
 const QString Settings::key_scale_factor = "scale_factor";
 const double Settings::val_scale_factor_high = 1.3;
 const double Settings::val_scale_factor_low = 1.0;
+
 const QString Settings::key_mean_shift = "mean_shift_grouping";
 const bool Settings::val_mean_shift_on = true;
 const bool Settings::val_mean_shift_off = false;

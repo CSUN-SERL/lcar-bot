@@ -15,11 +15,12 @@
 #include "qt/vehicle_init_widget.h"
 #include "util/image.h"
 #include "util/debug.h"
+#include "util/settings.h"
 #include "util/global_vars.h"
 #include "util/data_types.h"
 
 #include <ros/package.h>
-#include <cv_bridge/cv_bridge.h>
+//#include <cv_bridge/cv_bridge.h>
 
 namespace gcs
 {
@@ -699,19 +700,12 @@ void GCSMainWindow::InitMenuBar()
 void GCSMainWindow::InitSettings()
 {
     //initialize settings and uav queries display
-    QSettings settings(company_, application_);
+    Settings settings;
+    
+    bool ml_on = (settings.GetMachineLearningType() == settings.val_machine_learning_online);
+    this->OnToggleMachineLearningMode(ml_on);
 
-    settings.beginGroup("general_tab");
-
-    if(settings.value("machine_learning", "online").toString() == "online")
-        this->OnToggleMachineLearningMode(true);
-    else
-        this->OnToggleMachineLearningMode(false);
-
-    QString default_path = QProcessEnvironment::systemEnvironment().value("HOME") % "/Pictures/" % company_;
-    image_root_dir_ = settings.value("images_root_directory", default_path).toString();
-
-    settings.endGroup();
+    this->image_root_dir = settings.GetImagesRootDir();
 }
 
 void GCSMainWindow::OnToggleMachineLearningMode(bool toggle)
