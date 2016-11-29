@@ -78,18 +78,18 @@ add_executable(init_node src/vehicle/init_node.cpp)
 #add_executable(gps_demo src/vehicle/gps_demo.cpp)
 #add_executable(safe_mocap src/vehicle/safe_mocap.cpp)
 
-add_library(_islurp
+add_library(${PROJECT_NAME}
             ${gcs_SRCS}
             ${gcs_MOCS}
             ${gcs_UIS_H}
             ${gcs_VFS} )
 
-add_executable(${PROJECT_NAME} src/main.cpp)
+add_executable(gcs_node src/main.cpp)
 
 #add_dependencies(uav_control ${catkin_EXPORTED_TARGETS})
-#add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 add_dependencies(init_node ${catkin_EXPORTED_TARGETS})
-add_dependencies(_islurp ${catkin_EXPORTED_TARGETS})
+add_dependencies(gcs_node ${catkin_EXPORTED_TARGETS})
 #add_dependencies(gps_demo ${catkin_EXPORTED_TARGETS})
 
 #Specify libraries against which to link
@@ -99,8 +99,8 @@ target_link_libraries(init_node ${catkin_LIBRARIES})
 #target_link_libraries(gps_publisher ${catkin_LIBRARIES})
 #target_link_libraries(gps_demo ${catkin_LIBRARIES})
 #target_link_libraries(safe_mocap ${catkin_LIBRARIES})
-target_link_libraries(  ${PROJECT_NAME}
-                        _islurp
+target_link_libraries(  gcs_node
+                        ${PROJECT_NAME}
                         ${catkin_LIBRARIES}
                         ${OpenCV_LIBRARIES}
                         Qt5::Widgets
