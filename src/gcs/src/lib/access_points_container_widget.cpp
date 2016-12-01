@@ -66,7 +66,7 @@ void AccessPointsContainerWidget::UpdateAccessPoints()
         lcar_msgs::AccessPointStampedPtr accessPoint = ap_vec->at(i);
         QPixmap image = img::rosImgToQpixmap(accessPoint->ap.query.img_framed);
 
-        AccessPointWidget * ap_widget = new AccessPointWidget(this);
+        AccessPointWidget *ap_widget = new AccessPointWidget(this);
         
         ap_widget->SetImage(image);
         

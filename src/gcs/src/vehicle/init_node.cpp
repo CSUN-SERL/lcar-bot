@@ -20,8 +20,8 @@ void Timeout(const ros::TimerEvent& e);
 void InitResponseCallback(const lcar_msgs::InitResponseConstPtr& msg)
 {
     //TODO UNCOMMENT THIS after machine_name override is undone inside main()
-//    if(machine_name != msg->machine_name || vehicle_id != msg->vehicle_id)
-//        return;
+    if(machine_name != msg->machine_name || vehicle_id != msg->vehicle_id)
+        return;
     
     ROS_INFO_STREAM(machine_name << " received operator initialization request.");
     PrepEnv(vehicle_id);
@@ -59,11 +59,16 @@ int main(int argc, char ** argv)
     ros::ServiceClient sc_init_request = nh.serviceClient<lcar_msgs::InitRequest>("/vehicle/init/request");
     ros::Subscriber sub_init_response = nh.subscribe("/vehicle/init/response", 2, InitResponseCallback);
     
-    char host[HOST_NAME_MAX];
-    gethostname(host, HOST_NAME_MAX);
-    machine_name = std::string(host);
-    machine_name = "quad1"; //  TODO REMOVE THIS temporary for testing purposes only
-                            //  uncomment if() check in InitResponseCallback() above 
+    if(ros::param::get("~machine_name", machine_name))
+        machine_name = machine_name.substr(machine_name.find("=") + 1);
+    else
+    {
+        char host[HOST_NAME_MAX];
+        gethostname(host, HOST_NAME_MAX);
+        machine_name = std::string(host);
+    }
+    
+    std::cout << machine_name << std::endl;
     
     lcar_msgs::InitRequest init_request;
     init_request.request.machine_name = machine_name;
