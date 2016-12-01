@@ -41,6 +41,8 @@ public:
     void SetDuration(const int minutes);
     int GetDuration();
     
+    void ClearFrequencyGroup();
+    
     void SetImagesRootDir(const QString dir);
     QString GetImagesRootDir();
     
@@ -48,8 +50,13 @@ public:
     QString GetNodeLocation();
     
     //object detection tab
-    ObjectDetectionParameters GetObjectDetectionParams();
+    void SetObjectDetectionParameters(ObjectDetectionParameters& od_params);
+    ObjectDetectionParameters GetObjectDetectionParameters();
+    
+    void Write(const QString key, const QVariant value, QStringList groups = QStringList(), int index = 0);
+    QVariant Read(QString key, const QVariant default_value, QStringList groups = QStringList(), int index = 0);
 
+    //variables
     static const QString val_machine_learning_online,
                          val_machine_learning_offline;
     
@@ -84,38 +91,34 @@ public:
     static const bool val_mean_shift_on,
                       val_mean_shift_off;
     
-    
 private:
-    
-    void Write(const QString key, const QVariant value, QStringList groups = QStringList(), int index = 0);
-    QVariant Read(QString key, const QVariant default_value, QStringList groups = QStringList(), int index = 0);
     
     QSettings settings;
     
-    const static QString group_general;
-    const static QString group_connection;
+    static const QString group_general;
+    static const QString group_connection;
     
-    const static QString group_object_detection;
-    const static QString group_tuning_params;
+    static const QString group_object_detection;
+    static const QString group_tuning_params;
     
-    const static QString key_machine_learning;
+    static const QString key_machine_learning;
         
-    const static QString key_coordinate_system;
+    static const QString key_coordinate_system;
         
-    const static QString key_vehicle_link;
-    const static QString key_frequency;
-    const static QString key_interval;
-    const static QString key_duration;
+    static const QString key_vehicle_link;
+    static const QString key_frequency;
+    static const QString key_interval;
+    static const QString key_duration;
             
-    const static QString key_image_root_dir;
+    static const QString key_image_root_dir;
     
-    const static QString key_node_location;
+    static const QString key_node_location;
 
-    const static QString key_hit_threshold;
-    const static QString key_step_size;
-    const static QString key_padding;
-    const static QString key_scale_factor;
-    const static QString key_mean_shift;
+    static const QString key_hit_threshold;
+    static const QString key_step_size;
+    static const QString key_padding;
+    static const QString key_scale_factor;
+    static const QString key_mean_shift;
     
 };
 

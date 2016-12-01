@@ -3,8 +3,9 @@
 
 #include "qt/access_points_container_widget.h"
 #include "qt/access_point_widget.h"
+#include "qt/ui_adapter.h"
 #include "util/image.h"
-#include "util/global_vars.h"
+#include "util/settings.h"
 
 namespace gcs
 {
@@ -14,6 +15,12 @@ AccessPointsContainerWidget::AccessPointsContainerWidget() :
 {
     widget.setupUi(this);
     this->setAttribute(Qt::WA_DeleteOnClose);
+    
+    this->image_root_dir = Settings().GetImagesRootDir();
+    
+    connect(UIAdapter::Instance(), &UIAdapter::SetImageRootDir,
+            this, &AccessPointsContainerWidget::OnUpdateImageRootDir);
+    
     connect(timer, &QTimer::timeout, 
             this, &AccessPointsContainerWidget::UpdateAccessPoints);
     timer->start(0);
@@ -39,7 +46,7 @@ void AccessPointsContainerWidget::SetUAVAccessPointsAndId(std::vector<lcar_msgs:
 void AccessPointsContainerWidget::ClearAccessPoints()
 {
     //clear out old list of Access points widgets
-    for(int i = widget.layout_access_points->count() -1 ; i >= 0; i--)
+    for(int i = widget.layout_access_points->count() - 1 ; i >= 0; i--)
         delete widget.layout_access_points->itemAt(i)->widget();
 
     num_access_points_last = 0;
@@ -81,11 +88,9 @@ void AccessPointsContainerWidget::UpdateAccessPoints()
         //time
         ap_widget->SetCaptureTime((double)accessPoint->header.stamp.toSec());
  
-
         connect(ap_widget->Button(), &QPushButton::clicked,
                 this, [=](){ OnDeleteAccessPoint(ap_widget); } );
 
-        //finally, add it to the gui
         widget.layout_access_points->addWidget(ap_widget);
     }
     num_access_points_last = apv_size;
@@ -96,14 +101,18 @@ void AccessPointsContainerWidget::OnDeleteAccessPoint(QWidget* w)
     int index = widget.layout_access_points->indexOf(w);
     delete w;
     
-    ap_vec->erase(ap_vec->begin()+index);
+    ap_vec->erase(ap_vec->begin() + index);
     num_access_points_last--;
 }
 
-
-void AccessPointsContainerWidget::SaveUavAccessPoints(std::vector<lcar_msgs::AccessPointStampedPtr> * ap_vector, int id, QString ap_type)
+void AccessPointsContainerWidget::OnUpdateImageRootDir(QString new_dir)
 {
-    QString path = image_root_dir_ % "/access_points/" % ap_type;
+    this->image_root_dir = new_dir;
+}
+
+void AccessPointsContainerWidget::SaveUavAccessPoints(std::vector<lcar_msgs::AccessPointStampedPtr> *ap_vector, int id, QString ap_type)
+{
+    QString path = this->image_root_dir % "/access_points/" % ap_type;
     path.append("/uav_" + QString::number(id));
     for(int i = 0; i < ap_vector->size(); i++)
     {

@@ -57,9 +57,11 @@ signals:
         void AddVehicle(int v_id);
         void DeleteVehicle(int v_id);
     
-        //a necessary evil for determing the way vehicles navigate. 
-        //can be "global"(outdoors) or "local"(indoors)
-        void SetCoordinateSystem(QString system);
+    //any ui-> any ui
+    //a necessary evil for determing the way vehicles navigate. 
+    //can be "global"(outdoors) or "local"(indoors)
+    void SetCoordinateSystem(QString system);
+    void SetImageRootDir(QString img_dir);
     
     // backend -> any ui
     void NotifyOperator(QString message);

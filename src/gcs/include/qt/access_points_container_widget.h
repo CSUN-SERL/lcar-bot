@@ -19,16 +19,18 @@ public:
     virtual ~AccessPointsContainerWidget();
     void ClearAccessPoints();
     void UpdateAccessPoints();
-    static void SaveUavAccessPoints(std::vector<lcar_msgs::AccessPointStampedPtr> * ap_vector, int id, QString ap_type);
+    void SaveUavAccessPoints(std::vector<lcar_msgs::AccessPointStampedPtr> * ap_vector, int id, QString ap_type);
     void SetUAVAccessPointsAndId(std::vector<lcar_msgs::AccessPointStampedPtr> * ap_vec, int id = -1);
     
 public slots:
     void OnDeleteAccessPoint(QWidget* w);
+    void OnUpdateImageRootDir(QString new_dir);
     
 private:
     Ui::AccessPointsContainerWidget widget;
     QTimer* timer;
     int num_access_points_last;
+    QString image_root_dir;
     
     std::vector<lcar_msgs::AccessPointStampedPtr> * ap_vec;
 };

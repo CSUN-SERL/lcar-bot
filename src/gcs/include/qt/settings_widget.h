@@ -8,30 +8,29 @@
 #ifndef _SETTINGSWIDGET_H
 #define _SETTINGSWIDGET_H
 
-#include "qt/vehicle_manager.h"
 #include "ui_SettingsWidget.h"
-#include <QSettings>
+
+#include "util/settings.h"
+#include "util/object_detection_parameters.h"
 
 namespace gcs
 {
 
-    class GCSMainWindow;
-    
     class SettingsWidget : public QWidget
     {
         Q_OBJECT
     public:
-        SettingsWidget(VehicleManager * vm);
+        SettingsWidget();
         virtual ~SettingsWidget();
         
     private:
         Ui::SettingsWidget widget;
         QString ml_state;
         QString coordinate_system;
-        VehicleManager *vm;
-        QSettings *settings; 
+        QString image_root_dir;
+        Settings settings; 
         
-        ObjectDetectionParameters* od_params;
+        ObjectDetectionParameters od_params;
 
         void setToolTips();
         
@@ -48,7 +47,7 @@ namespace gcs
         void onCancelClicked();
         void onToggleFrequencyGroup();
         void onToggleIntervalLine();
-        void onToggleLengthLine();
+        void onToggleDurationLine();
         void OnCoordinateSystemChange();
         
         //object detection tab sliders and line_edits

@@ -10,7 +10,7 @@
 
 #include <ros/package.h>
 
-#include "util/global_vars.h"
+#include "util/flight_modes.h"
 #include "util/debug.h"
 #include "util/settings.h"
 #include "vehicle/uav_control.h"
@@ -619,7 +619,6 @@ QWaitCondition* VehicleManager::GetWaitCondition()
 
 //private://////////////////////////////////////////////////////////////////////
 
-
 bool VehicleManager::VehicleInitRequested(lcar_msgs::InitRequest::Request& req, 
                                             lcar_msgs::InitRequest::Response& res)
 {
@@ -747,7 +746,7 @@ VehicleControl* VehicleManager::FindVehicle(int v_id)
 void VehicleManager::InitSettings()
 {
     Settings settings;
-    od_params = settings.GetObjectDetectionParams();
+    od_params = settings.GetObjectDetectionParameters();
     coordinate_system = settings.GetCoordinateSystem();
 }
 

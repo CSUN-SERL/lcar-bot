@@ -43,22 +43,16 @@
 namespace gcs
 {
 
-class GCSHelperThread;
 class UnansweredQueries;
 class SettingsWidget;
 
 class GCSMainWindow : public QMainWindow
 {
     Q_OBJECT
-
-    friend class GCSHelperThread;
-    friend class UnansweredQueries;
-    friend class SettingsWidget;
-
+    
 public:
     GCSMainWindow(VehicleManager * vm);
     virtual ~GCSMainWindow();
-    
     
 public slots:
     void OnTimedUpdate();
@@ -67,7 +61,7 @@ public slots:
     void OnDeleteVehicleWidget(int v_id);
     void OnSetVehicleWidgetEnabled(int v_id, bool enabled);
     
-    //////////// Buttons
+    // Buttons
     void OnExecutePlay();
     void OnCancelPlay();
     void OnScoutBuilding();
@@ -82,13 +76,10 @@ public slots:
     
     void OnUpdateCameraFeed(QPixmap img);
     void OnOperatorNotified(QString msg);
-    
-//    void OnAddUav(int);
-//    void OnDeleteUav(int);
-//    void OnUAVConnectionToggled(int, int, bool);
 
-    //SETTINGS RELATED
+    // SETTINGS RELATED
     virtual void OnToggleMachineLearningMode(bool);
+    void OnImageRootDirUpdated(QString new_dir);
     
 protected:
     void closeEvent(QCloseEvent* event) override;
@@ -133,16 +124,15 @@ private:
     void OnUnansweredQueriesTriggered();
     void OnAddVehicleTriggered();
 
-    
     Ui::GCSMainWindow widget;
-    
+    VehicleManager * vm;
+    QMap<int/*VehicleType*/, QVBoxLayout*> layout_by_v_type;
     QTimer *update_timer;
     QString image_root_dir;
-    
     int cur_v_id; // the current selected vehicles id
     int time_counter;
     int num_queries_last;
-
+    
     struct FloatingWidgets
     {
         SettingsWidget *settings = nullptr;
@@ -150,13 +140,6 @@ private:
         AccessPointsContainerWidget *ap_menu = nullptr;
         VehicleInitWidget *vehicle_init = nullptr;
     } fl_widgets;
-
-    VehicleManager * vm;
-    
-    //this is a convenience data structure for quickly accessing the different
-    //layouts corresponding to vehicle type, provided you add them in the class 
-    //constructor
-    QMap<int/*VehicleType*/, QVBoxLayout*> layout_by_v_type;
     
 };
 

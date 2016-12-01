@@ -6,10 +6,12 @@
  */
 
 #include "qt/unanswered_queries.h"
+#include "qt/ui_adapter.h"
 #include "qt/query_widget.h"
 #include "util/image.h"
 #include "util/debug.h"
-#include "util/global_vars.h"
+#include "util/flight_modes.h"
+#include "util/settings.h"
 
 #include <QDir>
 #include <QDirIterator>
@@ -28,6 +30,11 @@ gcs(sgcs)
     //TODO layout_by_ap_type for window and hole, 
     //and adding the layouts and tab widget container in qtdesigner
 
+    image_root_dir = Settings().GetImagesRootDir();
+    
+    connect(UIAdapter::Instance(), &UIAdapter::SetImageRootDir,
+            this, &UnansweredQueries::OnUpdateImageRootDir);
+    
     this->addUnansweredQueriesFromDisk();
 }
 
@@ -38,7 +45,7 @@ UnansweredQueries::~UnansweredQueries()
 
 void UnansweredQueries::addUnansweredQueriesFromDisk()
 {
-    QString path_root = image_root_dir_ % "/queries/unanswered";         
+    QString path_root = image_root_dir % "/queries/unanswered";         
     for(int i = 0; i < ap_types.size(); i++)
     {
         QDir path(path_root % "/" % ap_types[i]);
@@ -98,14 +105,19 @@ void UnansweredQueries::rejectQuery(QWidget* w)
     answerQuery(w, "door", false);
 }
 
+void UnansweredQueries::OnUpdateImageRootDir(QString new_dir)
+{
+    image_root_dir = new_dir;
+}
+
 void UnansweredQueries::answerQuery(QWidget * w, QString ap_type, bool accepted)
 {
     int index = layout_by_ap_type[ap_type]->indexOf(w);
     
-    QueryStat * stat = queries_map[ap_type][index];
+    QueryStat *stat = queries_map[ap_type][index];
     QImage img = stat->original_img;
     
-    QString path = image_root_dir_ % "/queries";
+    QString path = image_root_dir % "/queries";
     if(accepted)
         path.append("/accepted/" % ap_type);
     else 

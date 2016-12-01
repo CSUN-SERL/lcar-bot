@@ -8,7 +8,7 @@
 #include <QApplication>
 #include <QThread>
 
-#include "util/global_vars.h"
+#include "util/flight_modes.h"
 #include "util/debug.h"
 #include "qt/gcs_main_window.h"
 #include "qt/vehicle_manager.h"
@@ -16,6 +16,7 @@
 bool LockThisPC()
 {
     //todo create islurp.pid to enforce this application as single instance
+//    qint64 pid = QCoreApplication::applicationPid();
     return true;
 }
 
@@ -32,6 +33,7 @@ int main(int argc, char *argv[])
     // Q_INIT_RESOURCE(resfile);
 
     QApplication app(argc, argv);
+    
     //these will configure QSettings automatically with "SERL/ISLURP.conf"
     app.setOrganizationName("SERL");
     app.setOrganizationDomain("serl.systems");

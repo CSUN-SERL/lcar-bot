@@ -1,7 +1,7 @@
 
 /* 
- * File:   strings.h
- * Author: serl
+ * File:   flight_modes.h
+ * Author: n8
  *
  * Created on November 4, 2016, 12:03 PM
  */
@@ -13,11 +13,6 @@
 
 namespace gcs
 {
-    extern const QString company_; // the name of the company for QSettings
-    extern const QString application_; // the name of the application for QSettings
-
-    extern QString image_root_dir_; // the root directory for saving images by GCS
-
     namespace FlightModes // flight modes for use by different User Interfaces
     {
         const QString stabilized = "STABILIZED";

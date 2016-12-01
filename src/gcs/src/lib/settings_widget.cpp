@@ -11,24 +11,20 @@
 #include <iostream>
 
 #include "util/image.h"
-#include "util/global_vars.h"
+#include "util/flight_modes.h"
 #include "qt/ui_adapter.h"
 #include "qt/settings_widget.h"
+#include "util/settings.h"
 
 
 namespace gcs
 {
 
-SettingsWidget::SettingsWidget(VehicleManager * vm) :
-vm(vm)
+SettingsWidget::SettingsWidget()
 {
     this->setAttribute(Qt::WA_DeleteOnClose);
 
     widget.setupUi(this);
-    
-    settings = new QSettings(company_, application_, this);
-    
-    od_params = vm->GetObjectDetectionParams();
     
     //apply and cancel buttons
     connect(widget.apply_btn, &QPushButton::clicked,
@@ -58,11 +54,9 @@ vm(vm)
     connect(widget.random_btn, &QRadioButton::clicked,
             this, &SettingsWidget::onToggleIntervalLine);
 
-
-    //frequency/length check box enables the length text edit field
-    connect(widget.length_check_box, &QRadioButton::clicked,
-            this, &SettingsWidget::onToggleLengthLine);
-
+    //frequency/duration check box enables the duration text edit field
+    connect(widget.duration_check_box, &QRadioButton::clicked,
+            this, &SettingsWidget::onToggleDurationLine);
 
     //object detection parameter inits and slider/line_edit connections
     //hit threshold
@@ -112,6 +106,14 @@ vm(vm)
     connect(widget.radio_off_mean_shift, &QRadioButton::clicked,
             this, &SettingsWidget::onMeanShiftRadioChange);
 
+    widget.line_edit_interval->setValidator(new QIntValidator(1, 10, this));
+    widget.line_edit_duration->setValidator(new QIntValidator(1, 10, this));
+    
+    widget.line_edit_hit_thresh->setValidator(new QDoubleValidator(0.0, 0.9, 2, this));
+    widget.line_edit_step_size->setValidator(new QIntValidator(4, 16, this));
+    widget.line_edit_padding->setValidator(new QIntValidator(0, 32, this));
+    widget.line_edit_scale_factor->setValidator(new QDoubleValidator(1.05, 1.3, 2, this));
+    
     this->setToolTips();
     this->readGeneralSettings();
     this->readObjectDetectionSettings(); 
@@ -119,9 +121,6 @@ vm(vm)
 
 SettingsWidget::~SettingsWidget()
 {
-   vm = nullptr;
-   od_params = nullptr;
-   delete settings;
 }
 
 void SettingsWidget::setToolTips()
@@ -167,29 +166,25 @@ void SettingsWidget::setToolTips()
 
 void SettingsWidget::readGeneralSettings()
 {
-    settings->beginGroup("general_tab");
 
-    QString ml = settings->value("machine_learning", "online").toString();
-    if(ml == "online")
+    QString ml = settings.GetMachineLearningType();
+    if(ml == settings.val_machine_learning_online)
         widget.online_btn->setChecked(true);
     else
-        widget.offline_btn->setChecked(true); 
-
+        widget.offline_btn->setChecked(true);
     ml_state = ml;
     
-    QString cs = settings->value("coordinate_system", "global").toString();
-    if(cs == "global")
+    QString cs = settings.GetCoordinateSystem();
+    if(cs == settings.val_coordinate_system_global)
         widget.global_btn->setChecked(true);
     else
         widget.local_btn->setChecked(true);
-    
     coordinate_system = cs;
 
-    QString vehicle_link = settings->value("connection_drop/vehicle_gcs_link",
-                                            "marginal").toString();
-    if(vehicle_link == "nominal")
+    QString vehicle_link = settings.GetVehicleLink();
+    if(vehicle_link == settings.val_vehicle_link_nominal)
         widget.nominal_btn->setChecked(true);
-    else if(vehicle_link == "marginal")
+    else if(vehicle_link == settings.val_vehicle_link_marginal)
         widget.marginal_btn->setChecked(true);
     else //poor
         widget.poor_btn->setChecked(true);
@@ -198,111 +193,90 @@ void SettingsWidget::readGeneralSettings()
     if(widget.nominal_btn->isChecked())
         widget.frequency_groupbox->setEnabled(false);
 
-
-    QString conn_freq = "connection_drop/frequency";
-
-    QString frequency = settings->value(conn_freq, "random").toString();
-    if(frequency == "interval")
+    int interval = settings.GetInterval();
+    if(interval != settings.val_interval_unspecified)
     {
         widget.interval_btn->setChecked(true);
-        QVariant interval = settings->value(conn_freq + "/interval_text");
-        if(!interval.isNull())
-            widget.interval_text_box->setText(interval.toString());
-
-        widget.interval_text_box->setEnabled(true);
+        widget.line_edit_interval->setText(QString::number(interval));
+        widget.line_edit_interval->setEnabled(true);
     }
     else
     {
         widget.random_btn->setChecked(true);
-        widget.interval_text_box->setEnabled(false);
+        widget.line_edit_interval->setEnabled(false);
     }
 
-    bool length_specified = settings->value(conn_freq + "/length_box_checked",
-                                            false).toBool();
-    if(length_specified)
+    int duration = settings.GetDuration();
+    if(duration != settings.val_duration_unspecified)
     {
-        QVariant length = settings->value(conn_freq + "/length_text");
-        if(!length.isNull())
-            widget.length_text_box->setText(length.toString());
-
-         widget.length_check_box->setChecked(true);
+        widget.line_edit_duration->setText(QString::number(duration));
+        widget.duration_check_box->setChecked(true);
     }
     else
     {
-        widget.length_check_box->setChecked(false);
-        widget.length_text_box->setEnabled(false);
+        widget.duration_check_box->setChecked(false);
+        widget.line_edit_duration->setEnabled(false);
     }
 
-    QString img_dir = settings->value("images_root_directory", image_root_dir_).toString();
-    widget.line_edit_images_dir->setText(img_dir);
-
-    settings->endGroup();
+    image_root_dir = settings.GetImagesRootDir();
+    
+    widget.line_edit_images_dir->setText(image_root_dir);
 }
 
 void SettingsWidget::writeGeneralSettings()
 {
-    settings->beginGroup("general_tab");
-
-    QString ml = (widget.online_btn->isChecked()) ? "online" : "offline";
+    QString ml = (widget.online_btn->isChecked() 
+                    ? settings.val_machine_learning_online 
+                    : settings.val_machine_learning_offline);
     ml_state = ml;
-    settings->setValue("machine_learning", ml);
+    settings.SetMachineLearningType(ml);
     
-    QString coord_system = (widget.global_btn->isChecked()) ? "global" : "local";
+    QString coord_system = (widget.global_btn->isChecked() 
+                                ? settings.val_coordinate_system_global
+                                : settings.val_coordinate_system_local);
     coordinate_system = coord_system;
-    settings->setValue("coordinate_system", coord_system);
-    
-    QString conn = "connection_drop";
+    settings.SetCoordinateSystem(coord_system);
 
     QString vehicle_link;
     if(widget.nominal_btn->isChecked())
-        vehicle_link = "nominal";
+        vehicle_link = settings.val_vehicle_link_nominal;
     else if(widget.marginal_btn->isChecked())
-        vehicle_link = "marginal";
+        vehicle_link = settings.val_vehicle_link_marginal;
     else
-        vehicle_link = "poor";
+        vehicle_link = settings.val_vehicle_link_poor;
+    settings.SetVehicleLink(vehicle_link);
 
-    settings->setValue(conn % "/vehicle_gcs_link", vehicle_link);
-
-    QString conn_freq = "connection_drop/frequency";
-    if(vehicle_link != "nominal") // write frequency settings to config
-    {   
+    if(vehicle_link != settings.val_vehicle_link_nominal) // write frequency settings to config
+    {
         QString frequency;
+        int interval;
         if(widget.interval_btn->isChecked())
-            frequency = "interval";
-        else
-            frequency = "random";
-        settings->setValue(conn_freq, frequency);
-
-        if(frequency == "interval")
-        {   //already guaranteed text is valid in validateGeneralSettings()
-            QString interval_text = widget.interval_text_box->text();
-            settings->setValue(conn_freq % "/interval_text", interval_text);
+        {
+            frequency = settings.val_frequency_interval;
+            interval = widget.line_edit_interval->text().toInt();
         }
         else
-            settings->remove(conn_freq % "/interval_text");
-
-        bool length_specified = widget.length_check_box->isChecked();
-        settings->setValue(conn_freq % "/length_box_checked", length_specified);
-
-        if(length_specified)
-        {   //already guaranteed text is valid in validateGeneralSettings()
-            QString length_text = widget.length_text_box->text();
-            settings->setValue(conn_freq % "/length_text", length_text);
+        {
+            frequency = settings.val_frequency_random;
+            interval = settings.val_interval_unspecified;
         }
-        else
-            settings->remove(conn_freq % "/length_text");
+        settings.SetFrequency(frequency);
+        settings.SetInterval(interval);
+        
+        int duration = (widget.duration_check_box->isChecked()
+                            ? widget.line_edit_duration->text().toInt()
+                            : settings.val_duration_unspecified);
+        settings.SetDuration(duration);
     }
     else // remove all frequency related settings from config
-        settings->remove(conn_freq);
+        settings.ClearFrequencyGroup();
 
     QString img_dir = widget.line_edit_images_dir->text();
     if(!img_dir.isNull())
     {
-        settings->setValue("images_root_directory", img_dir);
-        image_root_dir_ = img_dir;
+        settings.SetImagesRootDir(img_dir);
+        image_root_dir = img_dir;
     }
-
-    settings->endGroup(); //general_tab
 }
 
 bool SettingsWidget::validateGeneralSettings()
@@ -312,10 +286,10 @@ bool SettingsWidget::validateGeneralSettings()
     //the settings dialogue stay open if these checks fail.
     if(widget.frequency_groupbox->isEnabled())
     {
-        QString interval_text = widget.interval_text_box->text();
-        QString length_text = widget.length_text_box->text();
+        QString interval_text = widget.line_edit_interval->text();
+        QString duration_text = widget.line_edit_duration->text();
 
-        if(widget.interval_text_box->isEnabled() && interval_text.isEmpty())
+        if(widget.line_edit_interval->isEnabled() && interval_text.isEmpty())
         {
             std::cout << "tried to apply settings with interval radio button checked but no interval specified\n";
             return false;
@@ -333,18 +307,18 @@ bool SettingsWidget::validateGeneralSettings()
             }
         }
 
-        if(widget.length_text_box->isEnabled() && length_text.isEmpty())
+        if(widget.line_edit_duration->isEnabled() && duration_text.isEmpty())
         {
-            std::cout << "tried to apply settings with length checkbox checked but no length specified\n";
+            std::cout << "tried to apply settings with duration checkbox checked but no duration specified\n";
             return false;
         }
 
-        if(!length_text.isEmpty())
+        if(!duration_text.isEmpty())
         {   
-            float length = length_text.toFloat(&ok);
-            if(!ok || length <= 0)
+            float duration = duration_text.toFloat(&ok);
+            if(!ok || duration <= 0)
             {
-                std::cout << "entered invalid length: " << length_text.toStdString() 
+                std::cout << "entered invalid duration: " << duration_text.toStdString() 
                     << std::endl;
                 return false;
             }
@@ -366,62 +340,49 @@ bool SettingsWidget::validateGeneralSettings()
 
 void SettingsWidget::readObjectDetectionSettings()
 {
-    settings->beginGroup("object_detection_tab");
 
-    QString node_loc = settings->value("node_location", "gcs").toString();
-    if(node_loc == "gcs")
+    QString node_loc = settings.GetNodeLocation();
+    if(node_loc == settings.val_node_location_gcs)
         widget.gcs_btn->setChecked(true);
-    else
+    else // settings.val_node_location_uav
         widget.uav_btn->setChecked(true);
     // todo apply logic for determining where node will be run
 
-    widget.line_edit_hit_thresh->setText(QString::number(od_params->hit_thresh, 'f', 2));
-    widget.sl_hit_thresh->setValue(od_params->hit_thresh * 100);
+    od_params = settings.GetObjectDetectionParameters();
+    widget.line_edit_hit_thresh->setText(QString::number(od_params.hit_thresh, 'f', 2));
+    widget.sl_hit_thresh->setValue(od_params.hit_thresh * 100);
 
-    widget.line_edit_step_size->setText(QString::number(od_params->step_size));
-    widget.sl_step_size->setValue(od_params->step_size / 4);
+    widget.line_edit_step_size->setText(QString::number(od_params.step_size));
+    widget.sl_step_size->setValue(od_params.step_size / 4);
 
-    widget.line_edit_padding->setText(QString::number(od_params->padding));
-    widget.sl_padding->setValue(od_params->padding / 8);
+    widget.line_edit_padding->setText(QString::number(od_params.padding));
+    widget.sl_padding->setValue(od_params.padding / 8);
 
-    widget.line_edit_scale_factor->setText(QString::number(od_params->scale_factor, 'f', 2));
-    widget.sl_scale_factor->setValue(od_params->scale_factor * 100);
+    widget.line_edit_scale_factor->setText(QString::number(od_params.scale_factor, 'f', 2));
+    widget.sl_scale_factor->setValue(od_params.scale_factor * 100);
 
-    if(od_params->mean_shift == true)
+    if(od_params.mean_shift == true)
         widget.radio_on_mean_shift->setChecked(true);
     else 
         widget.radio_off_mean_shift->setChecked(true);
     this->onMeanShiftRadioChange();
-
-    settings->endGroup();
 }
 
 void SettingsWidget::writeObjectDetectionSettings()
 {
-    settings->beginGroup("object_detection_tab");
-
-    if(widget.uav_btn->isChecked())
-        settings->setValue("node_location", "uav");
-    else if(widget.gcs_btn->isChecked())
-        settings->setValue("node_location", "gcs");
-
-    QString params = "tuning_paramaters";
+    QString node_location = (widget.uav_btn->isChecked()
+                            ? settings.val_node_location_gcs
+                            : settings.val_node_location_uav);
+    settings.SetNodeLocation(node_location);
     
-    QString thresh = QString::number(od_params->hit_thresh,'f', 2);
-    settings->setValue(params % "/hit_threshold", thresh);
-    settings->setValue(params % "/step_size", od_params->step_size);
-    settings->setValue(params % "/padding", od_params->padding);
-    QString scale = QString::number(od_params->scale_factor, 'f', 2);
-    settings->setValue(params % "/scale_factor", scale);
-    settings->setValue(params % "/mean_shift_grouping", od_params->mean_shift);
-
-    settings->endGroup();
+    settings.SetObjectDetectionParameters(od_params);
 }
 
 bool SettingsWidget::onApplyClicked()
 {   
     QString ml_state_previous = ml_state;
     QString coordinate_previous = coordinate_system;
+    QString image_dir_previous = image_root_dir;
 
     writeObjectDetectionSettings();
 
@@ -435,6 +396,9 @@ bool SettingsWidget::onApplyClicked()
 
     if(coordinate_system != coordinate_previous)
         emit UIAdapter::Instance()->SetCoordinateSystem(coordinate_system);
+    
+    if(image_root_dir != image_dir_previous)
+        emit UIAdapter::Instance()->SetImageRootDir(image_root_dir);
     
     return true;
 }
@@ -461,19 +425,19 @@ void SettingsWidget::onToggleFrequencyGroup()
 
 void SettingsWidget::onToggleIntervalLine()
 {
-    widget.interval_text_box->setEnabled(widget.interval_btn->isChecked()); 
+    widget.line_edit_interval->setEnabled(widget.interval_btn->isChecked()); 
 
     std::cout << "interval text box "
             << (widget.interval_btn->isEnabled() ? "enabled" : "disabled")
             << std::endl;
 }
 
-void SettingsWidget::onToggleLengthLine()
+void SettingsWidget::onToggleDurationLine()
 {
-    widget.length_text_box->setEnabled(widget.length_check_box->isChecked());
-
-    std::cout << "length text box "
-            << (widget.length_check_box->isEnabled() ? "enabled" : "disabled")
+    widget.line_edit_duration->setEnabled(widget.duration_check_box->isChecked());
+    
+    std::cout << "duration text box "
+            << (widget.duration_check_box->isEnabled() ? "enabled" : "disabled")
             << std::endl;
 }
 
@@ -490,9 +454,9 @@ void SettingsWidget::OnCoordinateSystemChange()
 void SettingsWidget::onHitThresholdSliderChange(int new_thresh)
 {
     double thresh = ( ((double)new_thresh) / 100 );
-    if(od_params->hit_thresh != thresh)
+    if(od_params.hit_thresh != thresh)
     {
-        od_params->hit_thresh = thresh;
+        od_params.hit_thresh = thresh;
         widget.line_edit_hit_thresh->setText(QString::number(thresh, 'f', 2));
         emit UIAdapter::Instance()->PublishHitThreshold(new_thresh);
     }
@@ -515,24 +479,24 @@ void SettingsWidget::onHitThresholdLineChange()
     }
 
     int thresh_old = thresh;
-    if(thresh < 0)
-        thresh = 0;
-    else if(thresh > 0.9)
-        thresh = 0.9;
+    if(thresh < settings.val_hit_threshold_low)
+        thresh = settings.val_hit_threshold_low;
+    else if(thresh > settings.val_hit_threshold_high)
+        thresh = settings.val_hit_threshold_high;
 
     if(thresh != thresh_old)
          widget.line_edit_hit_thresh->setText(QString::number(thresh, 'f', 2));
 
-    od_params->hit_thresh = thresh;
+    od_params.hit_thresh = thresh;
     widget.sl_hit_thresh->setValue(thresh * 100);
 }
 
 void SettingsWidget::onStepSizeSliderChange(int new_step)
 {
     new_step *= 4; // map to 4, 8, 12 or 16
-    if(od_params->step_size != new_step)
+    if(od_params.step_size != new_step)
     {
-        od_params->step_size = new_step;
+        od_params.step_size = new_step;
         widget.line_edit_step_size->setText(QString::number(new_step));
         emit UIAdapter::Instance()->PublishStepSize(new_step);
     }
@@ -553,24 +517,24 @@ void SettingsWidget::onStepSizeLineChange()
     }
 
     int step_old = step;
-    if(step < 4)
-        step = 4;
-    else if(step > 16)
-        step = 16;
+    if(step < settings.val_step_size_low)
+        step = settings.val_step_size_low;
+    else if(step > settings.val_step_size_high)
+        step = settings.val_step_size_high;
 
     if(step != step_old)
          widget.line_edit_step_size->setText(QString::number(step));
 
-    od_params->step_size = step;
+    od_params.step_size = step;
     widget.sl_step_size->setValue(step / 4);
 }
 
 void SettingsWidget::onPaddingSliderChange(int new_padding)
 {
     new_padding *= 8; // map to 0, 8, 16, 24 or 32
-    if(od_params->padding != new_padding)
+    if(od_params.padding != new_padding)
     {
-        od_params->padding = new_padding;
+        od_params.padding = new_padding;
         widget.line_edit_padding->setText(QString::number(new_padding));
         emit UIAdapter::Instance()->PublishPadding(new_padding);
     }
@@ -591,24 +555,24 @@ void SettingsWidget::onPaddingLineChange()
     }
 
     int padding_old = padding;
-    if(padding < 0)
-        padding = 0;
-    else if(padding > 32)
-        padding = 32;
+    if(padding < settings.val_padding_low)
+        padding = settings.val_padding_low;
+    else if(padding > settings.val_padding_high)
+        padding = settings.val_padding_high;
 
     if(padding != padding_old)
         widget.line_edit_padding->setText(QString::number(padding));
 
-    od_params->padding = padding;
+    od_params.padding = padding;
     widget.sl_padding->setValue(padding / 8);
 }
 
 void SettingsWidget::onScaleFactorSliderChange(int new_scale)
 {
     double scale = ( ((double)new_scale) / 100 );
-    if(od_params->scale_factor != scale)
+    if(od_params.scale_factor != scale)
     {
-        od_params->scale_factor = scale;
+        od_params.scale_factor = scale;
         widget.line_edit_scale_factor->setText(QString::number(scale, 'f', 2));
         emit UIAdapter::Instance()->PublishScaleFactor(new_scale);
     }
@@ -631,25 +595,25 @@ void SettingsWidget::onScaleFactorLineChange()
     }
 
     int scale_old = scale;
-    if(scale < 1.05)
-        scale = 1.05;
-    else if(scale > 1.3)
-        scale = 1.3;
+    if(scale < settings.val_scale_factor_low)
+        scale = settings.val_scale_factor_low;
+    else if(scale > settings.val_scale_factor_high)
+        scale = settings.val_scale_factor_high;
 
     if(scale != scale_old)
         widget.line_edit_scale_factor->setText(QString::number(scale, 'f', 2));
 
-    od_params->scale_factor = scale;
+    od_params.scale_factor = scale;
     widget.sl_scale_factor->setValue(scale * 100);
 }
 
 void SettingsWidget::onMeanShiftRadioChange()
 {
     bool on = widget.radio_on_mean_shift->isChecked();
-    if(od_params->mean_shift != on)
+    if(od_params.mean_shift != on)
     {
-        od_params->mean_shift = on;
-        emit UIAdapter::Instance()->PublishMeanShift(od_params->mean_shift);
+        od_params.mean_shift = on;
+        emit UIAdapter::Instance()->PublishMeanShift(od_params.mean_shift);
     }
 }
     

@@ -35,19 +35,22 @@ public:
     void addUnansweredQueriesFromDisk();
     int uavIdFromDir(QString&);
     
+       
+public slots:
+    void acceptQuery(QWidget*);
+    void rejectQuery(QWidget*);
+    void OnUpdateImageRootDir(QString new_dir);
+    
 private:
     Ui::UnansweredQueries widget;
     QMap<QString, QVBoxLayout*> layout_by_ap_type;
     QMap <QString, QVector<QueryStat*> > queries_map;
     QVector<QString> ap_types = {"door", "window", "hole"};
-        
+    QString image_root_dir;
+    
     GCSMainWindow * gcs;
 
     void answerQuery(QWidget*, QString, bool);
-    
-public slots:
-    void acceptQuery(QWidget*);
-    void rejectQuery(QWidget*);
 };
 
 }// namespace gcs

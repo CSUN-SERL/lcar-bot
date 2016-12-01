@@ -20,17 +20,17 @@ namespace gcs
             this->step_size = other.step_size;
             this->padding = other.padding;
             this->scale_factor = other.scale_factor;
-            this->mean_shift = false;
+            this->mean_shift = other.mean_shift;
             
             return *this;
         }
         
         //defaults
-        double hit_thresh = 0; // displayed as a decimal
-        int step_size = 16;
-        int padding = 8;
-        double scale_factor = 1.15; // displayed as a decimal
-        bool mean_shift = false;
+        double hit_thresh; // displayed as a decimal
+        int step_size;
+        int padding;
+        double scale_factor; // displayed as a decimal
+        bool mean_shift;
     };
     
     typedef ObjectDetectionParameters_ ObjectDetectionParameters;

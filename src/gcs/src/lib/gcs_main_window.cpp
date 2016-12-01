@@ -16,7 +16,7 @@
 #include "util/image.h"
 #include "util/debug.h"
 #include "util/settings.h"
-#include "util/global_vars.h"
+#include "util/flight_modes.h"
 #include "util/data_types.h"
 
 #include <ros/package.h>
@@ -70,14 +70,14 @@ GCSMainWindow::GCSMainWindow(VehicleManager *vm):
             this, &GCSMainWindow::OnSetVehicleWidgetEnabled);
     connect(ui_adapter, &UIAdapter::NotifyOperator,
             this, &GCSMainWindow::OnOperatorNotified);
-    
+    connect(ui_adapter, &UIAdapter::SetImageRootDir,
+            this, &GCSMainWindow::OnImageRootDirUpdated);
     
     connect(vm, &VehicleManager::destroyed,
             this, [=](){ this->close(); });
     
     this->InitMenuBar();
     this->InitSettings();
-//    this->InitHelperThread();
     this->InitMap();
     this->ToggleScoutButtons("scout");
     
@@ -170,7 +170,7 @@ void GCSMainWindow::OnSetVehicleWidgetEnabled(int v_id, bool enabled)
 
 void GCSMainWindow::SaveUavQueries(int uav_id, const std::vector<lcar_msgs::QueryPtr> *queries, const QString ap_type)
 {
-    QString path = image_root_dir_ % "/queries/unanswered/" % ap_type;
+    QString path = image_root_dir % "/queries/unanswered/" % ap_type;
 
     int num_images = img::numImagesInDir(path);
 
@@ -264,7 +264,7 @@ void GCSMainWindow::AnswerQuery(QWidget * qw, QString ap_type, bool accepted)
     std::vector<lcar_msgs::QueryPtr> * vec_uav_queries_ptr = vm->GetUAVDoorQueries(cur_v_id);
     lcar_msgs::QueryPtr door = vec_uav_queries_ptr->at(index);
 
-    QString path = image_root_dir_ % "/queries";
+    QString path = image_root_dir % "/queries";
     QString file;
     if(accepted)
         path.append("/accepted/" % ap_type);
@@ -542,7 +542,7 @@ void GCSMainWindow::UpdateFlightStateWidgets()
     widget.pgs_bar_battery->setValue(temp_data.toInt());
     
     int v_index = vm->VehicleIndexFromId(cur_v_id);
-    temp_data = "UAV " + QString::number(v_index);
+    temp_data = "UAV " % QString::number(v_index);
     widget.lbl_cur_uav->setText(temp_data);
     
     widget.pgs_bar_mission->setValue(state->mission_progress * 100);
@@ -554,13 +554,12 @@ void GCSMainWindow::OnArmOrDisarmSelectedUav()
         return;
 
     bool armed = vm->IsArmed(cur_v_id);
-
+    emit UIAdapter::Instance()->Arm(cur_v_id, !armed);
+    
     if(armed)
         this->ToggleArmDisarmButton("disarm");
     else
         this->ToggleArmDisarmButton("arm");
-
-    emit UIAdapter::Instance()->Arm(cur_v_id, !armed);
 }
 
 void GCSMainWindow::ToggleArmDisarmButton(QString mode)
@@ -570,7 +569,6 @@ void GCSMainWindow::ToggleArmDisarmButton(QString mode)
     Q_ASSERT(temp_mode == "Arm" || temp_mode == "Disarm");
     widget.btn_arm_uav->setText(mode);
 }
-
 
 void GCSMainWindow::CenterFloatingWidget(QWidget* w)
 {
@@ -609,7 +607,7 @@ void GCSMainWindow::OnSettingsTriggered()
 {
     if(fl_widgets.settings == nullptr)
     {
-        fl_widgets.settings = new SettingsWidget(vm);
+        fl_widgets.settings = new SettingsWidget();
 
         this->CenterFloatingWidget(fl_widgets.settings);
 
@@ -712,6 +710,11 @@ void GCSMainWindow::OnToggleMachineLearningMode(bool toggle)
 {
     widget.frame_queries_cntnr->setVisible(toggle);
     widget.frame_queries_cntnr->setEnabled(toggle);
+}
+
+void GCSMainWindow::OnImageRootDirUpdated(QString new_dir)
+{
+    this->image_root_dir = new_dir;
 }
 
 std::string GCSMainWindow::GetMissionType(std::string file_name)
