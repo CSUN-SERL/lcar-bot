@@ -46,11 +46,14 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
 
 catkin_package(
   INCLUDE_DIRS ${gcs_INCLUDE_DIRECTORIES}
-  LIBRARIES ${PROJECT_NAME}
+  LIBRARIES ${PROJECT_NAME} vehicle
   CATKIN_DEPENDS roscpp std_msgs sensor_msgs )
 
-file(GLOB gcs_SRCS src/lib/*.cpp src/vehicle/*.cpp )
-list(REMOVE_ITEM gcs_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/vehicle/init_node.cpp )
+file(GLOB gcs_SRCS src/lib/*.cpp )
+
+file(GLOB vehicle_SRCS src/vehicle/*.cpp )
+list(REMOVE_ITEM vehicle_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/vehicle/init_node.cpp
+                              ${CMAKE_CURRENT_SOURCE_DIR}/src/vehicle/backup_control.cpp )
 
 file(GLOB gcs_HDRS include/qt/*.h )
 list(REMOVE_ITEM gcs_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/qt/my_q_widget.h )
@@ -73,7 +76,6 @@ add_definitions(${Qt5_DEFINITIONS})
 # Declare executables with source files
 add_executable(backup_control src/vehicle/backup_control.cpp)
 add_executable(init_node src/vehicle/init_node.cpp)
-#add_executable(uav_control src/vehicle/uav_control.cpp)
 #add_executable(gps_publisher src/vehicle/gps_publisher.cpp)
 #add_executable(gps_demo src/vehicle/gps_demo.cpp)
 #add_executable(safe_mocap src/vehicle/safe_mocap.cpp)
@@ -84,23 +86,29 @@ add_library(${PROJECT_NAME}
             ${gcs_UIS_H}
             ${gcs_VFS} )
 
+add_library(vehicle ${vehicle_SRCS} )
+
 add_executable(gcs_node src/main.cpp)
 
 #add_dependencies(uav_control ${catkin_EXPORTED_TARGETS})
+#library dependencies
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+add_dependencies(vehicle ${catkin_EXPORTED_TARGETS})
+
+#executable dependencies
 add_dependencies(init_node ${catkin_EXPORTED_TARGETS})
-add_dependencies(gcs_node ${catkin_EXPORTED_TARGETS})
+#add_dependencies(gcs_node ${catkin_EXPORTED_TARGETS})
 #add_dependencies(gps_demo ${catkin_EXPORTED_TARGETS})
 
 #Specify libraries against which to link
 target_link_libraries(backup_control ${catkin_LIBRARIES})
 target_link_libraries(init_node ${catkin_LIBRARIES})
-#target_link_libraries(uav_control ${catkin_LIBRARIES})
 #target_link_libraries(gps_publisher ${catkin_LIBRARIES})
 #target_link_libraries(gps_demo ${catkin_LIBRARIES})
 #target_link_libraries(safe_mocap ${catkin_LIBRARIES})
 target_link_libraries(  gcs_node
                         ${PROJECT_NAME}
+                        vehicle
                         ${catkin_LIBRARIES}
                         ${OpenCV_LIBRARIES}
                         Qt5::Widgets

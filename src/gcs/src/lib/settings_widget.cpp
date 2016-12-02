@@ -380,16 +380,15 @@ void SettingsWidget::writeObjectDetectionSettings()
 
 bool SettingsWidget::onApplyClicked()
 {   
-    QString ml_state_previous = ml_state;
-    QString coordinate_previous = coordinate_system;
-    QString image_dir_previous = image_root_dir;
-
-    writeObjectDetectionSettings();
-
+    
     if(!validateGeneralSettings()) 
         return false;
 
-    this->writeGeneralSettings();
+    QString ml_state_previous = ml_state;
+    QString coordinate_previous = coordinate_system;
+    QString image_dir_previous = image_root_dir;
+    
+    this->writeGeneralSettings(); // may update ml_state, coordinate_system, image_root_dir
 
     if(ml_state != ml_state_previous)
         emit UIAdapter::Instance()->SetMachineLearningMode(widget.online_btn->isChecked());
@@ -400,6 +399,9 @@ bool SettingsWidget::onApplyClicked()
     if(image_root_dir != image_dir_previous)
         emit UIAdapter::Instance()->SetImageRootDir(image_root_dir);
     
+    
+    this->writeObjectDetectionSettings();
+
     return true;
 }
 
@@ -458,7 +460,7 @@ void SettingsWidget::onHitThresholdSliderChange(int new_thresh)
     {
         od_params.hit_thresh = thresh;
         widget.line_edit_hit_thresh->setText(QString::number(thresh, 'f', 2));
-        emit UIAdapter::Instance()->PublishHitThreshold(new_thresh);
+        emit UIAdapter::Instance()->PublishHitThreshold(thresh);
     }
 }
 
@@ -473,8 +475,8 @@ void SettingsWidget::onHitThresholdLineChange()
     if(!ok)
     {
         std::cout << "tried to enter invalid threshold value: " 
-                  << s.toStdString() << "\n";
-        widget.line_edit_hit_thresh->setText("");
+                  << s.toStdString() << std::endl;
+        widget.line_edit_hit_thresh->clear();
         return;
     }
 
@@ -511,8 +513,8 @@ void SettingsWidget::onStepSizeLineChange()
     if(!ok || step % 4 != 0)
     {
         std::cout << "tried to enter invalid step size value: "
-                  << s.toStdString() << "\n";
-        widget.line_edit_step_size->setText("");
+                  << s.toStdString() << std::endl;
+        widget.line_edit_step_size->clear();
         return;
     }
 
@@ -549,8 +551,8 @@ void SettingsWidget::onPaddingLineChange()
     if(!ok || padding % 8 != 0)
     {
         std::cout << "tried to enter invalid padding value: " 
-                  << s.toStdString() << "\n";
-        widget.line_edit_padding->setText("");
+                  << s.toStdString() << std::endl;
+        widget.line_edit_padding->clear();
         return;
     }
 
@@ -574,7 +576,7 @@ void SettingsWidget::onScaleFactorSliderChange(int new_scale)
     {
         od_params.scale_factor = scale;
         widget.line_edit_scale_factor->setText(QString::number(scale, 'f', 2));
-        emit UIAdapter::Instance()->PublishScaleFactor(new_scale);
+        emit UIAdapter::Instance()->PublishScaleFactor(scale);
     }
 }
 
@@ -589,8 +591,8 @@ void SettingsWidget::onScaleFactorLineChange()
     if(!ok)
     {
         std::cout << "tried to enter invalid scale value: " 
-                  << s.toStdString() << "\n";
-        widget.line_edit_scale_factor->setText("");
+                  << s.toStdString() << std::endl;
+        widget.line_edit_scale_factor->clear();
         return;
     }
 

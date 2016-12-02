@@ -180,10 +180,10 @@ void Settings::SetObjectDetectionParameters(ObjectDetectionParameters& od_params
     settings.beginGroup(Settings::group_object_detection);
     settings.beginGroup(Settings::group_tuning_params);
     
-    settings.setValue(Settings::key_hit_threshold, od_params.hit_thresh);
+    settings.setValue(Settings::key_hit_threshold, QString::number(od_params.hit_thresh, 'f', 2));
     settings.setValue(Settings::key_step_size, od_params.step_size);
     settings.setValue(Settings::key_padding, od_params.padding);
-    settings.setValue(Settings::key_scale_factor, od_params.scale_factor);
+    settings.setValue(Settings::key_scale_factor, QString::number(od_params.scale_factor, 'f', 2));
     settings.setValue(Settings::key_mean_shift, od_params.mean_shift);
     
     settings.endGroup();
@@ -278,7 +278,7 @@ const QString Settings::key_hit_threshold = "hit_threshold";
 const double Settings::val_hit_threshold_high = 0.9;
 const double Settings::val_hit_threshold_low = 0.0;
 
-const QString Settings::key_step_size = "padding";
+const QString Settings::key_step_size = "step_size";
 const int Settings::val_step_size_high = 16;
 const int Settings::val_step_size_low = 0;
 
