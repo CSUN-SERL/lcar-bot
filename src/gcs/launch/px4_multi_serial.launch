@@ -14,7 +14,7 @@
 	<arg name="tgt_component2" default="1" />
 	<arg name="log_output2" default="screen" />
 
-	<include file="$(find rqt_gcs)/launch/node_UAV.launch">
+	<include file="$(find gcs)/launch/node_UAV.launch">
 		<arg name="pluginlists_yaml" value="$(find mavros)/launch/px4_pluginlists.yaml" />
 		<arg name="config_yaml" value="$(find mavros)/launch/px4_config.yaml" />
 
@@ -22,11 +22,11 @@
 		<arg name="gcs_url" value="$(arg gcs_url1)" />
 		<arg name="tgt_system" value="$(arg tgt_system1)" />
 		<arg name="tgt_component" value="$(arg tgt_component1)" />
-		<arg name="namespace" value="UAV1" />
+		<arg name="namespace" value="V2001" />
 		<arg name="log_output" value="$(arg log_output1)" />
 	</include>
 
-	<include file="$(find rqt_gcs)/launch/node_UAV.launch">
+	<include file="$(find gcs)/launch/node_UAV.launch">
 		<arg name="pluginlists_yaml" value="$(find mavros)/launch/px4_pluginlists.yaml" />
 		<arg name="config_yaml" value="$(find mavros)/launch/px4_config.yaml" />
 
@@ -34,7 +34,7 @@
 		<arg name="gcs_url" value="$(arg gcs_url2)" />
 		<arg name="tgt_system" value="$(arg tgt_system2)" />
 		<arg name="tgt_component" value="$(arg tgt_component2)" />
-		<arg name="namespace" value="UAV2" />
+		<arg name="namespace" value="V2002" />
 		<arg name="log_output" value="$(arg log_output2)" />
 	</include>
 

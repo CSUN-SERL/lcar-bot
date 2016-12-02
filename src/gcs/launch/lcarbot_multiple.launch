@@ -1,6 +1,6 @@
 <launch>
   <machine name="Mobile-Station1" address="localhost" default="true"/>
-  <group ns="UAV1">
+  <group ns="V2001">
     <machine  name="Quad1"
               address="Quad1"
               default="true"
@@ -12,7 +12,7 @@
       <arg name="tgt_system" value="1" />
     </include>
   </group>
-  <group ns="UAV2">
+  <group ns="V2002">
     <machine  name="Quad2"
               address="Quad2"
               default="true"

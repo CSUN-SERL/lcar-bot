@@ -6,7 +6,7 @@
 	<arg name="gcs_url" default="" />
 	<arg name="tgt_system" default="1" />
 	<arg name="tgt_component" default="1" />
-	<arg name="namespace" default="UAV1"/>
+	<arg name="namespace" default="V2001"/>
 	<arg name="pluginlists_yaml" default="$(find mavros)/launch/px4_pluginlists.yaml" />
 	<arg name="config_yaml" default="$(find mavros)/launch/apm_config.yaml" />
 	<arg name="log_output" default="screen" />
