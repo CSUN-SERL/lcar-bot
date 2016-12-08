@@ -28,7 +28,7 @@ public:
         ~QueryStat() { }
     };
     
-    UnansweredQueries(GCSMainWindow*);
+    UnansweredQueries(QString& img_dir);
     virtual ~UnansweredQueries();
     
     void addQueryWidget(QueryStat*, QString&);
@@ -47,8 +47,6 @@ private:
     QMap <QString, QVector<QueryStat*> > queries_map;
     QVector<QString> ap_types = {"door", "window", "hole"};
     QString image_root_dir;
-    
-    GCSMainWindow * gcs;
 
     void answerQuery(QWidget*, QString, bool);
 };

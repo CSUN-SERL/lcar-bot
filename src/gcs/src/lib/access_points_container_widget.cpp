@@ -5,18 +5,16 @@
 #include "qt/access_point_widget.h"
 #include "qt/ui_adapter.h"
 #include "util/image.h"
-#include "util/settings.h"
 
 namespace gcs
 {
     
-AccessPointsContainerWidget::AccessPointsContainerWidget() :
+AccessPointsContainerWidget::AccessPointsContainerWidget(QString& img_dir) :
+    image_root_dir(img_dir),
     timer(new QTimer(this))
 {
     widget.setupUi(this);
     this->setAttribute(Qt::WA_DeleteOnClose);
-    
-    this->image_root_dir = Settings().GetImagesRootDir();
     
     connect(UIAdapter::Instance(), &UIAdapter::SetImageRootDir,
             this, &AccessPointsContainerWidget::OnUpdateImageRootDir);
@@ -32,11 +30,11 @@ AccessPointsContainerWidget::~AccessPointsContainerWidget()
     ap_vec = nullptr;
 }
 
-void AccessPointsContainerWidget::SetUAVAccessPointsAndId(std::vector<lcar_msgs::AccessPointStampedPtr> * ap_vec, int id)
+void AccessPointsContainerWidget::SetUAVAccessPointsAndId(std::vector<lcar_msgs::AccessPointStampedPtr> * ap_vec, int v_id)
 {
     this->ap_vec = ap_vec;
     if(ap_vec != nullptr)
-        widget.lbl_uav->setText("UAV " % QString::number(id));
+        widget.lbl_uav->setText("UAV " % QString::number(v_id));
     else
         widget.lbl_uav->setText("NO UAVS");
     
@@ -96,7 +94,7 @@ void AccessPointsContainerWidget::UpdateAccessPoints()
     num_access_points_last = apv_size;
 }
 
-void AccessPointsContainerWidget::OnDeleteAccessPoint(QWidget* w)
+void AccessPointsContainerWidget::OnDeleteAccessPoint(QWidget *w)
 {
     int index = widget.layout_access_points->indexOf(w);
     delete w;
@@ -110,14 +108,13 @@ void AccessPointsContainerWidget::OnUpdateImageRootDir(QString new_dir)
     this->image_root_dir = new_dir;
 }
 
-void AccessPointsContainerWidget::SaveUavAccessPoints(std::vector<lcar_msgs::AccessPointStampedPtr> *ap_vector, int id, QString ap_type)
+void AccessPointsContainerWidget::SaveUavAccessPoints(std::vector<lcar_msgs::AccessPointStampedPtr> *ap_vector, int id, QString ap_type, QString img_dir)
 {
-    QString path = this->image_root_dir % "/access_points/" % ap_type;
+    QString path = img_dir % "/access_points/" % ap_type;
     path.append("/uav_" + QString::number(id));
     for(int i = 0; i < ap_vector->size(); i++)
     {
         QString file = "img_" + QString::number(i) + ".jpg";
-
         lcar_msgs::AccessPointStampedPtr ap = ap_vector->at(i);
         img::saveImage(path, file, img::rosImgToQimg(ap->ap.query.img));
     }

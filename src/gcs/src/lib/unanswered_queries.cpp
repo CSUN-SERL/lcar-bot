@@ -5,23 +5,22 @@
  * Created on July 11, 2016, 2:24 PM
  */
 
+#include <QDir>
+#include <QDirIterator>
+#include <QUrl>
+
 #include "qt/unanswered_queries.h"
 #include "qt/ui_adapter.h"
 #include "qt/query_widget.h"
 #include "util/image.h"
 #include "util/debug.h"
 #include "util/flight_modes.h"
-#include "util/settings.h"
-
-#include <QDir>
-#include <QDirIterator>
-#include <QUrl>
 
 namespace gcs
 {
     
-UnansweredQueries::UnansweredQueries(GCSMainWindow * sgcs) :
-gcs(sgcs)
+UnansweredQueries::UnansweredQueries(QString& img_dir) :
+    image_root_dir(img_dir)
 {
     widget.setupUi(this);
     this->setAttribute(Qt::WA_DeleteOnClose);
@@ -29,8 +28,6 @@ gcs(sgcs)
     layout_by_ap_type.insert("door", widget.queriesLayoutDoor); 
     //TODO layout_by_ap_type for window and hole, 
     //and adding the layouts and tab widget container in qtdesigner
-
-    image_root_dir = Settings().GetImagesRootDir();
     
     connect(UIAdapter::Instance(), &UIAdapter::SetImageRootDir,
             this, &UnansweredQueries::OnUpdateImageRootDir);
@@ -40,7 +37,6 @@ gcs(sgcs)
 
 UnansweredQueries::~UnansweredQueries()
 {
-    gcs = nullptr;
 }
 
 void UnansweredQueries::addUnansweredQueriesFromDisk()
@@ -80,11 +76,11 @@ void UnansweredQueries::addUnansweredQueriesFromDisk()
 
 void UnansweredQueries::addQueryWidget(QueryStat* stat, QString& ap_type)
 {   
-    QVector<QueryStat*> * ap_vec = &queries_map[ap_type];
+    QVector<QueryStat*> *ap_vec = &queries_map[ap_type];
     ap_vec->push_back(stat);
     
     //create the widget
-    QueryWidget * qw = new QueryWidget();
+    QueryWidget *qw = new QueryWidget();
     qw->SetImage(QPixmap::fromImage(stat->framed_img));
 
     connect(qw->YesButton(), &QPushButton::clicked,
@@ -95,12 +91,12 @@ void UnansweredQueries::addQueryWidget(QueryStat* stat, QString& ap_type)
     layout_by_ap_type[ap_type]->addWidget(qw);
 }
 
-void UnansweredQueries::acceptQuery(QWidget* w)
+void UnansweredQueries::acceptQuery(QWidget *w)
 {
     answerQuery(w, "door", true);
 }
 
-void UnansweredQueries::rejectQuery(QWidget* w)
+void UnansweredQueries::rejectQuery(QWidget *w)
 {
     answerQuery(w, "door", false);
 }
@@ -110,7 +106,7 @@ void UnansweredQueries::OnUpdateImageRootDir(QString new_dir)
     image_root_dir = new_dir;
 }
 
-void UnansweredQueries::answerQuery(QWidget * w, QString ap_type, bool accepted)
+void UnansweredQueries::answerQuery(QWidget *w, QString ap_type, bool accepted)
 {
     int index = layout_by_ap_type[ap_type]->indexOf(w);
     
@@ -133,7 +129,7 @@ void UnansweredQueries::answerQuery(QWidget * w, QString ap_type, bool accepted)
         dir.remove(stat->fr_img_file_path);
     }
     
-    QVector<QueryStat*> * ap_vector = &queries_map[ap_type];
+    QVector<QueryStat*> *ap_vector = &queries_map[ap_type];
     ap_vector->erase(ap_vector->begin()+index); // removes stat from vector
     
     delete stat; 

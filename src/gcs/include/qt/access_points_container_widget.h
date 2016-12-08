@@ -15,12 +15,12 @@ class AccessPointsContainerWidget : public QWidget
 {
     Q_OBJECT
 public:
-    AccessPointsContainerWidget();
+    AccessPointsContainerWidget(QString& img_dir);
     virtual ~AccessPointsContainerWidget();
     void ClearAccessPoints();
     void UpdateAccessPoints();
-    void SaveUavAccessPoints(std::vector<lcar_msgs::AccessPointStampedPtr> * ap_vector, int id, QString ap_type);
-    void SetUAVAccessPointsAndId(std::vector<lcar_msgs::AccessPointStampedPtr> * ap_vec, int id = -1);
+    void SetUAVAccessPointsAndId(std::vector<lcar_msgs::AccessPointStampedPtr> *ap_vec, int v_id = -1);
+    static void SaveUavAccessPoints(std::vector<lcar_msgs::AccessPointStampedPtr> *ap_vector, int id, QString ap_type, QString img_dir);
     
 public slots:
     void OnDeleteAccessPoint(QWidget* w);

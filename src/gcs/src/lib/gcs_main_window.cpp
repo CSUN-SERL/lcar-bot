@@ -583,7 +583,7 @@ void GCSMainWindow::OnAccessPointsTriggered()
 {
     if(fl_widgets.ap_menu == nullptr)
     {
-        fl_widgets.ap_menu = new AccessPointsContainerWidget();
+        fl_widgets.ap_menu = new AccessPointsContainerWidget(this->image_root_dir);
 
         this->CenterFloatingWidget(fl_widgets.ap_menu);
 
@@ -625,7 +625,7 @@ void GCSMainWindow::OnUnansweredQueriesTriggered()
 {
     if(fl_widgets.unanswered_queries == nullptr)
     {
-        fl_widgets.unanswered_queries = new UnansweredQueries(this);
+        fl_widgets.unanswered_queries = new UnansweredQueries(image_root_dir);
 
         this->CenterFloatingWidget(fl_widgets.unanswered_queries);
 
