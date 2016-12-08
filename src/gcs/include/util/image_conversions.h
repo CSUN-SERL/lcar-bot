@@ -1,6 +1,6 @@
 
-#ifndef IMAGE_H
-#define IMAGE_H
+#ifndef IMAGE_CONVERSIONS_H
+#define IMAGE_CONVERSIONS_H
 
 #include <QDir>
 #include <QImage>
@@ -36,5 +36,5 @@ namespace image_conversions
 
 }
 
-#endif /* IMAGE_H */
+#endif /* IMAGE_CONVERSIONS_H */
 
