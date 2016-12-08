@@ -13,7 +13,7 @@
 #include "qt/gcs_main_window.h"
 #include "qt/query_widget.h"
 #include "qt/vehicle_init_widget.h"
-#include "util/image.h"
+#include "util/image_conversions.h"
 #include "util/debug.h"
 #include "util/settings.h"
 #include "util/flight_modes.h"
@@ -172,24 +172,24 @@ void GCSMainWindow::SaveUavQueries(int uav_id, const std::vector<lcar_msgs::Quer
 {
     QString path = image_root_dir % "/queries/unanswered/" % ap_type;
 
-    int num_images = img::numImagesInDir(path);
+    int num_images = image_conversions::numImagesInDir(path);
 
     for(int i = 0; i < queries->size(); i++, num_images += 2)
     {
         lcar_msgs::QueryPtr query = queries->at(i);
 
         sensor_msgs::Image ros_image = query->img;
-        QImage image = img::rosImgToQimg(ros_image);
+        QImage image = image_conversions::rosImgToQimg(ros_image);
 
         QString file = "img_" % QString::number(num_images) % ".jpg";
-        if(!img::saveImage(path, file, image))
+        if(!image_conversions::saveImage(path, file, image))
             qCDebug(lcar_bot) << "error saving uav query\n";
 
         ros_image = query->img_framed;
-        image = img::rosImgToQimg(ros_image);
+        image = image_conversions::rosImgToQimg(ros_image);
 
         file = "img_" %  QString::number(num_images+1) % ".jpg";
-        if(!img::saveImage(path, file, image))
+        if(!image_conversions::saveImage(path, file, image))
             qCDebug(lcar_bot) << "error saving uav query\n";
     }
 }
@@ -240,7 +240,7 @@ void GCSMainWindow::UpdateQueries()
         //retrieve Query msg for door image
         lcar_msgs::QueryPtr doorQuery = queries->at(i);
 
-        QPixmap image = img::rosImgToQpixmap(doorQuery->img_framed);
+        QPixmap image = image_conversions::rosImgToQpixmap(doorQuery->img_framed);
 
         //create the widget
         QueryWidget * qw = new QueryWidget();
@@ -271,9 +271,9 @@ void GCSMainWindow::AnswerQuery(QWidget * qw, QString ap_type, bool accepted)
     else
          path.append("/rejected/" % ap_type);
         
-    int num_images = img::numImagesInDir(path);
+    int num_images = image_conversions::numImagesInDir(path);
     file.append("img_" % QString::number(num_images) % ".jpg");
-    img::saveImage(path, file, door->img);
+    image_conversions::saveImage(path, file, door->img);
 
     vec_uav_queries_ptr->erase(vec_uav_queries_ptr->begin() + index);
     delete qw;

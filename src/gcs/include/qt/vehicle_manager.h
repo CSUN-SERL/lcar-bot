@@ -21,7 +21,7 @@
 #include <sensor_msgs/NavSatFix.h>
 #include <image_transport/image_transport.h>
 
-#include "util/image.h"
+#include "util/image_conversions.h"
 #include "util/data_types.h"
 #include "util/object_detection_parameters.h"
 #include "lcar_msgs/Query.h"

@@ -12,7 +12,7 @@
 #include "qt/unanswered_queries.h"
 #include "qt/ui_adapter.h"
 #include "qt/query_widget.h"
-#include "util/image.h"
+#include "util/image_conversions.h"
 #include "util/debug.h"
 #include "util/flight_modes.h"
 
@@ -53,14 +53,14 @@ void UnansweredQueries::addUnansweredQueriesFromDisk()
         for(int j = 0; j < num_imgs; j++)
         {
             QString file_name = img_list[j].fileName();
-            int img_num = img::imgNumFromFile(file_name);
+            int img_num = image_conversions::imgNumFromFile(file_name);
             if(img_num % 2 == 0)
             {
                 QString img_path = img_list[j].canonicalFilePath(); //<path_root>/queries/unanswered/<access_point_type>img_x.jpg
                 QueryStat * stat = new QueryStat();
                 stat->uav_id = uavIdFromDir(img_path);
                 stat->original_img = QImage(img_path);
-                QString base_path = img::getImgBasePath(img_path);
+                QString base_path = image_conversions::getImgBasePath(img_path);
 
                 QString framed_img_path = base_path % "/img_" 
                         % QString::number(img_num+1) % ".jpg";
@@ -119,10 +119,10 @@ void UnansweredQueries::answerQuery(QWidget *w, QString ap_type, bool accepted)
     else 
         path.append("/rejeceted/" % ap_type);
                 
-    int num_images = img::numImagesInDir(path);
+    int num_images = image_conversions::numImagesInDir(path);
     QString file = "img_" % QString::number(num_images) % ".jpg";
 
-    if(img::saveImage(path, file, img))
+    if(image_conversions::saveImage(path, file, img))
     {
         QDir dir;
         dir.remove(stat->og_img_file_path);

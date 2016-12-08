@@ -3,16 +3,16 @@
 #define IMAGE_H
 
 #include <QDir>
-#include <QStringBuilder>
 #include <QImage>
 #include <QPixmap>
+#include <QStringBuilder>
 #include <opencv/cv.h>
 #include <cv_bridge/cv_bridge.h>
 
 namespace gcs
 {
 
-namespace img 
+namespace image_conversions 
 {   
     QImage matToQimg(const cv::Mat& in);
     QImage rosImgToQimg(const sensor_msgs::Image& in);
@@ -31,8 +31,7 @@ namespace img
     
     int numImagesInDir(QString& dir_path);
     int imgNumFromFile(QString& file);
-    QString getImgBasePath(QString& file_path);
-    
+    QString getImgBasePath(QString& file_path); 
 }
 
 }

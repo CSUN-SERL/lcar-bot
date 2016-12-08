@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-#include "util/image.h"
+#include "util/image_conversions.h"
 #include "util/flight_modes.h"
 #include "qt/ui_adapter.h"
 #include "qt/settings_widget.h"

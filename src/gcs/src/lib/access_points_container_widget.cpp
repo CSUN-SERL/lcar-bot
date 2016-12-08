@@ -4,7 +4,7 @@
 #include "qt/access_points_container_widget.h"
 #include "qt/access_point_widget.h"
 #include "qt/ui_adapter.h"
-#include "util/image.h"
+#include "util/image_conversions.h"
 
 namespace gcs
 {
@@ -62,7 +62,7 @@ void AccessPointsContainerWidget::UpdateAccessPoints()
     {
         //retrieve access point
         lcar_msgs::AccessPointStampedPtr accessPoint = ap_vec->at(i);
-        QPixmap image = img::rosImgToQpixmap(accessPoint->ap.query.img_framed);
+        QPixmap image = image_conversions::rosImgToQpixmap(accessPoint->ap.query.img_framed);
 
         AccessPointWidget *ap_widget = new AccessPointWidget(this);
         
@@ -116,7 +116,7 @@ void AccessPointsContainerWidget::SaveUavAccessPoints(std::vector<lcar_msgs::Acc
     {
         QString file = "img_" + QString::number(i) + ".jpg";
         lcar_msgs::AccessPointStampedPtr ap = ap_vector->at(i);
-        img::saveImage(path, file, img::rosImgToQimg(ap->ap.query.img));
+        image_conversions::saveImage(path, file, image_conversions::rosImgToQimg(ap->ap.query.img));
     }
 }
 

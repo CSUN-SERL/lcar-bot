@@ -1,11 +1,11 @@
 
-#include "util/image.h"
+#include "util/image_conversions.h"
 #include <sensor_msgs/fill_image.h>
 
 namespace gcs
 {
     
-namespace img
+namespace image_conversions
 {
 
     QImage matToQimg(const cv::Mat& in)
