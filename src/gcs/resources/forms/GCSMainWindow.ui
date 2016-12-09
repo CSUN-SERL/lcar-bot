@@ -90,7 +90,7 @@ QComboBox::drop-down{
 }
 
 QComboBox::down-arrow {
-     image:  url(:/icons/icons/angle_down.png);
+     image:  url(:/images/icons/angle_down.png);
 	 color:rgb(236,236,236);
      width: 0.8em;
      height: 0.8em;
@@ -500,7 +500,7 @@ QLabel{
                  <string/>
                 </property>
                 <property name="icon">
-                 <iconset resource="qfi.qrc">
+                 <iconset>
                   <normaloff>:/icons/icons/battery.png</normaloff>:/icons/icons/battery.png</iconset>
                 </property>
                 <property name="iconSize">
@@ -817,8 +817,8 @@ color: rgb(240, 240, 240);</string>
                  <string/>
                 </property>
                 <property name="icon">
-                 <iconset resource="qfi.qrc">
-                  <normaloff>:/icons/icons/pause.png</normaloff>:/icons/icons/pause.png</iconset>
+                 <iconset resource="../qfi.qrc">
+                  <normaloff>:/images/icons/pause.png</normaloff>:/images/icons/pause.png</iconset>
                 </property>
                 <property name="iconSize">
                  <size>
@@ -853,8 +853,8 @@ border-radius:0px;</string>
                  <string/>
                 </property>
                 <property name="icon">
-                 <iconset resource="qfi.qrc">
-                  <normaloff>:/icons/icons/stop.png</normaloff>:/icons/icons/stop.png</iconset>
+                 <iconset resource="../qfi.qrc">
+                  <normaloff>:/images/icons/stop.png</normaloff>:/images/icons/stop.png</iconset>
                 </property>
                 <property name="iconSize">
                  <size>
@@ -1528,7 +1528,7 @@ color: rgb(240, 240, 240);</string>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="qfi.qrc"/>
+  <include location="../qfi.qrc"/>
  </resources>
  <connections/>
 </ui>

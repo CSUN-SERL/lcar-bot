@@ -344,12 +344,12 @@ void GCSMainWindow::OnPauseOrResumeScout()
     if(vm->GetMissionMode(cur_v_id) == MissionMode::active)
     {
         emit UIAdapter::Instance()->PauseMission(cur_v_id);
-        widget.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/play.png"));
+        widget.btn_scout_play_pause->setIcon(QIcon(":/images/icons/play.png"));
     }
     else
     {
         emit UIAdapter::Instance()->ResumeMission(cur_v_id);
-        widget.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/pause.png"));
+        widget.btn_scout_play_pause->setIcon(QIcon(":/images/icons/pause.png"));
     }
 }
 
@@ -421,7 +421,7 @@ void GCSMainWindow::ToggleScoutButtons(QString mode)
     widget.btn_scout->setVisible(scout);
     widget.btn_scout_play_pause->setVisible(!scout);
     if(!scout)
-        widget.btn_scout_play_pause->setIcon(QIcon(":/icons/icons/" % mode % ".png"));
+        widget.btn_scout_play_pause->setIcon(QIcon(":/images/icons/" % mode % ".png"));
     widget.btn_scout_stop->setVisible(!scout);
 }
 

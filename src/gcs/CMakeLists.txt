@@ -58,12 +58,12 @@ list(REMOVE_ITEM vehicle_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/vehicle/init_node.
 file(GLOB gcs_HDRS include/qt/*.h )
 list(REMOVE_ITEM gcs_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/qt/my_q_widget.h )
 
-file(GLOB gcs_UIS resources/*.ui )
+file(GLOB gcs_UIS resources/forms/*.ui )
 
 file(GLOB gcs_RCCS resources/*.qrc )
 
 #run qt rcc, moc & uic
-qt5_add_resources(gcs_VFS ${gcs_RCCS}) #VFIR = Virtual File System Resources
+qt5_add_resources(gcs_VFS ${gcs_RCCS}) #VFS = Virtual File System
 qt5_wrap_cpp(gcs_MOCS ${gcs_HDRS})
 qt5_wrap_ui(gcs_UIS_H ${gcs_UIS})
 

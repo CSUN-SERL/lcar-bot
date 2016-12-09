@@ -17,14 +17,14 @@
     <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc"
          ns="stereo_cam" machine="$(arg machine_name)" respawn="true" />
 
-    <node pkg="rqt_gcs" type="backup_control" name="backup_control"
+    <node pkg="gcs" type="backup_control" name="backup_control"
           machine="$(arg machine_name)" respawn="true">
         <param name="id" value="$(arg uav_id)" />
     </node>
 
     <!-- todo node object avoidance-->
 
-    <include file="$(find rqt_gcs)/launch/node_mavros.launch">
+    <include file="$(find gcs)/launch/node_mavros.launch">
         <arg name="pluginlists_yaml" value="$(find mavros)/launch/px4_pluginlists.yaml" />
         <arg name="config_yaml" value="$(find mavros)/launch/px4_config.yaml" />
         <arg name="fcu_url" value="$(arg fcu_url)" />

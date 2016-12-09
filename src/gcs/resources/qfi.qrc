@@ -30,11 +30,11 @@
         <file>images/pfd/pfd_vsi_scale.svg</file>
     </qresource>
     
-    <qresource prefix="/icons">
-        <file>icons/angle_down.png</file>
-        <file>icons/battery.png</file>
-        <file>icons/pause.png</file>
-        <file>icons/stop.png</file>
-        <file>icons/play.png</file>
+    <qresource>
+        <file>images/icons/angle_down.png</file>
+        <file>images/icons/battery.png</file>
+        <file>images/icons/pause.png</file>
+        <file>images/icons/stop.png</file>
+        <file>images/icons/play.png</file>
     </qresource>
 </RCC>
