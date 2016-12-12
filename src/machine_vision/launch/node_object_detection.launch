@@ -1,6 +1,6 @@
 <launch>
-    <arg name="machine_name" default="Quad1" />
+    <arg name="machine_name" default="Station1" />
 
-    <node pkg="machine_vision" type="object_detection" name="object_detection" required="true" machine="$(arg machine_name)" />
+    <node pkg="machine_vision" type="object_detection" name="object_detection" machine="$(arg machine_name)" required="true" />
 
 </launch>

@@ -407,9 +407,5 @@ void UAVControl::StopMission(std::string flight_mode)
     goal = idle;
 }
 
-bool UAVControl::IsArmed()
-{
-    return state.armed;
-}
 
 }//End Namespace

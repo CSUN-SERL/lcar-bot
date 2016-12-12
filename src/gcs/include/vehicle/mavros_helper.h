@@ -194,6 +194,8 @@ public:
     mavros_msgs::State GetState()               { return state; }
     sensor_msgs::BatteryState GetBatteryState() { return battery; }
     sensor_msgs::Imu  GetImu()                  { return imu; }
+    
+    bool IsArmed() override { return state.armed; }
 
 protected:
 

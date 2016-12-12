@@ -1,0 +1,24 @@
+<launch>
+
+    <arg name="uav_id" default="2000"/>
+    <arg name="gcs_machine" default="Station1"/>
+
+    <machine name="$(arg gcs_machine)"
+             address="localhost" />
+
+    <group ns="V$(arg uav_id)">
+
+        <include file="$(find machine_vision)/launch/node_object_detection.launch" >
+            <arg name="machine_name" value="$(arg gcs_machine)" />
+        </include>
+
+        <include file="$(find gcs)/launch/jetson_sim.launch" >
+            <arg name="tgt_system" value="$(arg uav_id)" />
+            <arg name="uav_id" value="$(arg uav_id)"/>
+            <arg name="machine_name" value="$(arg gcs_machine)" />
+        </include>
+
+  </group>
+    <!--<include file="$(find rqt_gcs)/launch/gcs.launch"/>-->
+
+</launch>

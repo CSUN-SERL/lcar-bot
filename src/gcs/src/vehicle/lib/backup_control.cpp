@@ -2,22 +2,7 @@
 
 #include "vehicle/backup_control.h"
 
-int main(int argc, char **argv)
-{
-  ros::init(argc, argv, "backup_control");
-  
-  int id;
-  if(!ros::param::get("~id",id))
-      id = 1;
-  
-  BackupControl bc(id);
-
-  ros::spin();
-
-  return 0;
-}
-
-BackupControl::BackupControl(int id)  //Class constructor
+BackupControl::BackupControl()  //Class constructor
 {
   // this->id = id;
   

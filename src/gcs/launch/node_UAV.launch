@@ -6,12 +6,11 @@
 	<arg name="gcs_url" default="" />
 	<arg name="tgt_system" default="1" />
 	<arg name="tgt_component" default="1" />
-	<arg name="namespace" default="V2001"/>
 	<arg name="pluginlists_yaml" default="$(find mavros)/launch/px4_pluginlists.yaml" />
 	<arg name="config_yaml" default="$(find mavros)/launch/apm_config.yaml" />
 	<arg name="log_output" default="screen" />
 
-	<node pkg="mavros" type="mavros_node" name="mavros" ns="$(arg namespace)" required="true" clear_params="true" output="$(arg log_output)">
+	<node pkg="mavros" type="mavros_node" name="mavros" required="true" clear_params="true" output="$(arg log_output)">
 		<param name="fcu_url" value="$(arg fcu_url)" />
 		<param name="gcs_url" value="$(arg gcs_url)" />
 		<param name="target_system_id" value="$(arg tgt_system)" />

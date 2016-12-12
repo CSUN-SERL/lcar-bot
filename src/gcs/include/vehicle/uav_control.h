@@ -140,8 +140,6 @@ public:
      */
     void StopMission(std::string flight_mode);
 
-    bool IsArmed() override;
-
     //Getter Functions
     FlightState GetFlightState()                                        { return UpdateFlightState(); }
     int GetDistanceToWP() override                                      { return CalculateDistance(pose_target, pose_local); }

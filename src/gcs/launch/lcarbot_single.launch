@@ -1,5 +1,5 @@
 <launch>
-    <arg name="uav_id" default="1"/>
+    <arg name="uav_id" default="2000"/>
     <arg name="gcs_machine" default="Station1"/>
     <arg name="robot_machine" default="Quad1"/>
 

@@ -51,9 +51,7 @@ catkin_package(
 
 file(GLOB gcs_SRCS src/lib/*.cpp )
 
-file(GLOB vehicle_SRCS src/vehicle/*.cpp )
-list(REMOVE_ITEM vehicle_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/vehicle/init_node.cpp
-                              ${CMAKE_CURRENT_SOURCE_DIR}/src/vehicle/backup_control.cpp )
+file(GLOB vehicle_SRCS src/vehicle/lib/*.cpp )
 
 file(GLOB gcs_HDRS include/qt/*.h )
 list(REMOVE_ITEM gcs_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/qt/my_q_widget.h )
@@ -74,8 +72,8 @@ include(MavrosMavlink)
 add_definitions(${Qt5_DEFINITIONS})
 
 # Declare executables with source files
-add_executable(backup_control src/vehicle/backup_control.cpp)
-add_executable(init_node src/vehicle/init_node.cpp)
+add_executable(backup_control src/vehicle/nodes/backup_control_node.cpp)
+add_executable(init_node src/vehicle/nodes/init_node.cpp)
 #add_executable(gps_publisher src/vehicle/gps_publisher.cpp)
 #add_executable(gps_demo src/vehicle/gps_demo.cpp)
 #add_executable(safe_mocap src/vehicle/safe_mocap.cpp)
@@ -88,7 +86,7 @@ add_library(${PROJECT_NAME}
 
 add_library(vehicle ${vehicle_SRCS} )
 
-add_executable(gcs_node src/main.cpp)
+add_executable(gcs_node src/nodes/gcs_main_node.cpp)
 
 #add_dependencies(uav_control ${catkin_EXPORTED_TARGETS})
 #library dependencies
@@ -101,8 +99,8 @@ add_dependencies(init_node ${catkin_EXPORTED_TARGETS})
 #add_dependencies(gps_demo ${catkin_EXPORTED_TARGETS})
 
 #Specify libraries against which to link
-target_link_libraries(backup_control ${catkin_LIBRARIES})
-target_link_libraries(init_node ${catkin_LIBRARIES})
+target_link_libraries(backup_control vehicle ${catkin_LIBRARIES})
+target_link_libraries(init_node vehicle ${catkin_LIBRARIES})
 #target_link_libraries(gps_publisher ${catkin_LIBRARIES})
 #target_link_libraries(gps_demo ${catkin_LIBRARIES})
 #target_link_libraries(safe_mocap ${catkin_LIBRARIES})

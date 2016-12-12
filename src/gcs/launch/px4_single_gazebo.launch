@@ -16,7 +16,6 @@
 		<arg name="gcs_url" value="$(arg gcs_url1)" />
 		<arg name="tgt_system" value="$(arg tgt_system1)" />
 		<arg name="tgt_component" value="$(arg tgt_component1)" />
-		<arg name="namespace" value="V2001" />
 		<arg name="log_output" value="$(arg log_output1)" />
 	</include>
 

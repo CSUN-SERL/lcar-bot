@@ -2,25 +2,21 @@
 #include <stdio.h>
 #include <fstream>
 
-#include <QProcessEnvironment>
-#include <QDesktopWidget>
+#include <QMutex>
 #include <QMainWindow>
 #include <QStringBuilder>
 #include <QWaitCondition>
-#include <QMutex>
-#include <QMetaType>
 
-#include "qt/gcs_main_window.h"
 #include "qt/query_widget.h"
-#include "qt/vehicle_init_widget.h"
-#include "util/image_conversions.h"
+#include "qt/gcs_main_window.h"
+
 #include "util/debug.h"
 #include "util/settings.h"
-#include "util/flight_modes.h"
 #include "util/data_types.h"
+#include "util/flight_modes.h"
+#include "util/image_conversions.h"
 
 #include <ros/package.h>
-//#include <cv_bridge/cv_bridge.h>
 
 namespace gcs
 {
@@ -72,10 +68,7 @@ GCSMainWindow::GCSMainWindow(VehicleManager *vm):
             this, &GCSMainWindow::OnOperatorNotified);
     connect(ui_adapter, &UIAdapter::SetImageRootDir,
             this, &GCSMainWindow::OnImageRootDirUpdated);
-    
-    connect(vm, &VehicleManager::destroyed,
-            this, [=](){ this->close(); });
-    
+
     this->InitMenuBar();
     this->InitSettings();
     this->InitMap();
@@ -113,7 +106,7 @@ void GCSMainWindow::OnAddVehicleWidget(int v_id)
     layout_by_v_type[v_type]->insertWidget(index, w);  
     
     if (cur_v_id == -1) //is this the first vehicle added?
-        this->SelectVehicleWidgetById(w->Id());
+        this->SelectVehicleWidgetById(v_id);
 }
 
 void GCSMainWindow::OnDeleteVehicleWidget(int v_id)
@@ -216,6 +209,21 @@ void GCSMainWindow::OnTimedUpdate()
 
     this->UpdateFlightStateWidgets();
     this->UpdateVehicleWidgets();
+    
+    bool armed = vm->IsArmed(cur_v_id);
+    if(armed)
+        this->ToggleArmDisarmButton("disarm");
+    else 
+        this->ToggleArmDisarmButton("arm");
+    
+    MissionMode m = vm->GetMissionMode(cur_v_id);
+    if (m == MissionMode::active)
+        this->ToggleScoutButtons("pause");
+    else if(m == MissionMode::paused)
+        this->ToggleScoutButtons("play");
+    else if(m == MissionMode::stopped || m == MissionMode::invalid)
+        this->ToggleScoutButtons("scout");
+                
 }
 
 void GCSMainWindow::ClearQueries()
@@ -327,11 +335,9 @@ void GCSMainWindow::OnScoutBuilding()
     int number;
     char b[16];
     sscanf(building.toStdString().c_str(), "%s %d", b, &number);
-    qCDebug(lcar_bot) << number;
+    qCDebug(lcar_bot) << "scout building: " << number;
     
     emit UIAdapter::Instance()->ScoutBuilding(cur_v_id, number);
-
-    this->ToggleScoutButtons("pause");
 
     ROS_INFO_STREAM("Scouting " << building.toStdString());
 }
@@ -464,44 +470,11 @@ void GCSMainWindow::SelectVehicleWidgetById(int v_id)
     else
         this->ToggleScoutButtons("play");
 
-    if(vm->GetState(cur_v_id)->armed)
+    if(vm->IsArmed(cur_v_id))
         this->ToggleArmDisarmButton("disarm");
     else
         this->ToggleArmDisarmButton("arm");
 }
-
-//
-////needed in addUav(int) and deleteUav(int)
-//void GCS::SelectUav(int uav_number)
-//{
-//    Q_ASSERT(0 <= uav_number && uav_number < vm->NumVehiclesByType(VehicleType::quad_rotor));
-//
-//    if(uav_number == cur_vehicle)
-//        return; // no use resetting everything to the way it was
-//
-//    cur_vehicle = uav_number;
-//    widget.image_frame->setPixmap(QPixmap::fromImage(QImage()));
-//    this->ClearQueries(); // new uav selected, so make room for its queries
-//
-//    UAVControl * uav = active_uavs[cur_vehicle];
-//    // handle image topic subscription and image refresh for new uav
-////    sub_stereo = it_stereo.subscribe("/UAV" + std::to_string(uav->id) + "/stereo_cam/left/image_rect",
-////                                     30, &GCS::ImageCallback, this);
-//    
-//    if(fl_widgets.ap_menu != nullptr)
-//        fl_widgets.ap_menu->SetUAV(uav);
-//
-//    //handle mission and arm buttons for new uav
-//    MissionMode m = uav->GetMissionMode();
-//    if(m == MissionMode::stopped)
-//        this->ToggleScoutButtons(true);
-//    else if(m == MissionMode::active)
-//        this->ToggleScoutButtons(false, "pause");
-//    else
-//        this->ToggleScoutButtons(false, "play");
-//
-//    this->ToggleArmDisarmButton(active_uavs[cur_vehicle]->GetState().armed);
-//}
 
 void GCSMainWindow::UpdateFlightStateWidgets()
 {
@@ -555,11 +528,6 @@ void GCSMainWindow::OnArmOrDisarmSelectedUav()
 
     bool armed = vm->IsArmed(cur_v_id);
     emit UIAdapter::Instance()->Arm(cur_v_id, !armed);
-    
-    if(armed)
-        this->ToggleArmDisarmButton("disarm");
-    else
-        this->ToggleArmDisarmButton("arm");
 }
 
 void GCSMainWindow::ToggleArmDisarmButton(QString mode)
@@ -567,7 +535,7 @@ void GCSMainWindow::ToggleArmDisarmButton(QString mode)
     QString temp_mode = mode.toLower();
     temp_mode = temp_mode[0].toUpper() % temp_mode.mid(1);
     Q_ASSERT(temp_mode == "Arm" || temp_mode == "Disarm");
-    widget.btn_arm_uav->setText(mode);
+    widget.btn_arm_uav->setText(temp_mode);
 }
 
 void GCSMainWindow::CenterFloatingWidget(QWidget* w)
@@ -583,7 +551,7 @@ void GCSMainWindow::OnAccessPointsTriggered()
 {
     if(fl_widgets.ap_menu == nullptr)
     {
-        fl_widgets.ap_menu = new AccessPointsContainerWidget(this->image_root_dir);
+        fl_widgets.ap_menu = new AccessPointsContainerWidget(image_root_dir);
 
         this->CenterFloatingWidget(fl_widgets.ap_menu);
 
@@ -662,6 +630,7 @@ void GCSMainWindow::InitMap()
     QString s = ros::package::getPath("gcs").c_str();
     QString map_url = "file://" % s % "/map/uavmap.html";
     widget.web_view->load(QUrl(map_url));
+    
 }
 
 void GCSMainWindow::InitMenuBar()
@@ -703,7 +672,7 @@ void GCSMainWindow::InitSettings()
     bool ml_on = (settings.GetMachineLearningType() == settings.val_machine_learning_online);
     this->OnToggleMachineLearningMode(ml_on);
 
-    this->image_root_dir = settings.GetImagesRootDir();
+    image_root_dir = settings.GetImagesRootDir();
 }
 
 void GCSMainWindow::OnToggleMachineLearningMode(bool toggle)
@@ -714,18 +683,7 @@ void GCSMainWindow::OnToggleMachineLearningMode(bool toggle)
 
 void GCSMainWindow::OnImageRootDirUpdated(QString new_dir)
 {
-    this->image_root_dir = new_dir;
-}
-
-std::string GCSMainWindow::GetMissionType(std::string file_name)
-{
-    std::string mission_type;
-    std::ifstream fileIn(file_name);
-
-    fileIn >> mission_type;
-    fileIn.close();
-
-    return mission_type;
+    image_root_dir = new_dir;
 }
 
 void GCSMainWindow::UpdateVehicleWidgets()
@@ -760,16 +718,16 @@ void GCSMainWindow::closeEvent(QCloseEvent* event)
     
     // this wouldn't work in the destructor
     if(fl_widgets.ap_menu != nullptr) 
-        fl_widgets.ap_menu->close();
+        delete fl_widgets.ap_menu;
     
     if(fl_widgets.settings != nullptr)
-        fl_widgets.settings->close();
+        delete fl_widgets.settings;
     
     if(fl_widgets.unanswered_queries != nullptr)
-        fl_widgets.unanswered_queries->close();
-    
+        delete fl_widgets.unanswered_queries;
+   
     if(fl_widgets.vehicle_init != nullptr)
-        fl_widgets.vehicle_init->close();
+        delete fl_widgets.vehicle_init;
     
     event->accept();
 }

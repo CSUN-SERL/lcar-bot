@@ -9,36 +9,28 @@
 #ifndef _SIMPLEGCS_H
 #define _SIMPLEGCS_H
 
-#include <ros/ros.h>
-#include <ros/common.h>
-#include <std_srvs/Empty.h>
-#include <image_transport/image_transport.h>
-
 #include <QTimer>
 #include <QMenuBar>
 #include <QSettings>
 #include <QCloseEvent>
 
-#include "qt/vehicle_list_widget.h"
-#include "qt/unanswered_queries.h"
-#include "qt/settings_widget.h"
-#include "qt/access_points_container_widget.h"
-#include "qt/vehicle_init_widget.h"
-#include "qt/vehicle_manager.h"
+#include "ui_GCSMainWindow.h"
+
 #include "qt/ui_adapter.h"
+#include "qt/vehicle_manager.h"
+#include "qt/settings_widget.h"
+#include "qt/unanswered_queries.h"
+#include "qt/vehicle_list_widget.h"
+#include "qt/vehicle_init_widget.h"
+#include "qt/access_points_container_widget.h"
 
-//#include "util/debug.h"
-//#include "util/image.h"
 #include "util/data_types.h"
-
 
 #include "vehicle/uav_control.h"
 
 #include "lcar_msgs/Query.h"
 #include "lcar_msgs/TargetLocal.h"
 #include "lcar_msgs/TargetGlobal.h"
-
-#include "ui_GCSMainWindow.h"
 
 namespace gcs
 {
@@ -87,28 +79,16 @@ protected:
 private:
     VehicleWidget* VehicleWidgetAt(int v_type, int index);
 
-    std::string GetMissionType(std::string file_name);
-    lcar_msgs::TargetLocal GetMissionLocal(std::string file_name);
-    lcar_msgs::TargetGlobal GetMissionGlobal(std::string file_name);
-
     void InitMap();
     void InitMenuBar();
     void InitSettings();
-//    void InitHelperThread();
-
-    // new
     void SelectVehicleWidgetById(int v_id);
-    //old
-//    void SelectUav(int);
-    
     void UpdateFlightStateWidgets(); // both the PFD and the text based widget
     void UpdateVehicleWidgets();
-
     void UpdateQueries();
     void ClearQueries();
     void SaveUavQueries(int uav_id, const std::vector<lcar_msgs::QueryPtr> *queries, const QString ap_type);
     void AnswerQuery(QWidget *, QString ap_type, bool);
-
     /**
      * \brief controls the behavior and visibility of the Scout Buttons
      * @param mode accepts "scout" (hides the play/pause and stop buttons, making scout visible again. effectively stops a mission),
@@ -117,7 +97,6 @@ private:
      */
     void ToggleScoutButtons(QString mode = "scout");
     void ToggleArmDisarmButton(QString mode = "Arm");
-    
     void CenterFloatingWidget(QWidget * w);
     void OnAccessPointsTriggered();
     void OnSettingsTriggered();

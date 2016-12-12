@@ -9,8 +9,7 @@
 class BackupControl
 {
 public:
-  int id;
-  BackupControl(int id);
+  BackupControl();
   ~BackupControl();
 
 private:
