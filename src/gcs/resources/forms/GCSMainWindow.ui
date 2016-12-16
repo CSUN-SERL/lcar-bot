@@ -500,8 +500,8 @@ QLabel{
                  <string/>
                 </property>
                 <property name="icon">
-                 <iconset>
-                  <normaloff>:/icons/icons/battery.png</normaloff>:/icons/icons/battery.png</iconset>
+                 <iconset resource="../qfi.qrc">
+                  <normaloff>:/images/icons/battery.png</normaloff>:/images/icons/battery.png</iconset>
                 </property>
                 <property name="iconSize">
                  <size>

@@ -5,7 +5,7 @@ var listeners =[];
 var total = 99;
 var sections = 10;
 var done = false;
-var ChoosenOne;
+var chosenOne;
 
 // Connecting to ROS
 // -----------------
@@ -38,7 +38,7 @@ showPosition();
 
 var x =0;
 var map;
-var marker =[];
+var marker = [];
 var newPoint ;
 var la ;
 var squadCreation = 0;
@@ -81,7 +81,7 @@ if(squadCreation >= 0){
 
 listener = new ROSLIB.Topic({
   ros : ros, 	//ros object connection
-  name : '/UAV' + num + '/mavros/global_position/global',
+  name : '/V' + num + '/mavros/global_position/global',
   messageType : 'sensor_msgs/NavSatFix'
 });
 
@@ -128,69 +128,68 @@ if(longitude != 0 && latitude != 0 && $('input[name=uav]').length <= num )  {
 
 
 if( done == false){
-  if(list-1 == 0 ){
-    //console.log("squadcreationg at option list-1: " + squadCreation);
-    $('#Alpha').append($('<option>', {
-     value:team[list-1] + (squadCreation  ),
-     text :  team[list-1] + " " +  (squadCreation )
- }));
+    if(list-1 == 0 ){
+      //console.log("squadcreationg at option list-1: " + squadCreation);
+      $('#Alpha').append($('<option>', {
+       value:team[list-1] + (squadCreation  ),
+       text :  team[list-1] + " " +  (squadCreation )
+      }));
 
-}
-if(list-1 == 1){
-$('#Beta').append($('<option>', {
-value:team[list-1] + (squadCreation ),
-text : team[list-1] + " " + (squadCreation )
-}));
-}
-if(list-1 == 2){
-$('#Shield').append($('<option>', {
-value:team[list-1] + (squadCreation ),
-text :team[list-1] + " " + (squadCreation )
-}));
-}
-if(list-1 == 3){
-$('#Raid').append($('<option>', {
-value:team[list-1] + (squadCreation ),
-text : team[list-1] + " " + (squadCreation )
-}));
-}
-
-if(list-1 == 4){
-$('#Airborne').append($('<option>', {
-value:team[list-1] + (squadCreation ),
-text : team[list-1] + " " + (squadCreation )
-}));
-}
-if(list-1 == 5){
-$('#Batman').append($('<option>', {
-value:team[list-1] + (squadCreation ),
-text :team[list-1] + " " + (squadCreation )
-}));
-}
-if(list-1 == 6){
-$('#Daemon').append($('<option>', {
-value:team[list-1] + (squadCreation ),
-text :team[list-1] + " " + (squadCreation )
-}));
-}
-if(list-1 == 7){
-$('#Nemesis').append($('<option>', {
-value:team[list-1] + (squadCreation ),
-text :team[list-1] + " " + (squadCreation )
-}));
-}
-if(list-1 == 8){
-$('#Viper').append($('<option>', {
-value:team[list-1] + (squadCreation ),
-text : team[list-1] + " " + (squadCreation )
-}));
-}
-if(list-1 == 9){
-$('#Cyclone').append($('<option>', {
-value:team[list-1] + (squadCreation),
-text :team[list-1] + " " + (squadCreation )
-}));
-}
+    }
+    if(list-1 == 1){
+        $('#Beta').append($('<option>', {
+        value:team[list-1] + (squadCreation ),
+        text : team[list-1] + " " + (squadCreation )
+        }));
+    }
+    if(list-1 == 2){
+        $('#Shield').append($('<option>', {
+        value:team[list-1] + (squadCreation ),
+        text :team[list-1] + " " + (squadCreation )
+        }));
+    }
+    if(list-1 == 3){
+        $('#Raid').append($('<option>', {
+        value:team[list-1] + (squadCreation ),
+        text : team[list-1] + " " + (squadCreation )
+        }));
+    }
+    if(list-1 == 4){
+        $('#Airborne').append($('<option>', {
+        value:team[list-1] + (squadCreation ),
+        text : team[list-1] + " " + (squadCreation )
+        }));
+    }
+    if(list-1 == 5){
+        $('#Batman').append($('<option>', {
+        value:team[list-1] + (squadCreation ),
+        text :team[list-1] + " " + (squadCreation )
+        }));
+    }
+    if(list-1 == 6){
+        $('#Daemon').append($('<option>', {
+        value:team[list-1] + (squadCreation ),
+        text :team[list-1] + " " + (squadCreation )
+        }));
+    }
+    if(list-1 == 7){
+        $('#Nemesis').append($('<option>', {
+        value:team[list-1] + (squadCreation ),
+        text :team[list-1] + " " + (squadCreation )
+        }));
+    }
+    if(list-1 == 8){
+        $('#Viper').append($('<option>', {
+        value:team[list-1] + (squadCreation ),
+        text : team[list-1] + " " + (squadCreation )
+        }));
+    }
+    if(list-1 == 9){
+        $('#Cyclone').append($('<option>', {
+        value:team[list-1] + (squadCreation),
+        text :team[list-1] + " " + (squadCreation )
+        }));
+    }
 }
 
 //console.log(list + " this");
@@ -239,7 +238,7 @@ la = new google.maps.LatLng(latitude,
 
   if(selected != undefined){
     var datNum = selected.slice(-1); //get second word, the number
-}
+  }
   //console.log(datNum + " the numba!");
 
   if(checked  == 0){
