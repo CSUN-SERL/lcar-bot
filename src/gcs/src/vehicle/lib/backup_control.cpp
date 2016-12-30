@@ -1,5 +1,3 @@
-//#include <bits/basic_string.h>
-
 #include "vehicle/backup_control.h"
 
 BackupControl::BackupControl()  //Class constructor

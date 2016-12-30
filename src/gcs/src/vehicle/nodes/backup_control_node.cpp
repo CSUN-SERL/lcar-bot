@@ -1,4 +1,3 @@
-
 #include "vehicle/backup_control.h"
 
 int main(int argc, char **argv)

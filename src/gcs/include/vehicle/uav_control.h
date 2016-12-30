@@ -35,8 +35,10 @@ namespace gcs
 #define QUEUE_SIZE 100            //Message Queue size for publishers
 #define TRAVEL_WT 0.5
 #define SCOUT_WT 0.5
-#define THRESHOLD_XY 0.08
-#define THRESHOLD_Z 0.08
+// #define THRESHOLD_XY 0.08
+// #define THRESHOLD_Z 0.08
+#define THRESHOLD_XY 0.5
+#define THRESHOLD_Z 0.25
 #define THRESHOLD_XY_GPS 0.00001
 #define THRESHOLD_Z_GPS 0.5
 #define THRESHOLD_YAW 0.1

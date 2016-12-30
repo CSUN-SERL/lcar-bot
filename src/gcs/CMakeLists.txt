@@ -74,6 +74,9 @@ add_definitions(${Qt5_DEFINITIONS})
 # Declare executables with source files
 add_executable(backup_control src/vehicle/nodes/backup_control_node.cpp)
 add_executable(init_node src/vehicle/nodes/init_node.cpp)
+add_executable(uav_control_test_node  src/vehicle/nodes/uav_control_test_node.cpp 
+                                      src/vehicle/lib/uav_control.cpp
+                                      src/vehicle/lib/mavros_helper.cpp)
 #add_executable(gps_publisher src/vehicle/gps_publisher.cpp)
 #add_executable(gps_demo src/vehicle/gps_demo.cpp)
 #add_executable(safe_mocap src/vehicle/safe_mocap.cpp)
@@ -95,12 +98,14 @@ add_dependencies(vehicle ${catkin_EXPORTED_TARGETS})
 
 #executable dependencies
 add_dependencies(init_node ${catkin_EXPORTED_TARGETS})
+add_dependencies(uav_control_test_node ${catkin_EXPORTED_TARGETS})
 #add_dependencies(gcs_node ${catkin_EXPORTED_TARGETS})
 #add_dependencies(gps_demo ${catkin_EXPORTED_TARGETS})
 
 #Specify libraries against which to link
 target_link_libraries(backup_control vehicle ${catkin_LIBRARIES})
 target_link_libraries(init_node vehicle ${catkin_LIBRARIES})
+target_link_libraries(uav_control_test_node ${catkin_LIBRARIES})
 #target_link_libraries(gps_publisher ${catkin_LIBRARIES})
 #target_link_libraries(gps_demo ${catkin_LIBRARIES})
 #target_link_libraries(safe_mocap ${catkin_LIBRARIES})
