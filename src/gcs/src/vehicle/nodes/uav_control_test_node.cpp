@@ -3,7 +3,7 @@
 int main(int argc, char **argv)
 {
    ros::init(argc, argv, "uav_control_test");
-   gcs::UAVControl quad1{1};
+   gcs::UAVControl quad1{2000};
 
    ros::Rate loop_rate(10); //10Hz 
 
