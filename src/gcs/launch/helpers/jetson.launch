@@ -14,24 +14,21 @@
 
     <node pkg="machine_vision" type="stereo_driver" name="stereo_cam" machine="$(arg machine_name)" />
 
-    <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc"
-         ns="stereo_cam" machine="$(arg machine_name)" respawn="true" />
-
     <node pkg="gcs" type="backup_control" name="backup_control"
           machine="$(arg machine_name)" respawn="true">
     </node>
 
     <!-- todo node object avoidance-->
 
-    <include file="$(find gcs)/launch/node_mavros.launch">
-        <arg name="pluginlists_yaml" value="$(find mavros)/launch/px4_pluginlists.yaml" />
-        <arg name="config_yaml" value="$(find mavros)/launch/px4_config.yaml" />
-        <arg name="fcu_url" value="$(arg fcu_url)" />
-        <arg name="gcs_url" value="$(arg gcs_url)" />
-        <arg name="tgt_system" value="$(arg tgt_system)" />
-        <arg name="tgt_component" value="$(arg tgt_component)" />
-        <arg name="log_output" value="$(arg log_output)" />
-        <arg name="machine_name" value="$(arg machine_name)"/>
-    </include>
+    <node pkg="mavros" type="mavros_node" name="mavros" required="true" clear_params="true" output="$(arg log_output)" machine="$(arg machine_name)">
+        <param name="fcu_url" value="$(arg fcu_url)" />
+        <param name="gcs_url" value="$(arg gcs_url)" />
+        <param name="target_system_id" value="$(arg tgt_system)" />
+        <param name="target_component_id" value="$(arg tgt_component)" />
+
+        <!-- load blacklist, config -->
+        <rosparam command="load" file="$(arg pluginlists_yaml)" />
+        <rosparam command="load" file="$(arg config_yaml)" />
+    </node>
 
 </launch>

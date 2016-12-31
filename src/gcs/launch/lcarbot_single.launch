@@ -13,6 +13,9 @@
              password="ubuntu"
              env-loader="$HOME/lcar-bot-files/lcar_env.sh" />
 
+    
+     <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc"
+         ns="stereo_cam" machine="$(arg gcs_machine)" respawn="true" />
 
     <include file="$(find machine_vision)/launch/node_object_detection.launch" >
         <arg name="machine_name" value="$(arg gcs_machine)" />
@@ -23,7 +26,5 @@
         <arg name="uav_id" value="$(arg uav_id)" required="true" />
         <arg name="machine_name" value="$(arg robot_machine)" />
     </include>
-
-    <!--<include file="$(find gcs)/launch/gcs.launch"/>-->
 
 </launch>
