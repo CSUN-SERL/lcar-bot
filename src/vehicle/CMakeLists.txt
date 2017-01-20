@@ -28,11 +28,6 @@ set(vehicle_INCLUDE_DIRS
      src
       )
 
-catkin_package( 
-  INCLUDE_DIRS ${vehicle_INCLUDE_DIRS}
-  LIBRARIES ${PROJECT_NAME} 
-  CATKIN_DEPENDS roscpp std_msgs sensor_msgs)
-
 ## Specify additional locations of header files
 include_directories (${catkin_INCLUDE_DIRS} 
 		     ${vehicle_INCLUDE_DIRS}
@@ -43,9 +38,13 @@ include_directories (${catkin_INCLUDE_DIRS}
 include(EnableCXX11)
 include(MavrosMavlink)
 
+catkin_package( 
+  INCLUDE_DIRS ${vehicle_INCLUDE_DIRS}
+  LIBRARIES ${PROJECT_NAME} 
+  CATKIN_DEPENDS roscpp std_msgs sensor_msgs)
+
 file(GLOB vehicle_SRCS src/*.cpp )
 list(REMOVE_ITEM vehicle_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/backup_control.cpp )
-
 
 
 ###########
@@ -55,19 +54,17 @@ list(REMOVE_ITEM vehicle_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/backup_control.cpp
 add_library(${PROJECT_NAME} ${vehicle_SRCS})
 
 add_executable(backup_control_node 
-    nodes/backup_control_node.cpp 
-    src/backup_control.cpp)
-
+                nodes/backup_control_node.cpp 
+                src/backup_control.cpp)
 add_executable(uav_control_test_node nodes/uav_control_test_node.cpp)
 
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS} )
 add_dependencies(uav_control_test_node ${catkin_EXPORTED_TARGETS} )
-
 add_dependencies(backup_control_node ${catkin_EXPORTED_TARGETS} )
 
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} )
 target_link_libraries(backup_control_node  ${catkin_LIBRARIES} )
 target_link_libraries(uav_control_test_node 
                         ${PROJECT_NAME} 
                         ${catkin_LIBRARIES} )
 
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
