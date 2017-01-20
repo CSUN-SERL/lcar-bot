@@ -11,7 +11,7 @@
 #include <angles/angles.h>
 #include <tf/transform_datatypes.h>
 #include <eigen_conversions/eigen_msg.h>
-#include <util/data_types.h>
+#include <vehicle/data_types.h>
 
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/CommandTOL.h>

@@ -12,7 +12,7 @@
 
 #include "util/debug.h"
 #include "util/settings.h"
-#include "util/data_types.h"
+#include <vehicle/data_types.h>
 #include "util/flight_modes.h"
 #include "util/image_conversions.h"
 

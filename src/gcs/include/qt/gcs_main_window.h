@@ -24,7 +24,7 @@
 #include "qt/vehicle_init_widget.h"
 #include "qt/access_points_container_widget.h"
 
-#include "util/data_types.h"
+#include <vehicle/data_types.h>
 
 #include "vehicle/uav_control.h"
 

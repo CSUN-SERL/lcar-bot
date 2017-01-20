@@ -11,7 +11,7 @@
 #include <string>
 #include <sensor_msgs/NavSatFix.h>
 
-#include "util/data_types.h"
+#include <vehicle/data_types.h>
 
 namespace gcs
 {

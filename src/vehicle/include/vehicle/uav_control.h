@@ -47,7 +47,7 @@ namespace gcs
 #define THRESHOLD_DEPTH 2
 #define ALT_RTL 2
 #define BATTERY_MIN 0.10    //Minimum battery level for RTL
-#define DEF_NS "UAV"
+#define DEF_NS "V"
 #define R_EARTH 6371        //Earth's radius in km
 
 class UAVControl : public MavrosHelper

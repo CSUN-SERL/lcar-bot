@@ -22,7 +22,7 @@
 #include <image_transport/image_transport.h>
 
 #include "util/image_conversions.h"
-#include "util/data_types.h"
+#include <vehicle/data_types.h>
 #include "util/object_detection_parameters.h"
 #include "lcar_msgs/Query.h"
 #include "lcar_msgs/TargetLocal.h"
