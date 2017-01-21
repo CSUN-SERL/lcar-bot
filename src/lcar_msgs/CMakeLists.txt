@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(lcar_msgs)
 
-find_package(catkin REQUIRED COMPONENTS message_generation
-                                        sensor_msgs
-                                        geometry_msgs
-                                        mavros_msgs
-                                        rospy
-                                        roscpp)
+find_package(catkin REQUIRED COMPONENTS 
+                                rospy
+                                roscpp
+                                message_generation
+                                sensor_msgs
+                                geometry_msgs
+                                mavros_msgs)
 
 include_directories(include)
 

@@ -1,44 +1,33 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(gcs) # ${PROJECT_NAME} == gcs
 
+
 find_package(catkin REQUIRED COMPONENTS
-            tf
-            mavros     
             roscpp
-            rospy
             roslib
-            std_msgs
             cv_bridge
-            lcar_msgs
-            mavros_msgs
-            sensor_msgs
-            geometry_msgs
             image_transport
-            vehicle )
+            vehicle
+            std_msgs
+            sensor_msgs
+            lcar_msgs )
 
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Svg REQUIRED)
 find_package(Qt5WebKitWidgets REQUIRED)
-#find_package(Boost REQUIRED COMPONENTS thread)
 find_package(OpenCV REQUIRED)
 
-#add lcar-bot/src/gcs and lcar-bot/build to search dirs
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-set(gcs_INCLUDE_DIRECTORIES
+set(gcs_INCLUDE_DIRS
      #add these directories to cmake search paths
-     include
-     src
-     resources )
+     include )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR}
-                    ${gcs_INCLUDE_DIRECTORIES}     
+                    ${gcs_INCLUDE_DIRS}     
                     ${Qt5Widgets_INCLUDE_DIRS}
                     ${Qt5Svg_INCLUDE_DIRS}
                     ${Qt5WebKitWidgets_INCLUDE_DIRS}  
                     ${OpenCV_INCLUDE_DIRS} 
-#                    ${Boost_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS} )
 
 
@@ -46,19 +35,20 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
 #catkin_python_setup()
 
 catkin_package(
-  INCLUDE_DIRS ${gcs_INCLUDE_DIRECTORIES}
+  INCLUDE_DIRS ${gcs_INCLUDE_DIRS}
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS roscpp std_msgs sensor_msgs )
+  CATKIN_DEPENDS
+            roscpp
+            cv_bridge
+            vehicle
+            std_msgs
+            sensor_msgs
+            lcar_msgs )
 
 file(GLOB gcs_SRCS src/lib/*.cpp )
-
-
-
 file(GLOB gcs_HDRS include/qt/*.h )
 list(REMOVE_ITEM gcs_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/qt/my_q_widget.h )
-
 file(GLOB gcs_UIS resources/forms/*.ui )
-
 file(GLOB gcs_RCCS resources/*.qrc )
 
 #run qt rcc, moc & uic
@@ -68,8 +58,7 @@ qt5_wrap_ui(gcs_UIS_H ${gcs_UIS})
 
 
 #compiler flags and options
-include(EnableCXX11)
-add_definitions(${Qt5_DEFINITIONS})
+add_definitions(${Qt5_DEFINITIONS} -std=c++11)
 
 # Declare executables with source files
 #add_executable(gps_publisher src/vehicle/gps_publisher.cpp)
@@ -83,12 +72,10 @@ add_library(${PROJECT_NAME}
             ${gcs_VFS} )
 
 
-add_executable(gcs_node src/nodes/gcs_main_node.cpp)
-
-#add_dependencies(uav_control ${catkin_EXPORTED_TARGETS})
 #library dependencies
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
+add_executable(gcs_node src/nodes/gcs_main_node.cpp)
 
 #executable dependencies
 #add_dependencies(gcs_node ${catkin_EXPORTED_TARGETS})

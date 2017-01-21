@@ -12,7 +12,7 @@
 
     <group ns="V$(arg v_id)">
 
-        <node pkg="gcs" type="backup_control" name="backup_control" respawn="true"/>
+        <node pkg="vehicle" type="backup_control_node" name="backup_control" respawn="true"/>
 
         <node pkg="mavros" type="mavros_node" name="mavros" required="true" clear_params="true" output="$(arg log_output)">
             <param name="fcu_url" value="$(arg fcu_url)" />

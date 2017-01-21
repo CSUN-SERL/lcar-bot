@@ -16,9 +16,9 @@ ctrl_c()
 
 machine_name="$1"
 if [ -z "$1" ]; then
-    rosrun gcs init_node # this node writes the vehicle_id given to it to a file
+    rosrun vehicle init_node # this node writes the vehicle_id given to it to a file
 else
-    rosrun gcs init_node _machine_name:=$machine_name
+    rosrun vehicle init_node _machine_name:=$machine_name
 fi
 
 file_name="$HOME/vehicle_id"
