@@ -175,6 +175,7 @@ nav_msgs::Path UAVControl::CircleShape(lcar_msgs::TargetLocal target_point)
                                             radius * (sin(angles::from_degrees(angle))),
                                             point_center.z),
                             pose_new.position);
+        
         //Offset the center point to the target location
         pose_new.position.x += point_center.x;
         pose_new.position.y += point_center.y;
@@ -253,7 +254,7 @@ void UAVControl::Run()
     this->SafetyCheck();
 
     //Run Specific Actions
-    if(position_mode == local)this->RunLocal();
+    if(position_mode == local) this->RunLocal();
     else this->RunGlobal();
 
     //Run Common Actions
@@ -262,6 +263,7 @@ void UAVControl::Run()
         if(state.armed) this->Arm(false);
         goal = idle;
     }
+    
     else if(goal == idle){
         //Wait for the goal to change
     }
@@ -287,9 +289,11 @@ void UAVControl::RunLocal()
             this->SetPosition(pose_previous.position.x, pose_previous.position.y, pose_target.position.z);
         }
     }
+    
     else if(goal == hold){
         this->SetPosition(pose_previous);
     }
+    
     else if(goal == scout){
         static int rev_count = 1;
         static int cur_point = 0;
@@ -312,6 +316,7 @@ void UAVControl::RunLocal()
             else cur_point = 0;
         }
     }
+    
     else if(goal == rtl){
         if(ComparePosition(pose_local, pose_home) == 0){
             goal = land;
@@ -325,6 +330,7 @@ void UAVControl::RunLocal()
             this->SetPosition(pose_previous.position.x, pose_previous.position.y, ALT_RTL);
         }
     }
+    
     else if(goal == land){
         if(pose_local.position.z <= THRESHOLD_Z){
             goal = disarm;

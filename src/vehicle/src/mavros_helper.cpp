@@ -218,9 +218,9 @@ void MavrosHelper::SetPosition(float x, float y, float z, float yaw)
             target_global.longitude = y;
             target_global.altitude  = z;
 
-            this->SetPosition(target_global);
+            pub_setpoint_gposition.publish(target_global);
     }
-    else{
+    else{ //local
         //Create the message object
         geometry_msgs::PoseStamped position_stamped;
 
@@ -240,29 +240,20 @@ void MavrosHelper::SetPosition(float x, float y, float z, float yaw)
     }
 }
 
+//local
 void MavrosHelper::SetPosition(geometry_msgs::Pose new_pose)
 {
-    if(position_mode == global){
-        mavros_msgs::GlobalPositionTarget target_global;
+    //Create the message object
+    geometry_msgs::PoseStamped position_stamped;
 
-        target_global.latitude  = new_pose.position.x;
-        target_global.longitude = new_pose.position.y;
-        target_global.altitude  = new_pose.position.z;
+    //Update the message with the new position
+    position_stamped.pose = new_pose;
 
-        this->SetPosition(target_global);
-    }
-    else{
-        //Create the message object
-        geometry_msgs::PoseStamped position_stamped;
-
-        //Update the message with the new position
-        position_stamped.pose = new_pose;
-
-        //Publish the message
-        pub_setpoint_position.publish(position_stamped);
-    }
+    //Publish the message
+    pub_setpoint_position.publish(position_stamped);
 }
 
+//global
 void MavrosHelper::SetPosition(mavros_msgs::GlobalPositionTarget new_pose)
 {
     //Publish the message
