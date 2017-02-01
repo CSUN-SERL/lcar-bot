@@ -11,7 +11,6 @@
 #include <angles/angles.h>
 #include <tf/transform_datatypes.h>
 #include <eigen_conversions/eigen_msg.h>
-#include <vehicle/data_types.h>
 
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/CommandTOL.h>
@@ -33,7 +32,9 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
+
 #include <vehicle/vehicle_control.h>
+#include <vehicle/data_types.h>
 
 #define PI 3.14159265
 #define QUEUE_SIZE 100

@@ -21,7 +21,7 @@
         <arg name="machine_name" value="$(arg gcs_machine)" />
     </include>
 
-    <include file="$(find gcs)/launch/jetson.launch" >
+    <include file="$(find gcs)/helpers/launch/jetson.launch" >
         <arg name="tgt_system" value="$(arg uav_id)" />
         <arg name="uav_id" value="$(arg uav_id)" required="true" />
         <arg name="machine_name" value="$(arg robot_machine)" />
