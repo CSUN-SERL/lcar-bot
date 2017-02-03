@@ -7,6 +7,8 @@
 #include <QStringBuilder>
 #include <QWaitCondition>
 
+#include <osgDB/ReadFile>
+
 #include "qt/query_widget.h"
 #include "qt/gcs_main_window.h"
 
@@ -627,10 +629,20 @@ void GCSMainWindow::OnAddVehicleTriggered()
 
 void GCSMainWindow::InitMap()
 {
-    QString s = ros::package::getPath("gcs").c_str();
-    QString map_url = "file://" % s % "/map/uavmap.html";
-    widget.web_view->load(QUrl(map_url));
+//    std::string s = ros::package::getPath("gcs");
+//    s.append("/map/mymap.earth");
+//    QString map_url = "file://" % s % "/map/uavmap.html";
+//    widget.web_view->load(QUrl(map_url));
     
+    osg::ref_ptr<osg::Node> node = osgDB::readFile<osg::Node>("aero-chart-arcgis.earth");
+    
+    osg_map = new osgEarth::QtGui::ViewerWidget(node.get());
+    
+    QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    sizePolicy.setHorizontalStretch(1);
+    sizePolicy.setVerticalStretch(1);
+    osg_map->setSizePolicy(sizePolicy);
+    widget.layout_osg->addWidget(osg_map, 1);
 }
 
 void GCSMainWindow::InitMenuBar()

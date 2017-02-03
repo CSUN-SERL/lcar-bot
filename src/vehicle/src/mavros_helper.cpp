@@ -249,7 +249,7 @@ void MavrosHelper::SetPosition(geometry_msgs::Pose new_pose)
         target_global.longitude = new_pose.position.y;
         target_global.altitude  = new_pose.position.z;
 
-        this->SetPosition(target_global);
+        pub_setpoint_gposition.publish(target_global);
     }
     else{
         //Create the message object

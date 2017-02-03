@@ -14,6 +14,8 @@
 #include <QSettings>
 #include <QCloseEvent>
 
+#include <osgEarthQt/ViewerWidget>
+
 #include "ui_GCSMainWindow.h"
 
 #include "qt/ui_adapter.h"
@@ -103,6 +105,8 @@ private:
     void OnUnansweredQueriesTriggered();
     void OnAddVehicleTriggered();
 
+    osgEarth::QtGui::ViewerWidget * osg_map;
+    
     Ui::GCSMainWindow widget;
     VehicleManager * vm;
     QMap<int/*VehicleType*/, QVBoxLayout*> layout_by_v_type;

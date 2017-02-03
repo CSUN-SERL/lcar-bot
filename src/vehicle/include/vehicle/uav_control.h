@@ -54,7 +54,7 @@ class UAVControl : public MavrosHelper
 {
 public:
 
-    UAVControl(int id);
+    UAVControl(int uav_id);
     ~UAVControl();
 
     /**

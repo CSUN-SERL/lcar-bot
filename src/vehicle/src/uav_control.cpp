@@ -174,7 +174,7 @@ nav_msgs::Path UAVControl::CircleShape(lcar_msgs::TargetLocal target_point)
         tf::pointEigenToMsg(Eigen::Vector3d(radius * (cos(angles::from_degrees(angle))),
                                             radius * (sin(angles::from_degrees(angle))),
                                             point_center.z),
-                            pose_new.position);
+                                            pose_new.position);
         //Offset the center point to the target location
         pose_new.position.x += point_center.x;
         pose_new.position.y += point_center.y;

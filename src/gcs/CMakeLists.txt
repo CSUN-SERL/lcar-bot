@@ -14,8 +14,9 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Svg REQUIRED)
-find_package(Qt5WebKitWidgets REQUIRED)
-find_package(OpenCV REQUIRED)
+find_package(Qt5OpenGL REQUIRED)
+find_package(OpenSceneGraph REQUIRED osgDB)
+find_package(OsgEarth REQUIRED osgEarthQt)
 
 set(gcs_INCLUDE_DIRS
      #add these directories to cmake search paths
@@ -23,12 +24,14 @@ set(gcs_INCLUDE_DIRS
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR}
+                    ${catkin_INCLUDE_DIRS}
                     ${gcs_INCLUDE_DIRS}     
                     ${Qt5Widgets_INCLUDE_DIRS}
                     ${Qt5Svg_INCLUDE_DIRS}
-                    ${Qt5WebKitWidgets_INCLUDE_DIRS}  
-                    ${OpenCV_INCLUDE_DIRS} 
-                    ${catkin_INCLUDE_DIRS} )
+                    ${Qt5OpenGL_INCLUDE_DIRS}
+                    ${OPENSCENEGRAPH_INCLUDE_DIRS}
+                    ${OSGEARTH_INCLUDE_DIRS} 
+                    )
 
 
 #currently not necessary but it doesn't hurt
@@ -37,6 +40,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
 catkin_package(
   INCLUDE_DIRS ${gcs_INCLUDE_DIRS}
   LIBRARIES ${PROJECT_NAME}
+  DEPENDS Qt5Widgets Qt5Svg Qt5OpenGL
   CATKIN_DEPENDS
             roscpp
             cv_bridge
@@ -58,7 +62,7 @@ qt5_wrap_ui(gcs_UIS_H ${gcs_UIS})
 
 
 #compiler flags and options
-add_definitions(${Qt5_DEFINITIONS} -std=c++11)
+add_definitions(${Qt5_DEFINITIONS} ${Qt5OpenGL_DEFINITIONS} -std=c++11)
 
 # Declare executables with source files
 #add_executable(gps_publisher src/vehicle/gps_publisher.cpp)
@@ -89,7 +93,10 @@ add_executable(gcs_node src/nodes/gcs_main_node.cpp)
 target_link_libraries(  gcs_node
                         ${PROJECT_NAME}
                         ${catkin_LIBRARIES}
-                        ${OpenCV_LIBRARIES}
                         Qt5::Widgets
                         Qt5::Svg
-                        Qt5::WebKitWidgets )
+                        Qt5::OpenGL
+                        ${OPENSCENEGRAPH_LIBRARIES}
+                        ${OSGEARTH_LIBRARIES}
+                        ${OSGEARTHQT_LIBRARY}
+                       )

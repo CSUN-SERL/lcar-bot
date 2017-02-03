@@ -13,6 +13,12 @@
     <group ns="V$(arg v_id)">
 
         <node pkg="vehicle" type="backup_control_node" name="backup_control" respawn="true"/>
+        
+        <node pkg="machine_vision" type="camera_publisher" name="rgb_cam"> 
+            <param name="topic" value="stereo_cam/left/image_rect"/>
+        </node>
+        
+        <node pkg="machine_vision" type="object_detection" name="object_detection"/>
 
         <node pkg="mavros" type="mavros_node" name="mavros" required="true" clear_params="true" output="$(arg log_output)">
             <param name="fcu_url" value="$(arg fcu_url)" />
