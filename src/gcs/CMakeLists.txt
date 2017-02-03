@@ -15,7 +15,6 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Svg REQUIRED)
 find_package(Qt5WebKitWidgets REQUIRED)
-find_package(OpenCV REQUIRED)
 
 set(gcs_INCLUDE_DIRS
      #add these directories to cmake search paths
@@ -26,8 +25,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${gcs_INCLUDE_DIRS}     
                     ${Qt5Widgets_INCLUDE_DIRS}
                     ${Qt5Svg_INCLUDE_DIRS}
-                    ${Qt5WebKitWidgets_INCLUDE_DIRS}  
-                    ${OpenCV_INCLUDE_DIRS} 
+                    ${Qt5WebKitWidgets_INCLUDE_DIRS}   
                     ${catkin_INCLUDE_DIRS} )
 
 
@@ -37,6 +35,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
 catkin_package(
   INCLUDE_DIRS ${gcs_INCLUDE_DIRS}
   LIBRARIES ${PROJECT_NAME}
+  DEPENDS Qt5Widgets Qt5Svg Qt5WebKitWidgets
   CATKIN_DEPENDS
             roscpp
             cv_bridge
@@ -89,7 +88,6 @@ add_executable(gcs_node src/nodes/gcs_main_node.cpp)
 target_link_libraries(  gcs_node
                         ${PROJECT_NAME}
                         ${catkin_LIBRARIES}
-                        ${OpenCV_LIBRARIES}
                         Qt5::Widgets
                         Qt5::Svg
                         Qt5::WebKitWidgets )

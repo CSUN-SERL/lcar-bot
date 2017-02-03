@@ -5,7 +5,6 @@ int main(int argc, char **argv)
    ros::init(argc, argv, "uav_control_test");
    gcs::UAVControl quad1{2000};
 
-   ros::Rate loop_rate(10); //10Hz 
 
 //    lcar_msgs::TargetGlobal target_pt;
 //    target_pt.target.latitude = 47.3977255;
@@ -22,6 +21,7 @@ int main(int argc, char **argv)
    quad1.Arm(true);
    quad1.ScoutBuilding(target_pt);
 
+   ros::Rate loop_rate(10); //10Hz 
    while(ros::ok())
    {
        quad1.Run();
