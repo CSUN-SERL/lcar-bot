@@ -209,7 +209,7 @@ void MavrosHelper::OverrideRC(int channel, int value)
     pub_override_rc.publish(override_msg);
 }
 
-void MavrosHelper::SetPosition(float x, float y, float z, float yaw)
+void MavrosHelper::PublishPosition(float x, float y, float z, float yaw)
 {
     if(position_mode == global){
             mavros_msgs::GlobalPositionTarget target_global;
@@ -241,7 +241,7 @@ void MavrosHelper::SetPosition(float x, float y, float z, float yaw)
 }
 
 //local
-void MavrosHelper::SetPosition(geometry_msgs::Pose new_pose)
+void MavrosHelper::PublishPosition(geometry_msgs::Pose new_pose)
 {
     //Create the message object
     geometry_msgs::PoseStamped position_stamped;

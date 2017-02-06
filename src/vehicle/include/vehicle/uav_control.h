@@ -75,6 +75,9 @@ public:
     */
     void ScoutBuilding(lcar_msgs::TargetLocal msg_target);
 
+    void TravelToLocation(geometry_msgs::Pose& target);
+    void TurnToAngle(float target_angle);
+    
     /**
       Executes a Scout Building play using global coordinates
 
@@ -141,7 +144,8 @@ public:
      * by the user.
      */
     void StopMission(std::string flight_mode);
-
+    void SetRev(int rev)                                                {scout_rev = rev;}
+    
     //Getter Functions
     FlightState GetFlightState()                                        { return UpdateFlightState(); }
     int GetDistanceToWP() override                                      { return CalculateDistance(pose_target, pose_local); }
@@ -198,7 +202,12 @@ private:
       Check critical sensor values
     */
     void SafetyCheck();
-
+    
+   
+    int CompareYaw(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2);
+    
+    int CompareYaw(float yaw1, float yaw2);
+    
     /**
       Manage a local mission
     */
@@ -229,6 +238,7 @@ private:
         if(online_mode && msg->img_framed.header.seq % 5 == 0)
             queries_door.push_back(msg);
 
+   //quad1.MoveToLocation();
     }
 
     void UavHeartbeatCallback(std_msgs::Int32 heartbeat_msg)
@@ -254,7 +264,7 @@ private:
         gcs_heartbeat.data++;
         pub_heartbeat.publish(gcs_heartbeat);
     }
-
+    float GetYaw(geometry_msgs::Pose& pose);
     //For returning Flight State Data to GCS
     FlightState UpdateFlightState();
 
@@ -270,17 +280,18 @@ private:
     geometry_msgs::Pose             pose_target,
                                     pose_home,
                                     pose_previous;
-    nav_msgs::Path                  path_mission;
+    nav_msgs::Path                  path_mission; //TODO: make a List of path missions for a "campaign"
     std_msgs::Float64               object_distance;
     Mode                            goal = idle,
                                     goal_prev = null;
-    MissionMode                     mission_mode = stopped;
+    MissionMode                     mission_mode = active;
     ros::Time                       last_request;
     std::vector<lcar_msgs::AccessPointStampedPtr>        access_pts;
     std::vector<lcar_msgs::QueryPtr> queries_door;
     bool                            collision = false,
                                     online_mode = true;
-    int                             tries = 0;
+    int                             tries = 0,
+                                    scout_rev = 1;
 };
 
 }

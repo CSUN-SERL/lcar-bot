@@ -37,7 +37,6 @@ void UAVControl::InitialSetup()
     battery.percentage = -1;
 }
 
-
 void UAVControl::ScoutBuilding(lcar_msgs::TargetLocal msg_target)
 {
     //Update the target location
@@ -67,12 +66,6 @@ FlightState UAVControl::UpdateFlightState()
 {
     FlightState flight_state;
 
-    /*tf::Quaternion quaternion_tf;
-    tf::quaternionMsgToTF(imu.orientation, quaternion_tf);
-    tf::Matrix3x3 m{quaternion_tf};
-
-    double roll, pitch, yaw;
-    m.getRPY(roll, pitch, yaw);*/
 
     flight_state.roll = imu.orientation.x;     //Update Roll value
     flight_state.pitch = imu.orientation.y;   //Update Pitch Value
@@ -103,12 +96,53 @@ int UAVControl::ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pose p
     m2.getRPY(roll, pitch, yaw2);
 
     if( std::abs(pose2.position.x - pose1.position.x)   <= THRESHOLD_XY &&
-        std::abs(pose2.position.y - pose1.position.y)   <= THRESHOLD_XY &&
-        std::abs(pose2.position.z - pose1.position.z)   <= THRESHOLD_Z  &&
-        std::abs(yaw2 - yaw1)                           <= THRESHOLD_YAW){
+        std::abs(pose2.position.y - pose1.position.y)   <= THRESHOLD_XY ){
+        
         result = 0;
     }
     else result = 1;
+
+    return result;
+}
+
+float UAVControl::GetYaw(geometry_msgs::Pose& pose1)
+{
+    double roll, pitch, yaw;
+    tf::Quaternion quaternion_tf;
+
+    tf::quaternionMsgToTF(pose1.orientation, quaternion_tf);
+    tf::Matrix3x3 m1{quaternion_tf};
+    m1.getRPY(roll, pitch, yaw);
+    yaw = angles::normalize_angle_positive(angles::from_degrees(yaw));
+    return (float)yaw;
+}
+
+int UAVControl::CompareYaw(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
+{
+    int result;
+    
+    if(std::abs(GetYaw(pose2) - GetYaw(pose1)) <= THRESHOLD_YAW){
+        
+        result = 0;
+    }
+    else {
+        result = 1;
+    }
+
+    return result;
+}
+
+int UAVControl::CompareYaw(float yaw1, float yaw2)
+{
+    int result;
+    
+    if(std::abs(yaw2 - yaw1) <= THRESHOLD_YAW){
+        
+        result = 0;
+    }
+    else {
+        result = 1;
+    }
 
     return result;
 }
@@ -158,6 +192,40 @@ float UAVControl::GetMissionProgress()
     }
 
     return progress;
+}
+
+
+void UAVControl::TravelToLocation(geometry_msgs::Pose& target)
+{
+    pose_target = target;
+    ROS_INFO_STREAM_ONCE("Traveling to Location");
+    if(std::abs(std::abs(pose_local.position.z) - std::abs(pose_target.position.z)) <= THRESHOLD_Z &&
+            CompareYaw(pose_local,pose_target)==0){
+        //Achieved the proper altitude => Go to target location
+        this->PublishPosition(pose_target);
+        pose_previous = pose_local; //Update previous position for fixing the altitude
+    }
+    else{
+          ROS_INFO_STREAM_ONCE("Ascending");
+        //Ascend to the proper altitude first at the current location
+        this->PublishPosition(pose_previous.position.x, pose_previous.position.y, pose_target.position.z,GetYaw(pose_target));
+    }
+}
+
+void UAVControl::TurnToAngle(float target_angle)
+{
+//    float temp_yaw = GetYaw(pose_local);
+//    if(CompareYaw(temp_yaw,target_angle) == 0)
+//    {  
+//        ROS_INFO_STREAM("Reached target Angle");
+//        this->PublishPosition(pose_previous);
+//        pose_previous = pose_local;
+//    }
+//    else
+//    {
+//        ROS_INFO_STREAM_ONCE("Moving to target Angle");
+//        this->PublishPosition(pose_previous.position.x, pose_previous.position.y, pose_previous.position.z,target_angle);
+//    }
 }
 
 nav_msgs::Path UAVControl::CircleShape(lcar_msgs::TargetLocal target_point)
@@ -254,7 +322,9 @@ void UAVControl::Run()
     this->SafetyCheck();
 
     //Run Specific Actions
-    if(position_mode == local) this->RunLocal();
+    if(position_mode == local) 
+    {ROS_INFO_STREAM_ONCE("Beginning local");
+    this->RunLocal();}
     else this->RunGlobal();
 
     //Run Common Actions
@@ -271,76 +341,85 @@ void UAVControl::Run()
 
 void UAVControl::RunLocal()
 {
-    if(goal == travel){
-        if(ComparePosition(pose_local, pose_target) == 0){
-            //Vehicle is at target location => Scout Building
-            pose_previous = pose_local;
-            goal = scout;
-            ROS_DEBUG_STREAM_ONCE("Scouting Building.");
-        }
-        else if(std::abs(std::abs(pose_local.position.z) - std::abs(pose_target.position.z)) <= THRESHOLD_Z){
-            //Achieved the proper altitude => Go to target location
-            this->SetPosition(pose_target);
-
-            pose_previous = pose_local; //Update previous position for fixing the altitude
-        }
-        else{
-            //Ascend to the proper altitude first at the current location
-            this->SetPosition(pose_previous.position.x, pose_previous.position.y, pose_target.position.z);
-        }
-    }
     
-    else if(goal == hold){
-        this->SetPosition(pose_previous);
+    if(CompareAltitude(pose_local,pose_target) == 0 && 
+            ComparePosition(pose_local,pose_target) == 0 && 
+            CompareYaw(pose_local,pose_target) == 0)
+    {
+                 this->TurnToAngle(180);
     }
+    else
+    {
+        this->TravelToLocation(pose_target);
+    }
+    /* switch(goal)
+    {
+        
     
-    else if(goal == scout){
-        static int rev_count = 1;
-        static int cur_point = 0;
-
-        //Travel to the next waypoint
-        pose_target = path_mission.poses.at(cur_point).pose;
-        this->SetPosition(pose_target);
-        goal = travel;
-        cur_point++;
-
-        if (cur_point > path_mission.poses.size()-1){ //
-            rev_count++;
-            ROS_INFO_STREAM("Circled Building " << rev_count << " times.");
-
-            if(rev_count > 2) {
-                goal = rtl;
-                rev_count = 0;
-                cur_point = 0;
+      case travel://TODO make so it can travel somewhere without always scouting
+            if(ComparePosition(pose_local, pose_target) == 0){
+                //Vehicle is at target location => Scout Building
+                pose_previous = pose_local;
+                goal = scout;
+                ROS_DEBUG_STREAM_ONCE("Sc .5outing Building.");
             }
-            else cur_point = 0;
-        }
-    }
+            this->TravelToLocation();
+        break;
+
+        case hold:
+            this->SetPosition(pose_previous);
+        break;
     
-    else if(goal == rtl){
-        if(ComparePosition(pose_local, pose_home) == 0){
-            goal = land;
-        }
-        else if(abs(pose_local.position.z - ALT_RTL) <= THRESHOLD_Z){
-            //Achieved the proper altitude => Go to target location
-            this->SetPosition(pose_home.position.x, pose_home.position.y, ALT_RTL);
-            pose_previous = pose_local;
-        }
-        else{
-            this->SetPosition(pose_previous.position.x, pose_previous.position.y, ALT_RTL);
-        }
-    }
+        case scout:
+            static int rev_count = 1;
+            static int cur_point = 0;
+
+            //Travel to the next waypoint
+            pose_target = path_mission.poses.at(cur_point).pose;
+            this->SetPosition(pose_target);
+            goal = travel;
+            cur_point++;
+
+            if (cur_point > path_mission.poses.size()-1){ //
+                rev_count++;
+                ROS_INFO_STREAM("Circled Building " << rev_count << " times.");
+
+                if(rev_count > scout_rev) {
+                    goal = rtl;
+                    rev_count = 0;
+                    cur_point = 0;
+                }
+                else{
+                    cur_point = 0;
+                }
+            }
+        break;
     
-    else if(goal == land){
-        if(pose_local.position.z <= THRESHOLD_Z){
-            goal = disarm;
-            ROS_INFO_STREAM_ONCE("Landed Safely.");
-        }
-        else{
-            //Descend to the floor
-            this->SetPosition(pose_previous.position.x, pose_previous.position.y, 0);
-        }
-    }
+        case rtl:
+           if(ComparePosition(pose_local, pose_home) == 0){
+                goal = land;
+                 ROS_INFO_STREAM_ONCE("Above LZ.");
+            }
+            else{
+                pose_target.position.x = pose_home.position.x;
+                pose_target.position.y = pose_home.position.y;
+            this->TravelToLocation();
+             ROS_INFO_STREAM_ONCE("Moving to LZ.");
+            }
+        break;
+
+        case land:
+            if(pose_local.position.z <= THRESHOLD_Z){
+                goal = disarm;
+                ROS_INFO_STREAM_ONCE("Landed Safely.");
+            }
+            else{
+                //Descend to the floor
+                this->SetPosition(pose_previous.position.x, pose_previous.position.y, 0);
+                ROS_INFO_STREAM_ONCE("Trying to Land.");
+            }
+        break;
+    }*/
 }
 
 void UAVControl::RunGlobal()
