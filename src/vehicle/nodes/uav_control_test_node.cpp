@@ -5,7 +5,6 @@ int main(int argc, char **argv)
    ros::init(argc, argv, "uav_control_test");
    gcs::UAVControl quad1{2000};
 
-   ros::Rate loop_rate(10); //10Hz 
 
 //    lcar_msgs::TargetGlobal target_pt;
 //    target_pt.target.latitude = 47.3977255;
@@ -24,11 +23,17 @@ int main(int argc, char **argv)
    target_pt.position.z =2;
    quaternionTFToMsg(tf::createQuaternionFromYaw(0), target_pt.orientation);
    quad1.Arm(true);
+<<<<<<< HEAD
    
    //quad1.ScoutBuilding(target_pt1);
    quad1.EnableOffboard();
    
    //Make a setup function
+=======
+   quad1.ScoutBuilding(target_pt);
+
+   ros::Rate loop_rate(10); //10Hz 
+>>>>>>> 699e09c828c978b65bb7d868f8f7fcc024f14588
    while(ros::ok())
    {
     quad1.TravelToLocation(target_pt);   
