@@ -105,22 +105,24 @@ int UAVControl::ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pose p
     return result;
 }
 
-float UAVControl::GetYaw(geometry_msgs::Pose& pose1)
+//returns angle in degrees
+double UAVControl::GetYaw(geometry_msgs::Pose& pose)
 {
     double roll, pitch, yaw;
     tf::Quaternion quaternion_tf;
 
-    tf::quaternionMsgToTF(pose1.orientation, quaternion_tf);
+    tf::quaternionMsgToTF(pose.orientation, quaternion_tf);
     tf::Matrix3x3 m1{quaternion_tf};
     m1.getRPY(roll, pitch, yaw);
-    yaw = angles::normalize_angle_positive(angles::from_degrees(yaw));
-    return (float)yaw;
+    
+    return yaw;
 }
 
 int UAVControl::CompareYaw(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
 {
     int result;
     
+    //compares two radians
     if(std::abs(GetYaw(pose2) - GetYaw(pose1)) <= THRESHOLD_YAW){
         
         result = 0;
@@ -132,10 +134,11 @@ int UAVControl::CompareYaw(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
     return result;
 }
 
-int UAVControl::CompareYaw(float yaw1, float yaw2)
+int UAVControl::CompareYaw(double yaw1, double yaw2)
 {
     int result;
     
+    //compares two radians
     if(std::abs(yaw2 - yaw1) <= THRESHOLD_YAW){
         
         result = 0;
@@ -152,10 +155,10 @@ int UAVControl::CompareAltitude(geometry_msgs::Pose pose1, geometry_msgs::Pose p
     int result;
     float threshold;
 
-    if(position_mode == local) threshold = THRESHOLD_Z;
-    else threshold = THRESHOLD_ALT;
+//    if(position_mode == local) threshold = THRESHOLD_Z;
+//    else threshold = THRESHOLD_ALT;
 
-    if(std::abs(pose1.position.z - pose2.position.z) <= threshold){
+    if(std::abs(pose1.position.z - pose2.position.z) <= THRESHOLD_Z){
         result = 0;
     }
     else result = 1;
@@ -196,36 +199,83 @@ float UAVControl::GetMissionProgress()
 
 
 void UAVControl::TravelToLocation(geometry_msgs::Pose& target)
-{
+{ 
+   
     pose_target = target;
     ROS_INFO_STREAM_ONCE("Traveling to Location");
-    if(std::abs(std::abs(pose_local.position.z) - std::abs(pose_target.position.z)) <= THRESHOLD_Z &&
-            CompareYaw(pose_local,pose_target)==0){
+    if(CompareAltitude(pose_local,pose_target) == 0)
+    {     
         //Achieved the proper altitude => Go to target location
         this->PublishPosition(pose_target);
-        pose_previous = pose_local; //Update previous position for fixing the altitude
+        //Update previous position for fixing the altitude
     }
     else{
           ROS_INFO_STREAM_ONCE("Ascending");
         //Ascend to the proper altitude first at the current location
         this->PublishPosition(pose_previous.position.x, pose_previous.position.y, pose_target.position.z,GetYaw(pose_target));
-    }
+    } 
+    pose_previous = pose_local;
 }
 
-void UAVControl::TurnToAngle(float target_angle)
+void UAVControl::SetTarget(geometry_msgs::Pose& target)
 {
-//    float temp_yaw = GetYaw(pose_local);
-//    if(CompareYaw(temp_yaw,target_angle) == 0)
-//    {  
-//        ROS_INFO_STREAM("Reached target Angle");
-//        this->PublishPosition(pose_previous);
-//        pose_previous = pose_local;
-//    }
-//    else
-//    {
-//        ROS_INFO_STREAM_ONCE("Moving to target Angle");
-//        this->PublishPosition(pose_previous.position.x, pose_previous.position.y, pose_previous.position.z,target_angle);
-//    }
+    pose_target.position.x = target.position.x;
+    pose_target.position.y = target.position.y;
+    pose_target.position.z = target.position.z;
+    pose_target.orientation = target.orientation;
+}
+
+void UAVControl::TravelToPosition(double x, double y)
+{
+    pose_target.position.x = x;
+    pose_target.position.y = y;
+    if(ComparePosition(pose_local,pose_target) == 0)
+    {     
+        this->TravelToLocation(pose_previous);
+    }
+    else
+    {
+        this->TravelToLocation(pose_target);
+    }
+}
+    
+void UAVControl::TravelToAltitude(double z)
+{
+    pose_target.position.z = z;
+     
+    if(CompareAltitude(pose_local,pose_target) == 0)
+    {
+        this->TravelToLocation(pose_previous);
+        //pose_previous = pose_local;
+    }
+    else
+    {
+        this->TravelToLocation(pose_target);
+    } 
+}
+  
+void UAVControl::TurnToAngle(double target_angle)
+{
+    pose_target.position.x = pose_previous.position.x;
+    pose_target.position.y = pose_previous.position.y;
+   pose_target.position.z = pose_previous.position.z;
+    target_angle = angles::normalize_angle_positive(angles::from_degrees(target_angle));
+    quaternionTFToMsg(tf::createQuaternionFromYaw(target_angle), pose_target.orientation);
+    
+    
+    if(CompareYaw((float)GetYaw(pose_local),(float)target_angle) == 0 )
+    {  
+        this->TravelToLocation(pose_previous);
+        ROS_INFO_STREAM(""<<pose_previous.position.z);
+        ROS_INFO_STREAM(""<<pose_target.position.z);
+     // pose_previous = pose_local;
+    }
+    else
+    {
+        this->TravelToLocation(pose_target);
+        ROS_INFO_STREAM("turning to angle"<<GetYaw(pose_target));
+          ROS_INFO_STREAM("current to angle"<<GetYaw(pose_local));
+    }
 }
 
 nav_msgs::Path UAVControl::CircleShape(lcar_msgs::TargetLocal target_point)
@@ -342,34 +392,18 @@ void UAVControl::Run()
 void UAVControl::RunLocal()
 {
     
-    if(CompareAltitude(pose_local,pose_target) == 0 && 
-            ComparePosition(pose_local,pose_target) == 0 && 
-            CompareYaw(pose_local,pose_target) == 0)
+    if(CompareAltitude(pose_local,pose_target) == 0 && ComparePosition(pose_local,pose_target)==0)
     {
-                 this->TurnToAngle(180);
+       //this->TravelToPosition(pose_target.position.x, pose_target.position.y);
+        this->TurnToAngle(45);
+       // ROS_INFO_STREAM(""<<pose_previous.position.z);
     }
     else
     {
-        this->TravelToLocation(pose_target);
+        this->TravelToAltitude(pose_target.position.z);
+        //this->TravelToLocation(pose_target);
     }
-    /* switch(goal)
-    {
-        
-    
-      case travel://TODO make so it can travel somewhere without always scouting
-            if(ComparePosition(pose_local, pose_target) == 0){
-                //Vehicle is at target location => Scout Building
-                pose_previous = pose_local;
-                goal = scout;
-                ROS_DEBUG_STREAM_ONCE("Sc .5outing Building.");
-            }
-            this->TravelToLocation();
-        break;
-
-        case hold:
-            this->SetPosition(pose_previous);
-        break;
-    
+    /* 
         case scout:
             static int rev_count = 1;
             static int cur_point = 0;
@@ -393,33 +427,9 @@ void UAVControl::RunLocal()
                     cur_point = 0;
                 }
             }
-        break;
+        break;*/
     
-        case rtl:
-           if(ComparePosition(pose_local, pose_home) == 0){
-                goal = land;
-                 ROS_INFO_STREAM_ONCE("Above LZ.");
-            }
-            else{
-                pose_target.position.x = pose_home.position.x;
-                pose_target.position.y = pose_home.position.y;
-            this->TravelToLocation();
-             ROS_INFO_STREAM_ONCE("Moving to LZ.");
-            }
-        break;
-
-        case land:
-            if(pose_local.position.z <= THRESHOLD_Z){
-                goal = disarm;
-                ROS_INFO_STREAM_ONCE("Landed Safely.");
-            }
-            else{
-                //Descend to the floor
-                this->SetPosition(pose_previous.position.x, pose_previous.position.y, 0);
-                ROS_INFO_STREAM_ONCE("Trying to Land.");
-            }
-        break;
-    }*/
+    
 }
 
 void UAVControl::RunGlobal()

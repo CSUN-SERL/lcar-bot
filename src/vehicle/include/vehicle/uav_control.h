@@ -41,7 +41,7 @@ namespace gcs
 #define THRESHOLD_Z 0.25
 #define THRESHOLD_XY_GPS 0.00001
 #define THRESHOLD_Z_GPS 0.5
-#define THRESHOLD_YAW 0.1
+#define THRESHOLD_YAW 0.2
 #define THRESHOLD_GPS 0.001        //Lat & Lon tolerances
 #define THRESHOLD_ALT 1            //Altitude tolerance for GPS
 #define THRESHOLD_DEPTH 2
@@ -74,9 +74,13 @@ public:
 
     */
     void ScoutBuilding(lcar_msgs::TargetLocal msg_target);
-
+    void SetTarget(geometry_msgs::Pose& target);
     void TravelToLocation(geometry_msgs::Pose& target);
-    void TurnToAngle(float target_angle);
+    void TravelToPosition(double x, double y);
+    void TravelToAltitude(double z);
+    
+    //turns to a certain angle in degrees
+    void TurnToAngle(double target_angle);
     
     /**
       Executes a Scout Building play using global coordinates
@@ -206,7 +210,7 @@ private:
    
     int CompareYaw(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2);
     
-    int CompareYaw(float yaw1, float yaw2);
+    int CompareYaw(double yaw1, double yaw2);
     
     /**
       Manage a local mission
@@ -264,7 +268,9 @@ private:
         gcs_heartbeat.data++;
         pub_heartbeat.publish(gcs_heartbeat);
     }
-    float GetYaw(geometry_msgs::Pose& pose);
+    
+    double GetYaw(geometry_msgs::Pose& pose);
+            
     //For returning Flight State Data to GCS
     FlightState UpdateFlightState();
 

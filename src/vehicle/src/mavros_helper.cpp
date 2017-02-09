@@ -164,7 +164,6 @@ void MavrosHelper::EnableOffboard()
     pose.pose.position.x = pose_local.position.x;
     pose.pose.position.y = pose_local.position.y;
     pose.pose.position.z = pose_local.position.z;
-
     this->Arm(true);
 
     ros::Rate loop_rate(50); //50Hz

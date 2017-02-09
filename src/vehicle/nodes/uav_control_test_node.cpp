@@ -18,25 +18,24 @@ int main(int argc, char **argv)
    target_pt1.radius = 2;*/
    
    geometry_msgs::Pose target_pt;
-   target_pt.position.x = 0;
-   target_pt.position.y = 0;
+   target_pt.position.x = -2;
+   target_pt.position.y = -2;
    target_pt.position.z =2;
    quaternionTFToMsg(tf::createQuaternionFromYaw(0), target_pt.orientation);
+   quad1.SetTarget(target_pt);
+   
    quad1.Arm(true);
-<<<<<<< HEAD
    
    //quad1.ScoutBuilding(target_pt1);
    quad1.EnableOffboard();
    
    //Make a setup function
-=======
-   quad1.ScoutBuilding(target_pt);
+   //quad1.ScoutBuilding(target_pt);
 
    ros::Rate loop_rate(10); //10Hz 
->>>>>>> 699e09c828c978b65bb7d868f8f7fcc024f14588
+  
    while(ros::ok())
-   {
-    quad1.TravelToLocation(target_pt);   
+   { 
        quad1.Run();
        ros::spinOnce();
        loop_rate.sleep();
