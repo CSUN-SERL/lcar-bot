@@ -78,7 +78,6 @@ public:
     void TravelToLocation(geometry_msgs::Pose& target);
     void TravelToPosition(double x, double y);
     void TravelToAltitude(double z);
-    
     //turns to a certain angle in degrees
     void TurnToAngle(double target_angle);
     

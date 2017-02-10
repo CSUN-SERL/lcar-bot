@@ -18,9 +18,9 @@ int main(int argc, char **argv)
    target_pt1.radius = 2;*/
    
    geometry_msgs::Pose target_pt;
-   target_pt.position.x = -2;
-   target_pt.position.y = -2;
-   target_pt.position.z =2;
+   target_pt.position.x = 0;
+   target_pt.position.y = 0;
+   target_pt.position.z =0;
    quaternionTFToMsg(tf::createQuaternionFromYaw(0), target_pt.orientation);
    quad1.SetTarget(target_pt);
    
