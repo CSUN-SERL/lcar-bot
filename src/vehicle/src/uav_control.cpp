@@ -274,7 +274,7 @@ void UAVControl::TurnToAngle(double target_angle)
     }
 }
 
-/*should only be called once*/
+/*should only be called once. ALL RELATIVE ARE UNTESTED*/
 void UAVControl::TravelRelativeToPosition(double x,double y)
 {
     pose_target.position.x += x;
@@ -417,30 +417,22 @@ void UAVControl::Run()
         //Wait for the goal to change
     }
 }
-
+bool temp = false;
 void UAVControl::RunLocal()
 { 
-    if(CompareAltitude(pose_local,pose_target) == 0 && ComparePosition(pose_local,pose_target)==0)
+    /*TODO: FSM managed by Gui by Friday*/
+    
+    if(temp)
     {
-        ROS_INFO_STREAM("current 1"<<pose_local.position.z);
-        
-        ROS_INFO_STREAM("target 1"<<pose_target.position.z);
-        //this->TurnToAngle(180);
-        //this->TravelToAltitude(7);
-       // this->TravelToPosition(5,5);
-       this->TravelToPosition(-2, -2);
-        
-        ROS_INFO_STREAM("current 2"<<pose_local.position.z);
-        
-        ROS_INFO_STREAM("target 2"<<pose_target.position.z);
-        
+        this->TravelToPosition(7,5);
     }
+    
     else
-    { 
+    {
         this->TravelToAltitude(5);
-        this->TravelToPosition(5,5);
-        
+        if(CompareAltitude(pose_local,pose_target)==0){temp = true;}
     }
+    
     /* 
         case scout:
             static int rev_count = 1;
