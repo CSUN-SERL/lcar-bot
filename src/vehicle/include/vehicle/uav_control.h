@@ -76,8 +76,19 @@ public:
     void ScoutBuilding(lcar_msgs::TargetLocal msg_target);
     void SetTarget(geometry_msgs::Pose& target);
     void TravelToLocation(geometry_msgs::Pose& target);
+    
     void TravelToPosition(double x, double y);
+    /* should be called before travel to position*/
     void TravelToAltitude(double z);
+    
+    /*relative functions should be called once to prevent infinite movement*/
+    void TravelRelativeToPosition(double x,double y);
+    void TurnRelative(double degrees);
+    void TravelRelativeToAltitude(double z);
+    
+    void StrafeX(double x);
+    void StrafeY(double y);
+    
     //turns to a certain angle in degrees
     void TurnToAngle(double target_angle);
     

@@ -200,18 +200,7 @@ float UAVControl::GetMissionProgress()
 
 void UAVControl::TravelToLocation(geometry_msgs::Pose& target)
 { 
-    //weird bug. must fix height at z. 
-    if(CompareAltitude(target, pose_target)==0)
-    {
-        double temp_z = pose_target.position.z;
-        pose_target = target;
-        pose_target.position.z = temp_z;
-    }
-    else
-    { 
-        pose_target = target;
-    }
-    
+   
     ROS_INFO_STREAM_ONCE("Traveling to Location");
     if(CompareAltitude(pose_local,pose_target) == 0)
     {     
@@ -219,6 +208,7 @@ void UAVControl::TravelToLocation(geometry_msgs::Pose& target)
         this->PublishPosition(pose_target);
         //Update previous position for fixing the altitude
         pose_previous = pose_local;
+        
     }
     else{
           ROS_INFO_STREAM_ONCE("Ascending");
@@ -239,20 +229,26 @@ void UAVControl::TravelToPosition(double x, double y)
 {
     pose_target.position.x = x;
     pose_target.position.y = y;
-    if(ComparePosition(pose_local,pose_target) == 0)
-    {     
-        this->TravelToLocation(pose_previous);
+    if(CompareAltitude(pose_local,pose_target) == 0)
+    {
+        if(ComparePosition(pose_local,pose_target) == 0)
+        {     
+            this->TravelToLocation(pose_previous);
+        }
+        else
+        {
+            this->TravelToLocation(pose_target);
+        }
     }
     else
     {
-        this->TravelToLocation(pose_target);
+        this->TravelToAltitude(pose_target.position.z);
     }
 }
     
 void UAVControl::TravelToAltitude(double z)
 {
     pose_target.position.z = z;
-     
     if(CompareAltitude(pose_local,pose_target) == 0)
     {
         this->TravelToLocation(pose_previous);
@@ -278,31 +274,36 @@ void UAVControl::TurnToAngle(double target_angle)
     }
 }
 
+/*should only be called once*/
 void UAVControl::TravelRelativeToPosition(double x,double y)
 {
     pose_target.position.x += x;
     pose_target.position.y +=y;
-    this->TravelToPosition(pose_target.postion.x,pose_target.position.y);
+    this->TravelToPosition(pose_target.position.x,pose_target.position.y);
 }
 
-void UAVControl::TurnRelative(double degrees)
+void UAVControl::TurnRelative(double degrees_turn)
 {
-    
+    degrees_turn = angles::normalize_angle_positive(angles::from_degrees(degrees_turn));
+    degrees_turn += GetYaw(pose_target);
+    quaternionTFToMsg(tf::createQuaternionFromYaw(degrees_turn), pose_target.orientation);
 }
 
 void UAVControl::TravelRelativeToAltitude(double z)
 {
-    
+    pose_target.position.z += z;
 }
 
 void UAVControl::StrafeX(double x)
 {
-    
+    pose_target.position.x +=x;
+    this->TravelToPosition(pose_target.position.x,pose_target.position.y);
 }
 
 void UAVControl::StrafeY(double y)
 {
-    
+    pose_target.position.y +=y;
+    this->TravelToPosition(pose_target.position.x,pose_target.position.y);
 }
     
 nav_msgs::Path UAVControl::CircleShape(lcar_msgs::TargetLocal target_point)
@@ -408,6 +409,7 @@ void UAVControl::Run()
     if(goal == disarm){
         //Disarm the vehicle if it's currently armed
         if(state.armed) this->Arm(false);
+    //pose_target.position.z = 2;
         goal = idle;
     }
     
@@ -418,18 +420,26 @@ void UAVControl::Run()
 
 void UAVControl::RunLocal()
 { 
-    //pose_target.position.z = 2;
     if(CompareAltitude(pose_local,pose_target) == 0 && ComparePosition(pose_local,pose_target)==0)
     {
-       
-       this->TravelToPosition(3, 3);
-       // this->TurnToAngle(45);
-        ROS_INFO_STREAM(""<<pose_previous.position.z);
+        ROS_INFO_STREAM("current 1"<<pose_local.position.z);
+        
+        ROS_INFO_STREAM("target 1"<<pose_target.position.z);
+        //this->TurnToAngle(180);
+        //this->TravelToAltitude(7);
+       // this->TravelToPosition(5,5);
+       this->TravelToPosition(-2, -2);
+        
+        ROS_INFO_STREAM("current 2"<<pose_local.position.z);
+        
+        ROS_INFO_STREAM("target 2"<<pose_target.position.z);
+        
     }
     else
-    {
-       this->TravelToAltitude(5);
-        //this->TravelToLocation(pose_target);
+    { 
+        this->TravelToAltitude(5);
+        this->TravelToPosition(5,5);
+        
     }
     /* 
         case scout:

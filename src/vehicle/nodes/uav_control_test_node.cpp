@@ -20,7 +20,7 @@ int main(int argc, char **argv)
    geometry_msgs::Pose target_pt;
    target_pt.position.x = 0;
    target_pt.position.y = 0;
-   target_pt.position.z =0;
+   target_pt.position.z =1;
    quaternionTFToMsg(tf::createQuaternionFromYaw(0), target_pt.orientation);
    quad1.SetTarget(target_pt);
    
