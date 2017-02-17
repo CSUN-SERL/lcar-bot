@@ -1,5 +1,6 @@
 #include "vehicle/uav_control.h"
 
+
 int main(int argc, char **argv)
 {
    ros::init(argc, argv, "uav_control_test");
@@ -17,10 +18,11 @@ int main(int argc, char **argv)
    target_pt1.radius = 2;*/
    
    geometry_msgs::Pose target_pt;
-   target_pt.position.x = 0;
-   target_pt.position.y = 0;
-   target_pt.position.z =1;
+   target_pt.position.x = 2;
+   target_pt.position.y = 2;
+   target_pt.position.z =5;
    quaternionTFToMsg(tf::createQuaternionFromYaw(0), target_pt.orientation);
+   
    quad1.SetTarget(target_pt);
    
    quad1.Arm(true);
