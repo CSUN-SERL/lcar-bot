@@ -42,7 +42,8 @@ catkin_package(
             vehicle
             std_msgs
             sensor_msgs
-            lcar_msgs )
+            lcar_msgs 
+            image_transport )
 
 file(GLOB gcs_SRCS src/lib/*.cpp )
 file(GLOB gcs_HDRS include/qt/*.h )

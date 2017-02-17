@@ -68,7 +68,7 @@ GCSMainWindow::GCSMainWindow(VehicleManager *vm):
             this, &GCSMainWindow::OnOperatorNotified);
     connect(ui_adapter, &UIAdapter::SetImageRootDir,
             this, &GCSMainWindow::OnImageRootDirUpdated);
-
+    
     this->InitMenuBar();
     this->InitSettings();
     this->InitMap();

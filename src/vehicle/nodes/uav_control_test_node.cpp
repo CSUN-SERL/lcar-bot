@@ -5,7 +5,6 @@ int main(int argc, char **argv)
    ros::init(argc, argv, "uav_control_test");
    gcs::UAVControl quad1{2000};
 
-
 //    lcar_msgs::TargetGlobal target_pt;
 //    target_pt.target.latitude = 47.3977255;
 //    target_pt.target.longitude = 8.5456603;
