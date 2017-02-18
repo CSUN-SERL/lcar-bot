@@ -1,5 +1,6 @@
 #include <stereo_driver.h>
 #include <sensor_msgs/fill_image.h>
+#include <cv_bridge/cv_bridge.h>
 #include <endian.h>
 
 using namespace camera_info_manager;
@@ -16,9 +17,9 @@ StereoDriver::StereoDriver(int vendor_id, int product_id, ros::NodeHandle nh) :
     
     cim_left.loadCameraInfo("package://machine_vision/calibrations/left.yaml");
     cim_right.loadCameraInfo("package://machine_vision/calibrations/right.yaml");
-    
-    ci_left = cim_left.getCameraInfo();
-    ci_right = cim_right.getCameraInfo();
+
+    ci_left.reset(new sensor_msgs::CameraInfo(cim_left.getCameraInfo()));
+    ci_right.reset(new sensor_msgs::CameraInfo(cim_right.getCameraInfo()));
     
     pub_left = it.advertiseCamera( "stereo_cam/left/image_raw", 1);
     pub_right = it.advertiseCamera("stereo_cam/right/image_raw", 1);
@@ -168,22 +169,20 @@ void StereoDriver::ImageCallback(uvc_frame_t *frame){
       return;
     }
     
-    sensor_msgs::Image msg_left;
-    sensor_msgs::Image msg_right;
+    cv::Mat mat_left(uvc_left->height, uvc_left->width, CV_8UC1, uvc_left->data, uvc_left->step);
+    cv::Mat mat_right(uvc_right->height, uvc_right->width, CV_8UC1, uvc_right->data, uvc_right->step);
+    
+    sensor_msgs::ImagePtr msg_left = 
+            cv_bridge::CvImage(std_msgs::Header(), "mono8", mat_left).toImageMsg();
+    
+    sensor_msgs::ImagePtr msg_right = 
+            cv_bridge::CvImage(std_msgs::Header(), "mono8", mat_right).toImageMsg();
 
     ros::Time time_stamp = ros::Time::now();
-    ci_left.header.stamp = ci_right.header.stamp = time_stamp;
-    msg_left.header.stamp = msg_right.header.stamp = time_stamp;
-    msg_left.header.seq = msg_right.header.seq = frame->sequence;
-    msg_left.is_bigendian = msg_right.is_bigendian = (__BYTE_ORDER == __BIG_ENDIAN);
-    
-    sensor_msgs::fillImage(msg_left, "mono8", 
-                           uvc_left->height, uvc_left->width, 
-                           uvc_left->step, uvc_left->data);
-    
-    sensor_msgs::fillImage(msg_right, "mono8", 
-                           uvc_right->height, uvc_right->width, 
-                           uvc_right->step, uvc_right->data);
+    ci_left->header.stamp = ci_right->header.stamp = time_stamp;
+    msg_left->header.stamp = msg_right->header.stamp = time_stamp;
+    msg_left->header.seq = msg_right->header.seq = frame->sequence;
+    msg_left->is_bigendian = msg_right->is_bigendian = (__BYTE_ORDER == __BIG_ENDIAN);
     
     pub_left.publish(msg_left, ci_left);
     pub_right.publish(msg_right, ci_right);
