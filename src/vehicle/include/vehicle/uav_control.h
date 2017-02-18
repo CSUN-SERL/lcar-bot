@@ -26,7 +26,6 @@
 #include "lcar_msgs/AccessPointStamped.h"
 #include "lcar_msgs/TargetLocal.h"
 #include "lcar_msgs/TargetGlobal.h"
-#include "vehicle/vehicle_control.h"
 #include "vehicle/mavros_helper.h"
 
 namespace gcs
@@ -74,23 +73,44 @@ public:
 
     */
     void ScoutBuilding(lcar_msgs::TargetLocal msg_target);
-    void SetTarget(geometry_msgs::Pose& target);
-    void TravelToLocation(geometry_msgs::Pose& target);
     
-    void TravelToPosition(double x, double y);
-    /* should be called before travel to position*/
-    void TravelToAltitude(double z);
+    /**
+     Sets the pose_target
+     * @param target is new target location
+     */
+    void SetTarget(geometry_msgs::Pose& target);
+    
+    void SetMission(geometry_msgs::Pose& target, double radius);
+    
+    /**
+     * Moves vehicle to target x,y location
+     * @param x
+     * @param y
+     */
+    void TravelToTargetPosition();
+    
+    /**
+     * Moves vehicle to target z altitude
+     * @param z
+     */
+    void TravelToTargetAltitude();
+    
+    /**
+     * Turns the vehicle to desired angle. target_angle in degrees.
+     * @param target_angle
+     */
+    void TurnToAngle(double target_angle);
+    
+    void SetTargetAltitude(double z);
+    void SetTargetPosition(double x,double y);
+    void SetTargetAngle(geometry_msgs::Quaternion angle);
     
     /*relative functions should be called once to prevent infinite movement*/
     void TravelRelativeToPosition(double x,double y);
     void TurnRelative(double degrees);
     void TravelRelativeToAltitude(double z);
-    
     void StrafeX(double x);
     void StrafeY(double y);
-    
-    //turns to a certain angle in degrees
-    void TurnToAngle(double target_angle);
     
     /**
       Executes a Scout Building play using global coordinates
@@ -217,10 +237,21 @@ private:
     */
     void SafetyCheck();
     
-   
+   /**
+    Compares two angles of pose inputs. returns 0 if they are within tolerance
+    */
     int CompareYaw(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2);
     
+    /**
+    Compares two degree angles. returns 0 if they are within tolerance
+    */
     int CompareYaw(double yaw1, double yaw2);
+    
+     /**
+     * Moves the drone to specific location x,y,z and yaw
+      * set before by call to SetTarget or TravelTo____
+     */
+    void TravelToTargetLocation();
     
     /**
       Manage a local mission
@@ -296,9 +327,9 @@ private:
     geometry_msgs::Pose             pose_target,
                                     pose_home,
                                     pose_previous;
-    nav_msgs::Path                  path_mission; //TODO: make a List of path missions for a "campaign"
+    nav_msgs::Path                  path_mission; 
     std_msgs::Float64               object_distance;
-    Mode                            goal = idle,
+    Mode                            goal,
                                     goal_prev = null;
     MissionMode                     mission_mode = active;
     ros::Time                       last_request;
