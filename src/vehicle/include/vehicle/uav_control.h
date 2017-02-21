@@ -99,7 +99,7 @@ public:
      * Turns the vehicle to desired angle. target_angle in degrees.
      * @param target_angle
      */
-    void TurnToAngle(double target_angle);
+    void TurnToAngle();
     
     void SetTargetAltitude(double z);
     void SetTargetPosition(double x,double y);
@@ -238,6 +238,7 @@ private:
     void SafetyCheck();
     
    /**
+
     Compares two angles of pose inputs. returns 0 if they are within tolerance
     */
     int CompareYaw(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2);
@@ -329,7 +330,7 @@ private:
                                     pose_previous;
     nav_msgs::Path                  path_mission; 
     std_msgs::Float64               object_distance;
-    Mode                            goal,
+    Mode                            goal = idle,
                                     goal_prev = null;
     MissionMode                     mission_mode = active;
     ros::Time                       last_request;

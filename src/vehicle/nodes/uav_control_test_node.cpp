@@ -21,13 +21,13 @@ int main(int argc, char **argv)
    target_pt.position.x = 2;
    target_pt.position.y = 2;
    target_pt.position.z =5;
-   quaternionTFToMsg(tf::createQuaternionFromYaw(0), target_pt.orientation);
+   double angle_radians = angles::normalize_angle_positive(angles::from_degrees(180));
+   quaternionTFToMsg(tf::createQuaternionFromYaw(angle_radians), target_pt.orientation);
    
    quad1.SetTarget(target_pt);
    
    quad1.Arm(true);
    
-   //quad1.ScoutBuilding(target_pt1);
    quad1.EnableOffboard();
    
    //Make a setup function

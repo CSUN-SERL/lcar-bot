@@ -155,8 +155,6 @@ int UAVControl::CompareAltitude(geometry_msgs::Pose pose1, geometry_msgs::Pose p
     int result;
     float threshold;
 
-//    if(position_mode == local) threshold = THRESHOLD_Z;
-//    else threshold = THRESHOLD_ALT;
 
     if(std::abs(pose1.position.z - pose2.position.z) <= THRESHOLD_Z){
         result = 0;
@@ -263,18 +261,18 @@ void UAVControl::TravelToTargetPosition()
 void UAVControl::TravelToTargetAltitude()
 {
     //am I at the right altitude?
-    if(CompareAltitude(pose_local, pose_target) != 0)//
+    if(CompareAltitude(pose_local, pose_target) != 0)//no
     {
         this->TravelToTargetLocation();
     }
 }
   
-void UAVControl::TurnToAngle(double target_angle)
+void UAVControl::TurnToAngle()
 {
-    target_angle = angles::normalize_angle_positive(angles::from_degrees(target_angle));
-    quaternionTFToMsg(tf::createQuaternionFromYaw(target_angle), pose_target.orientation);
+//    target_angle = angles::normalize_angle_positive(angles::from_degrees(target_angle));
+//    quaternionTFToMsg(tf::createQuaternionFromYaw(target_angle), pose_target.orientation);
     
-    if(CompareYaw((float)GetYaw(pose_local),(float)target_angle) == 0 )
+    if(CompareYaw((float)GetYaw(pose_local),(float)GetYaw(pose_target)) == 0 )
     {  
         this->TravelToTargetLocation();
     }
@@ -383,7 +381,8 @@ mavros_msgs::WaypointPush UAVControl::CircleShape(lcar_msgs::TargetGlobal target
 void UAVControl::SafetyCheck()
 {
     //Sanity Checks
-    if(battery.percentage < BATTERY_MIN && battery.percentage != -1){
+ 
+   if(battery.percentage < BATTERY_MIN && battery.percentage != -1){
         //Land if battery is starting to get low
         goal = land;
     }
@@ -419,7 +418,6 @@ void UAVControl::Run()
     if(goal == disarm){
         //Disarm the vehicle if it's currently armed
         if(state.armed) this->Arm(false);
-    //pose_target.position.z = 2;
         goal = idle;
     }
     
@@ -432,9 +430,12 @@ void UAVControl::RunLocal()
 { 
     /*TODO: FSM managed by Gui by Friday*/
     switch(goal)
-    {
-        case travel:
+    { 
+        case idle:
             
+        break;
+        
+        case travel:
         break;
         
         case hold:
@@ -454,10 +455,6 @@ void UAVControl::RunLocal()
         break;
         
         case disarm:
-        
-        break;
-        
-        case idle:
         
         break;
         
