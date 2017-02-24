@@ -454,7 +454,7 @@ void VehicleManager::OnSetWaypoint(int v_id, double lat, double lng, double alt)
 {
     VehicleControl *vc = this->FindVehicle(v_id);
     if(vc != nullptr)
-        vc->SetWayPoint(lat, lng, alt);
+        vc->SetTarget(lat, lng, alt);
     else
         ROS_ERROR_STREAM("Cannot set waypoint: No such" 
                 << this->VehicleStringFromId(v_id).toStdString()

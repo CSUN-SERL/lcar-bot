@@ -65,7 +65,6 @@ public:
     {
        online_mode = value;
     }
-
     /**
       Executes a Scout Building play using local coordinates
 
@@ -79,6 +78,9 @@ public:
      * @param target is new target location
      */
     void SetTarget(geometry_msgs::Pose& target);
+    
+    void SetTarget(double lat, double lng, double alt); 
+    
     
     void SetMission(geometry_msgs::Pose& target, double radius);
     
@@ -168,8 +170,9 @@ public:
      *
      * Cancels the current mission and commands the UAV to return base.
      */
-    void StopMission();
-
+    void StopMission() override;
+    
+    void StartMission() override;
     /*!
      * \brief Cancels the current mission
      * \param flight_mode The flight mode to switch to after cancelling mission

@@ -48,7 +48,7 @@ enum Mode
     scout,
     rtl,
     land,
-    disarm,
+    disarm, //remove disarm
     idle,
     null
 };

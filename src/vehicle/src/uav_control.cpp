@@ -36,7 +36,7 @@ void UAVControl::InitialSetup()
     object_distance.data = 100;
     battery.percentage = -1;
 }
-
+    
 void UAVControl::ScoutBuilding(lcar_msgs::TargetLocal msg_target)
 {
     //Update the target location
@@ -199,9 +199,10 @@ float UAVControl::GetMissionProgress()
 void UAVControl::TravelToTargetLocation()
 {   
     
-    ROS_INFO_STREAM_ONCE("Traveling to Location");
+    
     if(CompareAltitude(pose_local,pose_target) == 0)
     {     
+        ROS_INFO_STREAM_ONCE("Traveling to Psoition");
         //Achieved the proper altitude => Go to target x, y location
         this->PublishPosition(pose_target);
         //Update previous position for fixing the altitude
@@ -214,12 +215,20 @@ void UAVControl::TravelToTargetLocation()
     } 
 }
 
-void UAVControl::SetTarget(geometry_msgs::Pose& target)
+void UAVControl::SetTarget(geometry_msgs::Pose& target)  
 {
     this->SetTargetAltitude(target.position.z);
     this->SetTargetPosition(target.position.x, target.position.y);
     this->SetTargetAngle(target.orientation);
 }
+
+void UAVControl::SetTarget(double lat, double lng, double alt)  
+{
+    this->SetTargetAltitude(alt);
+    this->SetTargetPosition(lng, lng);
+    //angle doesn't matter. Leave angle as is.
+}
+
 
 void UAVControl::SetTargetAltitude(double z)
 {
@@ -269,9 +278,6 @@ void UAVControl::TravelToTargetAltitude()
   
 void UAVControl::TurnToAngle()
 {
-//    target_angle = angles::normalize_angle_positive(angles::from_degrees(target_angle));
-//    quaternionTFToMsg(tf::createQuaternionFromYaw(target_angle), pose_target.orientation);
-    
     if(CompareYaw((float)GetYaw(pose_local),(float)GetYaw(pose_target)) == 0 )
     {  
         this->TravelToTargetLocation();
@@ -429,40 +435,58 @@ void UAVControl::Run()
 void UAVControl::RunLocal()
 { 
     /*TODO: FSM managed by Gui by Friday*/
-    switch(goal)
-    { 
-        case idle:
+    if(state.armed)
+    {
+        switch(goal)
+        { 
+            case idle:
+                ROS_INFO_STREAM_ONCE("Idle Mode");
+                goal = travel;    
+            break;
+
+            case travel:
+                ROS_INFO_STREAM_ONCE("Travel Mode");
+                this->TravelToTargetPosition();
+                this->TurnToAngle();
+                if(ComparePosition(pose_local,pose_target) == 0 &&
+                        CompareAltitude(pose_local,pose_target)==0 && 
+                        CompareYaw(pose_local,pose_target)==0)
+                {
+                    this->SetTarget(pose_previous);
+                    goal = hold;
+                }
+            break;
+
+            case hold:
+                 ROS_INFO_STREAM_ONCE("Hold Mode");
+                this->TravelToTargetPosition();
+            break;
+
+            case scout:
+
+            break;
+
+            case rtl:
+                this->SetTargetPosition(pose_home.position.x, pose_home.position.y);
+                this->TravelToTargetPosition();
+                //are you above the LZ?
+                if(ComparePosition(pose_local,pose_target)==0)//yes
+                {
+                    //descend
+                    goal = land;
+                }
+            break;
+
+            case land:
+                this->SetTargetAltitude(0);
+                goal = travel;
+            break;
             
-        break;
-        
-        case travel:
-        break;
-        
-        case hold:
-        
-        break;
-        
-        case scout:
-        
-        break;
-        
-        case rtl:
-        
-        break;
-        
-        case land:
-        
-        break;
-        
-        case disarm:
-        
-        break;
-        
-        case null:
-        
-        break;
-        
-        
+            case null:
+
+            break;
+
+        }
     }
     
 //            static int rev_count = 1;
@@ -501,7 +525,10 @@ void UAVControl::RunGlobal()
         this->SetMode("AUTO.RTL");
     }
 }
-
+void UAVControl::StartMission()
+{
+    mission_mode = active;
+}
 void UAVControl::PauseMission()
 {
     mission_mode = paused;
