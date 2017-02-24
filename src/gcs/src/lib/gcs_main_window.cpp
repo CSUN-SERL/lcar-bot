@@ -491,7 +491,7 @@ void GCSMainWindow::UpdateFlightStateWidgets()
     widget.pfd->setRoll(flight_state.roll*180);
     widget.pfd->setPitch(flight_state.pitch*90);
     widget.pfd->setHeading(flight_state.heading);
-    widget.pfd->setAirspeed(flight_state.ground_speed);
+    widget.pfd->setAirspeed(flight_state.air_speed);
     widget.pfd->setAltitude(flight_state.altitude);
     widget.pfd->setClimbRate(flight_state.vertical_speed);
     widget.pfd->update();
