@@ -127,6 +127,12 @@ void MavrosHelper::Land()
     }
 }
 
+void MavrosHelper::SetRTL()
+{
+     this->EnableOffboard(); 
+     goal = Mode::rtl; 
+}
+
 void MavrosHelper::SetMode(std::string mode)
 {
     //Create a message for changing flight mode

@@ -528,6 +528,7 @@ void UAVControl::RunGlobal()
 void UAVControl::StartMission()
 {
     mission_mode = active;
+    goal = scout;
 }
 void UAVControl::PauseMission()
 {

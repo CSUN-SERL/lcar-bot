@@ -81,7 +81,6 @@ public:
     
     void SetTarget(double lat, double lng, double alt); 
     
-    
     void SetMission(geometry_msgs::Pose& target, double radius);
     
     /**
@@ -126,12 +125,6 @@ public:
       Manage the UAV and ensure that it is stable
     */
     void Run();
-
-    /**
-      Return to launch site
-    */
-    void SetRTL() override { this->EnableOffboard(); goal = Mode::rtl; }
-
     /**
       Manage the UAV and ensure that it is stable
     */
@@ -148,6 +141,8 @@ public:
     {
         connection_dropped = drop_connection;
     }
+    
+    void StartMission() override;
 
     /*!
      * \brief Pause the current mission
@@ -172,7 +167,6 @@ public:
      */
     void StopMission() override;
     
-    void StartMission() override;
     /*!
      * \brief Cancels the current mission
      * \param flight_mode The flight mode to switch to after cancelling mission
@@ -181,6 +175,7 @@ public:
      * by the user.
      */
     void StopMission(std::string flight_mode);
+    
     void SetRev(int rev)                                                {scout_rev = rev;}
     
     //Getter Functions
@@ -333,9 +328,7 @@ private:
                                     pose_previous;
     nav_msgs::Path                  path_mission; 
     std_msgs::Float64               object_distance;
-    Mode                            goal = idle,
-                                    goal_prev = null;
-    MissionMode                     mission_mode = active;
+    
     ros::Time                       last_request;
     std::vector<lcar_msgs::AccessPointStampedPtr>        access_pts;
     std::vector<lcar_msgs::QueryPtr> queries_door;

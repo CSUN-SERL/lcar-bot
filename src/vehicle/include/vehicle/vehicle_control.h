@@ -24,22 +24,22 @@ public:
     
     VehicleControl(int id): id(id){};
     virtual ~VehicleControl(){};
-    virtual void Arm(bool value){};
-    virtual bool IsArmed();
-    virtual void SetMode(std::string){};
+    virtual void Arm(bool value) = 0;
+    virtual bool IsArmed() = 0;
+    virtual void SetMode(std::string)=0;
 //    virtual void SetWayPoint(const sensor_msgs::NavSatFix& location){}; // for global
 //    virtual void SetWayPoint(double lat, double lng, double alt){}; // overload for global
     virtual void SetTarget(geometry_msgs::Pose&)=0; 
-    virtual void SetTarget(double lat, double lng, double alt);
-    virtual int GetDistanceToWP();
+    virtual void SetTarget(double lat, double lng, double alt) = 0;
+    virtual int GetDistanceToWP() = 0;
 //    virtual sensor_msgs::NavSatFix GetLocation()=0;
-    virtual void SetRTL();
-    virtual void StartMission();//{ mission_mode = active; }; // todo make pure virtual and add override implementation to UAVControl
-    virtual void PauseMission();//{ mission_mode = paused; };
-    virtual void ResumeMission();//{ mission_mode = active; };
-    virtual void StopMission();//{ mission_mode = stopped; };
+    virtual void SetRTL() = 0; //makes the drone go home immediately when called
+    virtual void StartMission() = 0;//{ mission_mode = active; }; // todo make pure virtual and add override implementation to UAVControl
+    virtual void PauseMission() = 0;//{ mission_mode = paused; };
+    virtual void ResumeMission() = 0;//{ mission_mode = active; };
+    virtual void StopMission() = 0;//{ mission_mode = stopped; };
     virtual MissionMode GetMissionMode(){ return mission_mode; };
-    virtual float GetMissiontProgress() ;//{ return -1; };
+    virtual float GetMissiontProgress() { return -1; };
     virtual int GetBattery() { return battery; };
     virtual std::string GetMode() { return  mode; };
     

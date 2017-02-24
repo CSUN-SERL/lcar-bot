@@ -74,6 +74,9 @@ public:
     */
     void Land();
 
+    
+    void SetRTL() override; // tell the vehicle to return to launch
+    
     /**
       Set the UAV Flight Mode.
 
@@ -197,7 +200,7 @@ public:
     sensor_msgs::Imu  GetImu()                  { return imu; }
     
     bool IsArmed() override { return state.armed; }
-
+    
 protected:
 
     //UAV State Variables
@@ -212,6 +215,8 @@ protected:
     ros::Time                       last_request;
     PositionMode                    position_mode = local;
     int                             tries = 0;
+    Mode                            goal = idle,
+                                    goal_prev = null;
 
 private:
     /*!
