@@ -7,6 +7,8 @@
 #include <QStringBuilder>
 #include <QWaitCondition>
 
+
+#include <osgEarthQt/ViewerWidget>
 #include <osgDB/ReadFile>
 
 #include "qt/query_widget.h"

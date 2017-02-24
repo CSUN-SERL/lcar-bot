@@ -14,8 +14,6 @@
 #include <QSettings>
 #include <QCloseEvent>
 
-#include <osgEarthQt/ViewerWidget>
-
 #include "ui_GCSMainWindow.h"
 
 #include "qt/ui_adapter.h"
@@ -33,6 +31,14 @@
 #include "lcar_msgs/Query.h"
 #include "lcar_msgs/TargetLocal.h"
 #include "lcar_msgs/TargetGlobal.h"
+
+namespace osgEarth
+{
+    namespace QtGui
+    {
+        class ViewerWidget;
+    }
+}
 
 namespace gcs
 {
