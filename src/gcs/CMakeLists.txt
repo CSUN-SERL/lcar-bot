@@ -40,14 +40,14 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
 catkin_package(
   INCLUDE_DIRS ${gcs_INCLUDE_DIRS}
   LIBRARIES ${PROJECT_NAME}
-  DEPENDS Qt5Widgets Qt5Svg Qt5OpenGL
   CATKIN_DEPENDS
             roscpp
             cv_bridge
             vehicle
             std_msgs
             sensor_msgs
-            lcar_msgs )
+            lcar_msgs 
+            image_transport )
 
 file(GLOB gcs_SRCS src/lib/*.cpp )
 file(GLOB gcs_HDRS include/qt/*.h )

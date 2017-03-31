@@ -26,7 +26,6 @@
 #include "lcar_msgs/AccessPointStamped.h"
 #include "lcar_msgs/TargetLocal.h"
 #include "lcar_msgs/TargetGlobal.h"
-#include "vehicle/vehicle_control.h"
 #include "vehicle/mavros_helper.h"
 
 namespace gcs
@@ -41,7 +40,7 @@ namespace gcs
 #define THRESHOLD_Z 0.25
 #define THRESHOLD_XY_GPS 0.00001
 #define THRESHOLD_Z_GPS 0.5
-#define THRESHOLD_YAW 0.1
+#define THRESHOLD_YAW 0.2
 #define THRESHOLD_GPS 0.001        //Lat & Lon tolerances
 #define THRESHOLD_ALT 1            //Altitude tolerance for GPS
 #define THRESHOLD_DEPTH 2
@@ -66,7 +65,6 @@ public:
     {
        online_mode = value;
     }
-
     /**
       Executes a Scout Building play using local coordinates
 
@@ -74,7 +72,47 @@ public:
 
     */
     void ScoutBuilding(lcar_msgs::TargetLocal msg_target);
-
+    
+    /**
+     Sets the pose_target
+     * @param target is new target location
+     */
+    void SetTarget(geometry_msgs::Pose& target);
+    
+    void SetTarget(double lat, double lng, double alt); 
+    
+    void SetMission(geometry_msgs::Pose& target, double radius);
+    
+    /**
+     * Moves vehicle to target x,y location
+     * @param x
+     * @param y
+     */
+    void TravelToTargetPosition();
+    
+    /**
+     * Moves vehicle to target z altitude
+     * @param z
+     */
+    void TravelToTargetAltitude();
+    
+    /**
+     * Turns the vehicle to desired angle. target_angle in degrees.
+     * @param target_angle
+     */
+    void TurnToAngle();
+    
+    void SetTargetAltitude(double z);
+    void SetTargetPosition(double x,double y);
+    void SetTargetAngle(geometry_msgs::Quaternion angle);
+    
+    /*relative functions should be called once to prevent infinite movement*/
+    void TravelRelativeToPosition(double x,double y);
+    void TurnRelative(double degrees);
+    void TravelRelativeToAltitude(double z);
+    void StrafeX(double x);
+    void StrafeY(double y);
+    
     /**
       Executes a Scout Building play using global coordinates
 
@@ -87,12 +125,6 @@ public:
       Manage the UAV and ensure that it is stable
     */
     void Run();
-
-    /**
-      Return to launch site
-    */
-    void SetRTL() override { this->EnableOffboard(); goal = Mode::rtl; }
-
     /**
       Manage the UAV and ensure that it is stable
     */
@@ -109,6 +141,8 @@ public:
     {
         connection_dropped = drop_connection;
     }
+    
+    void StartMission() override;
 
     /*!
      * \brief Pause the current mission
@@ -131,8 +165,8 @@ public:
      *
      * Cancels the current mission and commands the UAV to return base.
      */
-    void StopMission();
-
+    void StopMission() override;
+    
     /*!
      * \brief Cancels the current mission
      * \param flight_mode The flight mode to switch to after cancelling mission
@@ -141,7 +175,9 @@ public:
      * by the user.
      */
     void StopMission(std::string flight_mode);
-
+    
+    void SetRev(int rev)                                                {scout_rev = rev;}
+    
     //Getter Functions
     FlightState GetFlightState()                                        { return UpdateFlightState(); }
     int GetDistanceToWP() override                                      { return CalculateDistance(pose_target, pose_local); }
@@ -198,7 +234,24 @@ private:
       Check critical sensor values
     */
     void SafetyCheck();
+    
+   /**
 
+    Compares two angles of pose inputs. returns 0 if they are within tolerance
+    */
+    int CompareYaw(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2);
+    
+    /**
+    Compares two degree angles. returns 0 if they are within tolerance
+    */
+    int CompareYaw(double yaw1, double yaw2);
+    
+     /**
+     * Moves the drone to specific location x,y,z and yaw
+      * set before by call to SetTarget or TravelTo____
+     */
+    void TravelToTargetLocation();
+    
     /**
       Manage a local mission
     */
@@ -229,6 +282,7 @@ private:
         if(online_mode && msg->img_framed.header.seq % 5 == 0)
             queries_door.push_back(msg);
 
+   //quad1.MoveToLocation();
     }
 
     void UavHeartbeatCallback(std_msgs::Int32 heartbeat_msg)
@@ -254,7 +308,9 @@ private:
         gcs_heartbeat.data++;
         pub_heartbeat.publish(gcs_heartbeat);
     }
-
+    
+    double GetYaw(geometry_msgs::Pose& pose);
+            
     //For returning Flight State Data to GCS
     FlightState UpdateFlightState();
 
@@ -270,17 +326,16 @@ private:
     geometry_msgs::Pose             pose_target,
                                     pose_home,
                                     pose_previous;
-    nav_msgs::Path                  path_mission;
+    nav_msgs::Path                  path_mission; 
     std_msgs::Float64               object_distance;
-    Mode                            goal = idle,
-                                    goal_prev = null;
-    MissionMode                     mission_mode = stopped;
+    
     ros::Time                       last_request;
     std::vector<lcar_msgs::AccessPointStampedPtr>        access_pts;
     std::vector<lcar_msgs::QueryPtr> queries_door;
     bool                            collision = false,
                                     online_mode = true;
-    int                             tries = 0;
+    int                             tries = 0,
+                                    scout_rev = 1;
 };
 
 }

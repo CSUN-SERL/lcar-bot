@@ -13,14 +13,14 @@
 
 namespace gcs
 {
-
+   
 class VehicleWidget : public MyQWidget
 {
     Q_OBJECT
 public:
     VehicleWidget(QWidget * parent = 0);
     virtual ~VehicleWidget();
-    
+
     void SetNumber(int id);
     void SetBattery(int battery);
     void SetCondition(const QString& cond); 
@@ -28,7 +28,7 @@ public:
     void SetId(int id);
     int Id();
     
-    bool SetButtonEnabled(bool enable);
+    void SetButtonEnabled(bool enable);
     bool IsButtonEnabled();
     const QPushButton* Button();
     

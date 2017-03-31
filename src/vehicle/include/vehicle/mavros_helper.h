@@ -74,6 +74,9 @@ public:
     */
     void Land();
 
+    
+    void SetRTL() override; // tell the vehicle to return to launch
+    
     /**
       Set the UAV Flight Mode.
 
@@ -132,14 +135,14 @@ public:
       @param z      New z position
       @param yaw    New yaw value in degrees
     */
-    void SetPosition(float x, float y, float z, float yaw = 361);
+    void PublishPosition(float x, float y, float z, float yaw = 361);
 
     /**
       Send a new local position command to the UAV.
 
       @param new_pose The new local position passed as a Pose object
     */
-    void SetPosition(geometry_msgs::Pose new_pose);
+    void PublishPosition(geometry_msgs::Pose new_pose);
 
     /**
       Send a new global position command to the UAV.
@@ -214,6 +217,8 @@ protected:
     ros::Time                       last_request;
     PositionMode                    position_mode = local;
     int                             tries = 0;
+    Mode                            goal = idle,
+                                    goal_prev = null;
 
 private:
     /*!

@@ -43,8 +43,8 @@ class StereoDriver{
 
         ros::NodeHandle nh;
         image_transport::ImageTransport it;
-        sensor_msgs::CameraInfo ci_left;
-        sensor_msgs::CameraInfo ci_right;
+        sensor_msgs::CameraInfoPtr ci_left;
+        sensor_msgs::CameraInfoPtr ci_right;
         image_transport::CameraPublisher pub_left;
         image_transport::CameraPublisher pub_right;
 

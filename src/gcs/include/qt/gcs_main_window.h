@@ -25,12 +25,11 @@
 #include "qt/access_points_container_widget.h"
 
 #include <vehicle/data_types.h>
+#include <vehicle/uav_control.h>
 
-#include "vehicle/uav_control.h"
-
-#include "lcar_msgs/Query.h"
-#include "lcar_msgs/TargetLocal.h"
-#include "lcar_msgs/TargetGlobal.h"
+#include <lcar_msgs/Query.h>
+#include <lcar_msgs/TargetLocal.h>
+#include <lcar_msgs/TargetGlobal.h>
 
 namespace osgEarth
 {

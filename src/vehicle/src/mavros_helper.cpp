@@ -127,6 +127,12 @@ void MavrosHelper::Land()
     }
 }
 
+void MavrosHelper::SetRTL()
+{
+     this->EnableOffboard(); 
+     goal = Mode::rtl; 
+}
+
 void MavrosHelper::SetMode(std::string mode)
 {
     //Create a message for changing flight mode
@@ -164,7 +170,6 @@ void MavrosHelper::EnableOffboard()
     pose.pose.position.x = pose_local.position.x;
     pose.pose.position.y = pose_local.position.y;
     pose.pose.position.z = pose_local.position.z;
-
     this->Arm(true);
 
     ros::Rate loop_rate(50); //50Hz
@@ -209,7 +214,7 @@ void MavrosHelper::OverrideRC(int channel, int value)
     pub_override_rc.publish(override_msg);
 }
 
-void MavrosHelper::SetPosition(float x, float y, float z, float yaw)
+void MavrosHelper::PublishPosition(float x, float y, float z, float yaw)
 {
     if(position_mode == global){
             mavros_msgs::GlobalPositionTarget target_global;
@@ -218,9 +223,9 @@ void MavrosHelper::SetPosition(float x, float y, float z, float yaw)
             target_global.longitude = y;
             target_global.altitude  = z;
 
-            this->SetPosition(target_global);
+            pub_setpoint_gposition.publish(target_global);
     }
-    else{
+    else{ //local
         //Create the message object
         geometry_msgs::PoseStamped position_stamped;
 
@@ -240,29 +245,20 @@ void MavrosHelper::SetPosition(float x, float y, float z, float yaw)
     }
 }
 
-void MavrosHelper::SetPosition(geometry_msgs::Pose new_pose)
+//local
+void MavrosHelper::PublishPosition(geometry_msgs::Pose new_pose)
 {
-    if(position_mode == global){
-        mavros_msgs::GlobalPositionTarget target_global;
+    //Create the message object
+    geometry_msgs::PoseStamped position_stamped;
 
-        target_global.latitude  = new_pose.position.x;
-        target_global.longitude = new_pose.position.y;
-        target_global.altitude  = new_pose.position.z;
+    //Update the message with the new position
+    position_stamped.pose = new_pose;
 
-        pub_setpoint_gposition.publish(target_global);
-    }
-    else{
-        //Create the message object
-        geometry_msgs::PoseStamped position_stamped;
-
-        //Update the message with the new position
-        position_stamped.pose = new_pose;
-
-        //Publish the message
-        pub_setpoint_position.publish(position_stamped);
-    }
+    //Publish the message
+    pub_setpoint_position.publish(position_stamped);
 }
 
+//global
 void MavrosHelper::SetPosition(mavros_msgs::GlobalPositionTarget new_pose)
 {
     //Publish the message

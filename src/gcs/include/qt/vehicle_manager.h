@@ -38,7 +38,7 @@ namespace gcs
     
     //todo implement these forward declarations
     class UGVControl;
-    class NAOCOntrol;
+    class NAOControl;
     
 class VehicleManager : public QObject
 {
