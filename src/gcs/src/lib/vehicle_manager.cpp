@@ -214,7 +214,7 @@ int VehicleManager::GenerateId(const QString& machine_name)
 
 int VehicleManager::VehicleTypeFromId(int v_id)
 {   
-    if(v_id <= VehicleType::invalid_low || v_id >= VehicleType::invalid_high)
+    if(v_id <= VehicleType::invalid_low || VehicleType::invalid_high <= v_id)
         return VehicleType::invalid_low;
 
     return (v_id / VEHICLE_TYPE_MAX) * VEHICLE_TYPE_MAX;
@@ -629,7 +629,7 @@ bool VehicleManager::VehicleInitRequested(lcar_msgs::InitRequest::Request& req,
         {
             res.vehicle_id = VehicleType::invalid_low;
             res.ack = false;
-            res.message = req.machine_name + " already requested initilization";
+            res.message = req.machine_name + " already requested initialization";
             return false;
         }
     }
@@ -681,7 +681,7 @@ void VehicleManager::TimedHeartBeatCheck(const ros::TimerEvent& e)
     for(; v_type < VehicleType::invalid_high; v_type += VEHICLE_TYPE_MAX)
     {
         QMap<int, VehicleControl*> *v_db = &db[v_type];   
-        for(auto it = v_db->begin(); it != v_db->end(); it++)
+        for(auto it = v_db->constBegin(); it != v_db->constEnd(); it++)
         {
             int v_id = it.key();
             VehicleControl* vc = it.value();
@@ -705,8 +705,9 @@ void VehicleManager::AddVehiclePrivate(int v_id)
         case VehicleType::quad_rotor:
         case VehicleType::octo_rotor: 
         case       VehicleType::vtol: 
-                                      vc = new UAVControl(v_id);
-                                      break;
+            vc = new UAVControl(v_id);
+            break;
+                                      
         default: vc = nullptr;
     }
     
@@ -727,7 +728,7 @@ void VehicleManager::AddVehiclePrivate(int v_id)
 VehicleControl* VehicleManager::FindVehicle(int v_type, int v_id)
 {   
     QMap<int, VehicleControl*> * v_db = &db[v_type];
-    QMap<int, VehicleControl*>::Iterator it = v_db->find(v_id);
+    QMap<int, VehicleControl*>::ConstIterator it = v_db->find(v_id);
     if(it != v_db->end()) //found it
         return it.value();
     

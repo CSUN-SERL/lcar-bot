@@ -33,7 +33,7 @@ void VehicleWidget::SetBattery(int battery)
 {
     if (battery < 0)
         battery = 0;
-    widget.VehicleBatteryLine->setText(QString::number(battery) % "%");
+    widget.VehicleBatteryLine->setText(QString::number(battery) % QChar('%'));
 }
 
 void VehicleWidget::SetCondition(const QString& cond)
@@ -56,9 +56,9 @@ int VehicleWidget::Id()
     return v_id;
 }
 
-bool VehicleWidget::SetButtonEnabled(bool enable)
+void VehicleWidget::SetButtonEnabled(bool enable)
 {
-    widget.VehicleSelectButton->setEnabled(enable); 
+//    widget.VehicleSelectButton->setEnabled(enable); 
     QString style_sheet = enable ?
           "background-color: rgb(64, 89, 140); color: rgb(240, 240, 240);" :
           "background-color: rgb(80, 90, 110); color: rgb(150, 150, 150);" ;
@@ -75,7 +75,5 @@ const QPushButton* VehicleWidget::Button()
 {
     return widget.VehicleSelectButton;
 }
-
-
 
 }
