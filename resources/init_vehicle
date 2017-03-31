@@ -28,7 +28,7 @@ if [ -f  $file_name ]; then
     echo "$file_name contains $ID"
 
     if [ "$ID" != "-1" ]; then
-       roslaunch gcs lcarbot_single_sim.launch uav_id:="$ID"
+       roslaunch gcs lcarbot_single_sim_vision.launch uav_id:="$ID"
 #      lcar-bot $ID
     fi
 fi

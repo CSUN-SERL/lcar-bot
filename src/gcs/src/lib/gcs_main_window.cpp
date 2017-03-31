@@ -90,18 +90,16 @@ void GCSMainWindow::OnAddVehicleWidget(int v_id)
     w->SetId(v_id);
     int v_index = vm->VehicleIndexFromId(v_id);
     w->SetNumber(v_index);
-    w->SetName(vm->VehicleStringFromId(v_id) % " " % QString::number(v_index));
+    w->SetName(vm->VehicleStringFromId(v_id) % QChar(' ') % QString::number(v_index));
 
-    // - 1 accounts for the vehicle corresponding to this widget
-    // that was added before the GUI was told to create this widget.
-    int num_vehicles = vm->NumVehiclesByType(v_type) - 1;
+    int num_widgets = layout_by_v_type[v_type]->count();
     int index = 0;
-    while(index < num_vehicles && v_id > this->VehicleWidgetAt(v_type, index)->Id())
+    while(index < num_widgets && v_id > this->VehicleWidgetAt(v_type, index)->Id())
         index++;
     
     //map this widgets vehicle select button to selecting this widget
     connect(w->Button(), &QPushButton::clicked,
-            this, [=](){ OnVehicleSelected(w); } );
+            this, [this, w](){ OnVehicleSelected(w); } );
     
     layout_by_v_type[v_type]->insertWidget(index, w);  
     
@@ -210,8 +208,7 @@ void GCSMainWindow::OnTimedUpdate()
     this->UpdateFlightStateWidgets();
     this->UpdateVehicleWidgets();
     
-    bool armed = vm->IsArmed(cur_v_id);
-    if(armed)
+    if(vm->IsArmed(cur_v_id))
         this->ToggleArmDisarmButton("disarm");
     else 
         this->ToggleArmDisarmButton("arm");
@@ -255,9 +252,9 @@ void GCSMainWindow::UpdateQueries()
         qw->SetImage(image);
 
         connect(qw->YesButton(), &QPushButton::clicked,
-                this, [=](){ OnAcceptDoorQuery(qw); });
+                this, [this, qw](){ OnAcceptDoorQuery(qw); });
         connect(qw->RejectButton(), &QPushButton::clicked,
-                this, [=](){ OnRejectDoorQuery(qw); });
+                this, [this, qw](){ OnRejectDoorQuery(qw); });
                 
         //add to user interface
         widget.layout_queries->addWidget(qw);
@@ -458,8 +455,7 @@ void GCSMainWindow::SelectVehicleWidgetById(int v_id)
     widget.image_frame->setPixmap(QPixmap::fromImage(QImage()));
     this->ClearQueries(); // new uav selected, so make room for its queries
     if(fl_widgets.ap_menu != nullptr)
-        fl_widgets.ap_menu->SetUAVAccessPointsAndId(vm->GetUAVAccessPoints(v_id), 
-                                                    v_id - v_type);
+        fl_widgets.ap_menu->SetUAVAccessPointsAndId(vm->GetUAVAccessPoints(v_id), v_id - v_type);
     
     //todo update gui buttons according to current vehicles mission status 
     MissionMode m = vm->GetMissionMode(cur_v_id);
@@ -630,7 +626,6 @@ void GCSMainWindow::InitMap()
     QString s = ros::package::getPath("gcs").c_str();
     QString map_url = "file://" % s % "/map/uavmap.html";
     widget.web_view->load(QUrl(map_url));
-    
 }
 
 void GCSMainWindow::InitMenuBar()
@@ -690,8 +685,8 @@ void GCSMainWindow::UpdateVehicleWidgets()
 {
     //todo unhard code this v_type
     int v_type = VehicleType::quad_rotor;
-    int num_vehicle = vm->NumVehiclesByType(v_type);
-    for(int i = 0; i < num_vehicle; i++)
+    int num_widgets = layout_by_v_type[v_type]->count();
+    for(int i = 0; i < num_widgets; i++)
     {
         VehicleWidget *widget = this->VehicleWidgetAt(v_type, i);
         StatePtr ptr = vm->GetState(v_type + i);
@@ -735,8 +730,10 @@ void GCSMainWindow::closeEvent(QCloseEvent* event)
 VehicleWidget* GCSMainWindow::VehicleWidgetAt(int v_type, int index)
 {
     Q_ASSERT(VehicleType::invalid_low < v_type && v_type < VehicleType::invalid_high);
-    Q_ASSERT(index < vm->NumVehiclesByType(v_type));
-    
+    Q_ASSERT(index < layout_by_v_type[v_type]->count());
+    if(index >= layout_by_v_type[v_type]->count())
+        return nullptr;
+
     return static_cast<VehicleWidget*>(layout_by_v_type[v_type]->itemAt(index)->widget());
 }
 
