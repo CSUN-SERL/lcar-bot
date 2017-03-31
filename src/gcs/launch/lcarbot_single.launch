@@ -1,30 +1,37 @@
 <launch>
     <arg name="uav_id" default="2000"/>
-    <arg name="gcs_machine" default="Station1"/>
-    <arg name="robot_machine" default="Quad1"/>
 
-    <machine name="$(arg gcs_machine)"
-             address="localhost" />
+    <arg name="fcu_url" default="serial:///dev/ttyACM0:115200" />
+    <arg name="gcs_url" default="" />
+    <arg name="tgt_system" default="2" />
+    <arg name="tgt_component" default="1" />
+    <arg name="log_output" default="screen" />
+    <arg name="pluginlists_yaml" default="$(find mavros)/launch/px4_pluginlists.yaml" />
+    <arg name="config_yaml" default="$(find mavros)/launch/apm_config.yaml" />
 
-    <machine name="$(arg robot_machine)"
-             address="$(arg robot_machine)"
-             default="true"
-             user="ubuntu"
-             password="ubuntu"
-             env-loader="$HOME/lcar-bot-files/lcar_env.sh" />
 
+    <group ns="V$(arg uav_id)">
+       
+    <!-- 
+        <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc"
+             ns="stereo_cam" machine="$(arg gcs_machine)" respawn="true" />
+
+        <include file="$(find machine_vision)/launch/node_object_detection.launch" >
+            <arg name="machine_name" value="$(arg gcs_machine)" />
+        </include>
+    -->
+
+    <node pkg="mavros" type="mavros_node" name="mavros" required="true" clear_params="true" output="$(arg log_output)">
+        <param name="fcu_url" value="$(arg fcu_url)" />
+        <param name="gcs_url" value="$(arg gcs_url)" />
+        <param name="target_system_id" value="$(arg tgt_system)" />
+        <param name="target_component_id" value="$(arg tgt_component)" />
+
+        <!-- load blacklist, config -->
+        <rosparam command="load" file="$(arg pluginlists_yaml)" />
+        <rosparam command="load" file="$(arg config_yaml)" />
+    </node>
+
+    </group>
     
-     <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc"
-         ns="stereo_cam" machine="$(arg gcs_machine)" respawn="true" />
-
-    <include file="$(find machine_vision)/launch/node_object_detection.launch" >
-        <arg name="machine_name" value="$(arg gcs_machine)" />
-    </include>
-
-    <include file="$(find gcs)/helpers/launch/jetson.launch" >
-        <arg name="tgt_system" value="$(arg uav_id)" />
-        <arg name="uav_id" value="$(arg uav_id)" required="true" />
-        <arg name="machine_name" value="$(arg robot_machine)" />
-    </include>
-
 </launch>

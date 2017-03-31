@@ -60,20 +60,6 @@ public:
     * @param value Pass true for arm, false for disarm
     */
     void Arm(bool value);
-
-    /**
-      Takeoff to a set altitude. Requires the UAV to be first armed and then
-      put into Guided mode.
-
-      @param altitude Altitude, in feet, for takeoff
-    */
-    void Takeoff(int altitude);
-
-    /**
-      Land the UAV
-    */
-    void Land();
-
     
     void SetRTL() override; // tell the vehicle to return to launch
     
@@ -202,6 +188,19 @@ public:
     bool IsArmed() override { return state.armed; }
     
 protected:
+    /**
+      Land the UAV
+    */
+    void LandPrivate();
+    
+        /**
+      Takeoff to a set altitude. Requires the UAV to be first armed and then
+      put into Guided mode.
+
+      @param altitude Altitude, in feet, for takeoff
+    */
+    void Takeoff(double altitude);
+
 
     //UAV State Variables
     mavros_msgs::State              state;
@@ -217,6 +216,7 @@ protected:
     int                             tries = 0;
     Mode                            goal = idle,
                                     goal_prev = null;
+    bool landing = false;
 
 private:
     /*!

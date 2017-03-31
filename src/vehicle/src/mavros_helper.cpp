@@ -89,7 +89,7 @@ void MavrosHelper::Arm(bool value)
     tries = 0;
 }
 
-void MavrosHelper::Takeoff(int altitude)
+void MavrosHelper::Takeoff(double altitude)
 {
     //Ensure the UAV is in Guided mode and armed
     bool armed = (bool)state.armed;
@@ -112,15 +112,20 @@ void MavrosHelper::Takeoff(int altitude)
     }
 }
 
-void MavrosHelper::Land()
+void MavrosHelper::LandPrivate()
 {
+
     //Create a message for landing
     mavros_msgs::CommandTOL land;
 
     //Call the service
     if(sc_land.call(land)){
-        if(land.response.success == 1) ROS_INFO_STREAM("Land Initiated.");
-        else ROS_ERROR_STREAM("Failed to initiate land.");
+        if(land.response.success == 1)
+        {
+            ROS_INFO_STREAM("Land Initiated.");
+        }
+        else 
+            ROS_ERROR_STREAM("Failed to initiate land.");
     }
     else{
         ROS_ERROR_STREAM("Failed to call land service!");

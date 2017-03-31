@@ -44,6 +44,17 @@ public:
     virtual std::string GetMode() { return  mode; };
     
     bool RecievedHeartbeat() { return heartbeat_recieved; };
+    bool MissionComplete() { 
+        if(mission_mode == stopped){
+            return true;
+        }
+        else if(mission_mode == MissionMode::invalid)
+        {
+            return false;
+        }
+        
+        return mission_completed;
+    };
     
 protected:
 
@@ -58,7 +69,8 @@ protected:
     
     ros::Publisher                  pub_heartbeat;
     bool                            connection_dropped = false,
-                                    heartbeat_recieved = true;
+                                    heartbeat_recieved = true,
+                                    mission_completed = false;
     ros::Timer                      timer_heartbeat_uav,
                                     timer_heartbeat_gcs;
     std_msgs::Int32                 gcs_heartbeat,
