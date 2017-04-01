@@ -34,6 +34,9 @@ VehicleManager::VehicleManager(QObject *parent):
 {   
     srv_init_request = nh.advertiseService("vehicle/init/request", 
                                            &VehicleManager::VehicleInitRequested, this);
+    
+    srv_world_map = nh.advertiseService("/world_map", &VehicleManager::WorldMapRequested, this);
+    
     pub_init_response = nh.advertise<lcar_msgs::InitResponse>("vehicle/init/response", 2);
     
     heartbeat_timer = nh.createTimer(ros::Duration(1), &VehicleManager::TimedHeartBeatCheck, this);
@@ -492,7 +495,7 @@ void VehicleManager::OnSetRTL(int v_id)
 {
     VehicleControl *vc = this->FindVehicle(v_id);
     if(vc != nullptr)
-        return vc->SetRTL();
+        vc->SetRTL();
     else
         ROS_ERROR_STREAM("Cannot set Flight mode for UAV. No such" 
                 << this->VehicleStringFromId(v_id).toStdString()
@@ -618,6 +621,12 @@ QWaitCondition* VehicleManager::GetWaitCondition()
 }
 
 //private://////////////////////////////////////////////////////////////////////
+
+bool VehicleManager::WorldMapRequested(lcar_msgs::WorldMap::Request& req, lcar_msgs::WorldMap::Response& res)
+{
+    res.world_map = world_map.toStdVector();
+    return true;
+}
 
 bool VehicleManager::VehicleInitRequested(lcar_msgs::InitRequest::Request& req, 
                                             lcar_msgs::InitRequest::Response& res)

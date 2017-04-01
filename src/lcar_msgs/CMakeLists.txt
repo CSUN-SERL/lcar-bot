@@ -25,7 +25,8 @@ add_service_files(
     DIRECTORY srv
     FILES
     ODParams.srv
-    InitRequest.srv)
+    InitRequest.srv
+    WorldMap.srv)
 
 generate_messages(DEPENDENCIES sensor_msgs geometry_msgs mavros_msgs)
 

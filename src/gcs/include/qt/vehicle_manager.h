@@ -10,7 +10,7 @@
 #define VEHICLEMANAGER_H
 
 #include <QMap>
-#include <QSet>
+//#include <QSet>
 #include <QObject>
 #include <QProcess>
 #include <QMutex>
@@ -29,6 +29,8 @@
 #include "lcar_msgs/InitRequest.h"
 #include "lcar_msgs/TargetGlobal.h"
 #include "lcar_msgs/AccessPointStamped.h"
+#include "lcar_msgs/WorldMap.h"
+
 #include "vehicle/vehicle_control.h"
 #include "qt/ui_adapter.h"
 
@@ -223,7 +225,7 @@ public slots:
     FlightState GetFlightState(int uav_id);
     
     /**
-     * @return retrun s StatePtr a shared pointer to a State struct containing:
+     * @return returns StatePtr a shared pointer to a State struct containing:
      *   float battery;
          float mission_progress;
          std::string mode;
@@ -263,6 +265,8 @@ public slots:
 private:
     
     //ros related///////////////////////////////////////////////////////////////
+    bool WorldMapRequested(lcar_msgs::WorldMap::Request& req, lcar_msgs::WorldMap::Response& res);
+    
     /*
      * \brief the ros callback for the InitRequests server
      */
@@ -329,6 +333,7 @@ private:
     
     ros::NodeHandle nh;
     ros::ServiceServer srv_init_request;
+    ros::ServiceServer srv_world_map;
     ros::Publisher pub_init_response;
     ros::Timer heartbeat_timer;
     
@@ -340,7 +345,9 @@ private:
         OCTO_ID,
         VTOL_ID;
     
-    QString coordinate_system; // can be "global" or "local"
+    QString coordinate_system; // can be "global" or "local"\
+
+    QVector<int> world_map;
     
     struct ObjectDetectionMessageHandlers // publishers and subscribers
     {
