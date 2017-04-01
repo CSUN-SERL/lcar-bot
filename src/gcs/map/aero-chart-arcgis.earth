@@ -1,0 +1,57 @@
+<map name="vfrmap" type="projected" version="2">
+
+    <options>
+        <lighting>false</lighting>
+        <profile>spherical-mercator</profile>
+    </options>
+
+    <!--
+    <image name="vfrmap_aerial" driver="xyz" enabled="true" >
+        <url>http://vfrmap.com/20140918/tiles/vfrc/{z}/{x}/{y}.jpg</url>
+        <profile>spherical-mercator</profile>
+    </image>
+    -->
+
+    <image name="Sectional Charts" driver="xyz" visible="true" invert_y="true">
+        <url>http://wms.chartbundle.com/tms/1.0.0/sec/{z}/{x}/{y}.png</url>
+        <profile>global-mercator</profile>
+
+        <color_filters>
+            <brightness_contrast b="0.35" c="1.2"/>
+        </color_filters>
+
+    </image>
+
+    <image name="IFR Enroute High Charts" driver="xyz" visible="false" invert_y="true">
+        <url>http://wms.chartbundle.com/tms/1.0.0/enrh/{z}/{x}/{y}.png</url>
+        <profile>global-mercator</profile>
+
+        <color_filters>
+            <brightness_contrast b="0.35" c="1.2"/>
+        </color_filters>
+
+    </image>
+
+    <image name="IFR Enroute Low Charts" driver="xyz" visible="false" invert_y="true">
+        <url>http://wms.chartbundle.com/tms/1.0.0/enrl/{z}/{x}/{y}.png</url>
+        <profile>global-mercator</profile>
+
+        <color_filters>
+            <brightness_contrast b="0.35" c="1.2"/>
+        </color_filters>
+
+    </image>
+
+    <image name="ReadyMap.org - Imagery" driver="tms" visible="false">
+        <url>http://readymap.org/readymap/tiles/1.0.0/7/</url>
+    </image>
+
+    <elevation name="ReadyMap.org - Elevation" driver="tms" visible="false">
+        <url>http://readymap.org/readymap/tiles/1.0.0/9/</url>
+    </elevation>
+
+    <elevation name="readymap_elevation" driver="tms" enabled="true">
+        <url>http://readymap.org/readymap/tiles/1.0.0/116/</url>
+    </elevation>
+
+</map>

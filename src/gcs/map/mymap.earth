@@ -1,0 +1,5 @@
+<map name="MyMap" type="geocentric" version="2">
+    <image name="bluemarble" driver="gdal">
+        <url>world.tif</url>
+    </image>
+</map>

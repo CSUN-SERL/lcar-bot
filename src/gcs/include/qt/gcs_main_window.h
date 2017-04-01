@@ -31,6 +31,14 @@
 #include <lcar_msgs/TargetLocal.h>
 #include <lcar_msgs/TargetGlobal.h>
 
+namespace osgEarth
+{
+    namespace QtGui
+    {
+        class ViewerWidget;
+    }
+}
+
 namespace gcs
 {
 
@@ -102,6 +110,8 @@ private:
     void OnUnansweredQueriesTriggered();
     void OnAddVehicleTriggered();
 
+    osgEarth::QtGui::ViewerWidget * osg_map;
+    
     Ui::GCSMainWindow widget;
     VehicleManager * vm;
     QMap<int/*VehicleType*/, QVBoxLayout*> layout_by_v_type;
