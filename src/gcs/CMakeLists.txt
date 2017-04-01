@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(gcs) # ${PROJECT_NAME} == gcs
 
-option(USEOSGEARTH "use OsgEarth" OFF)
+option(USEOSGEARTH "use OsgEarth" On)
 
 find_package(catkin REQUIRED COMPONENTS
             roscpp
