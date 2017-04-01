@@ -7,9 +7,10 @@
 #include <QStringBuilder>
 #include <QWaitCondition>
 
-
-//#include <osgEarthQt/ViewerWidget>
-//#include <osgDB/ReadFile>
+#ifdef USEOSGEARTH
+#include <osgEarthQt/ViewerWidget>
+#include <osgDB/ReadFile>
+#endif
 
 #include "qt/query_widget.h"
 #include "qt/gcs_main_window.h"
