@@ -10,7 +10,6 @@
 #define VEHICLEMANAGER_H
 
 #include <QMap>
-//#include <QSet>
 #include <QObject>
 #include <QProcess>
 #include <QMutex>
