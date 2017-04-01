@@ -628,14 +628,14 @@ void GCSMainWindow::OnAddVehicleTriggered()
 void GCSMainWindow::InitMap()
 {
 #ifdef USEOSGEARTH
-    //    osg::ref_ptr<osg::Node> node = osgDB::readFile<osg::Node>("aero-chart-arcgis.earth");
-//    osg_map = new osgEarth::QtGui::ViewerWidget(node.get());
-//    
-//    QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-//    sizePolicy.setHorizontalStretch(1);
-//    sizePolicy.setVerticalStretch(1);
-//    osg_map->setSizePolicy(sizePolicy);
-//    widget.layout_osg->addWidget(osg_map, 1);
+    osg::ref_ptr<osg::Node> node = osgDB::readFile<osg::Node>("aero-chart-arcgis.earth");
+    osg_map = new osgEarth::QtGui::ViewerWidget(node.get());
+    
+    QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    sizePolicy.setHorizontalStretch(1);
+    sizePolicy.setVerticalStretch(1);
+    osg_map->setSizePolicy(sizePolicy);
+    widget.layout_osg->addWidget(osg_map, 1);
 #else
     QString s = ros::package::getPath("gcs").c_str();
     QString map_url = QString("file://%1/map/uavmap.html").arg(s);
