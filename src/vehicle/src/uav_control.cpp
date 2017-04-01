@@ -153,7 +153,6 @@ int UAVControl::CompareYaw(double yaw1, double yaw2)
 int UAVControl::CompareAltitude(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
 {
     int result;
-    float threshold;
 
 
     if(std::abs(pose1.position.z - pose2.position.z) <= THRESHOLD_Z){
@@ -198,11 +197,10 @@ float UAVControl::GetMissionProgress()
 
 void UAVControl::TravelToTargetLocation()
 {   
-    
-    
     if(CompareAltitude(pose_local,pose_target) == 0)
     {     
-        ROS_INFO_STREAM_ONCE("Traveling to Psoition");
+        ROS_INFO_STREAM_ONCE("Traveling to Position");
+       
         //Achieved the proper altitude => Go to target x, y location
         this->PublishPosition(pose_target);
         //Update previous position for fixing the altitude
@@ -217,9 +215,10 @@ void UAVControl::TravelToTargetLocation()
 
 void UAVControl::SetTarget(geometry_msgs::Pose& target)  
 {
-    this->SetTargetAltitude(target.position.z);
-    this->SetTargetPosition(target.position.x, target.position.y);
-    this->SetTargetAngle(target.orientation);
+//    this->SetTargetAltitude(target.position.z);
+//    this->SetTargetPosition(target.position.x, target.position.y);
+//    this->SetTargetAngle(target.orientation);
+    pose_target = target;
 }
 
 void UAVControl::SetTarget(double lat, double lng, double alt)  
@@ -252,6 +251,11 @@ void UAVControl::SetMission(geometry_msgs::Pose& target, double radius)
     msg_target.target = target;
     msg_target.radius = radius;
     path_mission = CircleShape(msg_target);
+}
+
+void UAVControl::SetMission(std::vector<geometry_msgs::Pose> waypoints_list)
+{
+    path_mission = FollowWaypoints(waypoints_list);
 }
 
 void UAVControl::TravelToTargetPosition()
@@ -318,6 +322,21 @@ void UAVControl::StrafeY(double y)
 {
 //    pose_target.position.y +=y;
 //    this->TravelToPosition(pose_target.position.x,pose_target.position.y);
+}
+
+nav_msgs::Path UAVControl::FollowWaypoints(std::vector<geometry_msgs::Pose> target_waypoints)
+{
+    ROS_INFO_STREAM_ONCE("Setting Waypoints");
+    geometry_msgs::PoseStamped pose_new_stamped;
+    nav_msgs::Path mission;
+    
+    for(int i = 0; i<target_waypoints.size();i++)
+    {
+        pose_new_stamped.pose = target_waypoints.at(i);
+        mission.poses.push_back(pose_new_stamped);
+    }
+    ROS_INFO_STREAM_ONCE(mission.poses.size());
+    return mission;
 }
     
 nav_msgs::Path UAVControl::CircleShape(lcar_msgs::TargetLocal target_point)
@@ -415,9 +434,14 @@ void UAVControl::Run()
 
     //Run Specific Actions
     if(position_mode == local) 
-    {ROS_INFO_STREAM_ONCE("Beginning local");
-    this->RunLocal();}
-    else this->RunGlobal();
+    {
+        ROS_INFO_STREAM_ONCE("Beginning local");
+        this->RunLocal();
+    }
+    else
+    {
+        this->RunGlobal(); 
+    }
 
     //Run Common Actions
     if(goal == disarm){
@@ -440,75 +464,110 @@ void UAVControl::RunLocal()
         { 
             case idle:
                 ROS_INFO_STREAM_ONCE("Idle Mode");
-                goal = travel;    
-            break;
+                goal = travel;
+                break;
 
+                
             case travel:
                 ROS_INFO_STREAM_ONCE("Travel Mode");
-                this->TravelToTargetPosition();
-                this->TurnToAngle();
-                if(ComparePosition(pose_local,pose_target) == 0 &&
-                        CompareAltitude(pose_local,pose_target)==0 && 
-                        CompareYaw(pose_local,pose_target)==0)
+                static int i = 0;
+               
+                 ROS_INFO_STREAM_ONCE(i);
+                 ROS_INFO_STREAM_ONCE(pose_target.position);
+                //if there are still waypoints in he mission to move to
+                if(i<path_mission.poses.size())
+                {
+                    SetTarget(path_mission.poses.at(i).pose);
+                    if(ComparePosition(pose_local,pose_target) == 0 && // perf. move to next waypoint
+                            CompareAltitude(pose_local,pose_target) == 0 && 
+                            CompareYaw(pose_local,pose_target) == 0)
+                    {
+                        i++; 
+                        for(int j =0;j<1000;j++)//wait for a bit
+                        {
+                        }
+                        ROS_INFO_STREAM("moving to next waypoint");
+                    } 
+                    else if(CompareAltitude(pose_local,pose_target) == 0 &&  // right altitude, right angle, wrong position
+                            CompareYaw(pose_local,pose_target) == 0)
+                    { 
+                        this->TravelToTargetPosition();
+                            
+                    }
+                    else if(CompareAltitude(pose_local,pose_target) == 0) //right altitude, wrong angle
+                    {
+                        this->TurnToAngle();
+                    }
+                    else if(CompareAltitude(pose_local,pose_target) == 1) // wrong altitude
+                    {
+                        this->TravelToTargetAltitude();
+                    }
+                }
+                //if there are no more waypoints left in the mission, hold
+                else
                 {
                     this->SetTarget(pose_previous);
+                    ROS_INFO_STREAM_ONCE("Mission Complete. Holding Position");
                     goal = hold;
                 }
-            break;
+                break;
 
+                
             case hold:
-                 ROS_INFO_STREAM_ONCE("Hold Mode");
+                ROS_INFO_STREAM_ONCE("Hold Mode");
                 this->TravelToTargetPosition();
-            break;
+                break;
 
+                
             case scout:
+                ROS_INFO_STREAM_ONCE("Scout Mode");
+                static int rev_count = 1;
+                static int cur_point = 0;
+                
+                //Travel to the next waypoint
+                SetTarget(path_mission.poses.at(cur_point).pose);
+                this->TravelToTargetPosition();
+                cur_point++;
+                
+                //if there are no more waypoints left in the mission
+                if (cur_point > path_mission.poses.size() - 1)
+                { 
+                    rev_count++;
+                    ROS_INFO_STREAM("Circled Building " << rev_count << " times.");
 
-            break;
-
+                    //end the mission and enter hold if you have gone around the circle
+                    //enough times
+                    if(rev_count > scout_rev) 
+                    {
+                        goal = hold;
+                        mission_completed = true;
+                        rev_count = 0;
+                        cur_point = 0;
+                    }
+                    //go around the circle again
+                    else
+                    {
+                        cur_point = 0;
+                    }
+                }
+                
+                break;
+                
             case rtl:
                 this->SetTargetPosition(pose_home.position.x, pose_home.position.y);
                 this->TravelToTargetPosition();
                 //are you above the LZ?
                 if(ComparePosition(pose_local,pose_target)==0)//yes
                 {
-                    //descend
-                    goal = land;
+                    this->Land();
                 }
-            break;
+                break;
 
-            case land:
-                this->SetTargetAltitude(0);
-                goal = travel;
-            break;
-            
             case null:
-
-            break;
-
+                
+                break;
         }
     }
-    
-//            static int rev_count = 1;
-//            static int cur_point = 0;
-//
-//            //Travel to the next waypoint
-//            pose_target = path_mission.poses.at(cur_point).pose;
-//            this->TravelToTargetLocation();
-//            cur_point++;
-//
-//            if (cur_point > path_mission.poses.size()-1){ //
-//                rev_count++;
-//                ROS_INFO_STREAM("Circled Building " << rev_count << " times.");
-//
-//                if(rev_count > scout_rev) {
-//                    goal = rtl;
-//                    rev_count = 0;
-//                    cur_point = 0;
-//                }
-//                else{
-//                    cur_point = 0;
-//                }
-//            }
     
 }
 
@@ -524,11 +583,13 @@ void UAVControl::RunGlobal()
         this->SetMode("AUTO.RTL");
     }
 }
-void UAVControl::StartMission()
+
+void UAVControl::StartMission() //todo make goal input to separate travel and scout missions
 {
     mission_mode = active;
-    goal = scout;
+    goal = travel;
 }
+
 void UAVControl::PauseMission()
 {
     mission_mode = paused;
@@ -545,7 +606,10 @@ void UAVControl::ResumeMission()
 void UAVControl::StopMission()
 {
     mission_mode = stopped;
-    goal = rtl;
+    //freeze in place
+    pose_target = pose_local;
+    //stay there
+    goal = hold;
 }
 
 void UAVControl::StopMission(std::string flight_mode)
@@ -555,5 +619,14 @@ void UAVControl::StopMission(std::string flight_mode)
     goal = idle;
 }
 
-
+void UAVControl::Land()
+{
+    //break out of the FSM
+    goal = null;
+    this->LandPrivate();
+}
+void UAVControl::TakeOff(double alt)
+{
+    this->Takeoff(alt);
+}
 }//End Namespace

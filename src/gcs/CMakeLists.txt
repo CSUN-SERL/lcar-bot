@@ -24,8 +24,8 @@ set(gcs_INCLUDE_DIRS
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR}
-                    ${catkin_INCLUDE_DIRS}
-                    ${gcs_INCLUDE_DIRS}     
+                    ${gcs_INCLUDE_DIRS}  
+                    ${catkin_INCLUDE_DIRS}    
                     ${Qt5Widgets_INCLUDE_DIRS}
                     ${Qt5Svg_INCLUDE_DIRS}
                     ${Qt5OpenGL_INCLUDE_DIRS}

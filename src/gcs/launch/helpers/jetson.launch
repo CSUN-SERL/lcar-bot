@@ -4,11 +4,15 @@
     <!-- vim: set ft=xml noet : -->
     <arg name="fcu_url" default="serial:///dev/ttyUSB0:921600" />
     <arg name="gcs_url" default="" />
-    <arg name="tgt_system" default="1" />
+    <arg name="tgt_system" default="2" />
     <arg name="tgt_component" default="1" />
     <arg name="log_output" default="screen" />
     <arg name="uav_id" default="1" />
     <arg name="machine_name" default="Quad1" />
+    <arg name="pluginlists_yaml" default="$(find mavros)/launch/px4_pluginlists.yaml" />
+    <arg name="config_yaml" default="$(find mavros)/launch/apm_config.yaml" />
+
+    <!--
 
     <param name="image_transport" type="string" value="compressed" />
 
@@ -18,17 +22,8 @@
           machine="$(arg machine_name)" respawn="true">
     </node>
 
+    -->
+
     <!-- todo node object avoidance-->
-
-    <node pkg="mavros" type="mavros_node" name="mavros" required="true" clear_params="true" output="$(arg log_output)" machine="$(arg machine_name)">
-        <param name="fcu_url" value="$(arg fcu_url)" />
-        <param name="gcs_url" value="$(arg gcs_url)" />
-        <param name="target_system_id" value="$(arg tgt_system)" />
-        <param name="target_component_id" value="$(arg tgt_component)" />
-
-        <!-- load blacklist, config -->
-        <rosparam command="load" file="$(arg pluginlists_yaml)" />
-        <rosparam command="load" file="$(arg config_yaml)" />
-    </node>
 
 </launch>

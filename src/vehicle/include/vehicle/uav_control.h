@@ -36,7 +36,7 @@ namespace gcs
 #define SCOUT_WT 0.5
 // #define THRESHOLD_XY 0.08
 // #define THRESHOLD_Z 0.08
-#define THRESHOLD_XY 0.5
+#define THRESHOLD_XY 0.1//0.5
 #define THRESHOLD_Z 0.25
 #define THRESHOLD_XY_GPS 0.00001
 #define THRESHOLD_Z_GPS 0.5
@@ -82,7 +82,7 @@ public:
     void SetTarget(double lat, double lng, double alt); 
     
     void SetMission(geometry_msgs::Pose& target, double radius);
-    
+    void SetMission(std::vector<geometry_msgs::Pose> waypoints_list);
     /**
      * Moves vehicle to target x,y location
      * @param x
@@ -102,6 +102,7 @@ public:
      */
     void TurnToAngle();
     
+    nav_msgs::Path FollowWaypoints(std::vector<geometry_msgs::Pose> target_waypoints);
     void SetTargetAltitude(double z);
     void SetTargetPosition(double x,double y);
     void SetTargetAngle(geometry_msgs::Quaternion angle);
@@ -186,6 +187,8 @@ public:
     std::vector<lcar_msgs::QueryPtr>* GetDoorQueries()                  { return &queries_door; }
     Mode getMode()                                                      { return goal; }
 
+    void Land();
+    void TakeOff(double alt);
 private:
     void InitialSetup();
 
