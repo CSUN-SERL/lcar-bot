@@ -51,12 +51,12 @@ endif()
     
 set(DEPENDENCIES Qt5Widgets Qt5Svg)
 if(USEOSGEARTH)
-    LIST(APPEND DEPENDENCIES
+    list(APPEND DEPENDENCIES
         Qt5OpenGL
         OpenSceneGraph
         OsgEarth )
 else()
-    LIST(APPEND DEPENDENCIES
+    list(APPEND DEPENDENCIES
         Qt5WebKitWidgets )
 endif()
 
@@ -76,7 +76,14 @@ catkin_package(
 file(GLOB gcs_SRCS src/lib/*.cpp )
 file(GLOB gcs_HDRS include/qt/*.h )
 list(REMOVE_ITEM gcs_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/qt/my_q_widget.h )
+
 file(GLOB gcs_UIS resources/forms/*.ui )
+if(USEOSGEARTH)
+    list(REMOVE_ITEM gcs_UIS ${CMAKE_CURRENT_SOURCE_DIR}/include/qt/GCSMainWindow.ui)
+else()
+    list(REMOVE_ITEM gcs_UIS ${CMAKE_CURRENT_SOURCE_DIR}/include/qt/GCSMainWindow_OSG.ui)
+endif()
+
 file(GLOB gcs_RCCS resources/*.qrc )
 
 #run qt rcc, moc & uic
