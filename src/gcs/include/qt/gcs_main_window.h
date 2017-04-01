@@ -14,7 +14,11 @@
 #include <QSettings>
 #include <QCloseEvent>
 
+#ifdef USEOSGEARTH
+#include "ui_GCSMainWindow_OSG.h"
+#else
 #include "ui_GCSMainWindow.h"
+#endif
 
 #include "qt/ui_adapter.h"
 #include "qt/vehicle_manager.h"
@@ -31,6 +35,7 @@
 #include <lcar_msgs/TargetLocal.h>
 #include <lcar_msgs/TargetGlobal.h>
 
+#ifdef USEOSGEARTH
 namespace osgEarth
 {
     namespace QtGui
@@ -38,10 +43,11 @@ namespace osgEarth
         class ViewerWidget;
     }
 }
+#endif
 
 namespace gcs
 {
-
+    
 class UnansweredQueries;
 class SettingsWidget;
 
@@ -110,9 +116,12 @@ private:
     void OnUnansweredQueriesTriggered();
     void OnAddVehicleTriggered();
 
+#ifdef USEOSGEARTH
     osgEarth::QtGui::ViewerWidget * osg_map;
+#endif
     
     Ui::GCSMainWindow widget;
+    
     VehicleManager * vm;
     QMap<int/*VehicleType*/, QVBoxLayout*> layout_by_v_type;
     QTimer *update_timer;
