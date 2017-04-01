@@ -14,9 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Svg REQUIRED)
-find_package(Qt5OpenGL REQUIRED)
-find_package(OpenSceneGraph REQUIRED osgDB)
-find_package(OsgEarth REQUIRED osgEarthQt)
+find_package(Qt5WebKitWidgets REQUIRED)
 
 set(gcs_INCLUDE_DIRS
      #add these directories to cmake search paths
@@ -28,9 +26,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${catkin_INCLUDE_DIRS}    
                     ${Qt5Widgets_INCLUDE_DIRS}
                     ${Qt5Svg_INCLUDE_DIRS}
-                    ${Qt5OpenGL_INCLUDE_DIRS}
-                    ${OPENSCENEGRAPH_INCLUDE_DIRS}
-                    ${OSGEARTH_INCLUDE_DIRS} 
+                    ${Qt5WebKitWidgets_INCLUDE_DIRS}
                     )
 
 
@@ -62,7 +58,7 @@ qt5_wrap_ui(gcs_UIS_H ${gcs_UIS})
 
 
 #compiler flags and options
-add_definitions(${Qt5_DEFINITIONS} ${Qt5OpenGL_DEFINITIONS} -std=c++11)
+add_definitions(${Qt5_DEFINITIONS}-std=c++11)
 
 # Declare executables with source files
 #add_executable(gps_publisher src/vehicle/gps_publisher.cpp)
@@ -95,8 +91,5 @@ target_link_libraries(  gcs_node
                         ${catkin_LIBRARIES}
                         Qt5::Widgets
                         Qt5::Svg
-                        Qt5::OpenGL
-                        ${OPENSCENEGRAPH_LIBRARIES}
-                        ${OSGEARTH_LIBRARIES}
-                        ${OSGEARTHQT_LIBRARY}
+                        Qt5::WebKitWidgets
                        )
