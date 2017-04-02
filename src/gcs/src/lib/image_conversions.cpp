@@ -1,5 +1,5 @@
 
-#include "util/image_conversions.h"
+#include <gcs/util/image_conversions.h>
 #include <sensor_msgs/fill_image.h>
 
 namespace gcs

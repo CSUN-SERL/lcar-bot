@@ -20,18 +20,19 @@
 #include <sensor_msgs/NavSatFix.h>
 #include <image_transport/image_transport.h>
 
-#include "util/image_conversions.h"
-#include <vehicle/data_types.h>
-#include "util/object_detection_parameters.h"
-#include "lcar_msgs/Query.h"
-#include "lcar_msgs/TargetLocal.h"
-#include "lcar_msgs/InitRequest.h"
-#include "lcar_msgs/TargetGlobal.h"
-#include "lcar_msgs/AccessPointStamped.h"
-#include "lcar_msgs/WorldMap.h"
+#include <lcar_msgs/Query.h>
+#include <lcar_msgs/TargetLocal.h>
+#include <lcar_msgs/InitRequest.h>
+#include <lcar_msgs/TargetGlobal.h>
+#include <lcar_msgs/AccessPointStamped.h>
+#include <lcar_msgs/WorldMap.h>
 
-#include "vehicle/vehicle_control.h"
-#include "qt/ui_adapter.h"
+#include <vehicle/data_types.h>
+#include <vehicle/vehicle_control.h>
+
+#include <gcs/qt/ui_adapter.h>
+#include <gcs/util/image_conversions.h>
+#include <gcs/util/object_detection_parameters.h>
 
 
 namespace gcs

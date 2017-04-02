@@ -13,7 +13,7 @@
 #include <QSettings>
 #include <QStringList>
 
-#include "util/object_detection_parameters.h"
+#include "gcs/util/object_detection_parameters.h"
 
 namespace gcs
 {

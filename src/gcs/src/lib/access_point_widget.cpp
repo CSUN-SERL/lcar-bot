@@ -6,8 +6,9 @@
  * Created on October 6, 2016, 2:54 PM
  */
 
-#include "qt/access_point_widget.h"
-#include "ui_AccessPointWidget.h"
+#include <QPixmap>
+
+#include <gcs/qt/access_point_widget.h>
 
 namespace gcs
 {

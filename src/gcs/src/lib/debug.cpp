@@ -1,4 +1,4 @@
-#include "util/debug.h"
+#include <gcs/util/debug.h>
 #include <QDebug>
 
 namespace gcs

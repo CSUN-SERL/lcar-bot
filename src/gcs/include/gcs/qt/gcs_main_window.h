@@ -20,13 +20,13 @@
 #include "ui_GCSMainWindow.h"
 #endif
 
-#include "qt/ui_adapter.h"
-#include "qt/vehicle_manager.h"
-#include "qt/settings_widget.h"
-#include "qt/unanswered_queries.h"
-#include "qt/vehicle_list_widget.h"
-#include "qt/vehicle_init_widget.h"
-#include "qt/access_points_container_widget.h"
+#include <gcs/qt/ui_adapter.h>
+#include <gcs/qt/vehicle_manager.h>
+#include <gcs/qt/settings_widget.h>
+#include <gcs/qt/unanswered_queries.h>
+#include <gcs/qt/vehicle_list_widget.h>
+#include <gcs/qt/vehicle_init_widget.h>
+#include <gcs/qt/access_points_container_widget.h>
 
 #include <vehicle/data_types.h>
 #include <vehicle/uav_control.h>

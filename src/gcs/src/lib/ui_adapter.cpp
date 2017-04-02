@@ -1,4 +1,4 @@
-#include "qt/ui_adapter.h"
+#include <gcs/qt/ui_adapter.h>
 
 namespace gcs 
 {   
@@ -18,4 +18,3 @@ namespace gcs
     UIAdapter *UIAdapter::instance = nullptr;
 }
     
-

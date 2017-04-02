@@ -12,8 +12,6 @@
 #include <QObject>
 #include <QPixmap>
 
-#include <sensor_msgs/NavSatFix.h>
-
 namespace gcs
 {
     
@@ -82,8 +80,11 @@ signals:
     
 private:
     static UIAdapter *instance;
+    
+    Q_DISABLE_COPY(UIAdapter);
 };
 
 }
+
 #endif /* UIADAPTER_H */
 

@@ -10,8 +10,8 @@
 
 #include "ui_SettingsWidget.h"
 
-#include "util/settings.h"
-#include "util/object_detection_parameters.h"
+#include <gcs/util/settings.h>
+#include <gcs/util/object_detection_parameters.h>
 
 namespace gcs
 {

@@ -8,10 +8,10 @@
 #include <QApplication>
 #include <QThread>
 
-#include "util/flight_modes.h"
-#include "util/debug.h"
-#include "qt/gcs_main_window.h"
-#include "qt/vehicle_manager.h"
+#include "gcs/util/flight_modes.h"
+#include "gcs/util/debug.h"
+#include "gcs/qt/gcs_main_window.h"
+#include "gcs/qt/vehicle_manager.h"
 
 bool LockThisPC()
 {
