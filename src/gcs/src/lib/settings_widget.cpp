@@ -10,11 +10,11 @@
 
 #include <iostream>
 
-#include "util/image_conversions.h"
-#include "util/flight_modes.h"
-#include "qt/ui_adapter.h"
-#include "qt/settings_widget.h"
-#include "util/settings.h"
+#include <gcs/util/image_conversions.h>
+#include <gcs/util/flight_modes.h>
+#include <gcs/qt/ui_adapter.h>
+#include <gcs/qt/settings_widget.h>
+#include <gcs/util/settings.h>
 
 
 namespace gcs

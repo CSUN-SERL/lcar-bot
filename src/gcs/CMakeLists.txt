@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(gcs) # ${PROJECT_NAME} == gcs
+project(gcs)
 
 option(USEOSGEARTH "use OsgEarth" On)
+
+cmake_policy(SET CMP0017 NEW)
 
 find_package(catkin REQUIRED COMPONENTS
             roscpp
@@ -20,6 +22,12 @@ if(USEOSGEARTH)
     find_package(Qt5OpenGL REQUIRED)
     find_package(OpenSceneGraph REQUIRED osgDB)
     find_package(OsgEarth REQUIRED osgEarthQt)
+
+    set(OpenSceneGraph_INCLUDE_DIRS "${OPENSCENEGRAPH_INCLUDE_DIRS}")
+    set(OpenSceneGraph_LIBRARIES "${OPENSCENEGRAPH_LIBRARIES}")
+
+    set(OsgEarth_INCLUDE_DIRS ${OSGEARTH_INCLUDE_DIRS})
+    set(OsgEarth_LIBRARIES "${OSGEARTH_LIBRARIES};${OSGEARTHQT_LIBRARY}")
 else()
     find_package(Qt5WebKitWidgets REQUIRED)
 endif()
@@ -39,8 +47,8 @@ include_directories(
 if(USEOSGEARTH)
     include_directories(
         ${Qt5OpenGL_INCLUDE_DIRS}
-        ${OPENSCENEGRAPH_INCLUDE_DIRS}
-        ${OSGEARTH_INCLUDE_DIRS} )
+        ${OpenSceneGraph_INCLUDE_DIRS}
+        ${OsgEarth_INCLUDE_DIRS} )
 else()
     include_directories(
         ${Qt5WebKitWidget_INCLUDE_DIRS} )
@@ -74,14 +82,14 @@ catkin_package(
         image_transport )
 
 file(GLOB gcs_SRCS src/lib/*.cpp )
-file(GLOB gcs_HDRS include/qt/*.h )
-list(REMOVE_ITEM gcs_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/qt/my_q_widget.h )
+file(GLOB gcs_HDRS include/gcs/qt/*.h )
+list(REMOVE_ITEM gcs_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/gcs/qt/my_q_widget.h )
 
 file(GLOB gcs_UIS resources/forms/*.ui )
 if(USEOSGEARTH)
-    list(REMOVE_ITEM gcs_UIS ${CMAKE_CURRENT_SOURCE_DIR}/include/qt/GCSMainWindow.ui)
+    list(REMOVE_ITEM gcs_UIS ${CMAKE_CURRENT_SOURCE_DIR}/resources/forms/GCSMainWindow.ui)
 else()
-    list(REMOVE_ITEM gcs_UIS ${CMAKE_CURRENT_SOURCE_DIR}/include/qt/GCSMainWindow_OSG.ui)
+    list(REMOVE_ITEM gcs_UIS ${CMAKE_CURRENT_SOURCE_DIR}/resources/forms/GCSMainWindow_OSG.ui)
 endif()
 
 file(GLOB gcs_RCCS resources/*.qrc )
@@ -130,9 +138,8 @@ target_link_libraries(gcs_node
                         Qt5::Svg )
 if(USEOSGEARTH)
     target_link_libraries(gcs_node
-                            ${OPENSCENEGRAPH_LIBRARIES}
-                            ${OSGEARTH_LIBRARIES}
-                            ${OSGEARTHQT_LIBRARY} )
+                            ${OpenSceneGraph_LIBRARIES}
+                            ${OsgEarth_LIBRARIES} )
 else()
     target_link_libraries(gcs_node
                             Qt5::WebKitWidgets )

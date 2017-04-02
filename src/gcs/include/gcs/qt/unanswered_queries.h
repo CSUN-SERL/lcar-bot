@@ -2,10 +2,8 @@
 #ifndef _UNANSWEREDQUERIES_H
 #define _UNANSWEREDQUERIES_H
 
-
-#include <qt/gcs_main_window.h>
 #include "ui_UnansweredQueries.h"
-#include <QSignalMapper>
+#include <gcs/qt/gcs_main_window.h>
 
 namespace gcs
 {

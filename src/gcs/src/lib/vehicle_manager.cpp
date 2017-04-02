@@ -10,14 +10,16 @@
 
 #include <ros/package.h>
 
-#include "util/flight_modes.h"
-#include "util/debug.h"
-#include "util/settings.h"
-#include "vehicle/uav_control.h"
-#include "lcar_msgs/InitResponse.h"
-#include "qt/vehicle_manager.h"
-#include "qt/ui_adapter.h"
-#include "util/settings.h"
+#include <lcar_msgs/InitResponse.h>
+#include <vehicle/uav_control.h>
+
+#include <gcs/util/flight_modes.h>
+#include <gcs/util/debug.h>
+#include <gcs/util/settings.h>
+#include <gcs/util/settings.h>
+
+#include <gcs/qt/vehicle_manager.h>
+#include <gcs/qt/ui_adapter.h>
 
 namespace gcs
 {
@@ -35,7 +37,7 @@ VehicleManager::VehicleManager(QObject *parent):
     srv_init_request = nh.advertiseService("vehicle/init/request", 
                                            &VehicleManager::VehicleInitRequested, this);
     
-    srv_world_map = nh.advertiseService("/world_map", &VehicleManager::WorldMapRequested, this);
+    srv_world_map = nh.advertiseService("world_map", &VehicleManager::WorldMapRequested, this);
     
     pub_init_response = nh.advertise<lcar_msgs::InitResponse>("vehicle/init/response", 2);
     

@@ -1524,7 +1524,7 @@ color: rgb(240, 240, 240);</string>
   <customwidget>
    <class>qfi_PFD</class>
    <extends>QGraphicsView</extends>
-   <header>qt/qfi_PFD.h</header>
+   <header location="global">gcs/qt/qfi_PFD.h</header>
   </customwidget>
  </customwidgets>
  <resources>

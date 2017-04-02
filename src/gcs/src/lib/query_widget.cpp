@@ -5,7 +5,9 @@
  * Created on September 26, 2016, 7:20 PM
  */
 
-#include "qt/query_widget.h"
+#include <QPixmap>
+
+#include <gcs/qt/query_widget.h>
 
 namespace gcs
 {

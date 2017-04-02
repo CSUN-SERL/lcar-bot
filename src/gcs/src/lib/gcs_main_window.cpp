@@ -7,21 +7,21 @@
 #include <QStringBuilder>
 #include <QWaitCondition>
 
+#include <ros/package.h>
+
+#include <gcs/qt/gcs_main_window.h>
+#include <gcs/qt/query_widget.h>
+#include <gcs/util/debug.h>
+#include <gcs/util/settings.h>
+#include <gcs/util/flight_modes.h>
+#include <gcs/util/image_conversions.h>
+
+#include <vehicle/data_types.h>
+
 #ifdef USEOSGEARTH
 #include <osgEarthQt/ViewerWidget>
 #include <osgDB/ReadFile>
 #endif
-
-#include "qt/query_widget.h"
-#include "qt/gcs_main_window.h"
-
-#include "util/debug.h"
-#include "util/settings.h"
-#include <vehicle/data_types.h>
-#include "util/flight_modes.h"
-#include "util/image_conversions.h"
-
-#include <ros/package.h>
 
 namespace gcs
 {

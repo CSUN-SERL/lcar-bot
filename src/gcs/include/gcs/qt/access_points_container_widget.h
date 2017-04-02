@@ -6,7 +6,8 @@
 #include <QSignalMapper>
 
 #include "ui_AccessPointsContainerWidget.h"
-#include "lcar_msgs/AccessPointStamped.h"
+
+#include <lcar_msgs/AccessPointStamped.h>
 
 namespace gcs
 {

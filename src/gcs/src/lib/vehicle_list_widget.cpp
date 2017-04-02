@@ -8,7 +8,7 @@
 
 
 #include <QStringBuilder>
-#include "qt/vehicle_list_widget.h"
+#include <gcs/qt/vehicle_list_widget.h>
 
 namespace gcs
 {

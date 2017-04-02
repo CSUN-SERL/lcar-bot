@@ -9,9 +9,7 @@
 #ifndef _ACCESSPOINTWIDGET_H
 #define _ACCESSPOINTWIDGET_H
 
-#include <QPixmap>
-
-#include "qt/my_q_widget.h"
+#include <gcs/qt/my_q_widget.h>
 #include "ui_AccessPointWidget.h"
 
 namespace gcs

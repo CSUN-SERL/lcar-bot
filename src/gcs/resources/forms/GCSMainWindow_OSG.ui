@@ -1034,7 +1034,7 @@ border-radius:0px;</string>
      </layout>
     </item>
     <item>
-     <layout class="QVBoxLayout" name="layout_osg" stretch="">
+     <layout class="QVBoxLayout" name="layout_osg">
       <property name="spacing">
        <number>0</number>
       </property>
@@ -1562,7 +1562,7 @@ color: rgb(240, 240, 240);</string>
   <customwidget>
    <class>qfi_PFD</class>
    <extends>QGraphicsView</extends>
-   <header>qt/qfi_PFD.h</header>
+   <header location="global">gcs/qt/qfi_PFD.h</header>
   </customwidget>
  </customwidgets>
  <resources>

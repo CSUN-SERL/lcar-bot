@@ -9,12 +9,12 @@
 #include <QDirIterator>
 #include <QUrl>
 
-#include "qt/unanswered_queries.h"
-#include "qt/ui_adapter.h"
-#include "qt/query_widget.h"
-#include "util/image_conversions.h"
-#include "util/debug.h"
-#include "util/flight_modes.h"
+#include <gcs/qt/unanswered_queries.h>
+#include <gcs/qt/ui_adapter.h>
+#include <gcs/qt/query_widget.h>
+#include <gcs/util/image_conversions.h>
+#include <gcs/util/debug.h>
+#include <gcs/util/flight_modes.h>
 
 namespace gcs
 {
