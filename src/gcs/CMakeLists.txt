@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(gcs)
 
-option(USEOSGEARTH "use OsgEarth" On)
-
-cmake_policy(SET CMP0017 NEW)
+option(USEOSGEARTH "use OsgEarth" OFF)
 
 find_package(catkin REQUIRED COMPONENTS
             roscpp
@@ -136,6 +134,7 @@ target_link_libraries(gcs_node
                         ${catkin_LIBRARIES}
                         Qt5::Widgets
                         Qt5::Svg )
+
 if(USEOSGEARTH)
     target_link_libraries(gcs_node
                             ${OpenSceneGraph_LIBRARIES}
