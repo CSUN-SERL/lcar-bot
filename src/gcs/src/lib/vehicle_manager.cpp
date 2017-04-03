@@ -1,6 +1,6 @@
 /* 
  * File:   vehicle_manager.cpp
- * Author: n8
+ * Author: n
  * 
  * Created on September 8, 2016, 11:41 AM
  */
@@ -16,7 +16,6 @@
 #include <gcs/util/flight_modes.h>
 #include <gcs/util/debug.h>
 #include <gcs/util/settings.h>
-#include <gcs/util/settings.h>
 
 #include <gcs/qt/vehicle_manager.h>
 #include <gcs/qt/ui_adapter.h>
@@ -28,6 +27,7 @@ namespace gcs
     
 VehicleManager::VehicleManager(QObject *parent):
     QObject(parent),
+    settings_manager(new SettingsManager(this)),
     UGV_ID(0),
     QUAD_ID(0),
     OCTO_ID(0),
@@ -760,6 +760,11 @@ void VehicleManager::InitSettings()
     Settings settings;
     od_params = settings.GetObjectDetectionParameters();
     coordinate_system = settings.GetCoordinateSystem();
+}
+
+SettingsManager * VehicleManager::getSettingsManager()
+{
+    return settings_manager;
 }
 
 lcar_msgs::TargetGlobalPtr VehicleManager::GetTargetGlobal(QString target_path)

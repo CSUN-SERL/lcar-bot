@@ -5,26 +5,44 @@
  * Created on June 7, 2016, 3:40 PM
  */
 
+#include <QStandardItemModel>
+#include <QItemSelectionModel>
 #include <QStringBuilder>
 #include <QMessageBox>
+#include <QAction>
+#include <QMenu>
 
 #include <iostream>
 
-#include <gcs/util/image_conversions.h>
-#include <gcs/util/flight_modes.h>
 #include <gcs/qt/ui_adapter.h>
 #include <gcs/qt/settings_widget.h>
+#include <gcs/qt/settings_manager.h>
+#include <gcs/util/image_conversions.h>
+#include <gcs/util/flight_modes.h>
 #include <gcs/util/settings.h>
-
 
 namespace gcs
 {
 
-SettingsWidget::SettingsWidget()
+SettingsWidget::SettingsWidget(SettingsManager * sm) :
+sm(sm),
+menu(nullptr)
 {
     this->setAttribute(Qt::WA_DeleteOnClose);
 
     widget.setupUi(this);
+    widget.tablev_coordinates->setModel(sm->mdl_cs);
+    widget.tablev_coordinates->setItemDelegate(new Delegate);
+    widget.tablev_coordinates->setContextMenuPolicy(Qt::CustomContextMenu);
+    
+    QObject::connect(widget.btn_add_row, &QPushButton::clicked,
+                    this, &SettingsWidget::onAddRowClicked);
+    
+    QObject::connect(widget.btn_delete_row, &QPushButton::clicked,
+                    this, &SettingsWidget::onDeleteRowClicked);
+    
+    QObject::connect(widget.tablev_coordinates, &QTableView::customContextMenuRequested,
+                    this, &SettingsWidget::onTableViewContextMenuRequested);
     
     //apply and cancel buttons
     connect(widget.apply_btn, &QPushButton::clicked,
@@ -618,5 +636,84 @@ void SettingsWidget::onMeanShiftRadioChange()
         emit UIAdapter::Instance()->PublishMeanShift(od_params.mean_shift);
     }
 }
+
+void SettingsWidget::onTableViewContextMenuRequested(const QPoint& p)
+{
+    if(!menu)
+    {
+        menu = new QMenu(this);
+        QAction * insert_before = menu->addAction("Insert row before here");
+        QAction * insert_after = menu->addAction("Insert row after here");
+        QAction* delete_rows = menu->addAction("Delete selected rows");
+        
+        QObject::connect(insert_before, &QAction::triggered,
+        this, 
+        [=]()
+        {
+            addOrDeleteSelectedRows(true);
+        });
+                    
+    QObject::connect(insert_after, &QAction::triggered,
+        this,
+        [=]()
+        {
+            addOrDeleteSelectedRows(true, 1);
+        });
+        
+    QObject::connect(delete_rows, &QAction::triggered,
+        this, &SettingsWidget::onDeleteRowClicked);
+    }
     
+    menu->popup(widget.tablev_coordinates->viewport()->mapToGlobal(p));
+}
+
+void SettingsWidget::onAddRowClicked()
+{
+    sm->mdl_cs->appendRow(new QStandardItem());
+}
+
+void SettingsWidget::onDeleteRowClicked()
+{
+    if(sm->mdl_cs->rowCount() == 0)
+        return;
+    
+    addOrDeleteSelectedRows(false);
+}
+
+void SettingsWidget::addOrDeleteSelectedRows(bool add, int row_offset)
+{
+    QItemSelectionModel * selection = widget.tablev_coordinates->selectionModel();
+    QModelIndexList indexes = selection->selectedIndexes();
+    QMap<int, int> row_map;
+    for(const QModelIndex& index : indexes)
+    {
+        int row = index.row();
+        if(!row_map.contains(row))
+            row_map.insert(row, row);
+    }
+    
+    if(row_map.isEmpty())
+    {
+        int last_row = (sm->mdl_cs->rowCount() - 1);
+        row_map.insert(last_row, last_row);
+    }
+    
+    if(add)
+    {
+        QMap<int, int>::const_iterator it = row_map.constEnd();
+        for(; it != row_map.constBegin();)
+        {
+            sm->mdl_cs->insertRow((--it).value() + row_offset);
+        }
+    }
+    else
+    {
+        QMap<int, int>::const_iterator it = row_map.constEnd();
+        for(; it != row_map.constBegin();)
+        {
+            sm->mdl_cs->removeRow((--it).value());
+        }
+    }
+}
+
 }// end name space

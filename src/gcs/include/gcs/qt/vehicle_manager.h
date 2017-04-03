@@ -11,7 +11,6 @@
 
 #include <QMap>
 #include <QObject>
-#include <QProcess>
 #include <QMutex>
 #include <QWaitCondition>
 
@@ -31,6 +30,8 @@
 #include <vehicle/vehicle_control.h>
 
 #include <gcs/qt/ui_adapter.h>
+#include <gcs/qt/settings_manager.h>
+
 #include <gcs/util/image_conversions.h>
 #include <gcs/util/object_detection_parameters.h>
 
@@ -46,7 +47,7 @@ class VehicleManager : public QObject
 {
     Q_OBJECT
 public:
-    VehicleManager(QObject *parent=0);
+    VehicleManager(QObject *parent=nullptr);
     virtual~VehicleManager();
     void ConnectToUIAdapter();
     
@@ -262,6 +263,8 @@ public slots:
      */
     QWaitCondition* GetWaitCondition();
     
+     SettingsManager * getSettingsManager();
+    
 private:
     
     //ros related///////////////////////////////////////////////////////////////
@@ -337,13 +340,15 @@ private:
     ros::Publisher pub_init_response;
     ros::Timer heartbeat_timer;
     
-    image_transport::ImageTransport it_stereo;
-    image_transport::Subscriber sub_stereo;
+    SettingsManager * settings_manager;
     
     int UGV_ID,
         QUAD_ID,
         OCTO_ID,
         VTOL_ID;
+    
+    image_transport::ImageTransport it_stereo;
+    image_transport::Subscriber sub_stereo;
     
     QString coordinate_system; // can be "global" or "local"\
 
