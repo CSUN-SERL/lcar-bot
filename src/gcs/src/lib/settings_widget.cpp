@@ -698,9 +698,9 @@ void SettingsWidget::addOrDeleteSelectedRows(bool add, int row_offset)
         row_map.insert(last_row, last_row);
     }
     
+    QMap<int, int>::const_iterator it = row_map.constEnd();
     if(add)
     {
-        QMap<int, int>::const_iterator it = row_map.constEnd();
         for(; it != row_map.constBegin();)
         {
             sm->mdl_cs->insertRow((--it).value() + row_offset);
@@ -708,7 +708,6 @@ void SettingsWidget::addOrDeleteSelectedRows(bool add, int row_offset)
     }
     else
     {
-        QMap<int, int>::const_iterator it = row_map.constEnd();
         for(; it != row_map.constBegin();)
         {
             sm->mdl_cs->removeRow((--it).value());
