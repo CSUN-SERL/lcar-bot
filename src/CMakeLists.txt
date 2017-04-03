@@ -4,7 +4,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules") #n8
-cmake_policy(SET CMP0017 NEW)
 
 project(SALUTE)
 
@@ -20,7 +19,7 @@ execute_process(COMMAND ${_cmd}
   ERROR_STRIP_TRAILING_WHITESPACE
 )
 if(NOT _res EQUAL 0 AND NOT _res EQUAL 2)
-  # searching fot catkin resulted in an error
+  # searching for catkin resulted in an error
   string(REPLACE ";" " " _cmd_str "${_cmd}")
   message(FATAL_ERROR "Search for 'catkin' in workspace failed (${_cmd_str}): ${_err}")
 endif()
@@ -31,7 +30,6 @@ if(_res EQUAL 0)
   # include all.cmake without add_subdirectory to let it operate in same scope
   include(${catkin_EXTRAS_DIR}/all.cmake NO_POLICY_SCOPE)
   add_subdirectory("${_out}")
-
 else()
   # use either CMAKE_PREFIX_PATH explicitly passed to CMake as a command line argument
   # or CMAKE_PREFIX_PATH from the environment

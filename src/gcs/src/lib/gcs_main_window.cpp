@@ -576,7 +576,7 @@ void GCSMainWindow::OnSettingsTriggered()
 {
     if(fl_widgets.settings == nullptr)
     {
-        fl_widgets.settings = new SettingsWidget();
+        fl_widgets.settings = new SettingsWidget(vm->getSettingsManager());
 
         this->CenterFloatingWidget(fl_widgets.settings);
 

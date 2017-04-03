@@ -16,7 +16,7 @@
 
 class MyQWidget : public QWidget
 {
-    
+    Q_OBJECT
     public:
         MyQWidget(QWidget *parent = 0):QWidget(parent){}
         

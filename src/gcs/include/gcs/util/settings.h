@@ -119,7 +119,6 @@ private:
     static const QString key_padding;
     static const QString key_scale_factor;
     static const QString key_mean_shift;
-    
 };
 
 }

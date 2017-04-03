@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(gcs)
 
-option(USEOSGEARTH "use OsgEarth" On)
+option(USEOSGEARTH "use OsgEarth" OFF)
 
 cmake_policy(SET CMP0017 NEW)
 
@@ -83,13 +83,12 @@ catkin_package(
 
 file(GLOB gcs_SRCS src/lib/*.cpp )
 file(GLOB gcs_HDRS include/gcs/qt/*.h )
-list(REMOVE_ITEM gcs_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/gcs/qt/my_q_widget.h )
-
 file(GLOB gcs_UIS resources/forms/*.ui )
+
 if(USEOSGEARTH)
-    list(REMOVE_ITEM gcs_UIS ${CMAKE_CURRENT_SOURCE_DIR}/resources/forms/GCSMainWindow.ui)
+    list(REMOVE_ITEM gcs_UIS ${CMAKE_CURRENT_SOURCE_DIR}/resources/forms/GCSMainWindow.ui )
 else()
-    list(REMOVE_ITEM gcs_UIS ${CMAKE_CURRENT_SOURCE_DIR}/resources/forms/GCSMainWindow_OSG.ui)
+    list(REMOVE_ITEM gcs_UIS ${CMAKE_CURRENT_SOURCE_DIR}/resources/forms/GCSMainWindow_OSG.ui )
 endif()
 
 file(GLOB gcs_RCCS resources/*.qrc )
@@ -102,6 +101,7 @@ qt5_wrap_ui(gcs_UIS_H ${gcs_UIS})
 
 #compiler flags and options
 add_definitions(${Qt5_DEFINITIONS} -std=c++11)
+
 if(USEOSGEARTH)
     add_definitions(-DUSEOSGEARTH ${Qt5OpenGL_DEFINITIONS})
 endif()
@@ -136,6 +136,7 @@ target_link_libraries(gcs_node
                         ${catkin_LIBRARIES}
                         Qt5::Widgets
                         Qt5::Svg )
+
 if(USEOSGEARTH)
     target_link_libraries(gcs_node
                             ${OpenSceneGraph_LIBRARIES}

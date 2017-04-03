@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>450</width>
-    <height>553</height>
+    <height>563</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -19,7 +19,7 @@
   <property name="maximumSize">
    <size>
     <width>900</width>
-    <height>760</height>
+    <height>594</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -91,6 +91,8 @@ QPushButton{
 	border-radius: 5px;
 	padding:5px;
     margin:3px;
+	background-color: rgb(64, 89, 145);
+	color: rgb(240, 240, 240);
 }
 </string>
   </property>
@@ -101,57 +103,14 @@ QPushButton{
       <string notr="true"/>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="general_tab">
       <attribute name="title">
        <string>General</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="6" column="0">
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="4" column="0">
-        <widget class="QGroupBox" name="group_images">
-         <property name="font">
-          <font>
-           <pointsize>14</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="title">
-          <string>Images Root Directory</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
-          <item>
-           <widget class="QLineEdit" name="line_edit_images_dir">
-            <property name="font">
-             <font>
-              <pointsize>11</pointsize>
-              <weight>50</weight>
-              <bold>false</bold>
-             </font>
-            </property>
-            <property name="frame">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="3" column="0">
+       <item row="2" column="0">
         <widget class="QGroupBox" name="connection_box">
          <property name="font">
           <font>
@@ -171,6 +130,9 @@ QPushButton{
           <string>Connection Drop</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_2">
+          <property name="verticalSpacing">
+           <number>6</number>
+          </property>
           <item row="0" column="0">
            <widget class="QGroupBox" name="vehicle_gcs_box">
             <property name="font">
@@ -389,122 +351,97 @@ QPushButton{
         </widget>
        </item>
        <item row="0" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_6">
-         <item>
-          <widget class="QGroupBox" name="ml_learningbox">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>80</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>-1</pointsize>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">QGroupBox
+        <widget class="QGroupBox" name="ml_learningbox">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>80</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>-1</pointsize>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QGroupBox
 {
     font-size: 18px;
     font-weight: bold;
 }</string>
-           </property>
-           <property name="title">
-            <string>Machine Learning</string>
-           </property>
-           <layout class="QGridLayout" name="gridLayout_5">
-            <item row="0" column="0">
-             <layout class="QVBoxLayout" name="verticalLayout_4">
-              <property name="spacing">
-               <number>0</number>
+         </property>
+         <property name="title">
+          <string>Machine Learning</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_5">
+          <item row="0" column="0">
+           <layout class="QVBoxLayout" name="verticalLayout_4">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QRadioButton" name="online_btn">
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+               </font>
               </property>
-              <item>
-               <widget class="QRadioButton" name="online_btn">
-                <property name="font">
-                 <font>
-                  <pointsize>11</pointsize>
-                 </font>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true"/>
-                </property>
-                <property name="text">
-                 <string>Online</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="offline_btn">
-                <property name="font">
-                 <font>
-                  <pointsize>11</pointsize>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Offline</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+              <property name="text">
+               <string>Online</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="offline_btn">
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Offline</string>
+              </property>
+             </widget>
             </item>
            </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QGroupBox" name="coordinate_box">
-           <property name="font">
-            <font>
-             <pointsize>14</pointsize>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="title">
-            <string>Coordinate System</string>
-           </property>
-           <layout class="QGridLayout" name="gridLayout_11">
-            <item row="0" column="0">
-             <layout class="QVBoxLayout" name="verticalLayout_5">
-              <property name="spacing">
-               <number>0</number>
-              </property>
-              <item>
-               <widget class="QRadioButton" name="global_btn">
-                <property name="font">
-                 <font>
-                  <pointsize>11</pointsize>
-                  <weight>50</weight>
-                  <bold>false</bold>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Global</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="local_btn">
-                <property name="font">
-                 <font>
-                  <pointsize>11</pointsize>
-                  <weight>50</weight>
-                  <bold>false</bold>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Local</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QGroupBox" name="group_images">
+         <property name="font">
+          <font>
+           <pointsize>14</pointsize>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="title">
+          <string>Images Root Directory</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QLineEdit" name="line_edit_images_dir">
+            <property name="font">
+             <font>
+              <pointsize>11</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="frame">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -534,7 +471,7 @@ QPushButton{
             <property name="leftMargin">
              <number>3</number>
             </property>
-            <item>
+            <item alignment="Qt::AlignTop">
              <widget class="QLabel" name="lblMeanShiftGrouping">
               <property name="maximumSize">
                <size>
@@ -554,7 +491,7 @@ QPushButton{
               </property>
              </widget>
             </item>
-            <item>
+            <item alignment="Qt::AlignHCenter|Qt::AlignTop">
              <widget class="QRadioButton" name="radio_on_mean_shift">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -580,7 +517,7 @@ QPushButton{
               </property>
              </widget>
             </item>
-            <item>
+            <item alignment="Qt::AlignTop">
              <widget class="QRadioButton" name="radio_off_mean_shift">
               <property name="minimumSize">
                <size>
@@ -869,22 +806,212 @@ QPushButton{
          </layout>
         </widget>
        </item>
-       <item row="2" column="0">
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="coord_system_tab">
+      <attribute name="title">
+       <string>Coordinate System</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item>
+        <widget class="QGroupBox" name="coordinate_box">
+         <property name="font">
+          <font>
+           <pointsize>14</pointsize>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
+         <property name="title">
+          <string>Coordinate System</string>
          </property>
-        </spacer>
+         <layout class="QGridLayout" name="gridLayout_11">
+          <item row="0" column="0">
+           <layout class="QVBoxLayout" name="verticalLayout_5">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QRadioButton" name="global_btn">
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Global</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="local_btn">
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Local</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Specify Local Coordinate Boundaries</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <item>
+           <widget class="QTableView" name="tablev_coordinates">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>1</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">
+QHeaderView::section {
+	 background-color:rgb(64, 89, 145);
+    border-style: solid;
+    border-right-width: 1px;
+	border-bottom-width:1px;
+	border-color:rgb(230,230,230);
+	padding:5px;
+}
+
+QHeaderView::section:horizontal:first{
+    border-left-width: 1px;
+}
+
+QHeaderView::section:vertical:first{
+    border-top-width: 1px;
+}
+
+QTableCornerButton::section {
+    background-color: rgb(64, 89, 145);
+}
+</string>
+            </property>
+            <property name="editTriggers">
+             <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+            </property>
+            <property name="alternatingRowColors">
+             <bool>false</bool>
+            </property>
+            <property name="verticalScrollMode">
+             <enum>QAbstractItemView::ScrollPerPixel</enum>
+            </property>
+            <property name="horizontalScrollMode">
+             <enum>QAbstractItemView::ScrollPerPixel</enum>
+            </property>
+            <property name="sortingEnabled">
+             <bool>false</bool>
+            </property>
+            <attribute name="horizontalHeaderStretchLastSection">
+             <bool>true</bool>
+            </attribute>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item>
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_delete_row">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>40</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_add_row">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>40</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>+</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </widget>
     </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer_3">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::MinimumExpanding</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>0</height>
+      </size>
+     </property>
+    </spacer>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
