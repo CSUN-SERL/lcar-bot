@@ -12,6 +12,7 @@
 #include <QProcessEnvironment>
 
 #include <gcs/util/settings.h>
+#include <gcs/util/debug.h>
 #include <gcs/util/object_detection_parameters.h>
 
 namespace gcs
@@ -50,13 +51,13 @@ void Settings::SetCoordinateSystem(const QString system)
     Q_ASSERT(new_system == Settings::val_coordinate_system_global
                 || new_system == Settings::val_coordinate_system_local);
     
-    QStringList groups = QStringList() << Settings::group_general;
+    QStringList groups({Settings::group_general});
     this->Write(Settings::key_coordinate_system, new_system, groups);
 }
 
 QString Settings::GetCoordinateSystem()
 {
-    QStringList groups = QStringList() << Settings::group_general;
+    QStringList groups({Settings::group_general});
     return this->Read(Settings::key_coordinate_system, 
                       Settings::val_coordinate_system_local,
                       groups).toString();
@@ -69,13 +70,13 @@ void Settings::SetVehicleLink(const QString vehicle_link)
                 || link == Settings::val_vehicle_link_marginal
                 || link == Settings::val_vehicle_link_poor);
     
-    QStringList groups = QStringList() << Settings::group_general << Settings::group_connection;
+    QStringList groups({Settings::group_general, Settings::group_connection});
     this->Write(Settings::key_vehicle_link, link, groups);
 }
 
 QString Settings::GetVehicleLink()
 {
-    QStringList groups = QStringList() << Settings::group_general << Settings::group_connection;
+    QStringList groups({Settings::group_general, Settings::group_connection});
     return this->Read(Settings::key_vehicle_link, 
                         Settings::val_vehicle_link_nominal,
                         groups).toString();
@@ -86,13 +87,13 @@ void Settings::SetFrequency(const QString frequency)
     QString freq = frequency.toLower();
     Q_ASSERT(freq == Settings::val_frequency_interval
                 || freq == Settings::val_frequency_random);
-    QStringList groups = QStringList() << Settings::group_general << Settings::group_connection;
+    QStringList groups({Settings::group_general, Settings::group_connection});
     this->Write(Settings::key_frequency, freq, groups);
 }
 
 QString Settings::GetFrequency()
 {
-    QStringList groups = QStringList() << Settings::group_general << Settings::group_connection;
+    QStringList groups({Settings::group_general, Settings::group_connection});
     return this->Read(Settings::key_frequency, 
                         Settings::val_frequency_random,
                         groups).toString();
@@ -101,13 +102,13 @@ QString Settings::GetFrequency()
 void Settings::SetInterval(const int minutes)
 {
     Q_ASSERT(minutes >= Settings::val_interval_unspecified);
-    QStringList groups = QStringList() << Settings::group_general << Settings::group_connection;
+    QStringList groups({Settings::group_general, Settings::group_connection});
     this->Write(Settings::key_interval, QString::number(minutes), groups);
 }
 
 int Settings::GetInterval()
 {
-    QStringList groups = QStringList() << Settings::group_general << Settings::group_connection;
+    QStringList groups({Settings::group_general, Settings::group_connection});
     return this->Read(Settings::key_interval, 
                         QString::number(Settings::val_interval_unspecified),
                         groups).toInt();
@@ -116,7 +117,7 @@ int Settings::GetInterval()
 void Settings::SetDuration(const int minutes)
 {
     Q_ASSERT(minutes >= Settings::val_duration_unspecified);
-    QStringList groups = QStringList() << Settings::group_general << Settings::group_connection;
+    QStringList groups({Settings::group_general, Settings::group_connection}); 
     this->Write(Settings::key_duration, QString::number(minutes), groups);
 }
 
@@ -142,8 +143,16 @@ void Settings::ClearFrequencyGroup()
 }
 
 void Settings::SetImagesRootDir(const QString dir)
-{
-    Q_ASSERT(dir.startsWith("/"));
+{   
+    if(dir.isNull() || dir.isEmpty())
+        return;
+    
+    if(!dir.startsWith(QChar('/')))
+    {
+        qCWarning(lcar_bot) << "directory must be absolute path";
+        return;
+    }
+    
     QStringList groups = QStringList() << Settings::group_general;
     this->Write(Settings::key_image_root_dir, dir, groups);
 }
@@ -169,7 +178,7 @@ void Settings::SetNodeLocation(const QString location)
 
 QString Settings::GetNodeLocation()
 {
-    QStringList groups = QStringList() << Settings::group_object_detection;
+    QStringList groups ({Settings::group_object_detection});
     return this->Read(Settings::key_node_location,
                         Settings::val_node_location_gcs,
                         groups).toString();
@@ -213,27 +222,66 @@ ObjectDetectionParameters Settings::GetObjectDetectionParameters()
     return od_params;
 }
 
-void Settings::Write(const QString key, const QVariant value, const QStringList groups, int index)
+void Settings::SetCoordinateSystemArray(const QVector<Point>& vector)
 {
-    if(index == groups.size())
-    {
-        settings.setValue(key, value);
-        return;
-    }
     
-    settings.beginGroup(groups[index]);
-    this->Write(key, value, groups, index+1);
-    settings.endGroup();  
+    settings.beginWriteArray(Settings::key_coordinate_array);
+    for(int i = 0; i < vector.length(); i++)
+    {
+        settings.setArrayIndex(i);
+        settings.setValue("x", vector.at(i).x);
+        settings.setValue("y", vector.at(i).y);
+        settings.setValue("z", vector.at(i).z);
+    }
+    settings.endArray();
 }
 
-QVariant Settings::Read(const QString key, const QVariant default_value, const QStringList groups, int index)
+QVector<Point> Settings::GetCoordinateSystemArray()
 {
-    if(index == groups.size())
-        return settings.value(key, default_value);
+    QVector<Point> coordinates;
+    int size = settings.beginReadArray(Settings::key_coordinate_array);
+    coordinates.reserve(size);
+    for(int i = 0; i < size; i++)
+    {
+        Point p;
+        p.x = settings.value("x").toInt();
+        p.y = settings.value("y").toInt();
+        p.z = settings.value("z").toInt();
+        coordinates.insert(i, p);
+    }
+    
+    return coordinates;
+}
 
-    settings.beginGroup(groups[index]);
-    QVariant var = this->Read(key, default_value, groups, index + 1);
-    settings.endGroup();
+void Settings::Write(const QString& key, const QVariant& value, const QStringList& groups)
+{
+    for(const QString& group : groups)
+    {
+        settings.beginGroup(group);
+    }
+    
+    settings.setValue(key, value);
+    
+    for(const QString& group : groups)
+    {
+        settings.endGroup();
+    }
+    
+}
+
+QVariant Settings::Read(const QString& key, const QVariant& default_value, const QStringList& groups)
+{
+    for(const QString& group : groups)
+    {
+        settings.beginGroup(group);
+    }
+    
+    QVariant var = settings.value(key, default_value);
+    
+    for(const QString& group : groups)
+    {
+        settings.endGroup();
+    }
     
     return var;
 }
@@ -248,10 +296,6 @@ const QString Settings::group_tuning_params = "tuning_parameters";
 const QString Settings::key_machine_learning = "machine_learning";
 const QString Settings::val_machine_learning_online = "online";
 const QString Settings::val_machine_learning_offline = "offline";
-
-const QString Settings::key_coordinate_system = "coordinate_system";
-const QString Settings::val_coordinate_system_global = "global";
-const QString Settings::val_coordinate_system_local = "local";
 
 const QString Settings::key_vehicle_link = "vehicle_gcs_link";
 const QString Settings::val_vehicle_link_nominal = "nominal";
@@ -293,5 +337,11 @@ const double Settings::val_scale_factor_low = 1.0;
 const QString Settings::key_mean_shift = "mean_shift_grouping";
 const bool Settings::val_mean_shift_on = true;
 const bool Settings::val_mean_shift_off = false;
+
+const QString Settings::key_coordinate_system = "coordinate_system";
+const QString Settings::val_coordinate_system_global = "global";
+const QString Settings::val_coordinate_system_local = "local";
+
+const QString Settings::key_coordinate_array = "coordinate_array";
 
 }//namespace gcs

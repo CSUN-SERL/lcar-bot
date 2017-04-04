@@ -33,6 +33,7 @@
 #include <gcs/qt/settings_manager.h>
 
 #include <gcs/util/image_conversions.h>
+#include <gcs/util/point.h>
 #include <gcs/util/object_detection_parameters.h>
 
 
@@ -158,7 +159,7 @@ public slots:
     void OnPublishMeanShift(bool on);
     
     void OnSetCoordinateSystem(QString new_system);
-    
+    void OnCoordinatesReady();
     //Vehicle Commands//////////////////////////////////////////////////////////
     /**
      * Vehicle commands use ros to transmit messages to vehicles, so they may 
@@ -263,7 +264,7 @@ public slots:
      */
     QWaitCondition* GetWaitCondition();
     
-     SettingsManager * getSettingsManager();
+    SettingsManager * getSettingsManager();
     
 private:
     
@@ -338,6 +339,7 @@ private:
     ros::ServiceServer srv_init_request;
     ros::ServiceServer srv_world_map;
     ros::Publisher pub_init_response;
+    ros::Publisher pub_world_map_updated;
     ros::Timer heartbeat_timer;
     
     SettingsManager * settings_manager;
@@ -352,7 +354,7 @@ private:
     
     QString coordinate_system; // can be "global" or "local"\
 
-    QVector<int> world_map;
+    QVector<Point> world_map;
     
     struct ObjectDetectionMessageHandlers // publishers and subscribers
     {

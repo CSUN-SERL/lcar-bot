@@ -41,14 +41,6 @@ private:
     Settings settings; 
     SettingsManager * sm;
     
-//    struct InsertActions
-//    {
-//        QAction * insert_before;
-//        QAction * insert_after;
-//        QAction * delete_rows;
-//    };
-//
-//    InsertActions context_actions;
     QMenu* menu;
     
     ObjectDetectionParameters od_params;
@@ -61,6 +53,9 @@ private:
 
     void readObjectDetectionSettings();
     void writeObjectDetectionSettings();
+    
+    void readCoordinateSystemSettings();
+    void WriteCoordinateSystemSettings();
 
 private slots:
     bool onApplyClicked();
@@ -90,7 +85,6 @@ private slots:
     void onAddRowClicked();
     void onDeleteRowClicked();
     void addOrDeleteSelectedRows(bool add, int row_offset = 0);
-    
 };
 
 class Delegate : public QItemDelegate
@@ -105,7 +99,7 @@ public:
     {
         QLineEdit *lineEdit = new QLineEdit(parent);
         // Set validator
-        QIntValidator *validator = new QIntValidator(-1000, 1000, lineEdit);
+        QDoubleValidator *validator = new QDoubleValidator(-1000.0, 1000.0, 2, lineEdit);
         lineEdit->setValidator(validator);
         return lineEdit;
     }

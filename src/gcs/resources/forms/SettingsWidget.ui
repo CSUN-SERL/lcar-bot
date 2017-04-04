@@ -103,7 +103,7 @@ QPushButton{
       <string notr="true"/>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="general_tab">
       <attribute name="title">
@@ -865,7 +865,7 @@ QPushButton{
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox">
+        <widget class="QGroupBox" name="group_coordinates">
          <property name="title">
           <string>Specify Local Coordinate Boundaries</string>
          </property>
