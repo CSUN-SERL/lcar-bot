@@ -13,7 +13,8 @@
 #include <QSettings>
 #include <QStringList>
 
-#include "gcs/util/object_detection_parameters.h"
+#include <gcs/util/object_detection_parameters.h>
+#include <gcs/util/point.h> 
 
 namespace gcs
 {
@@ -53,8 +54,12 @@ public:
     void SetObjectDetectionParameters(ObjectDetectionParameters& od_params);
     ObjectDetectionParameters GetObjectDetectionParameters();
     
-    void Write(const QString key, const QVariant value, QStringList groups = QStringList(), int index = 0);
-    QVariant Read(QString key, const QVariant default_value, QStringList groups = QStringList(), int index = 0);
+    void SetCoordinateSystemArray(const QVector<Point>& vector);
+    QVector<Point> GetCoordinateSystemArray();
+    
+    
+    void Write(const QString& key, const QVariant& value, const QStringList& groups = QStringList());
+    QVariant Read(const QString& key, const QVariant& default_value, const QStringList& groups = QStringList());
 
     //variables
     static const QString val_machine_learning_online,
@@ -103,8 +108,6 @@ private:
     
     static const QString key_machine_learning;
         
-    static const QString key_coordinate_system;
-        
     static const QString key_vehicle_link;
     static const QString key_frequency;
     static const QString key_interval;
@@ -119,6 +122,9 @@ private:
     static const QString key_padding;
     static const QString key_scale_factor;
     static const QString key_mean_shift;
+
+    static const QString key_coordinate_system;
+    static const QString key_coordinate_array;
 };
 
 }

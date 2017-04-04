@@ -9,8 +9,9 @@
 #include <QStringBuilder>
 
 #include <ros/package.h>
-
+#include <std_msgs/Empty.h>
 #include <lcar_msgs/InitResponse.h>
+
 #include <vehicle/uav_control.h>
 
 #include <gcs/util/flight_modes.h>
@@ -39,9 +40,14 @@ VehicleManager::VehicleManager(QObject *parent):
     
     srv_world_map = nh.advertiseService("world_map", &VehicleManager::WorldMapRequested, this);
     
-    pub_init_response = nh.advertise<lcar_msgs::InitResponse>("vehicle/init/response", 2);
+    pub_init_response = nh.advertise<lcar_msgs::InitResponse>("vehicle/init/response", 10);
+    
+    pub_world_map_updated = nh.advertise<std_msgs::Empty>("world_map_updated", 10);
     
     heartbeat_timer = nh.createTimer(ros::Duration(1), &VehicleManager::TimedHeartBeatCheck, this);
+    
+    QObject::connect(settings_manager, &SettingsManager::coordinatesReady,
+                    this, &VehicleManager::OnCoordinatesReady);
     
     this->InitSettings();
     this->AdvertiseObjectDetection();
@@ -455,6 +461,13 @@ void VehicleManager::OnSetCoordinateSystem(QString new_system)
         ROS_ERROR_STREAM("Cooridinate system invalid: " << new_system.toStdString());
 }
 
+void VehicleManager::OnCoordinatesReady()
+{
+    world_map.clear();
+    settings_manager->getCoordinates(world_map);
+    pub_world_map_updated.publish(std_msgs::Empty());
+}
+
 void VehicleManager::OnSetWaypoint(int v_id, double lat, double lng, double alt)
 {
     VehicleControl *vc = this->FindVehicle(v_id);
@@ -626,7 +639,13 @@ QWaitCondition* VehicleManager::GetWaitCondition()
 
 bool VehicleManager::WorldMapRequested(lcar_msgs::WorldMap::Request& req, lcar_msgs::WorldMap::Response& res)
 {
-    res.world_map = world_map.toStdVector();
+    res.world_map.reserve(world_map.size () * 3);
+    for(const Point& p : world_map)
+    {
+        res.world_map.push_back(p.x);
+        res.world_map.push_back(p.y);
+        res.world_map.push_back(p.z);
+    }
     return true;
 }
 
@@ -760,6 +779,7 @@ void VehicleManager::InitSettings()
     Settings settings;
     od_params = settings.GetObjectDetectionParameters();
     coordinate_system = settings.GetCoordinateSystem();
+    world_map = settings.GetCoordinateSystemArray();
 }
 
 SettingsManager * VehicleManager::getSettingsManager()

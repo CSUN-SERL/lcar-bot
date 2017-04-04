@@ -1,2 +1,2 @@
 ---
-int32[] world_map
+float64[] world_map

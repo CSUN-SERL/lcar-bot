@@ -134,7 +134,8 @@ menu(nullptr)
     
     this->setToolTips();
     this->readGeneralSettings();
-    this->readObjectDetectionSettings(); 
+    this->readObjectDetectionSettings();
+    this->readCoordinateSystemSettings();
 }
 
 SettingsWidget::~SettingsWidget()
@@ -184,20 +185,12 @@ void SettingsWidget::setToolTips()
 
 void SettingsWidget::readGeneralSettings()
 {
-
     QString ml = settings.GetMachineLearningType();
     if(ml == settings.val_machine_learning_online)
         widget.online_btn->setChecked(true);
     else
         widget.offline_btn->setChecked(true);
     ml_state = ml;
-    
-    QString cs = settings.GetCoordinateSystem();
-    if(cs == settings.val_coordinate_system_global)
-        widget.global_btn->setChecked(true);
-    else
-        widget.local_btn->setChecked(true);
-    coordinate_system = cs;
 
     QString vehicle_link = settings.GetVehicleLink();
     if(vehicle_link == settings.val_vehicle_link_nominal)
@@ -249,12 +242,6 @@ void SettingsWidget::writeGeneralSettings()
     ml_state = ml;
     settings.SetMachineLearningType(ml);
     
-    QString coord_system = (widget.global_btn->isChecked() 
-                                ? settings.val_coordinate_system_global
-                                : settings.val_coordinate_system_local);
-    coordinate_system = coord_system;
-    settings.SetCoordinateSystem(coord_system);
-
     QString vehicle_link;
     if(widget.nominal_btn->isChecked())
         vehicle_link = settings.val_vehicle_link_nominal;
@@ -358,7 +345,6 @@ bool SettingsWidget::validateGeneralSettings()
 
 void SettingsWidget::readObjectDetectionSettings()
 {
-
     QString node_loc = settings.GetNodeLocation();
     if(node_loc == settings.val_node_location_gcs)
         widget.gcs_btn->setChecked(true);
@@ -398,7 +384,6 @@ void SettingsWidget::writeObjectDetectionSettings()
 
 bool SettingsWidget::onApplyClicked()
 {   
-    
     if(!validateGeneralSettings()) 
         return false;
 
@@ -417,10 +402,50 @@ bool SettingsWidget::onApplyClicked()
     if(image_root_dir != image_dir_previous)
         emit UIAdapter::Instance()->SetImageRootDir(image_root_dir);
     
-    
     this->writeObjectDetectionSettings();
-
+    this->WriteCoordinateSystemSettings();
+    emit sm->coordinatesReady();
+    
     return true;
+}
+
+void SettingsWidget::WriteCoordinateSystemSettings()
+{
+    coordinate_system = (widget.global_btn->isChecked() 
+                                ? settings.val_coordinate_system_global
+                                : settings.val_coordinate_system_local);
+    settings.SetCoordinateSystem(coordinate_system);
+
+    if(coordinate_system == settings.val_coordinate_system_local)
+    {
+        QVector<Point> coordinates;
+        sm->getCoordinates(coordinates);
+        settings.SetCoordinateSystemArray(coordinates);
+    }
+    else
+        settings.SetCoordinateSystemArray(QVector<Point>());
+}
+
+void SettingsWidget::readCoordinateSystemSettings()
+{
+    QString cs = settings.GetCoordinateSystem();
+    if(cs == settings.val_coordinate_system_global)
+        widget.global_btn->setChecked(true);
+    else
+        widget.local_btn->setChecked(true);
+    coordinate_system = cs;
+    
+    QVector<Point> coordinates = settings.GetCoordinateSystemArray();
+    for(const Point& p : coordinates)
+    {
+        QList<QStandardItem*> new_row;
+        new_row.append(new QStandardItem(QString::number(p.x, 'f', 2)));
+        new_row.append(new QStandardItem(QString::number(p.y, 'f', 2)));
+        new_row.append(new QStandardItem(QString::number(p.z, 'f', 2)));
+        sm->mdl_cs->appendRow(new_row);
+    }
+    
+    widget.group_coordinates->setEnabled(widget.local_btn->isChecked());
 }
 
 void SettingsWidget::onOkClicked()
@@ -464,6 +489,11 @@ void SettingsWidget::onToggleDurationLine()
 void SettingsWidget::OnCoordinateSystemChange()
 {
     bool global = widget.global_btn->isChecked();
+    coordinate_system = global ? settings.val_coordinate_system_global:
+                                 settings.val_coordinate_system_local;
+    
+    widget.group_coordinates->setEnabled(!global);
+
     
     std::cout << "coordinate system set to " << ((global) ? "global" : "local")
             << std::endl;

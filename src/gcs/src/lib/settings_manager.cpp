@@ -27,15 +27,15 @@ SettingsManager::~SettingsManager()
 {
 }
 
-void SettingsManager::getData(QVector<Point>& vector)
+void SettingsManager::getCoordinates(QVector<Point>& vector)
 {
     int rows = mdl_cs->rowCount();
     vector.reserve(rows);
     for(int i = 0; i < rows; i++)
     {         
-        vector.insert(i, Point(mdl_cs->item(i, COLUMN_X)->data(Qt::DisplayRole).toInt(),
-                               mdl_cs->item(i, COLUMN_Y)->data(Qt::DisplayRole).toInt(),
-                               mdl_cs->item(i, COLUMN_Z)->data(Qt::DisplayRole).toInt()) );
+        vector.insert(i, Point(mdl_cs->item(i, COLUMN_X)->data(Qt::DisplayRole).toDouble(),
+                               mdl_cs->item(i, COLUMN_Y)->data(Qt::DisplayRole).toDouble(),
+                               mdl_cs->item(i, COLUMN_Z)->data(Qt::DisplayRole).toDouble()) );
     }
 }
 

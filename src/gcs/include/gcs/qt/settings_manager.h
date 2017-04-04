@@ -12,6 +12,8 @@
 #include <QObject>
 #include <QVector>
 
+#include <gcs/util/point.h>
+
 #define COLUMN_X 0
 #define COLUMN_Y 1
 #define COLUMN_Z 2
@@ -24,39 +26,6 @@ namespace gcs
 class VehicleManager;
 class SettingsWidget;
 
-struct Point 
-{
-public:
-    Point()
-    {}
-
-    Point(int x, int y, int z)
-    {
-        this->x = x;
-        this->y = y;
-        this->z = z;
-    }
-
-    Point(const Point& other)
-    {
-        x = other.x;
-        y = other.y;
-        z = other.z;
-    }
-
-    inline Point& operator=(const Point& other)
-    {
-        x = other.x;
-        y = other.y;
-        z = other.z;
-        return *this;
-    }
-
-    int x;
-    int y;
-    int z;
-};
-
 class SettingsManager : public QObject {
     Q_OBJECT
     
@@ -68,8 +37,11 @@ public:
     SettingsManager(QObject * parent = nullptr);
     virtual ~SettingsManager();
     
-    void getData(QVector<Point>& vector);
+    void getCoordinates(QVector<Point>& vector);
     
+signals: 
+    void coordinatesReady();
+
 public slots:
     void onAddCoordinateSystemSelection(const QModelIndex& top_left, const QModelIndex& bottom_right);
     void onDeleteCoordinateSystemSelection(const QModelIndex& top_left, const QModelIndex& bottom_right);
