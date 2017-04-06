@@ -24,7 +24,7 @@ class QMenu;
 namespace gcs
 {
     
-    class SettingsManager;
+class SettingsManager;
     
 class SettingsWidget : public QWidget
 {
@@ -41,7 +41,7 @@ private:
     Settings settings; 
     SettingsManager * sm;
     
-    QMenu* menu;
+    QMenu * menu;
     
     ObjectDetectionParameters od_params;
 
@@ -96,20 +96,19 @@ public:
     QItemDelegate(parent)
     { }
     
-    QWidget* createEditor(QWidget *parent, 
+    QWidget * createEditor(QWidget * parent, 
                           const QStyleOptionViewItem & option,
                           const QModelIndex & index) const
     {
-        QLineEdit *lineEdit = new QLineEdit(parent);
-        // Set validator
-        QDoubleValidator *validator = new QDoubleValidator(-1000.0, 1000.0, 2, lineEdit);
+        QLineEdit * lineEdit = new QLineEdit(parent);
+        QDoubleValidator * validator = new QDoubleValidator(-1000.0, 1000.0, 2, lineEdit);
         lineEdit->setValidator(validator);
         return lineEdit;
     }
     
-    virtual void setModelData(QWidget *editor, 
-                              QAbstractItemModel *model,
-                              const QModelIndex &index) const override
+    virtual void setModelData(QWidget * editor, 
+                              QAbstractItemModel * model,
+                              const QModelIndex & index) const override
     {
         QLineEdit * line_edit = static_cast<QLineEdit*>(editor);
         model->setData(index, line_edit->text().toDouble(), Qt::DisplayRole);

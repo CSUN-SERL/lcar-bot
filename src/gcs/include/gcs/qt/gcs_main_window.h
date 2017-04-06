@@ -16,6 +16,10 @@
 
 #ifdef USEOSGEARTH
 #include "ui_GCSMainWindow_OSG.h"
+#include <osgEarth/GeoData>
+#include <osgEarthUtil/MouseCoordsTool>
+#include <osgEarth/MapNode>
+#include <osg/View>
 #else
 #include "ui_GCSMainWindow.h"
 #endif
@@ -43,6 +47,17 @@ namespace osgEarth
         class ViewerWidget;
     }
 }
+
+namespace osgViewer
+{
+    class Viewer;
+}
+
+using namespace osg;
+using namespace osgViewer;
+using namespace osgEarth;
+using namespace osgEarth::Util;
+using namespace osgEarth::QtGui;
 #endif
 
 namespace gcs
@@ -117,7 +132,8 @@ private:
     void OnAddVehicleTriggered();
 
 #ifdef USEOSGEARTH
-    osgEarth::QtGui::ViewerWidget * osg_map;
+    ViewerWidget * osg_map;
+    Viewer * viewer;
 #endif
     
     Ui::GCSMainWindow widget;
@@ -139,6 +155,27 @@ private:
     } fl_widgets;
     
 };
+
+#ifdef USEOSGEARTH
+struct PrintCoordsToStatusBar : public MouseCoordsTool::Callback
+{
+public:
+    PrintCoordsToStatusBar(QStatusBar* sb) : _sb(sb) { }
+
+    void set(const osgEarth::GeoPoint& p, osg::View* view, osgEarth::MapNode* mapNode)
+    {
+        std::string str = osgEarth::Stringify() << p.y() << ", " << p.x();
+        _sb->showMessage( QString(str.c_str()) );
+    }
+
+    void reset(osg::View* view, osgEarth::MapNode* mapNode)
+    {
+        _sb->showMessage( QString("out of range") );
+    }
+
+    QStatusBar* _sb;
+};
+#endif
 
 }
 #endif /* _SIMPLEGCS_H */
