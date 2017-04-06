@@ -54,6 +54,7 @@ private:
     void readObjectDetectionSettings();
     void writeObjectDetectionSettings();
     
+    bool validateCoordinateSystemSettings();
     void readCoordinateSystemSettings();
     void WriteCoordinateSystemSettings();
 
@@ -64,7 +65,8 @@ private slots:
     void onToggleFrequencyGroup();
     void onToggleIntervalLine();
     void onToggleDurationLine();
-    void OnCoordinateSystemChange();
+    void onToggleCoordinateSystem();
+    void onCoordinateSystemChange();
 
     //object detection tab sliders and line_edits
     void onHitThresholdSliderChange(int);
@@ -94,14 +96,23 @@ public:
     QItemDelegate(parent)
     { }
     
-    QWidget* createEditor(QWidget *parent, const QStyleOptionViewItem & option,
-                      const QModelIndex & index) const
+    QWidget* createEditor(QWidget *parent, 
+                          const QStyleOptionViewItem & option,
+                          const QModelIndex & index) const
     {
         QLineEdit *lineEdit = new QLineEdit(parent);
         // Set validator
         QDoubleValidator *validator = new QDoubleValidator(-1000.0, 1000.0, 2, lineEdit);
         lineEdit->setValidator(validator);
         return lineEdit;
+    }
+    
+    virtual void setModelData(QWidget *editor, 
+                              QAbstractItemModel *model,
+                              const QModelIndex &index) const override
+    {
+        QLineEdit * line_edit = static_cast<QLineEdit*>(editor);
+        model->setData(index, line_edit->text().toDouble(), Qt::DisplayRole);
     }
 };
 
