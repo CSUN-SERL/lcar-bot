@@ -124,6 +124,12 @@ menu(nullptr)
     connect(widget.radio_off_mean_shift, &QRadioButton::clicked,
             this, &SettingsWidget::onMeanShiftRadioChange);
 
+    connect(widget.local_btn, &QRadioButton::clicked,
+            this, &SettingsWidget::onToggleCoordinateSystem);
+    
+    connect(widget.global_btn, &QRadioButton::clicked,
+            this, &SettingsWidget::onToggleCoordinateSystem);
+    
     widget.line_edit_interval->setValidator(new QIntValidator(1, 10, this));
     widget.line_edit_duration->setValidator(new QIntValidator(1, 10, this));
     
@@ -372,6 +378,27 @@ void SettingsWidget::readObjectDetectionSettings()
     this->onMeanShiftRadioChange();
 }
 
+bool SettingsWidget::validateCoordinateSystemSettings()
+{
+    int row_count = sm->mdl_cs->rowCount();
+    int col_count = sm->mdl_cs->columnCount();
+    for(int row = 0; row < row_count; row++)
+    {
+        for(int col = 0; col < col_count; col++)
+        {
+            QStandardItem * item = sm->mdl_cs->item(row, col);
+            if(item == nullptr)
+            {
+                std::cout << "must not have an empty X Y Z coordinate entry"
+                          << std::endl;
+                return false;
+            }
+        }
+    }
+    
+    return true;
+}
+
 void SettingsWidget::writeObjectDetectionSettings()
 {
     QString node_location = (widget.uav_btn->isChecked()
@@ -387,6 +414,9 @@ bool SettingsWidget::onApplyClicked()
     if(!validateGeneralSettings()) 
         return false;
 
+    if(!validateCoordinateSystemSettings())
+        return false;
+    
     QString ml_state_previous = ml_state;
     QString coordinate_previous = coordinate_system;
     QString image_dir_previous = image_root_dir;
@@ -486,7 +516,16 @@ void SettingsWidget::onToggleDurationLine()
             << std::endl;
 }
 
-void SettingsWidget::OnCoordinateSystemChange()
+void SettingsWidget::onToggleCoordinateSystem()
+{
+    widget.group_coordinates->setEnabled(widget.local_btn->isChecked());
+    
+    std::cout << "coordinates  "
+            << (widget.local_btn->isChecked() ? "enabled" : "disabled")
+            << std::endl;
+}
+
+void SettingsWidget::onCoordinateSystemChange()
 {
     bool global = widget.global_btn->isChecked();
     coordinate_system = global ? settings.val_coordinate_system_global:
