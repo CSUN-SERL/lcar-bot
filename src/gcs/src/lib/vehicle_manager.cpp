@@ -34,6 +34,8 @@ VehicleManager::VehicleManager(QObject *parent):
     VTOL_ID(0),
     it_stereo(nh)
 {   
+    qRegisterMetaType<QVector<gcs::Point>>("QVector<Point>");
+    
     srv_init_request = nh.advertiseService("vehicle/init/request", 
                                            &VehicleManager::VehicleInitRequested, this);
     
@@ -462,11 +464,11 @@ void VehicleManager::OnLocalCoordinatesUpdated(const QVector<Point>& vector)
     world_map = vector;
     pub_world_map_updated.publish(std_msgs::Empty());
     
-    std::cout << "coordinates updated:" << std::endl;
+    ROS_INFO_STREAM("coordinates updated:");
     
     if(world_map.length() > 0)
     {
-        std::cout << world_map.at(0).x << " " << world_map.at(0).y << " " << world_map.at(0).z << std::endl;
+        ROS_INFO_STREAM(world_map.at(0).x << " " << world_map.at(0).y << " " << world_map.at(0).z);
     }
 }
 
