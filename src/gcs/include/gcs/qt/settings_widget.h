@@ -12,35 +12,46 @@
 
 #include "ui_SettingsWidget.h"
 
-#include <gcs/qt/settings_manager.h>
-
 #include <gcs/util/settings.h>
+#include <gcs/util/point.h>
 #include <gcs/util/object_detection_parameters.h>
 
 
+class QStandardItemModel;
 class QAction;
 class QMenu;
 
 namespace gcs
 {
     
-class SettingsManager;
-    
 class SettingsWidget : public QWidget
 {
     Q_OBJECT
 public:
-    SettingsWidget(SettingsManager * sm);
+    SettingsWidget();
     virtual ~SettingsWidget();
+    
+    void getCoordinates(QVector<Point>& vector);
 
+    
+signals:
+    void localCoordinatesUpdated(const QVector<Point> vector);
+    
 private:
     Ui::SettingsWidget widget;
     QString ml_state;
     QString coordinate_system;
     QString image_root_dir;
     Settings settings; 
-    SettingsManager * sm;
     
+    struct CoordinateColumns
+    {
+        int x;
+        int y;
+        int z;
+    } columns;
+    
+    QStandardItemModel * mdl_coords;
     QMenu * menu;
     
     ObjectDetectionParameters od_params;
@@ -56,8 +67,12 @@ private:
     
     bool validateCoordinateSystemSettings();
     void readCoordinateSystemSettings();
-    void WriteCoordinateSystemSettings();
-
+    void writeCoordinateSystemSettings();
+    
+    
+    void initCoordinatesModel();
+    void emitLocalCoordinatesUpdated();
+    
 private slots:
     bool onApplyClicked();
     void onOkClicked();
