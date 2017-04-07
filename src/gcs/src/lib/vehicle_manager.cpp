@@ -28,7 +28,6 @@ namespace gcs
     
 VehicleManager::VehicleManager(QObject *parent):
     QObject(parent),
-    settings_manager(new SettingsManager(this)),
     UGV_ID(0),
     QUAD_ID(0),
     OCTO_ID(0),
@@ -45,9 +44,6 @@ VehicleManager::VehicleManager(QObject *parent):
     pub_world_map_updated = nh.advertise<std_msgs::Empty>("world_map_updated", 10);
     
     heartbeat_timer = nh.createTimer(ros::Duration(1), &VehicleManager::TimedHeartBeatCheck, this);
-    
-    QObject::connect(settings_manager, &SettingsManager::coordinatesReady,
-                    this, &VehicleManager::OnCoordinatesReady);
     
     this->InitSettings();
     this->AdvertiseObjectDetection();
@@ -461,11 +457,17 @@ void VehicleManager::OnSetCoordinateSystem(QString new_system)
         ROS_ERROR_STREAM("Cooridinate system invalid: " << new_system.toStdString());
 }
 
-void VehicleManager::OnCoordinatesReady()
+void VehicleManager::OnLocalCoordinatesUpdated(const QVector<Point>& vector)
 {
-    world_map.clear();
-    settings_manager->getCoordinates(world_map);
+    world_map = vector;
     pub_world_map_updated.publish(std_msgs::Empty());
+    
+    std::cout << "coordinates updated:" << std::endl;
+    
+    if(world_map.length() > 0)
+    {
+        std::cout << world_map.at(0).x << " " << world_map.at(0).y << " " << world_map.at(0).z << std::endl;
+    }
 }
 
 void VehicleManager::OnSetWaypoint(int v_id, double lat, double lng, double alt)
@@ -780,11 +782,6 @@ void VehicleManager::InitSettings()
     od_params = settings.GetObjectDetectionParameters();
     coordinate_system = settings.GetCoordinateSystem();
     world_map = settings.GetCoordinateSystemArray();
-}
-
-SettingsManager * VehicleManager::getSettingsManager()
-{
-    return settings_manager;
 }
 
 lcar_msgs::TargetGlobalPtr VehicleManager::GetTargetGlobal(QString target_path)

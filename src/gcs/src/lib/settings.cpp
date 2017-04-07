@@ -223,8 +223,7 @@ ObjectDetectionParameters Settings::GetObjectDetectionParameters()
 }
 
 void Settings::SetCoordinateSystemArray(const QVector<Point>& vector)
-{
-    
+{   
     settings.beginWriteArray(Settings::key_coordinate_array);
     for(int i = 0; i < vector.length(); i++)
     {
@@ -244,12 +243,13 @@ QVector<Point> Settings::GetCoordinateSystemArray()
     for(int i = 0; i < size; i++)
     {
         Point p;
-        p.x = settings.value("x").toInt();
-        p.y = settings.value("y").toInt();
-        p.z = settings.value("z").toInt();
+        settings.setArrayIndex(i);
+        p.x = settings.value("x").toDouble();
+        p.y = settings.value("y").toDouble();
+        p.z = settings.value("z").toDouble();
         coordinates.insert(i, p);
     }
-    
+    settings.endArray();
     return coordinates;
 }
 
@@ -266,7 +266,6 @@ void Settings::Write(const QString& key, const QVariant& value, const QStringLis
     {
         settings.endGroup();
     }
-    
 }
 
 QVariant Settings::Read(const QString& key, const QVariant& default_value, const QStringList& groups)

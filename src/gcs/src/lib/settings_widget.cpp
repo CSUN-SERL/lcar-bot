@@ -16,7 +16,6 @@
 
 #include <gcs/qt/ui_adapter.h>
 #include <gcs/qt/settings_widget.h>
-#include <gcs/qt/settings_manager.h>
 #include <gcs/util/image_conversions.h>
 #include <gcs/util/flight_modes.h>
 #include <gcs/util/settings.h>
@@ -24,14 +23,14 @@
 namespace gcs
 {
 
-SettingsWidget::SettingsWidget(SettingsManager * sm) :
-sm(sm),
+SettingsWidget::SettingsWidget() :
 menu(nullptr)
 {
     this->setAttribute(Qt::WA_DeleteOnClose);
 
     widget.setupUi(this);
-    widget.tablev_coordinates->setModel(sm->mdl_cs);
+    this->initCoordinatesModel();
+    widget.tablev_coordinates->setModel(mdl_coords);
     widget.tablev_coordinates->setItemDelegate(new Delegate);
     widget.tablev_coordinates->setContextMenuPolicy(Qt::CustomContextMenu);
     
@@ -146,6 +145,18 @@ menu(nullptr)
 
 SettingsWidget::~SettingsWidget()
 {
+}
+
+void SettingsWidget::getCoordinates(QVector<Point>& vector)
+{
+    int rows = mdl_coords->rowCount();
+    vector.reserve(rows);
+    for(int i = 0; i < rows; i++)
+    {   
+        vector.insert(i, Point(mdl_coords->item(i, columns.x)->data(Qt::DisplayRole).toDouble(),
+                               mdl_coords->item(i, columns.y)->data(Qt::DisplayRole).toDouble(),
+                               mdl_coords->item(i, columns.z)->data(Qt::DisplayRole).toDouble()));
+    }
 }
 
 void SettingsWidget::setToolTips()
@@ -380,13 +391,13 @@ void SettingsWidget::readObjectDetectionSettings()
 
 bool SettingsWidget::validateCoordinateSystemSettings()
 {
-    int row_count = sm->mdl_cs->rowCount();
-    int col_count = sm->mdl_cs->columnCount();
+    int row_count = mdl_coords->rowCount();
+    int col_count = mdl_coords->columnCount();
     for(int row = 0; row < row_count; row++)
     {
         for(int col = 0; col < col_count; col++)
         {
-            QStandardItem * item = sm->mdl_cs->item(row, col);
+            QStandardItem * item = mdl_coords->item(row, col);
             if(item == nullptr)
             {
                 std::cout << "must not have an empty X Y Z coordinate entry"
@@ -433,27 +444,10 @@ bool SettingsWidget::onApplyClicked()
         emit UIAdapter::Instance()->SetImageRootDir(image_root_dir);
     
     this->writeObjectDetectionSettings();
-    this->WriteCoordinateSystemSettings();
-    emit sm->coordinatesReady();
+    this->writeCoordinateSystemSettings();
+    this->emitLocalCoordinatesUpdated();
     
     return true;
-}
-
-void SettingsWidget::WriteCoordinateSystemSettings()
-{
-    coordinate_system = (widget.global_btn->isChecked() 
-                                ? settings.val_coordinate_system_global
-                                : settings.val_coordinate_system_local);
-    settings.SetCoordinateSystem(coordinate_system);
-
-    if(coordinate_system == settings.val_coordinate_system_local)
-    {
-        QVector<Point> coordinates;
-        sm->getCoordinates(coordinates);
-        settings.SetCoordinateSystemArray(coordinates);
-    }
-    else
-        settings.SetCoordinateSystemArray(QVector<Point>());
 }
 
 void SettingsWidget::readCoordinateSystemSettings()
@@ -472,10 +466,48 @@ void SettingsWidget::readCoordinateSystemSettings()
         new_row.append(new QStandardItem(QString::number(p.x, 'f', 2)));
         new_row.append(new QStandardItem(QString::number(p.y, 'f', 2)));
         new_row.append(new QStandardItem(QString::number(p.z, 'f', 2)));
-        sm->mdl_cs->appendRow(new_row);
+        mdl_coords->appendRow(new_row);
     }
     
     widget.group_coordinates->setEnabled(widget.local_btn->isChecked());
+}
+
+void SettingsWidget::writeCoordinateSystemSettings()
+{
+    coordinate_system = (widget.global_btn->isChecked() 
+                                ? settings.val_coordinate_system_global
+                                : settings.val_coordinate_system_local);
+    settings.SetCoordinateSystem(coordinate_system);
+
+    
+    if(coordinate_system == settings.val_coordinate_system_local)
+    {
+        QVector<Point> coordinates;
+        this->getCoordinates(coordinates);
+        settings.SetCoordinateSystemArray(coordinates);
+    }
+    else
+        settings.SetCoordinateSystemArray(QVector<Point>());
+}
+
+void SettingsWidget::initCoordinatesModel()
+{
+    QString x("X"), y("Y"), z("Z");
+    QList<QString> headers({x, y, z});
+ 
+    columns.x = headers.indexOf(x);
+    columns.y = headers.indexOf(y);
+    columns.z = headers.indexOf(z);
+    
+    mdl_coords = new QStandardItemModel(this);
+    mdl_coords->setHorizontalHeaderLabels(headers);
+}
+
+void SettingsWidget::emitLocalCoordinatesUpdated()
+{
+    QVector<Point> vector;
+    this->getCoordinates(vector);
+    emit this->localCoordinatesUpdated(vector);
 }
 
 void SettingsWidget::onOkClicked()
@@ -503,7 +535,7 @@ void SettingsWidget::onToggleIntervalLine()
     widget.line_edit_interval->setEnabled(widget.interval_btn->isChecked()); 
 
     std::cout << "interval text box "
-            << (widget.interval_btn->isEnabled() ? "enabled" : "disabled")
+            << (widget.interval_btn->isChecked() ? "enabled" : "disabled")
             << std::endl;
 }
 
@@ -738,12 +770,12 @@ void SettingsWidget::onTableViewContextMenuRequested(const QPoint& p)
 
 void SettingsWidget::onAddRowClicked()
 {
-    sm->mdl_cs->appendRow(new QStandardItem());
+    mdl_coords->appendRow(new QStandardItem());
 }
 
 void SettingsWidget::onDeleteRowClicked()
 {
-    if(sm->mdl_cs->rowCount() == 0)
+    if(mdl_coords->rowCount() == 0)
         return;
     
     addOrDeleteSelectedRows(false);
@@ -763,7 +795,7 @@ void SettingsWidget::addOrDeleteSelectedRows(bool add, int row_offset)
     
     if(row_map.isEmpty())
     {
-        int last_row = (sm->mdl_cs->rowCount() - 1);
+        int last_row = (mdl_coords->rowCount() - 1);
         row_map.insert(last_row, last_row);
     }
     
@@ -772,14 +804,14 @@ void SettingsWidget::addOrDeleteSelectedRows(bool add, int row_offset)
     {
         for(; it != row_map.constBegin();)
         {
-            sm->mdl_cs->insertRow((--it).value() + row_offset);
+            mdl_coords->insertRow((--it).value() + row_offset);
         }
     }
     else
     {
         for(; it != row_map.constBegin();)
         {
-            sm->mdl_cs->removeRow((--it).value());
+            mdl_coords->removeRow((--it).value());
         }
     }
 }

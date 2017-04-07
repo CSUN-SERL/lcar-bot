@@ -30,7 +30,6 @@
 #include <vehicle/vehicle_control.h>
 
 #include <gcs/qt/ui_adapter.h>
-#include <gcs/qt/settings_manager.h>
 
 #include <gcs/util/image_conversions.h>
 #include <gcs/util/point.h>
@@ -159,7 +158,8 @@ public slots:
     void OnPublishMeanShift(bool on);
     
     void OnSetCoordinateSystem(QString new_system);
-    void OnCoordinatesReady();
+    void OnLocalCoordinatesUpdated(const QVector<Point>& vector);
+    
     //Vehicle Commands//////////////////////////////////////////////////////////
     /**
      * Vehicle commands use ros to transmit messages to vehicles, so they may 
@@ -264,8 +264,6 @@ public slots:
      */
     QWaitCondition* GetWaitCondition();
     
-    SettingsManager * getSettingsManager();
-    
 private:
     
     //ros related///////////////////////////////////////////////////////////////
@@ -341,8 +339,6 @@ private:
     ros::Publisher pub_init_response;
     ros::Publisher pub_world_map_updated;
     ros::Timer heartbeat_timer;
-    
-    SettingsManager * settings_manager;
     
     int UGV_ID,
         QUAD_ID,

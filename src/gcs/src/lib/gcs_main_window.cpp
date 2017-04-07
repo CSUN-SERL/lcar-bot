@@ -583,12 +583,15 @@ void GCSMainWindow::OnSettingsTriggered()
 {
     if(fl_widgets.settings == nullptr)
     {
-        fl_widgets.settings = new SettingsWidget(vm->getSettingsManager());
+        fl_widgets.settings = new SettingsWidget();
 
         this->CenterFloatingWidget(fl_widgets.settings);
 
         connect(fl_widgets.settings, &SettingsWidget::destroyed,
                 this, [=](){ fl_widgets.settings = nullptr; });
+                
+        connect(fl_widgets.settings, &SettingsWidget::localCoordinatesUpdated,
+                vm, &VehicleManager::OnLocalCoordinatesUpdated);
     }
     else
     {
@@ -637,6 +640,9 @@ void GCSMainWindow::InitMap()
 {
 #ifdef USEOSGEARTH
     ref_ptr<Node> node = osgDB::readFile<Node>("aero-chart-arcgis.earth");    
+    if(!node)
+        return;
+    
     osg_map = new ViewerWidget(node);
     QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     sizePolicy.setHorizontalStretch(1);
