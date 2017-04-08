@@ -18,8 +18,6 @@
 
 #include <vehicle/data_types.h>
 
-#include "gcs/qt/web_view_map_widget.h"
-
 #ifdef USEOSGEARTH
 #include <gcs/qt/osg_map_widget.h>
 #else
