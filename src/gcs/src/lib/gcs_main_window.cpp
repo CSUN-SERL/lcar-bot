@@ -19,15 +19,8 @@
 #include <vehicle/data_types.h>
 
 #ifdef USEOSGEARTH
-#include <osgEarthQt/ViewerWidget>
-#include <osgDB/ReadFile>
-
-using namespace osg;
-using namespace osgViewer;
-using namespace osgEarth;
-using namespace osgEarth::Util;
-using namespace osgEarth::QtGui;
-
+#include "ui_GCSMainWindow_OSG.h"
+#include <gcs/qt/osg_map_widget.h>
 #endif
 
 namespace gcs
@@ -639,25 +632,8 @@ void GCSMainWindow::OnAddVehicleTriggered()
 void GCSMainWindow::InitMap()
 {
 #ifdef USEOSGEARTH
-    ref_ptr<Node> node = osgDB::readFile<Node>("aero-chart-arcgis.earth");    
-    if(!node)
-        return;
-    
-    osg_map = new ViewerWidget(node);
-    QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    sizePolicy.setHorizontalStretch(1);
-    sizePolicy.setVerticalStretch(1);
-    osg_map->setSizePolicy(sizePolicy);
-    
-    MapNode * map_node = MapNode::get(node);
-    MouseCoordsTool * tool = new MouseCoordsTool(map_node);
-    PrintCoordsToStatusBar* print_status = new PrintCoordsToStatusBar(this->statusBar());
-    tool->addCallback(print_status);
-    
-    viewer = static_cast<Viewer*>(osg_map->getViewer());
-    viewer->addEventHandler(tool);
-    
-    widget.layout_osg->addWidget(osg_map, 1);
+    map = new OsgMapWidget(this);    
+    widget.layout_osg->addWidget(map, 1);
 #else
     QString s = ros::package::getPath("gcs").c_str();
     QString map_url = QString("file://%1/map/uavmap.html").arg(s);
