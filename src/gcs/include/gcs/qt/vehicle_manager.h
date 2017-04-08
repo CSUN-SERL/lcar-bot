@@ -367,5 +367,7 @@ private:
 
 }
 
+Q_DECLARE_METATYPE(QVector<gcs::Point>);
+
 #endif /* VEHICLEMANAGER_H */
 

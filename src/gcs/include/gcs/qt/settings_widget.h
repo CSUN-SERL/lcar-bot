@@ -35,7 +35,7 @@ public:
 
     
 signals:
-    void localCoordinatesUpdated(const QVector<Point> vector);
+    void localCoordinatesUpdated(const QVector<Point>& vector);
     
 private:
     Ui::SettingsWidget widget;
