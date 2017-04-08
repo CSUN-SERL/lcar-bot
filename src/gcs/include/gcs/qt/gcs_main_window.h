@@ -42,7 +42,7 @@ class UnansweredQueries;
 class SettingsWidget;
 
 #ifdef USEOSGEARTH
-class OsgMapWidget;
+class MapWidgetBase;
 #endif
 
 class GCSMainWindow : public QMainWindow
@@ -110,9 +110,7 @@ private:
     void OnUnansweredQueriesTriggered();
     void OnAddVehicleTriggered();
 
-#ifdef USEOSGEARTH
-    OsgMapWidget * map;
-#endif
+    MapWidgetBase * map;
     
     Ui::GCSMainWindow widget;
     

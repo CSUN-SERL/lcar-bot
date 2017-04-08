@@ -8,26 +8,18 @@
 
 #include <QVBoxLayout>
 
-
 #include <gcs/qt/osg_map_widget.h>
 #include <gcs/qt/gcs_main_window.h>
-
 
 #include <osgEarthQt/ViewerWidget>
 #include <osgDB/ReadFile>
 
-using namespace osg;
-using namespace osgViewer;
-using namespace osgEarth;
-using namespace osgEarth::Util;
-using namespace osgEarth::QtGui;
 
 namespace gcs
 {
 
 OsgMapWidget::OsgMapWidget(GCSMainWindow * mw) :
-QWidget(mw),
-main_window(mw)
+MapWidgetBase(mw)
 {
     QVBoxLayout * layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);

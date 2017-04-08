@@ -9,9 +9,9 @@
 #ifndef OSG_MAP_WIDGET_H
 #define OSG_MAP_WIDGET_H
 
-
-#include <QWidget>
 #include <QStatusBar>
+
+#include <gcs/qt/map_widget_base.h>
 
 #include <osgEarth/GeoData>
 #include <osgEarthUtil/MouseCoordsTool>
@@ -40,19 +40,15 @@ using namespace osgEarth::QtGui;
 
 namespace gcs
 {
-
-class GCSMainWindow;
     
-class OsgMapWidget : public QWidget
+class OsgMapWidget : public MapWidgetBase
 {
     Q_OBJECT
 public:
     OsgMapWidget(GCSMainWindow * mw);
     virtual ~OsgMapWidget();
-    void load();
-private:
-    GCSMainWindow * main_window;
-    
+    virtual void load() Q_DECL_OVERRIDE;
+private:    
     ViewerWidget * osg_map;
     Viewer * viewer;
 };
