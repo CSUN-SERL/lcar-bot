@@ -14,11 +14,7 @@
 #include <QSettings>
 #include <QCloseEvent>
 
-#ifdef USEOSGEARTH
-#include "ui_GCSMainWindow_OSG.h"
-#else
 #include "ui_GCSMainWindow.h"
-#endif
 
 #include <gcs/qt/ui_adapter.h>
 #include <gcs/qt/vehicle_manager.h>
@@ -41,9 +37,8 @@ namespace gcs
 class UnansweredQueries;
 class SettingsWidget;
 
-#ifdef USEOSGEARTH
+
 class MapWidget;
-#endif
 
 class GCSMainWindow : public QMainWindow
 {
@@ -109,12 +104,12 @@ private:
     void OnSettingsTriggered();
     void OnUnansweredQueriesTriggered();
     void OnAddVehicleTriggered();
-
-    MapWidget * map;
     
     Ui::GCSMainWindow widget;
+    MapWidget * map;
     
     VehicleManager * vm;
+    
     QMap<int/*VehicleType*/, QVBoxLayout*> layout_by_v_type;
     QTimer *update_timer;
     QString image_root_dir;

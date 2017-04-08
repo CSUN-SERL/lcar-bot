@@ -1034,7 +1034,7 @@ border-radius:0px;</string>
      </layout>
     </item>
     <item>
-     <layout class="QVBoxLayout" name="layout_osg">
+     <layout class="QVBoxLayout" name="layout_map">
       <property name="spacing">
        <number>0</number>
       </property>

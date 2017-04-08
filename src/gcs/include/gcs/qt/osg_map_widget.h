@@ -9,6 +9,7 @@
 #ifndef OSG_MAP_WIDGET_H
 #define OSG_MAP_WIDGET_H
 
+#include <QPointer>
 #include <QStatusBar>
 
 #include <gcs/qt/map_widget.h>

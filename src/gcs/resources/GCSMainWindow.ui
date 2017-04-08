@@ -123,32 +123,23 @@ QLabel{
     </property>
     <item>
      <layout class="QVBoxLayout" name="layoutLeft">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetDefaultConstraint</enum>
-      </property>
       <property name="leftMargin">
        <number>0</number>
       </property>
       <property name="topMargin">
        <number>0</number>
       </property>
-      <item alignment="Qt::AlignLeft">
+      <item>
        <widget class="QFrame" name="frameControlPanel">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
         <property name="minimumSize">
          <size>
-          <width>360</width>
+          <width>0</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>360</width>
+          <width>4096</width>
           <height>16777215</height>
          </size>
         </property>
@@ -881,23 +872,23 @@ border-radius:0px;</string>
         </layout>
        </widget>
       </item>
-      <item alignment="Qt::AlignLeft">
+      <item>
        <widget class="QFrame" name="frame_uavs">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
         <property name="minimumSize">
          <size>
-          <width>360</width>
+          <width>0</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>360</width>
+          <width>16777215</width>
           <height>16777215</height>
          </size>
         </property>
@@ -937,12 +928,6 @@ border-radius:0px;</string>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="minimumSize">
-            <size>
-             <width>360</width>
-             <height>0</height>
-            </size>
-           </property>
            <property name="maximumSize">
             <size>
              <width>4096</width>
@@ -966,7 +951,7 @@ border-radius:0px;</string>
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>360</width>
+              <width>694</width>
               <height>130</height>
              </rect>
             </property>
@@ -1034,24 +1019,17 @@ border-radius:0px;</string>
      </layout>
     </item>
     <item>
-     <layout class="QVBoxLayout" name="layout_map">
-      <property name="spacing">
-       <number>0</number>
-      </property>
-     </layout>
+     <layout class="QVBoxLayout" name="verticalLayout_10"/>
     </item>
     <item>
      <layout class="QVBoxLayout" name="layoutRight">
       <property name="spacing">
        <number>3</number>
       </property>
-      <property name="sizeConstraint">
-       <enum>QLayout::SetDefaultConstraint</enum>
-      </property>
       <property name="topMargin">
        <number>0</number>
       </property>
-      <item alignment="Qt::AlignRight|Qt::AlignVCenter">
+      <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
        <widget class="QLabel" name="image_frame">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -1065,12 +1043,6 @@ border-radius:0px;</string>
           <height>270</height>
          </size>
         </property>
-        <property name="maximumSize">
-         <size>
-          <width>360</width>
-          <height>16777215</height>
-         </size>
-        </property>
         <property name="styleSheet">
          <string notr="true"/>
         </property>
@@ -1079,24 +1051,12 @@ border-radius:0px;</string>
         </property>
        </widget>
       </item>
-      <item alignment="Qt::AlignRight">
+      <item>
        <widget class="QFrame" name="frame_play_book_cntnr">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
         <property name="minimumSize">
          <size>
-          <width>360</width>
+          <width>0</width>
           <height>0</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>360</width>
-          <height>16777215</height>
          </size>
         </property>
         <property name="frameShape">
@@ -1298,26 +1258,8 @@ color: rgb(240, 240, 240);</string>
         </layout>
        </widget>
       </item>
-      <item alignment="Qt::AlignRight">
+      <item>
        <widget class="QFrame" name="frame_queries_cntnr">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>360</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>360</width>
-          <height>16777215</height>
-         </size>
-        </property>
         <property name="frameShape">
          <enum>QFrame::NoFrame</enum>
         </property>
@@ -1433,7 +1375,7 @@ color: rgb(240, 240, 240);</string>
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>348</width>
+              <width>682</width>
               <height>290</height>
              </rect>
             </property>

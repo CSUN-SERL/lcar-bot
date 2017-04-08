@@ -19,19 +19,10 @@ namespace gcs
 {
 
 OsgMapWidget::OsgMapWidget(GCSMainWindow * mw) :
-MapWidget(mw)
+MapWidget(mw),
+osg_map(nullptr),
+viewer(nullptr)
 {
-    QVBoxLayout * layout = new QVBoxLayout(this);
-    layout->setContentsMargins(0, 0, 0, 0);
-    
-    QWidget::setLayout(layout);
-    QWidget::setContentsMargins(0, 0, 0, 0); 
-    
-    QSizePolicy size_policy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    size_policy.setHorizontalStretch(1);
-    size_policy.setVerticalStretch(1);
-    
-    QWidget::setSizePolicy(size_policy);
 }
 
 OsgMapWidget::~OsgMapWidget() 
@@ -53,21 +44,23 @@ void OsgMapWidget::load(const QString& file)
     if(!node)
         return;
     
+    if(osg_map)
+    {
+        //todo handle reloading better
+        delete osg_map;
+        viewer = nullptr;
+    }
+
     osg_map = new ViewerWidget(node);
-    QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    sizePolicy.setHorizontalStretch(1);
-    sizePolicy.setVerticalStretch(1);
-    osg_map->setSizePolicy(sizePolicy);
+    viewer = static_cast<Viewer*>(osg_map->getViewer());
+    QWidget::layout()->addWidget(osg_map);
     
     MapNode * map_node = MapNode::get(node);
     MouseCoordsTool * tool = new MouseCoordsTool(map_node);
     PrintCoordsToStatusBar* print_status = new PrintCoordsToStatusBar(main_window->statusBar());
     tool->addCallback(print_status);
-    
-    viewer = static_cast<Viewer*>(osg_map->getViewer());
+   
     viewer->addEventHandler(tool);
-    
-    QWidget::layout()->addWidget(osg_map);
 }
 
 }

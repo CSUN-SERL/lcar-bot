@@ -18,10 +18,14 @@
 
 #include <vehicle/data_types.h>
 
+#include "gcs/qt/web_view_map_widget.h"
+
 #ifdef USEOSGEARTH
-#include "ui_GCSMainWindow_OSG.h"
 #include <gcs/qt/osg_map_widget.h>
+#else
+#include <gcs/qt/web_view_map_widget.h>
 #endif
+
 
 namespace gcs
 {
@@ -633,12 +637,12 @@ void GCSMainWindow::InitMap()
 {
 #ifdef USEOSGEARTH
     map = new OsgMapWidget(this);    
-    widget.layout_osg->addWidget(map, 1);
 #else
-    QString s = ros::package::getPath("gcs").c_str();
-    QString map_url = QString("file://%1/map/uavmap.html").arg(s);
-    widget.web_view->load(QUrl(map_url));
+    map = new WebViewMapWidget(this);
 #endif
+
+    widget.layout_map->addWidget(map, 1);
+    map->load();
 }
 
 void GCSMainWindow::InitMenuBar()

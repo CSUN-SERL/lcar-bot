@@ -16,6 +16,17 @@ MapWidget::MapWidget(GCSMainWindow * mw) :
 QWidget(mw),
 main_window(mw)
 {
+    QVBoxLayout * layout = new QVBoxLayout(this);
+    layout->setContentsMargins(0, 0, 0, 0);
+    
+    QWidget::setLayout(layout);
+    QWidget::setContentsMargins(0, 0, 0, 0); 
+    
+    QSizePolicy size_policy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    size_policy.setHorizontalStretch(1);
+    size_policy.setVerticalStretch(1);
+    
+    QWidget::setSizePolicy(size_policy);
 }
 
 MapWidget::~MapWidget() 

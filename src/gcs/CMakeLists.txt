@@ -85,11 +85,11 @@ file(GLOB gcs_HDRS include/gcs/qt/*.h )
 file(GLOB gcs_UIS resources/forms/*.ui )
 
 if(USEOSGEARTH)
-    list(REMOVE_ITEM gcs_UIS ${CMAKE_CURRENT_SOURCE_DIR}/resources/forms/GCSMainWindow.ui )
+    list(REMOVE_ITEM gcs_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/lib/web_view_map_widget.cpp)
+    list(REMOVE_ITEM gcs_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/gcs/qt/web_view_map_widget.h)
 else()
     list(REMOVE_ITEM gcs_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/lib/osg_map_widget.cpp)
     list(REMOVE_ITEM gcs_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/gcs/qt/osg_map_widget.h)
-    list(REMOVE_ITEM gcs_UIS ${CMAKE_CURRENT_SOURCE_DIR}/resources/forms/GCSMainWindow_OSG.ui )
 endif()
 
 file(GLOB gcs_RCCS resources/*.qrc )
@@ -101,7 +101,7 @@ qt5_wrap_ui(gcs_UIS_H ${gcs_UIS})
 
 
 #compiler flags and options
-add_definitions(${Qt5_DEFINITIONS} -std=c++11)
+add_definitions(${Qt5_DEFINITIONS} -std=c++14)
 
 if(USEOSGEARTH)
     add_definitions(-DUSEOSGEARTH ${Qt5OpenGL_DEFINITIONS})
