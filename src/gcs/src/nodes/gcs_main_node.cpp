@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     //these will configure QSettings automatically with "SERL/ISLURP.conf"
     app.setOrganizationName("SERL");
     app.setOrganizationDomain("serl.systems");
-    app.setApplicationName("ISLURP");
+    app.setApplicationName("SALUTE");
     
     if(!LockThisPC())
         return -1;
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     if(!ROSLockThisNetwork())
         return -2;
     
-    ros::init(argc, argv, "GCS");
+    ros::init(argc, argv, "SALUTE GCS");
     ros::AsyncSpinner spinner(0);
     spinner.start();
     
@@ -58,6 +58,7 @@ int main(int argc, char *argv[])
     background.start();
     
     gcs::GCSMainWindow gcs(&vm);
+    gcs.setWindowTitle("SALUTE GCS");
     gcs.showMaximized();
     
     int ret = app.exec();

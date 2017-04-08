@@ -14,15 +14,7 @@
 #include <QSettings>
 #include <QCloseEvent>
 
-#ifdef USEOSGEARTH
-#include "ui_GCSMainWindow_OSG.h"
-#include <osgEarth/GeoData>
-#include <osgEarthUtil/MouseCoordsTool>
-#include <osgEarth/MapNode>
-#include <osg/View>
-#else
 #include "ui_GCSMainWindow.h"
-#endif
 
 #include <gcs/qt/ui_adapter.h>
 #include <gcs/qt/vehicle_manager.h>
@@ -39,32 +31,14 @@
 #include <lcar_msgs/TargetLocal.h>
 #include <lcar_msgs/TargetGlobal.h>
 
-#ifdef USEOSGEARTH
-namespace osgEarth
-{
-    namespace QtGui
-    {
-        class ViewerWidget;
-    }
-}
-
-namespace osgViewer
-{
-    class Viewer;
-}
-
-using namespace osg;
-using namespace osgViewer;
-using namespace osgEarth;
-using namespace osgEarth::Util;
-using namespace osgEarth::QtGui;
-#endif
-
 namespace gcs
 {
     
 class UnansweredQueries;
 class SettingsWidget;
+
+
+class MapWidget;
 
 class GCSMainWindow : public QMainWindow
 {
@@ -130,15 +104,12 @@ private:
     void OnSettingsTriggered();
     void OnUnansweredQueriesTriggered();
     void OnAddVehicleTriggered();
-
-#ifdef USEOSGEARTH
-    ViewerWidget * osg_map;
-    Viewer * viewer;
-#endif
     
     Ui::GCSMainWindow widget;
+    MapWidget * map;
     
     VehicleManager * vm;
+    
     QMap<int/*VehicleType*/, QVBoxLayout*> layout_by_v_type;
     QTimer *update_timer;
     QString image_root_dir;
@@ -155,27 +126,6 @@ private:
     } fl_widgets;
     
 };
-
-#ifdef USEOSGEARTH
-struct PrintCoordsToStatusBar : public MouseCoordsTool::Callback
-{
-public:
-    PrintCoordsToStatusBar(QStatusBar* sb) : _sb(sb) { }
-
-    void set(const osgEarth::GeoPoint& p, osg::View* view, osgEarth::MapNode* mapNode)
-    {
-        std::string str = osgEarth::Stringify() << p.y() << ", " << p.x();
-        _sb->showMessage( QString(str.c_str()) );
-    }
-
-    void reset(osg::View* view, osgEarth::MapNode* mapNode)
-    {
-        _sb->showMessage( QString("out of range") );
-    }
-
-    QStatusBar* _sb;
-};
-#endif
 
 }
 #endif /* _SIMPLEGCS_H */
