@@ -643,12 +643,12 @@ QWaitCondition* VehicleManager::GetWaitCondition()
 
 bool VehicleManager::WorldMapRequested(lcar_msgs::WorldMap::Request& req, lcar_msgs::WorldMap::Response& res)
 {
-    res.world_map.reserve(world_map.size () * 3);
+    res.data.reserve(world_map.size () * 3);
     for(const Point& p : world_map)
     {
-        res.world_map.push_back(p.x);
-        res.world_map.push_back(p.y);
-        res.world_map.push_back(p.z);
+        res.data.push_back(p.x);
+        res.data.push_back(p.y);
+        res.data.push_back(p.z);
     }
     return true;
 }
