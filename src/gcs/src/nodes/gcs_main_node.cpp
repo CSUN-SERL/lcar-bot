@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     if(!ROSLockThisNetwork())
         return -2;
     
-    ros::init(argc, argv, "SALUTE GCS");
+    ros::init(argc, argv, "SALUTE_GCS");
     ros::AsyncSpinner spinner(0);
     spinner.start();
     
