@@ -19,7 +19,7 @@ namespace gcs
 {
 
 OsgMapWidget::OsgMapWidget(GCSMainWindow * mw) :
-MapWidgetBase(mw)
+MapWidget(mw)
 {
     QVBoxLayout * layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -38,9 +38,17 @@ OsgMapWidget::~OsgMapWidget()
 {
 }
 
-void OsgMapWidget::load()
+void OsgMapWidget::load(const QString& file)
 {
-    ref_ptr<Node> node = osgDB::readFile<Node>("aero-chart-arcgis.earth");    
+    ref_ptr<Node> node;
+    if(file.isNull() || file.isEmpty())
+    {
+        node = osgDB::readFile<Node>(file.toStdString());
+    }
+    else
+    {
+        node = osgDB::readFile<Node>("aero-chart-arcgis.earth");
+    }
     
     if(!node)
         return;

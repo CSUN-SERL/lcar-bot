@@ -6,8 +6,8 @@
  * Created on April 7, 2017, 11:55 PM
  */
 
-#ifndef MAPWIDGETBASE_H
-#define MAPWIDGETBASE_H
+#ifndef MAPWIDGET_H
+#define MAPWIDGET_H
 
 #include <QWidget>
 
@@ -16,14 +16,14 @@ namespace gcs
 
 class GCSMainWindow;    
     
-class MapWidgetBase : public QWidget
+class MapWidget : public QWidget
 {
     Q_OBJECT
 public:
-    MapWidgetBase(GCSMainWindow * mw);
-    virtual ~MapWidgetBase();
+    MapWidget(GCSMainWindow * mw);
+    virtual ~MapWidget();
     
-    virtual void load() = 0;
+    virtual void load(const QString& file = QString()) = 0;
 
 protected:
     GCSMainWindow * main_window;
@@ -33,5 +33,5 @@ private:
 };
 
 }
-#endif /* MAPWIDGETBASE_H */
+#endif /* MAPWIDGET_H */
 

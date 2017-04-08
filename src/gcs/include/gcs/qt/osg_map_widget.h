@@ -11,7 +11,7 @@
 
 #include <QStatusBar>
 
-#include <gcs/qt/map_widget_base.h>
+#include <gcs/qt/map_widget.h>
 
 #include <osgEarth/GeoData>
 #include <osgEarthUtil/MouseCoordsTool>
@@ -41,13 +41,13 @@ using namespace osgEarth::QtGui;
 namespace gcs
 {
     
-class OsgMapWidget : public MapWidgetBase
+class OsgMapWidget : public MapWidget
 {
     Q_OBJECT
 public:
     OsgMapWidget(GCSMainWindow * mw);
     virtual ~OsgMapWidget();
-    virtual void load() Q_DECL_OVERRIDE;
+    virtual void load(const QString& file = QString()) Q_DECL_OVERRIDE;
 private:    
     ViewerWidget * osg_map;
     Viewer * viewer;

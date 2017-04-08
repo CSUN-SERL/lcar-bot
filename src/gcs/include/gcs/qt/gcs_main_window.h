@@ -42,7 +42,7 @@ class UnansweredQueries;
 class SettingsWidget;
 
 #ifdef USEOSGEARTH
-class MapWidgetBase;
+class MapWidget;
 #endif
 
 class GCSMainWindow : public QMainWindow
@@ -110,7 +110,7 @@ private:
     void OnUnansweredQueriesTriggered();
     void OnAddVehicleTriggered();
 
-    MapWidgetBase * map;
+    MapWidget * map;
     
     Ui::GCSMainWindow widget;
     
