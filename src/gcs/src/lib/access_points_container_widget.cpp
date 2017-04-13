@@ -3,7 +3,7 @@
 
 #include <gcs/qt/access_points_container_widget.h>
 #include <gcs/qt/access_point_widget.h>
-#include <gcs/qt/ui_adapter.h>
+#include <lcar_msgs/ui_adapter.h>
 #include <gcs/util/image_conversions.h>
 
 namespace gcs

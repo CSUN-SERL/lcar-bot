@@ -1,8 +1,7 @@
-#include <gcs/qt/ui_adapter.h>
+#include <lcar_msgs/ui_adapter.h>
 
 namespace gcs 
 {   
-    
     UIAdapter::UIAdapter(){ }
     
     UIAdapter::~UIAdapter(){ }

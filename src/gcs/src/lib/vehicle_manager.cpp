@@ -19,7 +19,7 @@
 #include <gcs/util/settings.h>
 
 #include <gcs/qt/vehicle_manager.h>
-#include <gcs/qt/ui_adapter.h>
+#include <lcar_msgs/ui_adapter.h>
 
 namespace gcs
 {

@@ -101,7 +101,7 @@ qt5_wrap_ui(gcs_UIS_H ${gcs_UIS})
 
 
 #compiler flags and options
-add_definitions(${catkin_DEFINITIONS} ${Qt5_DEFINITIONS} -std=c++14)
+add_definitions(${Qt5_DEFINITIONS} ${catkin_DEFINITIONS} -std=c++14)
 
 if(USEOSGEARTH)
     add_definitions(-DUSEOSGEARTH ${Qt5OpenGL_DEFINITIONS})
@@ -119,18 +119,25 @@ add_library(${PROJECT_NAME}
             ${gcs_VFS} )
 
 #library dependencies
-add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME} 
+                    ${catkin_EXPORTED_TARGETS} )
 
 add_executable(gcs_node src/nodes/gcs_main_node.cpp)
 
 #executable dependencies
-#add_dependencies(gcs_node ${catkin_EXPORTED_TARGETS})
+add_dependencies(gcs_node ${catkin_EXPORTED_TARGETS})
 #add_dependencies(gps_demo ${catkin_EXPORTED_TARGETS})
 
 #Specify libraries against which to link
 #target_link_libraries(gps_publisher ${catkin_LIBRARIES})
 #target_link_libraries(gps_demo ${catkin_LIBRARIES})
 #target_link_libraries(safe_mocap ${catkin_LIBRARIES})
+
+target_link_libraries(${PROJECT_NAME} 
+                        Qt5::Widgets
+                        Qt5::Svg
+                        Qt5::WebKitWidgets
+                        ${catkin_LIBRARIES} )
 
 target_link_libraries(gcs_node
                         ${PROJECT_NAME}

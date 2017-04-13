@@ -14,7 +14,7 @@
 
 #include <iostream>
 
-#include <gcs/qt/ui_adapter.h>
+#include <lcar_msgs/ui_adapter.h>
 #include <gcs/qt/settings_widget.h>
 #include <gcs/util/image_conversions.h>
 #include <gcs/util/flight_modes.h>

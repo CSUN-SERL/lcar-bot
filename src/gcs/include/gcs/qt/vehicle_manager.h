@@ -29,7 +29,7 @@
 #include <vehicle/data_types.h>
 #include <vehicle/vehicle_control.h>
 
-#include <gcs/qt/ui_adapter.h>
+#include <lcar_msgs/ui_adapter.h>
 
 #include <gcs/util/image_conversions.h>
 #include <gcs/util/point.h>

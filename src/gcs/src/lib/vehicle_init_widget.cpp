@@ -9,7 +9,7 @@
 #include "ui_VehicleInitWidget.h"
 
 #include <gcs/util/debug.h>
-#include <gcs/qt/ui_adapter.h>
+#include <lcar_msgs/ui_adapter.h>
 #include <gcs/qt/vehicle_manager.h>
 #include <gcs/qt/vehicle_init_widget.h>
 

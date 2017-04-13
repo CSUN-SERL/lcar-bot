@@ -10,7 +10,7 @@
 #include <QUrl>
 
 #include <gcs/qt/unanswered_queries.h>
-#include <gcs/qt/ui_adapter.h>
+#include <lcar_msgs/ui_adapter.h>
 #include <gcs/qt/query_widget.h>
 #include <gcs/util/image_conversions.h>
 #include <gcs/util/debug.h>
