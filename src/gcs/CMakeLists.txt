@@ -101,7 +101,7 @@ qt5_wrap_ui(gcs_UIS_H ${gcs_UIS})
 
 
 #compiler flags and options
-add_definitions(${Qt5_DEFINITIONS} -std=c++14)
+add_definitions(${catkin_DEFINITIONS} ${Qt5_DEFINITIONS} -std=c++14)
 
 if(USEOSGEARTH)
     add_definitions(-DUSEOSGEARTH ${Qt5OpenGL_DEFINITIONS})
