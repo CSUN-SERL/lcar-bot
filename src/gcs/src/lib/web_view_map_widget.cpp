@@ -6,7 +6,7 @@
  * Created on April 8, 2017, 12:24 AM
  */
 
-#include <QtWebKitWidgets/QWebView>
+#include <QtWebEngineWidgets/QWebEngineView>
 
 #include <ros/package.h>
 
@@ -40,7 +40,7 @@ void WebViewMapWidget::load(const QString& file)
     
     if(!web_view)
     {
-        web_view = new QWebView(this);
+        web_view = new QWebEngineView(this);
         
         QWidget::layout()->addWidget(web_view);
     }

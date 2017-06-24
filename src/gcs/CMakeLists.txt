@@ -28,7 +28,7 @@ if(USEOSGEARTH)
     set(OsgEarth_INCLUDE_DIRS "${OSGEARTH_INCLUDE_DIRS}")
     set(OsgEarth_LIBRARIES "${OSGEARTH_LIBRARIES};${OSGEARTHQT_LIBRARY}")
 else()
-    find_package(Qt5WebKitWidgets REQUIRED)
+    find_package(Qt5WebEngineWidgets REQUIRED)
 endif()
     
 
@@ -50,7 +50,7 @@ if(USEOSGEARTH)
         ${OsgEarth_INCLUDE_DIRS} )
 else()
     include_directories(
-        ${Qt5WebKitWidget_INCLUDE_DIRS} )
+        ${Qt5WebEngineWidget_INCLUDE_DIRS} )
 endif()
 
 #currently not necessary but it doesn't hurt
@@ -64,7 +64,7 @@ if(USEOSGEARTH)
         OsgEarth )
 else()
     list(APPEND DEPENDENCIES
-        Qt5WebKitWidgets )
+        Qt5WebEngineWidgets )
 endif()
 
 catkin_package(
@@ -144,5 +144,5 @@ if(USEOSGEARTH)
                             ${OsgEarth_LIBRARIES} )
 else()
     target_link_libraries(gcs_node
-                            Qt5::WebKitWidgets )
+                            Qt5::WebEngineWidgets )
 endif()

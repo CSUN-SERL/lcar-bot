@@ -9,11 +9,9 @@
 #ifndef WEBVIEWMAPWIDGET_H
 #define WEBVIEWMAPWIDGET_H
 
-#include <QPointer>
-
 #include <gcs/qt/map_widget.h>
 
-class QWebView;
+class QWebEngineView;
 
 namespace gcs
 {
@@ -30,7 +28,7 @@ public:
     virtual void load(const QString& file = QString()) Q_DECL_OVERRIDE;
     
 private:
-    QPointer<QWebView> web_view;
+    QWebEngineView * web_view;
 };
 
 }
