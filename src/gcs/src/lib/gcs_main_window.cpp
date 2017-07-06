@@ -3,14 +3,28 @@
 #include <fstream>
 
 #include <QMutex>
-#include <QMainWindow>
 #include <QStringBuilder>
 #include <QWaitCondition>
+#include <QTimer>
+#include <QMenuBar>
+#include <QSettings>
+
 
 #include <ros/package.h>
 
+#include "ui_GCSMainWindow.h"
+
 #include <gcs/qt/gcs_main_window.h>
 #include <gcs/qt/query_widget.h>
+#include <gcs/qt/map_widget_3d.h>
+#include <gcs/qt/ui_adapter.h>
+#include <gcs/qt/vehicle_manager.h>
+#include <gcs/qt/settings_widget.h>
+#include <gcs/qt/unanswered_queries.h>
+#include <gcs/qt/vehicle_init_widget.h>
+#include <gcs/qt/access_points_container_widget.h>
+#include <gcs/qt/vehicle_list_widget.h>
+
 #include <gcs/util/debug.h>
 #include <gcs/util/settings.h>
 #include <gcs/util/flight_modes.h>
@@ -18,46 +32,42 @@
 
 #include <vehicle/data_types.h>
 
-#ifdef USEOSGEARTH
-#include <gcs/qt/osg_map_widget.h>
-#else
-#include <gcs/qt/web_view_map_widget.h>
-#endif
-
-
 namespace gcs
 {
 
 GCSMainWindow::GCSMainWindow(VehicleManager *vm):
-    cur_v_id(-1),
-    time_counter(0),
-    num_queries_last(0),
-    update_timer(new QTimer(this)),
-    vm(vm)
+QMainWindow(nullptr),
+widget(new Ui::GCSMainWindow),
+cur_v_id(-1),
+time_counter(0),
+num_queries_last(0),
+update_timer(new QTimer(this)),
+vm(vm)
 {
-    widget.setupUi(this);
+    widget->setupUi(this);
+    widget->map->setVehicleManager(vm);
     
     //todo add these layouts to the GUI
-    //layout_by_v_type.insert(VehicleType::ugv, widget.layout_ugvs);
-    layout_by_v_type.insert(VehicleType::quad_rotor, widget.layout_quads);
-    //layout_by_v_type.insert(VehicleType::octo_rotor, widget.layout_octo);
-    //layout_by_v_type.insert(VehicleType::vtol, widget.layout_vtol);
+    //layout_by_v_type.insert(VehicleType::ugv, widget->layout_ugvs);
+    layout_by_v_type.insert(VehicleType::quad_rotor, widget->layout_quads);
+    //layout_by_v_type.insert(VehicleType::octo_rotor, widget->layout_octo);
+    //layout_by_v_type.insert(VehicleType::vtol, widget->layout_vtol);
 
     //setup button logic for the widgets
-    connect(widget.btn_exec_play, &QPushButton::clicked, 
+    connect(widget->btn_exec_play, &QPushButton::clicked, 
             this, &GCSMainWindow::OnExecutePlay);
-    connect(widget.btn_scout, &QPushButton::clicked, 
+    connect(widget->btn_scout, &QPushButton::clicked, 
             this, &GCSMainWindow::OnScoutBuilding);
-    connect(widget.btn_scout_play_pause, &QPushButton::clicked, 
+    connect(widget->btn_scout_play_pause, &QPushButton::clicked, 
             this, &GCSMainWindow::OnPauseOrResumeScout);
-    connect(widget.btn_scout_stop, &QPushButton::clicked, 
+    connect(widget->btn_scout_stop, &QPushButton::clicked, 
             this, &GCSMainWindow::OnStopScout);
     //this one doesn't like the new signal slot syntax for some reason
-    connect(widget.cmbo_box_flight_mode, SIGNAL(currentIndexChanged(int)), 
+    connect(widget->cmbo_box_flight_mode, SIGNAL(currentIndexChanged(int)), 
             this, SLOT(OnChangeFlightMode(int)));
-    connect(widget.btn_view_acess_points, &QPushButton::clicked, 
+    connect(widget->btn_view_acess_points, &QPushButton::clicked, 
             this, &GCSMainWindow::OnAccessPointsTriggered);
-    connect(widget.btn_arm_uav, &QPushButton::clicked, 
+    connect(widget->btn_arm_uav, &QPushButton::clicked, 
             this, &GCSMainWindow::OnArmOrDisarmSelectedUav);
     connect(update_timer, &QTimer::timeout,
             this, &GCSMainWindow::OnTimedUpdate);
@@ -133,8 +143,8 @@ void GCSMainWindow::OnDeleteVehicleWidget(int v_id)
         this->ToggleScoutButtons("scout");  // reset scout buttons
         this->ToggleArmDisarmButton("Arm"); // set [dis]arm button to arm
 
-        widget.image_frame->setPixmap(QPixmap::fromImage(QImage()));
-        widget.lbl_cur_uav->setText("NO UAVS");
+        widget->image_frame->setPixmap(QPixmap::fromImage(QImage()));
+        widget->lbl_cur_uav->setText("NO UAVS");
         cur_v_id = -1;
     }
     if(v_id == cur_v_id) //current vehicle was just deleted
@@ -232,8 +242,8 @@ void GCSMainWindow::OnTimedUpdate()
 
 void GCSMainWindow::ClearQueries()
 {
-    for(int i = widget.layout_queries->count() - 1; i >= 0; i--)
-        delete widget.layout_queries->itemAt(i)->widget();
+    for(int i = widget->layout_queries->count() - 1; i >= 0; i--)
+        delete widget->layout_queries->itemAt(i)->widget();
     
     num_queries_last = 0;
 }
@@ -241,7 +251,7 @@ void GCSMainWindow::ClearQueries()
 
 void GCSMainWindow::UpdateQueries()
 {
-    if(cur_v_id == -1 || !widget.frame_queries_cntnr->isVisible())
+    if(cur_v_id == -1 || !widget->frame_queries_cntnr->isVisible())
         return;
 
     std::vector<lcar_msgs::QueryPtr> *queries = vm->GetUAVDoorQueries(cur_v_id);
@@ -264,7 +274,7 @@ void GCSMainWindow::UpdateQueries()
                 this, [this, qw](){ OnRejectDoorQuery(qw); });
                 
         //add to user interface
-        widget.layout_queries->addWidget(qw);
+        widget->layout_queries->addWidget(qw);
     }
 
     num_queries_last = pqv_size;
@@ -272,7 +282,7 @@ void GCSMainWindow::UpdateQueries()
 
 void GCSMainWindow::AnswerQuery(QWidget * qw, QString ap_type, bool accepted)
 {
-    int index = widget.layout_queries->indexOf(qw);
+    int index = widget->layout_queries->indexOf(qw);
     std::vector<lcar_msgs::QueryPtr> * vec_uav_queries_ptr = vm->GetUAVDoorQueries(cur_v_id);
     lcar_msgs::QueryPtr door = vec_uav_queries_ptr->at(index);
 
@@ -309,7 +319,7 @@ void GCSMainWindow::OnExecutePlay()
     if(vm->NumTotalVehicles() == 0)
         return;
 
-    QString play = widget.cmbo_box_play_book->currentText();
+    QString play = widget->cmbo_box_play_book->currentText();
     
     int number;
     sscanf(play.toStdString().c_str(), "%d", &number);
@@ -334,7 +344,7 @@ void GCSMainWindow::OnScoutBuilding()
     if(cur_v_id == -1)
         return;
 
-    QString building = widget.cmbo_box_buildings->currentText();
+    QString building = widget->cmbo_box_buildings->currentText();
     
     int number;
     char b[16];
@@ -354,12 +364,12 @@ void GCSMainWindow::OnPauseOrResumeScout()
     if(vm->GetMissionMode(cur_v_id) == MissionMode::active)
     {
         emit UIAdapter::Instance()->PauseMission(cur_v_id);
-        widget.btn_scout_play_pause->setIcon(QIcon(":/images/icons/play.png"));
+        widget->btn_scout_play_pause->setIcon(QIcon(":/images/icons/play.png"));
     }
     else
     {
         emit UIAdapter::Instance()->ResumeMission(cur_v_id);
-        widget.btn_scout_play_pause->setIcon(QIcon(":/images/icons/pause.png"));
+        widget->btn_scout_play_pause->setIcon(QIcon(":/images/icons/pause.png"));
     }
 }
 
@@ -428,11 +438,11 @@ void GCSMainWindow::ToggleScoutButtons(QString mode)
     bool scout = (mode == "scout"); 
     Q_ASSERT(scout || mode == "play" || mode == "pause");
     
-    widget.btn_scout->setVisible(scout);
-    widget.btn_scout_play_pause->setVisible(!scout);
+    widget->btn_scout->setVisible(scout);
+    widget->btn_scout_play_pause->setVisible(!scout);
     if(!scout)
-        widget.btn_scout_play_pause->setIcon(QIcon(":/images/icons/" % mode % ".png"));
-    widget.btn_scout_stop->setVisible(!scout);
+        widget->btn_scout_play_pause->setIcon(QIcon(":/images/icons/" % mode % ".png"));
+    widget->btn_scout_stop->setVisible(!scout);
 }
 
 // slot gets called when user click on a uav button
@@ -454,12 +464,12 @@ void GCSMainWindow::SelectVehicleWidgetById(int v_id)
     cur_v_id = v_id;
     
     QString vehicle_type = vm->VehicleStringFromId(v_id);
-    widget.lbl_cur_uav->setText(vehicle_type % QString::number(v_id - v_type));
+    widget->lbl_cur_uav->setText(vehicle_type % QString::number(v_id - v_type));
     
     QString topic("/V" % QString::number(v_id) % "/stereo_cam/left/image_rect");
     vm->SubscribeToImageTopic(topic);
     
-    widget.image_frame->setPixmap(QPixmap::fromImage(QImage()));
+    widget->image_frame->setPixmap(QPixmap::fromImage(QImage()));
     this->ClearQueries(); // new uav selected, so make room for its queries
     if(fl_widgets.ap_menu != nullptr)
         fl_widgets.ap_menu->SetUAVAccessPointsAndId(vm->GetUAVAccessPoints(v_id), v_id - v_type);
@@ -487,41 +497,41 @@ void GCSMainWindow::UpdateFlightStateWidgets()
     FlightState flight_state = vm->GetFlightState(cur_v_id);
     
     // PFD
-    widget.pfd->setRoll(flight_state.roll*180);
-    widget.pfd->setPitch(flight_state.pitch*90);
-    widget.pfd->setHeading(flight_state.heading);
-    widget.pfd->setAirspeed(flight_state.air_speed);
-    widget.pfd->setAltitude(flight_state.altitude);
-    widget.pfd->setClimbRate(flight_state.vertical_speed);
-    widget.pfd->update();
+    widget->pfd->setRoll(flight_state.roll*180);
+    widget->pfd->setPitch(flight_state.pitch*90);
+    widget->pfd->setHeading(flight_state.heading);
+    widget->pfd->setAirspeed(flight_state.air_speed);
+    widget->pfd->setAltitude(flight_state.altitude);
+    widget->pfd->setClimbRate(flight_state.vertical_speed);
+    widget->pfd->update();
     
     QString temp_data;
     //text based widget
     temp_data.setNum(flight_state.yaw, 'f', 2);
-    widget.lbl_yaw_val->setText(temp_data);
+    widget->lbl_yaw_val->setText(temp_data);
     
     temp_data.setNum(flight_state.roll, 'f', 2);
-    widget.lbl_roll_val->setText(temp_data);
+    widget->lbl_roll_val->setText(temp_data);
     
     temp_data.setNum(flight_state.pitch, 'f', 2);
-    widget.lbl_pitch_val->setText(temp_data);
+    widget->lbl_pitch_val->setText(temp_data);
     
     temp_data.setNum(flight_state.ground_speed, 'f', 2).append(" m/s");
-    widget.lbl_gnd_spd_val->setText(temp_data);
+    widget->lbl_gnd_spd_val->setText(temp_data);
     
     temp_data.setNum(vm->GetDistanceToWP(cur_v_id)).append(" m");
-    widget.lbl_dist_wp_val->setText(temp_data);
+    widget->lbl_dist_wp_val->setText(temp_data);
     
     
     StatePtr state = vm->GetState(cur_v_id);
     temp_data.setNum(state->battery * 100);
-    widget.pgs_bar_battery->setValue(temp_data.toInt());
+    widget->pgs_bar_battery->setValue(temp_data.toInt());
     
     int v_index = vm->VehicleIndexFromId(cur_v_id);
     temp_data = "UAV " % QString::number(v_index);
-    widget.lbl_cur_uav->setText(temp_data);
+    widget->lbl_cur_uav->setText(temp_data);
     
-    widget.pgs_bar_mission->setValue(state->mission_progress * 100);
+    widget->pgs_bar_mission->setValue(state->mission_progress * 100);
 }
 
 void GCSMainWindow::OnArmOrDisarmSelectedUav()
@@ -538,7 +548,7 @@ void GCSMainWindow::ToggleArmDisarmButton(QString mode)
     QString temp_mode = mode.toLower();
     temp_mode = temp_mode[0].toUpper() % temp_mode.mid(1);
     Q_ASSERT(temp_mode == "Arm" || temp_mode == "Disarm");
-    widget.btn_arm_uav->setText(temp_mode);
+    widget->btn_arm_uav->setText(temp_mode);
 }
 
 void GCSMainWindow::CenterFloatingWidget(QWidget* w)
@@ -633,14 +643,6 @@ void GCSMainWindow::OnAddVehicleTriggered()
 
 void GCSMainWindow::InitMap()
 {
-#ifdef USEOSGEARTH
-    map = new OsgMapWidget(this);    
-#else
-    map = new WebViewMapWidget(this);
-#endif
-
-    widget.layout_map->addWidget(map, 1);
-    map->load();
 }
 
 void GCSMainWindow::InitMenuBar()
@@ -687,8 +689,8 @@ void GCSMainWindow::InitSettings()
 
 void GCSMainWindow::OnToggleMachineLearningMode(bool toggle)
 {
-    widget.frame_queries_cntnr->setVisible(toggle);
-    widget.frame_queries_cntnr->setEnabled(toggle);
+    widget->frame_queries_cntnr->setVisible(toggle);
+    widget->frame_queries_cntnr->setEnabled(toggle);
 }
 
 void GCSMainWindow::OnImageRootDirUpdated(QString new_dir)
@@ -712,14 +714,14 @@ void GCSMainWindow::UpdateVehicleWidgets()
 
 void GCSMainWindow::OnUpdateCameraFeed(QPixmap img)
 {
-    int w = widget.image_frame->width();
-    int h = widget.image_frame->height();
-    widget.image_frame->setPixmap(img.scaled(w, h, Qt::KeepAspectRatio));
+    int w = widget->image_frame->width();
+    int h = widget->image_frame->height();
+    widget->image_frame->setPixmap(img.scaled(w, h, Qt::KeepAspectRatio));
 }
 
 void GCSMainWindow::OnOperatorNotified(QString msg)
 {
-    widget.status_bar->showMessage(msg, 15000);
+    widget->status_bar->showMessage(msg, 15000);
 }
 
 void GCSMainWindow::closeEvent(QCloseEvent* event)

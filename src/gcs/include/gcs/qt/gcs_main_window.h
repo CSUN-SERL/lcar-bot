@@ -9,20 +9,8 @@
 #ifndef _SIMPLEGCS_H
 #define _SIMPLEGCS_H
 
-#include <QTimer>
-#include <QMenuBar>
-#include <QSettings>
 #include <QCloseEvent>
-
-#include "ui_GCSMainWindow.h"
-
-#include <gcs/qt/ui_adapter.h>
-#include <gcs/qt/vehicle_manager.h>
-#include <gcs/qt/settings_widget.h>
-#include <gcs/qt/unanswered_queries.h>
-#include <gcs/qt/vehicle_list_widget.h>
-#include <gcs/qt/vehicle_init_widget.h>
-#include <gcs/qt/access_points_container_widget.h>
+#include <QMainWindow>
 
 #include <vehicle/data_types.h>
 #include <vehicle/uav_control.h>
@@ -31,14 +19,25 @@
 #include <lcar_msgs/TargetLocal.h>
 #include <lcar_msgs/TargetGlobal.h>
 
+class QTimer;
+class QVBoxLayout;
+
+namespace Ui
+{
+    class GCSMainWindow;
+}
+
 namespace gcs
 {
+
+    class VehicleManager;
     
 class UnansweredQueries;
 class SettingsWidget;
+class AccessPointsContainerWidget;
+class VehicleInitWidget;
+class VehicleWidget;
 
-
-class MapWidget;
 
 class GCSMainWindow : public QMainWindow
 {
@@ -105,8 +104,7 @@ private:
     void OnUnansweredQueriesTriggered();
     void OnAddVehicleTriggered();
     
-    Ui::GCSMainWindow widget;
-    MapWidget * map;
+    Ui::GCSMainWindow* widget;
     
     VehicleManager * vm;
     

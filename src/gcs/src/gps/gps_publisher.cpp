@@ -16,7 +16,7 @@ int main(int argc, char **argv)
   int boolean = 0;
   float lat =0, lon = 0;
   ros::Rate loop_rate(100*num_uav); //10Hz per topic
-  std::string uav_ns  = "UAV";
+  std::string uav_ns  = "V";
   ros::Publisher pub_pos_global[num_uav];
   sensor_msgs::NavSatFix position[num_uav];
 

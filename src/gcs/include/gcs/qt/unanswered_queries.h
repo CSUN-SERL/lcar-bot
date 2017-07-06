@@ -3,12 +3,12 @@
 #define _UNANSWEREDQUERIES_H
 
 #include "ui_UnansweredQueries.h"
-#include <gcs/qt/gcs_main_window.h>
+//#include <gcs/qt/gcs_main_window.h>
 
 namespace gcs
 {
     
-class GCSMainWindow;
+//class GCSMainWindow;
     
 class UnansweredQueries : public QWidget
 {

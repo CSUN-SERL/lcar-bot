@@ -6,14 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1400</width>
-    <height>787</height>
+    <width>1696</width>
+    <height>948</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string/>
   </property>
   <widget class="QWidget" name="centralWidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>1</verstretch>
+    </sizepolicy>
+   </property>
    <property name="styleSheet">
     <string notr="true">#centralWidget{
 background-color: rgb(68, 80, 113);
@@ -90,7 +96,7 @@ QComboBox::drop-down{
 }
 
 QComboBox::down-arrow {
-     image:  url(:/images/icons/angle_down.png);
+     image:  url(:/icons/angle_down.png);
 	 color:rgb(236,236,236);
      width: 0.8em;
      height: 0.8em;
@@ -123,6 +129,9 @@ QLabel{
     </property>
     <item>
      <layout class="QVBoxLayout" name="layoutLeft">
+      <property name="spacing">
+       <number>3</number>
+      </property>
       <property name="sizeConstraint">
        <enum>QLayout::SetDefaultConstraint</enum>
       </property>
@@ -210,7 +219,7 @@ QLabel{
           </widget>
          </item>
          <item>
-          <widget class="QWidget" name="widget_PFD" native="true">
+          <widget class="QFrame" name="framePFD">
            <property name="minimumSize">
             <size>
              <width>330</width>
@@ -219,116 +228,74 @@ QLabel{
            </property>
            <property name="maximumSize">
             <size>
-             <width>345</width>
-             <height>330</height>
-            </size>
-           </property>
-           <property name="sizeIncrement">
-            <size>
-             <width>1</width>
-             <height>1</height>
-            </size>
-           </property>
-           <property name="baseSize">
-            <size>
-             <width>345</width>
-             <height>345</height>
+             <width>4096</width>
+             <height>4096</height>
             </size>
            </property>
            <property name="autoFillBackground">
             <bool>false</bool>
            </property>
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <property name="spacing">
-             <number>0</number>
-            </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QFrame" name="framePFD">
-              <property name="minimumSize">
-               <size>
-                <width>330</width>
-                <height>330</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>4096</width>
-                <height>4096</height>
-               </size>
-              </property>
-              <property name="autoFillBackground">
-               <bool>false</bool>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">#framePFD
+           <property name="styleSheet">
+            <string notr="true">#framePFD
 {
 	background-color: #000;
 	border-radius: 10px;
 }</string>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_8">
+            <property name="leftMargin">
+             <number>4</number>
+            </property>
+            <property name="topMargin">
+             <number>4</number>
+            </property>
+            <property name="rightMargin">
+             <number>4</number>
+            </property>
+            <property name="bottomMargin">
+             <number>4</number>
+            </property>
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item row="1" column="0">
+             <widget class="qfi_PFD" name="pfd">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
               </property>
               <property name="frameShape">
-               <enum>QFrame::StyledPanel</enum>
+               <enum>QFrame::NoFrame</enum>
               </property>
               <property name="frameShadow">
-               <enum>QFrame::Raised</enum>
+               <enum>QFrame::Plain</enum>
               </property>
-              <layout class="QGridLayout" name="gridLayout_8">
-               <property name="leftMargin">
-                <number>4</number>
-               </property>
-               <property name="topMargin">
-                <number>4</number>
-               </property>
-               <property name="rightMargin">
-                <number>4</number>
-               </property>
-               <property name="bottomMargin">
-                <number>4</number>
-               </property>
-               <property name="spacing">
-                <number>0</number>
-               </property>
-               <item row="0" column="0">
-                <widget class="qfi_PFD" name="pfd">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="focusPolicy">
-                  <enum>Qt::NoFocus</enum>
-                 </property>
-                 <property name="frameShape">
-                  <enum>QFrame::NoFrame</enum>
-                 </property>
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <property name="verticalScrollBarPolicy">
-                  <enum>Qt::ScrollBarAlwaysOff</enum>
-                 </property>
-                 <property name="horizontalScrollBarPolicy">
-                  <enum>Qt::ScrollBarAlwaysOff</enum>
-                 </property>
-                 <property name="interactive">
-                  <bool>false</bool>
-                 </property>
-                 <property name="optimizationFlags">
-                  <set>QGraphicsView::IndirectPainting</set>
-                 </property>
-                </widget>
-               </item>
-              </layout>
+              <property name="verticalScrollBarPolicy">
+               <enum>Qt::ScrollBarAlwaysOff</enum>
+              </property>
+              <property name="horizontalScrollBarPolicy">
+               <enum>Qt::ScrollBarAlwaysOff</enum>
+              </property>
+              <property name="interactive">
+               <bool>false</bool>
+              </property>
+              <property name="optimizationFlags">
+               <set>QGraphicsView::IndirectPainting</set>
+              </property>
              </widget>
             </item>
            </layout>
@@ -509,8 +476,8 @@ QLabel{
                  <string/>
                 </property>
                 <property name="icon">
-                 <iconset resource="../qfi.qrc">
-                  <normaloff>:/images/icons/battery.png</normaloff>:/images/icons/battery.png</iconset>
+                 <iconset resource="../icons.qrc">
+                  <normaloff>:/icons/battery.png</normaloff>:/icons/battery.png</iconset>
                 </property>
                 <property name="iconSize">
                  <size>
@@ -826,8 +793,8 @@ color: rgb(240, 240, 240);</string>
                  <string/>
                 </property>
                 <property name="icon">
-                 <iconset resource="../qfi.qrc">
-                  <normaloff>:/images/icons/pause.png</normaloff>:/images/icons/pause.png</iconset>
+                 <iconset resource="../icons.qrc">
+                  <normaloff>:/icons/pause.png</normaloff>:/icons/pause.png</iconset>
                 </property>
                 <property name="iconSize">
                  <size>
@@ -862,8 +829,8 @@ border-radius:0px;</string>
                  <string/>
                 </property>
                 <property name="icon">
-                 <iconset resource="../qfi.qrc">
-                  <normaloff>:/images/icons/stop.png</normaloff>:/images/icons/stop.png</iconset>
+                 <iconset resource="../icons.qrc">
+                  <normaloff>:/icons/stop.png</normaloff>:/icons/stop.png</iconset>
                 </property>
                 <property name="iconSize">
                  <size>
@@ -967,7 +934,7 @@ border-radius:0px;</string>
               <x>0</x>
               <y>0</y>
               <width>360</width>
-              <height>130</height>
+              <height>297</height>
              </rect>
             </property>
             <property name="sizePolicy">
@@ -1034,11 +1001,14 @@ border-radius:0px;</string>
      </layout>
     </item>
     <item>
-     <layout class="QVBoxLayout" name="layout_map">
-      <property name="spacing">
-       <number>0</number>
+     <widget class="MapWidget3D" name="map" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>1</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
       </property>
-     </layout>
+     </widget>
     </item>
     <item>
      <layout class="QVBoxLayout" name="layoutRight">
@@ -1434,7 +1404,7 @@ color: rgb(240, 240, 240);</string>
               <x>0</x>
               <y>0</y>
               <width>348</width>
-              <height>290</height>
+              <height>454</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout">
@@ -1501,8 +1471,8 @@ color: rgb(240, 240, 240);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1400</width>
-     <height>25</height>
+     <width>1696</width>
+     <height>22</height>
     </rect>
    </property>
   </widget>
@@ -1564,9 +1534,16 @@ color: rgb(240, 240, 240);</string>
    <extends>QGraphicsView</extends>
    <header location="global">gcs/qt/qfi_PFD.h</header>
   </customwidget>
+  <customwidget>
+   <class>MapWidget3D</class>
+   <extends>QWidget</extends>
+   <header location="global">gcs/qt/map_widget_3d.h</header>
+   <container>1</container>
+  </customwidget>
  </customwidgets>
  <resources>
   <include location="../qfi.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections/>
 </ui>
