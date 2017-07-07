@@ -9,6 +9,8 @@
 #include <QVBoxLayout>
 #include <QQuaternion>
 
+#include <gcs/util/debug.h>
+
 //#include <Qt3DCore/QTransform>
 //
 //#include <Qt3DExtras/Qt3DWindow>
@@ -91,6 +93,8 @@ void MapWidget3D::createDefaultScene()
     
     float size = 4;
     createBuilding({0, size/2, 0}, size);
+    
+    createVehicle(VehicleType::quad_rotor);
 }
 
 void MapWidget3D::createFloor()
@@ -159,5 +163,29 @@ void MapWidget3D::createBuilding(const QVector3D& pos, float size)
     entity->addComponent(mesh);
     entity->addComponent(cuboidMaterial);
     entity->addComponent(transform);
+}
+
+void MapWidget3D::createVehicle(int vehicle_type)
+{
+    //todo dont ignore vehicle_type
+    if(vehicle_type == VehicleType::quad_rotor)
+    {
+        QEntity * entity = new QEntity(_root);        
+        
+        QMesh * mesh = new QMesh();
+        mesh->setSource(QUrl("qrc:/vehicles/QuadRotor.obj"));
+        
+        Transform * transform = new Transform();
+        transform->setScale(0.008);
+        transform->setTranslation({6, 4, 6});
+        transform->setRotationY(220);
+        
+        QPhongMaterial * material = new QPhongMaterial();
+        material->setDiffuse(QColor(QRgb(0x928327)));
+        
+        entity->addComponent(mesh);
+        entity->addComponent(transform);
+        entity->addComponent(material);
+    }
 }
 

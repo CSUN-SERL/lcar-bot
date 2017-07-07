@@ -11,6 +11,8 @@
 
 #include <QWidget>
 
+#include <vehicle/data_types.h>
+
 class QVector3D;
 
 namespace Qt3DExtras
@@ -48,6 +50,7 @@ private:
     void createCameraController();
     void createLighting(const QVector3D& pos, float instensity);
     void createBuilding(const QVector3D& pos, float size);
+    void createVehicle(int vehicle_type);
             
 private:
     gcs::VehicleManager * _vm;
