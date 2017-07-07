@@ -80,9 +80,12 @@ void MapWidget3D::createDefaultScene()
 {   
     createCameraController();
     
-    float intensity = 0.7;
-    createLighting({30,30,30}, intensity);
-    createLighting({-30,30,-30}, intensity);
+    float intensity = 0.5;
+    float pos = 40;
+    createLighting({pos,pos,pos}, intensity);
+    createLighting({-pos,pos,-pos}, intensity);
+    createLighting({-pos,pos,pos}, intensity);
+    createLighting({pos,pos,-pos}, intensity);
     
     createFloor();
     
@@ -121,7 +124,9 @@ void MapWidget3D::createCameraController()
     
     QOrbitCameraController *camController = new QOrbitCameraController(_root);
     camController->setCamera(cam);
-    camController->setZoomInLimit(0.4);
+    camController->setZoomInLimit(5);
+    camController->setLinearSpeed(60);
+    camController->setLookSpeed(40);
 }
 
 void MapWidget3D::createLighting(const QVector3D& pos, float intensity)
