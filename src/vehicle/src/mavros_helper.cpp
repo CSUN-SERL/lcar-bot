@@ -179,9 +179,8 @@ void MavrosHelper::EnableOffboard()
 
     ros::Rate loop_rate(50); //50Hz
     //send a few setpoints before starting
-    for(int i = 10; ros::ok() && i > 0; --i){
+    for(int i = 20; ros::ok() && i > 0; --i){
         pub_setpoint_position.publish(pose);
-        ros::spinOnce();
         loop_rate.sleep();
     }
 
@@ -234,6 +233,8 @@ void MavrosHelper::PublishPosition(float x, float y, float z, float yaw)
         //Create the message object
         geometry_msgs::PoseStamped position_stamped;
 
+        position_stamped.header.stamp = ros::Time::now();
+        
         //Update the message with the new position
         position_stamped.pose.position.x = x;
         position_stamped.pose.position.y = y;
@@ -259,6 +260,8 @@ void MavrosHelper::PublishPosition(geometry_msgs::Pose new_pose)
     //Update the message with the new position
     position_stamped.pose = new_pose;
 
+    position_stamped.header.stamp = ros::Time::now();
+    
     //Publish the message
     pub_setpoint_position.publish(position_stamped);
 }

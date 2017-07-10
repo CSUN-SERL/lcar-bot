@@ -206,10 +206,14 @@ void UAVControl::TravelToTargetLocation()
         //Update previous position for fixing the altitude
         pose_previous = pose_local;
     }
-    else{
-          ROS_INFO_STREAM_ONCE("Ascending");
+    else
+    {
+        ROS_INFO_STREAM_ONCE("Ascending");
         //Ascend to the proper altitude first at the current location
-        this->PublishPosition(pose_previous.position.x, pose_previous.position.y, pose_target.position.z,GetYaw(pose_target));
+        this->PublishPosition(pose_previous.position.x,
+                              pose_previous.position.y,
+                              pose_target.position.z, 
+                              GetYaw(pose_target));
     } 
 }
 
@@ -276,7 +280,17 @@ void UAVControl::TravelToTargetAltitude()
     //am I at the right altitude?
     if(CompareAltitude(pose_local, pose_target) != 0)//no
     {
-        this->TravelToTargetLocation();
+        ROS_INFO_STREAM_THROTTLE(10, "Ascending");
+        //Ascend to the proper altitude first at the current location
+        this->PublishPosition(pose_previous.position.x,
+                              pose_previous.position.y,
+                              pose_target.position.z, 
+                              GetYaw(pose_target));
+        
+        pose_previous = pose_local;
+    }
+    else
+    {
     }
 }
   
@@ -330,7 +344,7 @@ nav_msgs::Path UAVControl::FollowWaypoints(std::vector<geometry_msgs::Pose> targ
     geometry_msgs::PoseStamped pose_new_stamped;
     nav_msgs::Path mission;
     
-    for(int i = 0; i<target_waypoints.size();i++)
+    for(int i = 0; i < target_waypoints.size(); i++)
     {
         pose_new_stamped.pose = target_waypoints.at(i);
         mission.poses.push_back(pose_new_stamped);
@@ -461,64 +475,65 @@ void UAVControl::RunLocal()
     if(state.armed)
     {
         switch(goal)
-        { 
-            case idle:
-                ROS_INFO_STREAM_ONCE("Idle Mode");
-                goal = travel;
-                break;
-
-                
+        {                 
             case travel:
+            {
                 ROS_INFO_STREAM_ONCE("Travel Mode");
-                static int i = 0;
                
-                 ROS_INFO_STREAM_ONCE(i);
-                 ROS_INFO_STREAM_ONCE(pose_target.position);
+                ROS_INFO_STREAM_ONCE("waypoint: " << cur_waypoint);
+                ROS_INFO_STREAM_ONCE("Current pos: " << pose_local);
+                ROS_INFO_STREAM_ONCE("Target pos: " << pose_target);
                 //if there are still waypoints in he mission to move to
-                if(i<path_mission.poses.size())
+                if(cur_waypoint < path_mission.poses.size())
                 {
-                    SetTarget(path_mission.poses.at(i).pose);
-                    if(ComparePosition(pose_local,pose_target) == 0 && // perf. move to next waypoint
-                            CompareAltitude(pose_local,pose_target) == 0 && 
-                            CompareYaw(pose_local,pose_target) == 0)
+                    pose_target = path_mission.poses.at(cur_waypoint).pose;
+                    
+                    int comp_pos = ComparePosition(pose_local, pose_target);
+                    int comp_alt = CompareAltitude(pose_local, pose_target);
+                    int comp_yaw = CompareYaw(pose_local, pose_target);
+                    
+                    // perf. move to next waypoint
+                    if(comp_pos == 0 && comp_alt == 0 && comp_yaw == 0)
                     {
-                        i++; 
-                        for(int j =0;j<1000;j++)//wait for a bit
-                        {
-                        }
+                        cur_waypoint++; 
                         ROS_INFO_STREAM("moving to next waypoint");
-                    } 
-                    else if(CompareAltitude(pose_local,pose_target) == 0 &&  // right altitude, right angle, wrong position
-                            CompareYaw(pose_local,pose_target) == 0)
-                    { 
-                        this->TravelToTargetPosition();
-                            
                     }
-                    else if(CompareAltitude(pose_local,pose_target) == 0) //right altitude, wrong angle
-                    {
-                        this->TurnToAngle();
-                    }
-                    else if(CompareAltitude(pose_local,pose_target) == 1) // wrong altitude
+                    //wrong altitude first
+                    else if(comp_alt == 1) //right altitude, wrong angle
                     {
                         this->TravelToTargetAltitude();
+                    }
+//                    // right altitude, wrong angle
+//                    else if(comp_yaw == 1)
+//                    { 
+//                        this->TurnToAngle();
+//                    }
+//                    // right altitude, right angle, wrong position
+//                    else
+//                    {
+//                        this->TravelToTargetPosition();
+//                    }
+                    else
+                    {
+                        this->PublishPosition(pose_target);
                     }
                 }
                 //if there are no more waypoints left in the mission, hold
                 else
                 {
-                    this->SetTarget(pose_previous);
+                    //this->SetTarget(pose_previous);
+                    pose_target = pose_previous;
                     ROS_INFO_STREAM_ONCE("Mission Complete. Holding Position");
-                    goal = hold;
+                    goal = rtl;
                 }
+            }
                 break;
 
-                
             case hold:
                 ROS_INFO_STREAM_ONCE("Hold Mode");
                 this->TravelToTargetPosition();
                 break;
 
-                
             case scout:
                 ROS_INFO_STREAM_ONCE("Scout Mode");
                 static int rev_count = 1;
@@ -554,12 +569,27 @@ void UAVControl::RunLocal()
                 break;
                 
             case rtl:
+                ROS_INFO_STREAM_ONCE("RTL");
                 this->SetTargetPosition(pose_home.position.x, pose_home.position.y);
                 this->TravelToTargetPosition();
                 //are you above the LZ?
-                if(ComparePosition(pose_local,pose_target)==0)//yes
+                if(ComparePosition(pose_local, pose_target)==0)//yes
                 {
-                    this->Land();
+                    if(land_check.isValid())
+                    {
+                        if(land_check.sec - ros::Time::now().sec > THRESHOLD_LAND_TIME)
+                        {
+                            this->Land();
+                        }
+                    }
+                    else
+                    {
+                        land_check = ros::Time::now();
+                    }
+                }
+                else
+                {
+                    land_check = ros::Time();
                 }
                 break;
 
@@ -586,6 +616,12 @@ void UAVControl::RunGlobal()
 
 void UAVControl::StartMission() //todo make goal input to separate travel and scout missions
 {
+    if(mission_mode == active)
+        return;
+    
+    pose_previous = pose_local;
+    cur_waypoint = 0;
+    
     mission_mode = active;
     goal = travel;
 }

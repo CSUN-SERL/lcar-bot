@@ -44,6 +44,7 @@ namespace gcs
 #define THRESHOLD_GPS 0.001        //Lat & Lon tolerances
 #define THRESHOLD_ALT 1            //Altitude tolerance for GPS
 #define THRESHOLD_DEPTH 2
+#define THRESHOLD_LAND_TIME 2
 #define ALT_RTL 2
 #define BATTERY_MIN 0.10    //Minimum battery level for RTL
 #define DEF_NS "V"
@@ -333,12 +334,14 @@ private:
     std_msgs::Float64               object_distance;
     
     ros::Time                       last_request;
+    ros::Time                       land_check;
     std::vector<lcar_msgs::AccessPointStampedPtr>        access_pts;
     std::vector<lcar_msgs::QueryPtr> queries_door;
     bool                            collision = false,
                                     online_mode = true;
     int                             tries = 0,
                                     scout_rev = 1;
+    int cur_waypoint = 0;
 };
 
 }
