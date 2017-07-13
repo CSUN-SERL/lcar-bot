@@ -256,6 +256,8 @@ void MavrosHelper::PublishPosition(geometry_msgs::Pose new_pose)
 {
     //Create the message object
     geometry_msgs::PoseStamped position_stamped;
+    
+    position_stamped.header.stamp = ros::Time::now();
 
     //Update the message with the new position
     position_stamped.pose = new_pose;

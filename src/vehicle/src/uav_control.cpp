@@ -115,7 +115,7 @@ double UAVControl::GetYaw(geometry_msgs::Pose& pose)
     tf::Matrix3x3 m1{quaternion_tf};
     m1.getRPY(roll, pitch, yaw);
     
-    return yaw;
+    return yaw*(180/PI);
 }
 
 int UAVControl::CompareYaw(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
@@ -516,6 +516,7 @@ void UAVControl::RunLocal()
                     else
                     {
                         this->PublishPosition(pose_target);
+                        pose_previous = pose_local;
                     }
                 }
                 //if there are no more waypoints left in the mission, hold
