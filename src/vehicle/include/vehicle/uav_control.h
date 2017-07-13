@@ -37,7 +37,7 @@ namespace gcs
 // #define THRESHOLD_XY 0.08
 // #define THRESHOLD_Z 0.08
 #define THRESHOLD_XY 0.1//0.5
-#define THRESHOLD_Z 0.25
+#define THRESHOLD_Z 0.1
 #define THRESHOLD_XY_GPS 0.00001
 #define THRESHOLD_Z_GPS 0.5
 #define THRESHOLD_YAW 0.2

@@ -286,11 +286,10 @@ void UAVControl::TravelToTargetAltitude()
                               pose_previous.position.y,
                               pose_target.position.z, 
                               GetYaw(pose_target));
-        
-        pose_previous = pose_local;
     }
     else
     {
+        pose_previous = pose_local;
     }
 }
   
@@ -496,6 +495,7 @@ void UAVControl::RunLocal()
                     if(comp_pos == 0 && comp_alt == 0 && comp_yaw == 0)
                     {
                         cur_waypoint++; 
+                        pose_previous = pose_local;
                         ROS_INFO_STREAM("moving to next waypoint");
                     }
                     //wrong altitude first
@@ -524,7 +524,7 @@ void UAVControl::RunLocal()
                     //this->SetTarget(pose_previous);
                     pose_target = pose_previous;
                     ROS_INFO_STREAM_ONCE("Mission Complete. Holding Position");
-                    goal = rtl;
+                    goal = hold;
                 }
             }
                 break;
@@ -618,6 +618,13 @@ void UAVControl::StartMission() //todo make goal input to separate travel and sc
 {
     if(mission_mode == active)
         return;
+    
+    pose_local_valid = false;
+    ros::Rate wait(0.1);
+    while(!pose_local_valid)
+    {
+        wait.sleep();
+    }
     
     pose_previous = pose_local;
     cur_waypoint = 0;

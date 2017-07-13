@@ -210,7 +210,10 @@ protected:
     sensor_msgs::Imu                imu;
     sensor_msgs::NavSatFix          pos_global;
     geometry_msgs::TwistStamped     velocity;
+    
     geometry_msgs::Pose             pose_local;
+    bool                            pose_local_valid = false;
+    
     std_msgs::Float64               altitude_rel,
                                     heading_deg;
     ros::Time                       last_request;
@@ -235,7 +238,11 @@ private:
     void HeadingCallback(const std_msgs::Float64& msg_heading) { heading_deg = msg_heading; }
     void VelocityCallback(const geometry_msgs::TwistStamped& msg_vel) { velocity = msg_vel; }
     void NavSatFixCallback(const sensor_msgs::NavSatFix& msg_gps) { pos_global = msg_gps; }
-    void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) { pose_local = msg_pos.pose; }
+    void LocalPosCallback(const geometry_msgs::PoseStamped& msg_pos) 
+    { 
+        pose_local = msg_pos.pose; 
+        pose_local_valid = true;
+    }
 
     //ROS NodeHandle, Service Client, Publisher, and Subscriber Variables
     ros::ServiceClient              sc_arm,
@@ -260,7 +267,6 @@ private:
                                     sub_altitude,
                                     sub_heading,
                                     sub_vel;
-
 };
 
 }//End Namespace

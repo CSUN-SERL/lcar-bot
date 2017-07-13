@@ -24,9 +24,9 @@ int main(int argc, char **argv)
    spinner.start();
    
    geometry_msgs::Pose target_pt1;
-   target_pt1.position.x = 0;
-   target_pt1.position.y = 0;
-   target_pt1.position.z = 1;
+   target_pt1.position.x = 0.75;
+   target_pt1.position.y = 0.25;
+   target_pt1.position.z = 0.5;
    double yaw_angle = angles::normalize_angle_positive(angles::from_degrees(0));
    quaternionTFToMsg(tf::createQuaternionFromYaw(yaw_angle), target_pt1.orientation);
    
