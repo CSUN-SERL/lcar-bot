@@ -21,6 +21,8 @@
 #include <gcs/qt/vehicle_manager.h>
 #include <gcs/qt/ui_adapter.h>
 
+#include <vehicle/vehicle_control.h>
+
 namespace gcs
 {
     
@@ -174,9 +176,9 @@ void VehicleManager::SubscribeToImageTopic(QString& topic)
 
 float VehicleManager::GetMissionProgress(int v_id)
 {
-    VehicleControl *vc = this->FindVehicle(v_id);
+    VehicleControl *vc = this->GetVehicle(v_id);
     if(vc != nullptr)
-        return vc->GetMissiontProgress();
+        return vc->GetMissionProgress();
     else 
         return -1;
 }
@@ -279,7 +281,7 @@ void VehicleManager::OnOperatorDeleteVehicle(int v_id)
     QMap<int, VehicleControl*>::Iterator it = v_db->find(v_id);
     if(it != v_db->end())
     {
-        emit UIAdapter::Instance()->DeleteVehicleWidget(v_id);
+        emit UIAdapter::Instance()->vehicleDeleted(v_id);
         widget_deleted.wait(&widget_mutex);
         
         VehicleControl *vc = it.value();
@@ -305,7 +307,7 @@ void VehicleManager::OnScoutBuilding(int quad_id, int building)
     VehicleControl *vc = this->FindVehicle(v_type, quad_id);
     if(vc != nullptr)
     {
-        UAVControl* uav = static_cast<UAVControl*> (vc);
+        UAVControl* uav = dynamic_cast<UAVControl*> (vc);
         if(coordinate_system == "global")
         {
             lcar_msgs::TargetGlobalPtr target = this->GetTargetGlobal(path);
@@ -333,7 +335,7 @@ void VehicleManager::OnScoutBuilding(int quad_id, int building)
 
 void VehicleManager::OnPauseMission(int v_id)
 {
-    VehicleControl *vc = this->FindVehicle(v_id);
+    VehicleControl *vc = this->GetVehicle(v_id);
     if(vc != nullptr)
     {
         MissionMode m = vc->GetMissionMode();
@@ -352,7 +354,7 @@ void VehicleManager::OnPauseMission(int v_id)
 
 void VehicleManager::OnResumeMission(int v_id)
 {
-    VehicleControl *vc = this->FindVehicle(v_id);
+    VehicleControl *vc = this->GetVehicle(v_id);
     if(vc != nullptr)
     {
         MissionMode m = vc->GetMissionMode();
@@ -371,7 +373,7 @@ void VehicleManager::OnResumeMission(int v_id)
 
 void VehicleManager::OnCancelMission(int v_id)
 {
-    VehicleControl *vc = this->FindVehicle(v_id);
+    VehicleControl *vc = this->GetVehicle(v_id);
     if(vc != nullptr)
         vc->StopMission();
     else
@@ -405,7 +407,7 @@ void VehicleManager::OnSetMachineLearningMode(bool on)
     QMap<int, VehicleControl*> *v_db = &db[VehicleType::quad_rotor];   
     for(auto it = v_db->begin(); it != v_db->end(); it++)
     {
-        UAVControl *uav = static_cast<UAVControl*>(it.value());
+        UAVControl *uav = dynamic_cast<UAVControl*>(it.value());
         uav->SetOnlineMode(on);
     }
 }
@@ -474,7 +476,7 @@ void VehicleManager::OnLocalCoordinatesUpdated(const QVector<Point>& vector)
 
 void VehicleManager::OnSetWaypoint(int v_id, double lat, double lng, double alt)
 {
-    VehicleControl *vc = this->FindVehicle(v_id);
+    VehicleControl *vc = this->GetVehicle(v_id);
     if(vc != nullptr)
         vc->SetTarget(lat, lng, alt);
     else
@@ -485,7 +487,7 @@ void VehicleManager::OnSetWaypoint(int v_id, double lat, double lng, double alt)
 
 void VehicleManager::OnArm(int v_id, bool value)
 {
-    VehicleControl *vc = this->FindVehicle(v_id);
+    VehicleControl *vc = this->GetVehicle(v_id);
     if(vc != nullptr)
         vc->Arm(value);
     else
@@ -512,7 +514,7 @@ void VehicleManager::OnSetMode(int v_id, QString mode)
 
 void VehicleManager::OnSetRTL(int v_id)
 {
-    VehicleControl *vc = this->FindVehicle(v_id);
+    VehicleControl *vc = this->GetVehicle(v_id);
     if(vc != nullptr)
         vc->SetRTL();
     else
@@ -523,7 +525,7 @@ void VehicleManager::OnSetRTL(int v_id)
 
 int VehicleManager::IsArmed(int v_id)
 {
-    VehicleControl *vc = this->FindVehicle(v_id);
+    VehicleControl *vc = this->GetVehicle(v_id);
     if(vc != nullptr)
         return vc->IsArmed();
     
@@ -536,11 +538,12 @@ int VehicleManager::IsArmed(int v_id)
 
 std::vector<lcar_msgs::QueryPtr> * VehicleManager::GetUAVDoorQueries(int quad_id)
 {
-    VehicleControl *vc = this->FindVehicle(quad_id);
+    VehicleControl *vc = this->GetVehicle(quad_id);
     if(vc != nullptr)
     {
-        UAVControl *quad = static_cast<UAVControl*> (vc);
-        return quad->GetDoorQueries();
+        UAVControl *quad = dynamic_cast<UAVControl*>(vc);
+        if(quad)   
+            return quad->GetDoorQueries();
     }
     
     ROS_ERROR_STREAM("Cannot get door queries for vehicle. No such" 
@@ -552,10 +555,10 @@ std::vector<lcar_msgs::QueryPtr> * VehicleManager::GetUAVDoorQueries(int quad_id
 
 std::vector<lcar_msgs::AccessPointStampedPtr> * VehicleManager::GetUAVAccessPoints(int quad_id)
 {
-    VehicleControl *vc = this->FindVehicle(quad_id);
+    VehicleControl *vc = this->GetVehicle(quad_id);
     if(vc != nullptr)
     {
-        UAVControl *quad = static_cast<UAVControl*> (vc);
+        UAVControl *quad = dynamic_cast<UAVControl*>(vc);
         return quad->GetRefAccessPoints();
     }
     
@@ -576,7 +579,7 @@ FlightState VehicleManager::GetFlightState(int uav_id)
     VehicleControl *vc = this->FindVehicle(v_type, uav_id);
     if(vc != nullptr)
     {
-        UAVControl *uav = static_cast<UAVControl*> (vc);
+        UAVControl *uav = dynamic_cast<UAVControl*> (vc);
         return uav->GetFlightState();
     }
     
@@ -590,13 +593,13 @@ FlightState VehicleManager::GetFlightState(int uav_id)
 StatePtr VehicleManager::GetState(int v_id)
 {
     StatePtr ptr;
-    VehicleControl * vc = this->FindVehicle(v_id);
+    VehicleControl * vc = this->GetVehicle(v_id);
     if(vc != nullptr)
     {
         ptr = boost::make_shared<State>();
         ptr->armed = vc->IsArmed();
         ptr->battery = vc->GetBattery();
-        ptr->mission_progress = vc->GetMissiontProgress();
+        ptr->mission_progress = vc->GetMissionProgress();
         ptr->mode = vc->GetMode();
     }
     
@@ -605,7 +608,7 @@ StatePtr VehicleManager::GetState(int v_id)
 
 int VehicleManager::GetDistanceToWP(int v_id)
 {
-    VehicleControl *vc = this->FindVehicle(v_id);
+    VehicleControl *vc = this->GetVehicle(v_id);
     if(vc != nullptr)
        return vc->GetDistanceToWP();
     
@@ -618,7 +621,7 @@ int VehicleManager::GetDistanceToWP(int v_id)
 
 MissionMode VehicleManager::GetMissionMode(int v_id)
 {
-    VehicleControl *vc = this->FindVehicle(v_id);
+    VehicleControl *vc = this->GetVehicle(v_id);
     if(vc != nullptr)
         return vc->GetMissionMode();
     
@@ -640,6 +643,26 @@ QWaitCondition* VehicleManager::GetWaitCondition()
 }
 
 //private://////////////////////////////////////////////////////////////////////
+
+void VehicleManager::emitVehicleAdded(VehicleControl * vehicle)
+{
+    int v_type = VehicleTypeFromId(vehicle->id);
+    switch(v_type)
+    {
+        case VehicleType::ugv:
+            emit ugvAdded(vehicle->id);
+            break;
+        case VehicleType::quad_rotor:
+            emit quadRotorAdded(vehicle->id);
+            break;
+        case VehicleType::octo_rotor:
+            emit octoRotorAdded(vehicle->id);
+            break;
+        case VehicleType::vtol:
+            emit vtolAdded(vehicle->id);
+            break;
+    }
+}
 
 bool VehicleManager::WorldMapRequested(lcar_msgs::WorldMap::Request& req, lcar_msgs::WorldMap::Response& res)
 {
@@ -752,7 +775,8 @@ void VehicleManager::AddVehiclePrivate(int v_id)
                         << this->VehicleStringFromId(v_id).toStdString()
                         << " with id: " << v_id <<  " to database.");
         
-        emit UIAdapter::Instance()->AddVehicleWidget(v_id);
+        emit UIAdapter::Instance()->vehicleAdded(v_id);
+        //emitVehicleAdded(vc);
     }
     else
         ROS_ERROR_STREAM("Tried to add vehicle of invalid type: "
@@ -761,18 +785,13 @@ void VehicleManager::AddVehiclePrivate(int v_id)
 
 VehicleControl* VehicleManager::FindVehicle(int v_type, int v_id)
 {   
-    QMap<int, VehicleControl*> * v_db = &db[v_type];
-    QMap<int, VehicleControl*>::ConstIterator it = v_db->find(v_id);
-    if(it != v_db->end()) //found it
-        return it.value();
-    
-    return nullptr; //couldn't find it
+    const QMap<int, VehicleControl*>& v_db = db.value(v_type);
+    return v_db.value(v_id, nullptr);
 }
 
-VehicleControl* VehicleManager::FindVehicle(int v_id)
+VehicleControl* VehicleManager::GetVehicle(int v_id)
 {
     int v_type = this->VehicleTypeFromId(v_id);
-    Q_ASSERT(v_type != VehicleType::invalid_low);
     
     return this->FindVehicle(v_type, v_id);
 }

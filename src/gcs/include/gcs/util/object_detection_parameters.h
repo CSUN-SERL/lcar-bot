@@ -12,9 +12,9 @@
 namespace gcs
 {
     
-    struct ObjectDetectionParameters_
+    struct ObjectDetectionParameters
     {
-        ObjectDetectionParameters_& operator=(const ObjectDetectionParameters_& other)
+        ObjectDetectionParameters& operator=(const ObjectDetectionParameters& other)
         {
             this->hit_thresh = other.hit_thresh;
             this->step_size = other.step_size;
@@ -33,8 +33,6 @@ namespace gcs
         bool mean_shift;
     };
     
-    typedef ObjectDetectionParameters_ ObjectDetectionParameters;
-
 }
 
 #endif /* OBJECT_DETECTION_PARAMETERS_H */

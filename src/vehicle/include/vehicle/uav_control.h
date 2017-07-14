@@ -40,7 +40,7 @@ namespace gcs
 #define THRESHOLD_Z 0.1
 #define THRESHOLD_XY_GPS 0.00001
 #define THRESHOLD_Z_GPS 0.5
-#define THRESHOLD_YAW 0.2
+#define THRESHOLD_YAW 5 //degrees
 #define THRESHOLD_GPS 0.001        //Lat & Lon tolerances
 #define THRESHOLD_ALT 1            //Altitude tolerance for GPS
 #define THRESHOLD_DEPTH 2
@@ -50,6 +50,9 @@ namespace gcs
 #define DEF_NS "V"
 #define R_EARTH 6371        //Earth's radius in km
 
+#define RAD2DEG (180/PI)
+#define DEG2RAD (PI/180)
+    
 class UAVControl : public MavrosHelper
 {
 public:
@@ -183,13 +186,16 @@ public:
     //Getter Functions
     FlightState GetFlightState()                                        { return UpdateFlightState(); }
     int GetDistanceToWP() override                                      { return CalculateDistance(pose_target, pose_local); }
-    float GetMissionProgress();
+    float GetMissionProgress() override;
     std::vector<lcar_msgs::AccessPointStampedPtr>* GetRefAccessPoints() { return &access_pts; }
     std::vector<lcar_msgs::QueryPtr>* GetDoorQueries()                  { return &queries_door; }
     Mode getMode()                                                      { return goal; }
 
     void Land();
     void TakeOff(double alt);
+    
+    virtual Position getPosition() override;
+    
 private:
     void InitialSetup();
 
@@ -313,7 +319,9 @@ private:
         pub_heartbeat.publish(gcs_heartbeat);
     }
     
-    double GetYaw(geometry_msgs::Pose& pose);
+    double GetYaw(const geometry_msgs::Pose& pose);
+    RPY getOrientationDegrees(const geometry_msgs::Pose& pose);
+    
             
     //For returning Flight State Data to GCS
     FlightState UpdateFlightState();

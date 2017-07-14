@@ -11,43 +11,66 @@
 
 #include <gcs/util/debug.h>
 
-//#include <Qt3DCore/QTransform>
-//
-//#include <Qt3DExtras/Qt3DWindow>
-//#include <Qt3DExtras/QOrbitCameraController>
-//#include <Qt3DExtras/QForwardRenderer>
-//#include <Qt3DExtras/QCuboidGeometry>
-//#include <Qt3DExtras/QCuboidMesh>
-//#include <Qt3DExtras/QPlaneGeometry>
-//#include <Qt3DExtras/QPlaneMesh>
-//#include <Qt3DExtras/QPhongMaterial>
-//
-//#include <Qt3DRender/QSceneLoader>
-//#include <Qt3DRender/QPointLight>
-//#include <Qt3DRender/QCamera>
-
 #include <Qt3DCore/Qt3DCore>
+#include <Qt3DCore/QTransform>
 #include <Qt3DExtras/Qt3DExtras>
 #include <Qt3DRender/Qt3DRender>
 
 #include <gcs/qt/map_widget_3d.h>
+#include <gcs/qt/ui_adapter.h>
 
 #include <gcs/qt/vehicle_manager.h>
+#include <vehicle/vehicle_control.h>
+
+#define M2F 3.28084 //meters to feet
+#define F2M 0.3048  //feet to meters
 
 using namespace Qt3DCore;
 using namespace Qt3DExtras;
 using namespace Qt3DRender;
 using namespace gcs;
 
-typedef Qt3DCore::QTransform Transform;
+static QTime sec = QTime::currentTime();
+
+void MapWidget3D::Vehicle3D::update()
+{
+    // NOTE: z and y axes are swapped between ros and Qt3d
+    // prompting the following translations: 
+    // rotate yaw by 90 degrees
+    // negate z position after swapping z and y
+    
+    Position pos = vehicle->getPosition();
+    
+    QVector3D vec( pos.position.x, 
+                   pos.position.z, 
+                  -pos.position.y);
+    //vec = vec * 1/transform->scale();
+    //first set position with z and y swapped
+    transform->setTranslation(vec);
+    
+    //next orientation, also with z and y axes swapped
+    transform->setRotationX(pos.orientation.pitch);
+    transform->setRotationY(pos.orientation.yaw + 90);
+    transform->setRotationZ(pos.orientation.roll);
+    
+    QTime temp = QTime::currentTime();
+    if(sec.msecsTo(temp) >= 1000)
+    {
+        QString v_id = QString("V%0").arg(QString::number(vehicle->id));
+        qCDebug(lcar_bot) << v_id << vec;
+        sec = temp;
+    }
+}
 
 MapWidget3D::MapWidget3D( QWidget * parent) :
 QWidget(parent),
 _view(new Qt3DWindow),
 _root(new QEntity),
-_plane(new QEntity(_root))
+_plane(new QEntity(_root)),
+_update_timer(nullptr)
 {
     setupUi();
+    connectToUiAdapter();
     
     _view->defaultFrameGraph()->setClearColor(QColor(QRgb(0x0f0f0f))); //0x4d4d4f
     _view->setRootEntity(_root);
@@ -65,17 +88,34 @@ void MapWidget3D::setVehicleManager(VehicleManager* vm)
     _vm = vm;
 }
 
-void MapWidget3D::setupUi() 
-{   
-    QWidget * container = QWidget::createWindowContainer(_view);
+void MapWidget3D::setUpdateTimer(QTimer * timer)
+{
+    if(_update_timer)
+        QObject::disconnect(_update_timer, &QTimer::timeout,
+                            this, &MapWidget3D::update);
     
-    container->setContentsMargins(0, 0, 0, 0);
+    _update_timer = timer;
     
-    QVBoxLayout * layout = new QVBoxLayout();
-    layout->setContentsMargins(0, 0, 0, 0);
-    setLayout(layout);
+    QObject::connect(_update_timer, &QTimer::timeout,
+                     this, &MapWidget3D::update);
+}
+
+
+void MapWidget3D::update()
+{
+    for(auto it = _vehicle_map.constBegin(); it != _vehicle_map.constEnd(); ++it)
+    {
+        (*it)->update();
+    }
+}
+
+void MapWidget3D::vehicleAdded(int v_id)
+{
+    Vehicle3D * v = createVehicle(_vm->VehicleTypeFromId(v_id));
+    v->vehicle = _vm->GetVehicle(v_id);
+    v->entity->setParent(_root);
     
-    layout->addWidget(container, 1);
+    _vehicle_map.insert(v_id, v);
 }
 
 void MapWidget3D::createDefaultScene()
@@ -91,10 +131,8 @@ void MapWidget3D::createDefaultScene()
     
     createFloor();
     
-    float size = 4;
+    float size = 1; 
     createBuilding({0, size/2, 0}, size);
-    
-    createVehicle(VehicleType::quad_rotor);
 }
 
 void MapWidget3D::createFloor()
@@ -107,14 +145,18 @@ void MapWidget3D::createFloor()
     _plane->addComponent(transform);
     _plane->addComponent(planeMaterial);
     
-    plane_mesh->setHeight(40);
-    plane_mesh->setWidth(40);
-    plane_mesh->setMeshResolution(QSize(4,4));
+    //int width = 40; * F2M;
+    int res = 4; // * F2M;
+    
+    plane_mesh->setHeight(30 * F2M);
+    plane_mesh->setWidth(60 * F2M);
+    plane_mesh->setMeshResolution(QSize(res,res));
     
     transform->setScale(1.0f);
     transform->setTranslation(QVector3D(0.0f, 0.0f, 0.0f));
     
-    planeMaterial->setDiffuse(QColor(QRgb(0xa69929)));
+    //QRgb(0xa69929)
+    planeMaterial->setDiffuse(QColor(QRgb(0x555555)));
 }
 
 void MapWidget3D::createCameraController()
@@ -122,7 +164,7 @@ void MapWidget3D::createCameraController()
     Qt3DRender::QCamera *cam = _view->camera();
 
     cam->lens()->setPerspectiveProjection(45.0f, 16.0f/9.0f, 0.1f, 1000.0f);
-    cam->setPosition(QVector3D(0, 10, 20.0f));
+    cam->setPosition(QVector3D(-20, 10, 0)); //looking forward along x axis to origin
     cam->setUpVector(QVector3D(0, 1, 0));
     cam->setViewCenter(QVector3D(0, 0, 0));
     
@@ -130,7 +172,7 @@ void MapWidget3D::createCameraController()
     camController->setCamera(cam);
     camController->setZoomInLimit(5);
     camController->setLinearSpeed(60);
-    camController->setLookSpeed(40);
+    camController->setLookSpeed(60);
 }
 
 void MapWidget3D::createLighting(const QVector3D& pos, float intensity)
@@ -165,18 +207,18 @@ void MapWidget3D::createBuilding(const QVector3D& pos, float size)
     entity->addComponent(transform);
 }
 
-void MapWidget3D::createVehicle(int vehicle_type)
+MapWidget3D::Vehicle3D * MapWidget3D::createVehicle(int vehicle_type)
 {
     //todo dont ignore vehicle_type
     if(vehicle_type == VehicleType::quad_rotor)
     {
-        QEntity * entity = new QEntity(_root);        
+        QEntity * entity = new QEntity();        
         
         QMesh * mesh = new QMesh();
         mesh->setSource(QUrl("qrc:/vehicles/QuadRotor.obj"));
         
         Transform * transform = new Transform();
-        transform->setScale(0.008);
+        transform->setScale(0.002);
         transform->setTranslation({6, 4, 6});
         transform->setRotationY(220);
         
@@ -186,6 +228,37 @@ void MapWidget3D::createVehicle(int vehicle_type)
         entity->addComponent(mesh);
         entity->addComponent(transform);
         entity->addComponent(material);
+        
+        Vehicle3D * v3d = new Vehicle3D;
+        
+        v3d->entity = entity;
+        v3d->mesh = mesh;
+        v3d->material = material;
+        v3d->transform = transform;
+        
+        return v3d;
     }
+    
+    return nullptr;
+}
+
+void MapWidget3D::connectToUiAdapter()
+{
+    UIAdapter * uia = UIAdapter::Instance();
+    QObject::connect(uia, &UIAdapter::vehicleAdded,
+                    this, &MapWidget3D::vehicleAdded);
+}
+
+void MapWidget3D::setupUi() 
+{   
+    QWidget * container = QWidget::createWindowContainer(_view);
+    
+    container->setContentsMargins(0, 0, 0, 0);
+    
+    QVBoxLayout * layout = new QVBoxLayout();
+    layout->setContentsMargins(0, 0, 0, 0);
+    setLayout(layout);
+    
+    layout->addWidget(container, 1);
 }
 

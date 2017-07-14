@@ -106,7 +106,7 @@ int UAVControl::ComparePosition(geometry_msgs::Pose pose1, geometry_msgs::Pose p
 }
 
 //returns angle in degrees
-double UAVControl::GetYaw(geometry_msgs::Pose& pose)
+double UAVControl::GetYaw(const geometry_msgs::Pose& pose)
 {
     double roll, pitch, yaw;
     tf::Quaternion quaternion_tf;
@@ -115,23 +115,28 @@ double UAVControl::GetYaw(geometry_msgs::Pose& pose)
     tf::Matrix3x3 m1{quaternion_tf};
     m1.getRPY(roll, pitch, yaw);
     
-    return yaw*(180/PI);
+    return yaw * RAD2DEG;
+}
+
+RPY UAVControl::getOrientationDegrees(const geometry_msgs::Pose& pose)
+{
+    double roll, pitch, yaw;
+    tf::Quaternion quaternion_tf;
+
+    tf::quaternionMsgToTF(pose.orientation, quaternion_tf);
+    tf::Matrix3x3 m1{quaternion_tf};
+    m1.getRPY(roll, pitch, yaw);
+    
+    return RPY(roll * RAD2DEG, pitch * RAD2DEG, yaw * RAD2DEG);
 }
 
 int UAVControl::CompareYaw(geometry_msgs::Pose pose1, geometry_msgs::Pose pose2)
-{
-    int result;
-    
+{    
     //compares two radians
-    if(std::abs(GetYaw(pose2) - GetYaw(pose1)) <= THRESHOLD_YAW){
-        
-        result = 0;
-    }
-    else {
-        result = 1;
-    }
+    if(std::abs(GetYaw(pose2) - GetYaw(pose1)) <= THRESHOLD_YAW)
+        return 0;
 
-    return result;
+    return 1;
 }
 
 int UAVControl::CompareYaw(double yaw1, double yaw2)
@@ -532,7 +537,7 @@ void UAVControl::RunLocal()
 
             case hold:
                 ROS_INFO_STREAM_ONCE("Hold Mode");
-                this->TravelToTargetPosition();
+                this->PublishPosition(pose_target);
                 break;
 
             case scout:
@@ -673,4 +678,13 @@ void UAVControl::TakeOff(double alt)
 {
     this->Takeoff(alt);
 }
+
+Position UAVControl::getPosition()
+{
+    Point pos(pose_local.position.x, pose_local.position.y, pose_local.position.z);
+    RPY orientation = getOrientationDegrees(pose_local);
+    return Position(pos, orientation);    
+}
+
+
 }//End Namespace

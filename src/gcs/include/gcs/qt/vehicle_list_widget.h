@@ -11,9 +11,13 @@
 #include "ui_VehicleListWidget.h"
 #include <gcs/qt/my_q_widget.h>
 
+class QTimer;
+
 namespace gcs
 {
    
+class VehicleControl;
+    
 class VehicleWidget : public MyQWidget
 {
     Q_OBJECT
@@ -25,6 +29,9 @@ public:
     void SetBattery(int battery);
     void SetCondition(const QString& cond); 
     void SetName(const QString name);
+    void SetVehicle(VehicleControl * vc);
+    void SetUpdateTimer(QTimer * timer);
+    
     void SetId(int id);
     int Id();
     
@@ -32,9 +39,14 @@ public:
     bool IsButtonEnabled();
     const QPushButton* Button();
     
+private slots:
+    void timedUpdate();
+    
 private:
-    Ui::VehicleListWidget widget;
+    Ui::VehicleListWidget _widget;
+    VehicleControl * _vc;
     int v_id; //vehicle_id;
+    
 };
 
 }

@@ -37,61 +37,33 @@ namespace gcs
 
 GCSMainWindow::GCSMainWindow(VehicleManager *vm):
 QMainWindow(nullptr),
-widget(new Ui::GCSMainWindow),
+_ui(new Ui::GCSMainWindow),
 cur_v_id(-1),
 time_counter(0),
 num_queries_last(0),
 update_timer(new QTimer(this)),
+_seconds_timer(new QTimer(this)),
 vm(vm)
 {
-    widget->setupUi(this);
-    widget->map->setVehicleManager(vm);
+    _ui->setupUi(this);
+    _ui->map->setVehicleManager(vm);
+    _ui->map->setUpdateTimer(update_timer);
     
     //todo add these layouts to the GUI
     //layout_by_v_type.insert(VehicleType::ugv, widget->layout_ugvs);
-    layout_by_v_type.insert(VehicleType::quad_rotor, widget->layout_quads);
+    layout_by_v_type.insert(VehicleType::quad_rotor, _ui->layout_quads);
     //layout_by_v_type.insert(VehicleType::octo_rotor, widget->layout_octo);
     //layout_by_v_type.insert(VehicleType::vtol, widget->layout_vtol);
-
-    //setup button logic for the widgets
-    connect(widget->btn_exec_play, &QPushButton::clicked, 
-            this, &GCSMainWindow::OnExecutePlay);
-    connect(widget->btn_scout, &QPushButton::clicked, 
-            this, &GCSMainWindow::OnScoutBuilding);
-    connect(widget->btn_scout_play_pause, &QPushButton::clicked, 
-            this, &GCSMainWindow::OnPauseOrResumeScout);
-    connect(widget->btn_scout_stop, &QPushButton::clicked, 
-            this, &GCSMainWindow::OnStopScout);
-    //this one doesn't like the new signal slot syntax for some reason
-    connect(widget->cmbo_box_flight_mode, SIGNAL(currentIndexChanged(int)), 
-            this, SLOT(OnChangeFlightMode(int)));
-    connect(widget->btn_view_acess_points, &QPushButton::clicked, 
-            this, &GCSMainWindow::OnAccessPointsTriggered);
-    connect(widget->btn_arm_uav, &QPushButton::clicked, 
-            this, &GCSMainWindow::OnArmOrDisarmSelectedUav);
-    connect(update_timer, &QTimer::timeout,
-            this, &GCSMainWindow::OnTimedUpdate);
     
-    UIAdapter *ui_adapter = UIAdapter::Instance();
-    connect(ui_adapter, &UIAdapter::NewImageFrame, 
-            this, &GCSMainWindow::OnUpdateCameraFeed);
-    connect(ui_adapter, &UIAdapter::AddVehicleWidget,
-            this, &GCSMainWindow::OnAddVehicleWidget);
-    connect(ui_adapter, &UIAdapter::SetMachineLearningMode,
-            this, &GCSMainWindow::OnToggleMachineLearningMode);
-    connect(ui_adapter, &UIAdapter::SetVehicleWidgetEnabled,
-            this, &GCSMainWindow::OnSetVehicleWidgetEnabled);
-    connect(ui_adapter, &UIAdapter::NotifyOperator,
-            this, &GCSMainWindow::OnOperatorNotified);
-    connect(ui_adapter, &UIAdapter::SetImageRootDir,
-            this, &GCSMainWindow::OnImageRootDirUpdated);
+    connectToSelf();
+    connectToUiAdapter();
     
-    this->InitMenuBar();
-    this->InitSettings();
-    this->InitMap();
-    this->ToggleScoutButtons("scout");
+    InitMenuBar();
+    InitSettings();
+    ToggleScoutButtons("scout");
     
-    update_timer->start(0);
+    update_timer->start(33.333);
+    _seconds_timer->start(1000);
 }
 
 GCSMainWindow::~GCSMainWindow()
@@ -103,11 +75,15 @@ void GCSMainWindow::OnAddVehicleWidget(int v_id)
     int v_type =  vm->VehicleTypeFromId(v_id);
     Q_ASSERT(v_type != VehicleType::invalid_low);
     
+    VehicleControl * vc = vm->GetVehicle(v_id);
     VehicleWidget *w = new VehicleWidget();
+    
+    w->SetVehicle(vc);
     w->SetId(v_id);
     int v_index = vm->VehicleIndexFromId(v_id);
     w->SetNumber(v_index);
     w->SetName(vm->VehicleStringFromId(v_id) % QChar(' ') % QString::number(v_index));
+    w->SetUpdateTimer(_seconds_timer);
 
     int num_widgets = layout_by_v_type[v_type]->count();
     int index = 0;
@@ -143,8 +119,8 @@ void GCSMainWindow::OnDeleteVehicleWidget(int v_id)
         this->ToggleScoutButtons("scout");  // reset scout buttons
         this->ToggleArmDisarmButton("Arm"); // set [dis]arm button to arm
 
-        widget->image_frame->setPixmap(QPixmap::fromImage(QImage()));
-        widget->lbl_cur_uav->setText("NO UAVS");
+        _ui->image_frame->setPixmap(QPixmap::fromImage(QImage()));
+        _ui->lbl_cur_uav->setText("NO UAVS");
         cur_v_id = -1;
     }
     if(v_id == cur_v_id) //current vehicle was just deleted
@@ -216,14 +192,8 @@ void GCSMainWindow::OnTimedUpdate()
     if(cur_v_id == -1)
         return;
 
-    if(time_counter++ >= 100)
-    {
-        this->UpdateQueries();
-        time_counter = 0;
-    }
-
     this->UpdateFlightStateWidgets();
-    this->UpdateVehicleWidgets();
+    //this->UpdateVehicleWidgets();
     
     if(vm->IsArmed(cur_v_id))
         this->ToggleArmDisarmButton("disarm");
@@ -242,8 +212,8 @@ void GCSMainWindow::OnTimedUpdate()
 
 void GCSMainWindow::ClearQueries()
 {
-    for(int i = widget->layout_queries->count() - 1; i >= 0; i--)
-        delete widget->layout_queries->itemAt(i)->widget();
+    for(int i = _ui->layout_queries->count() - 1; i >= 0; i--)
+        delete _ui->layout_queries->itemAt(i)->widget();
     
     num_queries_last = 0;
 }
@@ -251,7 +221,7 @@ void GCSMainWindow::ClearQueries()
 
 void GCSMainWindow::UpdateQueries()
 {
-    if(cur_v_id == -1 || !widget->frame_queries_cntnr->isVisible())
+    if(cur_v_id == -1 || !_ui->frame_queries_cntnr->isVisible())
         return;
 
     std::vector<lcar_msgs::QueryPtr> *queries = vm->GetUAVDoorQueries(cur_v_id);
@@ -274,7 +244,7 @@ void GCSMainWindow::UpdateQueries()
                 this, [this, qw](){ OnRejectDoorQuery(qw); });
                 
         //add to user interface
-        widget->layout_queries->addWidget(qw);
+        _ui->layout_queries->addWidget(qw);
     }
 
     num_queries_last = pqv_size;
@@ -282,7 +252,7 @@ void GCSMainWindow::UpdateQueries()
 
 void GCSMainWindow::AnswerQuery(QWidget * qw, QString ap_type, bool accepted)
 {
-    int index = widget->layout_queries->indexOf(qw);
+    int index = _ui->layout_queries->indexOf(qw);
     std::vector<lcar_msgs::QueryPtr> * vec_uav_queries_ptr = vm->GetUAVDoorQueries(cur_v_id);
     lcar_msgs::QueryPtr door = vec_uav_queries_ptr->at(index);
 
@@ -319,7 +289,7 @@ void GCSMainWindow::OnExecutePlay()
     if(vm->NumTotalVehicles() == 0)
         return;
 
-    QString play = widget->cmbo_box_play_book->currentText();
+    QString play = _ui->cmbo_box_play_book->currentText();
     
     int number;
     sscanf(play.toStdString().c_str(), "%d", &number);
@@ -344,7 +314,7 @@ void GCSMainWindow::OnScoutBuilding()
     if(cur_v_id == -1)
         return;
 
-    QString building = widget->cmbo_box_buildings->currentText();
+    QString building = _ui->cmbo_box_buildings->currentText();
     
     int number;
     char b[16];
@@ -364,12 +334,12 @@ void GCSMainWindow::OnPauseOrResumeScout()
     if(vm->GetMissionMode(cur_v_id) == MissionMode::active)
     {
         emit UIAdapter::Instance()->PauseMission(cur_v_id);
-        widget->btn_scout_play_pause->setIcon(QIcon(":/images/icons/play.png"));
+        _ui->btn_scout_play_pause->setIcon(QIcon(":/images/icons/play.png"));
     }
     else
     {
         emit UIAdapter::Instance()->ResumeMission(cur_v_id);
-        widget->btn_scout_play_pause->setIcon(QIcon(":/images/icons/pause.png"));
+        _ui->btn_scout_play_pause->setIcon(QIcon(":/images/icons/pause.png"));
     }
 }
 
@@ -438,11 +408,11 @@ void GCSMainWindow::ToggleScoutButtons(QString mode)
     bool scout = (mode == "scout"); 
     Q_ASSERT(scout || mode == "play" || mode == "pause");
     
-    widget->btn_scout->setVisible(scout);
-    widget->btn_scout_play_pause->setVisible(!scout);
+    _ui->btn_scout->setVisible(scout);
+    _ui->btn_scout_play_pause->setVisible(!scout);
     if(!scout)
-        widget->btn_scout_play_pause->setIcon(QIcon(":/images/icons/" % mode % ".png"));
-    widget->btn_scout_stop->setVisible(!scout);
+        _ui->btn_scout_play_pause->setIcon(QIcon(":/images/icons/" % mode % ".png"));
+    _ui->btn_scout_stop->setVisible(!scout);
 }
 
 // slot gets called when user click on a uav button
@@ -464,12 +434,12 @@ void GCSMainWindow::SelectVehicleWidgetById(int v_id)
     cur_v_id = v_id;
     
     QString vehicle_type = vm->VehicleStringFromId(v_id);
-    widget->lbl_cur_uav->setText(vehicle_type % QString::number(v_id - v_type));
+    _ui->lbl_cur_uav->setText(vehicle_type % QString::number(v_id - v_type));
     
     QString topic("/V" % QString::number(v_id) % "/stereo_cam/left/image_rect");
     vm->SubscribeToImageTopic(topic);
     
-    widget->image_frame->setPixmap(QPixmap::fromImage(QImage()));
+    _ui->image_frame->setPixmap(QPixmap::fromImage(QImage()));
     this->ClearQueries(); // new uav selected, so make room for its queries
     if(fl_widgets.ap_menu != nullptr)
         fl_widgets.ap_menu->SetUAVAccessPointsAndId(vm->GetUAVAccessPoints(v_id), v_id - v_type);
@@ -497,41 +467,41 @@ void GCSMainWindow::UpdateFlightStateWidgets()
     FlightState flight_state = vm->GetFlightState(cur_v_id);
     
     // PFD
-    widget->pfd->setRoll(flight_state.roll*180);
-    widget->pfd->setPitch(flight_state.pitch*90);
-    widget->pfd->setHeading(flight_state.heading);
-    widget->pfd->setAirspeed(flight_state.air_speed);
-    widget->pfd->setAltitude(flight_state.altitude);
-    widget->pfd->setClimbRate(flight_state.vertical_speed);
-    widget->pfd->update();
+    _ui->pfd->setRoll(flight_state.roll*180);
+    _ui->pfd->setPitch(flight_state.pitch*90);
+    _ui->pfd->setHeading(flight_state.heading);
+    _ui->pfd->setAirspeed(flight_state.air_speed);
+    _ui->pfd->setAltitude(flight_state.altitude);
+    _ui->pfd->setClimbRate(flight_state.vertical_speed);
+    _ui->pfd->update();
     
     QString temp_data;
     //text based widget
     temp_data.setNum(flight_state.yaw, 'f', 2);
-    widget->lbl_yaw_val->setText(temp_data);
+    _ui->lbl_yaw_val->setText(temp_data);
     
     temp_data.setNum(flight_state.roll, 'f', 2);
-    widget->lbl_roll_val->setText(temp_data);
+    _ui->lbl_roll_val->setText(temp_data);
     
     temp_data.setNum(flight_state.pitch, 'f', 2);
-    widget->lbl_pitch_val->setText(temp_data);
+    _ui->lbl_pitch_val->setText(temp_data);
     
     temp_data.setNum(flight_state.ground_speed, 'f', 2).append(" m/s");
-    widget->lbl_gnd_spd_val->setText(temp_data);
+    _ui->lbl_gnd_spd_val->setText(temp_data);
     
     temp_data.setNum(vm->GetDistanceToWP(cur_v_id)).append(" m");
-    widget->lbl_dist_wp_val->setText(temp_data);
+    _ui->lbl_dist_wp_val->setText(temp_data);
     
     
     StatePtr state = vm->GetState(cur_v_id);
     temp_data.setNum(state->battery * 100);
-    widget->pgs_bar_battery->setValue(temp_data.toInt());
+    _ui->pgs_bar_battery->setValue(temp_data.toInt());
     
     int v_index = vm->VehicleIndexFromId(cur_v_id);
     temp_data = "UAV " % QString::number(v_index);
-    widget->lbl_cur_uav->setText(temp_data);
+    _ui->lbl_cur_uav->setText(temp_data);
     
-    widget->pgs_bar_mission->setValue(state->mission_progress * 100);
+    _ui->pgs_bar_mission->setValue(state->mission_progress * 100);
 }
 
 void GCSMainWindow::OnArmOrDisarmSelectedUav()
@@ -548,7 +518,7 @@ void GCSMainWindow::ToggleArmDisarmButton(QString mode)
     QString temp_mode = mode.toLower();
     temp_mode = temp_mode[0].toUpper() % temp_mode.mid(1);
     Q_ASSERT(temp_mode == "Arm" || temp_mode == "Disarm");
-    widget->btn_arm_uav->setText(temp_mode);
+    _ui->btn_arm_uav->setText(temp_mode);
 }
 
 void GCSMainWindow::CenterFloatingWidget(QWidget* w)
@@ -641,8 +611,58 @@ void GCSMainWindow::OnAddVehicleTriggered()
     }
 }
 
-void GCSMainWindow::InitMap()
+void GCSMainWindow::connectToSelf()
 {
+    //setup button logic for the widgets
+    connect(_ui->btn_exec_play, &QPushButton::clicked, 
+            this, &GCSMainWindow::OnExecutePlay);
+    
+    connect(_ui->btn_scout, &QPushButton::clicked, 
+            this, &GCSMainWindow::OnScoutBuilding);
+    
+    connect(_ui->btn_scout_play_pause, &QPushButton::clicked, 
+            this, &GCSMainWindow::OnPauseOrResumeScout);
+    
+    connect(_ui->btn_scout_stop, &QPushButton::clicked, 
+            this, &GCSMainWindow::OnStopScout);
+    
+    //this one doesn't like the new signal slot syntax for some reason
+    connect(_ui->cmbo_box_flight_mode, SIGNAL(currentIndexChanged(int)), 
+            this, SLOT(OnChangeFlightMode(int)));
+    
+    connect(_ui->btn_view_acess_points, &QPushButton::clicked, 
+            this, &GCSMainWindow::OnAccessPointsTriggered);
+    
+    connect(_ui->btn_arm_uav, &QPushButton::clicked, 
+            this, &GCSMainWindow::OnArmOrDisarmSelectedUav);
+    
+    connect(update_timer, &QTimer::timeout,
+            this, &GCSMainWindow::OnTimedUpdate);
+    
+    connect(_seconds_timer, &QTimer::timeout,
+            this, &GCSMainWindow::UpdateQueries);
+}
+ 
+void GCSMainWindow::connectToUiAdapter()
+{
+    UIAdapter *ui_adapter = UIAdapter::Instance();
+    connect(ui_adapter, &UIAdapter::NewImageFrame, 
+            this, &GCSMainWindow::OnUpdateCameraFeed);
+    
+    connect(ui_adapter, &UIAdapter::vehicleAdded,
+            this, &GCSMainWindow::OnAddVehicleWidget);
+    
+    connect(ui_adapter, &UIAdapter::SetMachineLearningMode,
+            this, &GCSMainWindow::OnToggleMachineLearningMode);
+    
+    connect(ui_adapter, &UIAdapter::SetVehicleWidgetEnabled,
+            this, &GCSMainWindow::OnSetVehicleWidgetEnabled);
+    
+    connect(ui_adapter, &UIAdapter::NotifyOperator,
+            this, &GCSMainWindow::OnOperatorNotified);
+    
+    connect(ui_adapter, &UIAdapter::SetImageRootDir,
+            this, &GCSMainWindow::OnImageRootDirUpdated);
 }
 
 void GCSMainWindow::InitMenuBar()
@@ -689,8 +709,8 @@ void GCSMainWindow::InitSettings()
 
 void GCSMainWindow::OnToggleMachineLearningMode(bool toggle)
 {
-    widget->frame_queries_cntnr->setVisible(toggle);
-    widget->frame_queries_cntnr->setEnabled(toggle);
+    _ui->frame_queries_cntnr->setVisible(toggle);
+    _ui->frame_queries_cntnr->setEnabled(toggle);
 }
 
 void GCSMainWindow::OnImageRootDirUpdated(QString new_dir)
@@ -714,14 +734,14 @@ void GCSMainWindow::UpdateVehicleWidgets()
 
 void GCSMainWindow::OnUpdateCameraFeed(QPixmap img)
 {
-    int w = widget->image_frame->width();
-    int h = widget->image_frame->height();
-    widget->image_frame->setPixmap(img.scaled(w, h, Qt::KeepAspectRatio));
+    int w = _ui->image_frame->width();
+    int h = _ui->image_frame->height();
+    _ui->image_frame->setPixmap(img.scaled(w, h, Qt::KeepAspectRatio));
 }
 
 void GCSMainWindow::OnOperatorNotified(QString msg)
 {
-    widget->status_bar->showMessage(msg, 15000);
+    _ui->status_bar->showMessage(msg, 15000);
 }
 
 void GCSMainWindow::closeEvent(QCloseEvent* event)

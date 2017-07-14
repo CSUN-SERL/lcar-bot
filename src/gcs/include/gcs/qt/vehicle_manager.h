@@ -27,31 +27,36 @@
 #include <lcar_msgs/WorldMap.h>
 
 #include <vehicle/data_types.h>
-#include <vehicle/vehicle_control.h>
-
-#include <gcs/qt/ui_adapter.h>
+#include <vehicle/position.h> 
 
 #include <gcs/util/image_conversions.h>
-#include <gcs/util/point.h>
 #include <gcs/util/object_detection_parameters.h>
 
 
 namespace gcs
 {
     
-    //todo implement these forward declarations
+    class VehicleControl;
     class UGVControl;
-    class NAOControl;
     
 class VehicleManager : public QObject
 {
     Q_OBJECT
 public:
-    VehicleManager(QObject *parent=nullptr);
+    VehicleManager(QObject *parent = nullptr);
     virtual~VehicleManager();
     void ConnectToUIAdapter();
     
+        
     /**
+     * \brief get a pointer to the desired vehicle by ID. this function asserts that
+     *        the VehicleType extracted from the id is valid.
+     * @param v_id the id of the vehicle
+     * @return a pointer to the vehicle if found or nullptr if not found
+     */
+    VehicleControl* GetVehicle(int v_id);
+    
+    /** 
      * @return the number of vehicles in the system
      */
     int NumTotalVehicles();
@@ -126,7 +131,6 @@ public:
     static int IdfromVehicleString(QString v_type);
 
 public slots:
-    
     void OnOperatorAddVehicle(const int vehicle_id);
     
     /**
@@ -264,7 +268,15 @@ public slots:
      */
     QWaitCondition* GetWaitCondition();
     
+signals:
+    void quadRotorAdded(int id);
+    void octoRotorAdded(int id);
+    void vtolAdded(int id);
+    void ugvAdded(int id);
+    
+    
 private:
+    void emitVehicleAdded(VehicleControl * vehicle);
     
     //ros related///////////////////////////////////////////////////////////////
     bool WorldMapRequested(lcar_msgs::WorldMap::Request& req, lcar_msgs::WorldMap::Response& res);
@@ -299,14 +311,6 @@ private:
      * @return pointer to the vehicle if found or nullptr if not found
      */
     VehicleControl* FindVehicle(int v_type, int v_id);
-    
-    /**
-     * \brief get a pointer to the desired vehicle by ID. this function asserts that
-     *        the VehicleType extracted from the id is valid.
-     * @param v_id the id of the vehicle
-     * @return a pointer to the vehicle if found or nullptr if not found
-     */
-    VehicleControl* FindVehicle(int v_id);
     
     /**
      * \brief Initializes ObjectDetectionSettings for the publishing to vehicles.

@@ -16,7 +16,7 @@
 bool LockThisPC()
 {
     //todo create islurp.pid to enforce this application as single instance
-//    qint64 pid = QCoreApplication::applicationPid();
+    //qint64 pid = QCoreApplication::applicationPid();
     return true;
 }
 

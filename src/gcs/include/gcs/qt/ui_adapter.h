@@ -66,8 +66,8 @@ signals:
 
     // backend -> GCSMainWindow
     void NewImageFrame(QPixmap img);
-    void AddVehicleWidget(int v_id);
-    void DeleteVehicleWidget(int v_id);
+    void vehicleAdded(int v_id);
+    void vehicleDeleted(int v_id);
     void SetVehicleWidgetEnabled(int v_id, bool enabled);
 
     // backend -> VehicleInitWidget

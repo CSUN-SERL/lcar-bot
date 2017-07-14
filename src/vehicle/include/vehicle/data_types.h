@@ -13,18 +13,6 @@
 namespace gcs
 {
     
-#define VEHICLE_TYPE_MAX 1000
-    
-typedef enum VehicleType_
-{   // the id space for each vehicle type  
-    invalid_low = VEHICLE_TYPE_MAX - 1,
-    ugv =                     VEHICLE_TYPE_MAX, //1000
-    quad_rotor =        ugv + VEHICLE_TYPE_MAX, //2000
-    octo_rotor = quad_rotor + VEHICLE_TYPE_MAX, //3000
-    vtol =       octo_rotor + VEHICLE_TYPE_MAX, //4000
-    invalid_high =     vtol + VEHICLE_TYPE_MAX
-} VehicleType;
-    
 //todo ADD FLIGHTMODE STRINGS
 
 typedef enum PositionMode_

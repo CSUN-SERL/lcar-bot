@@ -80,7 +80,6 @@ protected:
 private:
     VehicleWidget* VehicleWidgetAt(int v_type, int index);
 
-    void InitMap();
     void InitMenuBar();
     void InitSettings();
     void SelectVehicleWidgetById(int v_id);
@@ -104,12 +103,17 @@ private:
     void OnUnansweredQueriesTriggered();
     void OnAddVehicleTriggered();
     
-    Ui::GCSMainWindow* widget;
+    void connectToSelf();
+    void connectToUiAdapter();
+    
+private:
+    Ui::GCSMainWindow* _ui;
     
     VehicleManager * vm;
     
     QMap<int/*VehicleType*/, QVBoxLayout*> layout_by_v_type;
     QTimer *update_timer;
+    QTimer *_seconds_timer;
     QString image_root_dir;
     int cur_v_id; // the current selected vehicles id
     int time_counter;

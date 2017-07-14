@@ -188,7 +188,7 @@ public:
     bool IsArmed() override { return state.armed; }
     
     void SetPositionMode(PositionMode mode) {position_mode = mode; }
-
+    
 protected:
     /**
       Land the UAV

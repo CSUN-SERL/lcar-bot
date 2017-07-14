@@ -9,12 +9,31 @@
 #define VEHICLECONTROL_H
 
 #include <string>
+
+#include <ros/timer.h>
+#include <ros/publisher.h>
 #include <sensor_msgs/NavSatFix.h>
+#include <geometry_msgs/Pose.h>
+#include <std_msgs/Int32.h>
 
 #include <vehicle/data_types.h>
+#include <vehicle/position.h>
 
 namespace gcs
 {
+
+#define VEHICLE_TYPE_MAX 1000
+    
+enum VehicleType
+{   // the id space for each vehicle type  
+    invalid_low =             VEHICLE_TYPE_MAX - 1,
+    ugv =                     VEHICLE_TYPE_MAX, //1000
+    quad_rotor =        ugv + VEHICLE_TYPE_MAX, //2000
+    octo_rotor = quad_rotor + VEHICLE_TYPE_MAX, //3000
+    vtol =       octo_rotor + VEHICLE_TYPE_MAX, //4000
+    invalid_high =     vtol + VEHICLE_TYPE_MAX
+};
+
 
 class VehicleControl
 {
@@ -39,7 +58,7 @@ public:
     virtual void ResumeMission() = 0;//{ mission_mode = active; };
     virtual void StopMission() = 0;//{ mission_mode = stopped; };
     virtual MissionMode GetMissionMode(){ return mission_mode; };
-    virtual float GetMissiontProgress() { return -1; };
+    virtual float GetMissionProgress() { return -1; };
     virtual int GetBattery() { return battery; };
     virtual std::string GetMode() { return  mode; };
     
@@ -55,6 +74,8 @@ public:
         
         return mission_completed;
     };
+    
+    virtual Position getPosition() = 0;
     
 protected:
 

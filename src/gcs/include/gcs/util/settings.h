@@ -14,7 +14,7 @@
 #include <QStringList>
 
 #include <gcs/util/object_detection_parameters.h>
-#include <gcs/util/point.h> 
+#include <vehicle/position.h> 
 
 namespace gcs
 {
