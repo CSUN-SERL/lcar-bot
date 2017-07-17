@@ -13,8 +13,8 @@
 #include <QMap>
 
 #include <vehicle/data_types.h>
-#
 
+class QFrame;
 class QVector3D;
 
 namespace Qt3DRender
@@ -42,6 +42,7 @@ namespace gcs
     class VehicleControl;
 }
 
+class Window3D;
 
 class MapWidget3D : public QWidget
 {
@@ -82,8 +83,10 @@ private:
     void createBuilding(const QVector3D& pos, float size);
     Vehicle3D * createVehicle(int vehicle_type);
     
+    
     void connectToUiAdapter();
     void setupUi();
+    
     
 private:
     gcs::VehicleManager * _vm;
@@ -91,7 +94,8 @@ private:
     QMap<int, MapWidget3D::Vehicle3D *> _vehicle_map;
     QMap<int, Qt3DCore::QEntity *> _building_map;
     
-    Qt3DExtras::Qt3DWindow * _view;
+    Window3D * _view;
+    
     Qt3DCore::QEntity * _root;
     Qt3DCore::QEntity * _plane;
     

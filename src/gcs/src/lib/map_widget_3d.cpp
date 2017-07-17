@@ -6,6 +6,9 @@
  * Created on June 30, 2017, 5:11 PM
  */
 
+#include <QFrame>
+#include <QRect>
+#include <QPoint>
 #include <QVBoxLayout>
 #include <QQuaternion>
 
@@ -15,12 +18,19 @@
 #include <Qt3DCore/QTransform>
 #include <Qt3DExtras/Qt3DExtras>
 #include <Qt3DRender/Qt3DRender>
+#include <Qt3DRender/QViewport>
 
 #include <gcs/qt/map_widget_3d.h>
 #include <gcs/qt/ui_adapter.h>
 
 #include <gcs/qt/vehicle_manager.h>
 #include <vehicle/vehicle_control.h>
+
+#include "gcs/qt/multi_viewport_forward_renderer.h"
+#include "gcs/qt/window_3d.h"
+
+#define MINI_MAP_STYLE "background-color: rgb(48, 57, 80);"
+#define MINI_MAP_STYLE2 "background-color: yellow;"
 
 #define M2F 3.28084 //meters to feet
 #define F2M 0.3048  //feet to meters
@@ -52,28 +62,18 @@ void MapWidget3D::Vehicle3D::update()
     transform->setRotationX(pos.orientation.pitch);
     transform->setRotationY(pos.orientation.yaw + 90);
     transform->setRotationZ(pos.orientation.roll);
-    
-    QTime temp = QTime::currentTime();
-    if(sec.msecsTo(temp) >= 1000)
-    {
-        QString v_id = QString("V%0").arg(QString::number(vehicle->id));
-        qCDebug(lcar_bot) << v_id << vec;
-        sec = temp;
-    }
 }
 
 MapWidget3D::MapWidget3D( QWidget * parent) :
 QWidget(parent),
-_view(new Qt3DWindow),
-_root(new QEntity),
-_plane(new QEntity(_root)),
+_view(new Window3D),
 _update_timer(nullptr)
-{
+{   
     setupUi();
     connectToUiAdapter();
-    
-    _view->defaultFrameGraph()->setClearColor(QColor(QRgb(0x0f0f0f))); //0x4d4d4f
-    _view->setRootEntity(_root);
+ 
+    _root = _view->sceneRoot();
+    _plane = new QEntity(_root);
     
     createDefaultScene();
 }
@@ -91,8 +91,10 @@ void MapWidget3D::setVehicleManager(VehicleManager* vm)
 void MapWidget3D::setUpdateTimer(QTimer * timer)
 {
     if(_update_timer)
+    {
         QObject::disconnect(_update_timer, &QTimer::timeout,
                             this, &MapWidget3D::update);
+    }
     
     _update_timer = timer;
     
@@ -138,7 +140,7 @@ void MapWidget3D::createDefaultScene()
 void MapWidget3D::createFloor()
 {
     QPlaneMesh * plane_mesh = new QPlaneMesh();
-    Transform * transform = new Transform(_plane);
+    Transform * transform = new Transform();
     QPhongMaterial *planeMaterial = new QPhongMaterial();
     
     _plane->addComponent(plane_mesh);
@@ -162,7 +164,7 @@ void MapWidget3D::createFloor()
 void MapWidget3D::createCameraController()
 {
     Qt3DRender::QCamera *cam = _view->camera();
-
+    
     cam->lens()->setPerspectiveProjection(45.0f, 16.0f/9.0f, 0.1f, 1000.0f);
     cam->setPosition(QVector3D(-20, 10, 0)); //looking forward along x axis to origin
     cam->setUpVector(QVector3D(0, 1, 0));
@@ -173,6 +175,14 @@ void MapWidget3D::createCameraController()
     camController->setZoomInLimit(5);
     camController->setLinearSpeed(60);
     camController->setLookSpeed(60);
+    
+    /////////////////
+    
+    cam = _view->miniMapCamera();
+    cam->lens()->setPerspectiveProjection(45.0f, 16.0f/9.0f, 0.1f, 1000.0f);
+    cam->setPosition(QVector3D(-1, 20, 0));
+    cam->setUpVector(QVector3D(0, 1, 0));
+    cam->setViewCenter(QVector3D(0, 0, 0));
 }
 
 void MapWidget3D::createLighting(const QVector3D& pos, float intensity)
@@ -249,16 +259,16 @@ void MapWidget3D::connectToUiAdapter()
                     this, &MapWidget3D::vehicleAdded);
 }
 
+    
 void MapWidget3D::setupUi() 
 {   
+    QVBoxLayout * layout = new QVBoxLayout(this);
     QWidget * container = QWidget::createWindowContainer(_view);
-    
+   
     container->setContentsMargins(0, 0, 0, 0);
-    
-    QVBoxLayout * layout = new QVBoxLayout();
     layout->setContentsMargins(0, 0, 0, 0);
+
     setLayout(layout);
-    
-    layout->addWidget(container, 1);
+    layout->addWidget(container);
 }
 
