@@ -20,7 +20,6 @@ StereoDriver::StereoDriver(int vendor_id, int product_id, ros::NodeHandle nh) :
 
     ci_left.reset(new sensor_msgs::CameraInfo(cim_left.getCameraInfo()));
     ci_right.reset(new sensor_msgs::CameraInfo(cim_right.getCameraInfo()));
-
     pub_left = it.advertiseCamera( "stereo_cam/left/image_raw", 1);
     pub_right = it.advertiseCamera("stereo_cam/right/image_raw", 1);
 }
@@ -186,7 +185,7 @@ void StereoDriver::ImageCallback(uvc_frame_t *frame){
     msg_left->header.stamp = msg_right->header.stamp = time_stamp;
     msg_left->header.seq = msg_right->header.seq = frame->sequence;
     msg_left->is_bigendian = msg_right->is_bigendian = (__BYTE_ORDER == __BIG_ENDIAN);
-
+    
     pub_left.publish(msg_left, ci_left);
     pub_right.publish(msg_right, ci_right);
 
