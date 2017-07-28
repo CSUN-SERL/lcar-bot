@@ -24,6 +24,7 @@
 #include <gcs/qt/vehicle_init_widget.h>
 #include <gcs/qt/access_points_container_widget.h>
 #include <gcs/qt/vehicle_list_widget.h>
+#include <gcs/qt/image_feed_filter.h>
 
 #include <gcs/util/debug.h>
 #include <gcs/util/settings.h>
@@ -31,6 +32,7 @@
 #include <gcs/util/image_conversions.h>
 
 #include <vehicle/data_types.h>
+#include <qt5/QtCore/qnamespace.h>
 
 namespace gcs
 {
@@ -43,11 +45,15 @@ time_counter(0),
 num_queries_last(0),
 update_timer(new QTimer(this)),
 _seconds_timer(new QTimer(this)),
-vm(vm)
+vm(vm),
+_filter(new ImageFeedFilter(this, this))
 {
     _ui->setupUi(this);
     _ui->map->setVehicleManager(vm);
     _ui->map->setUpdateTimer(update_timer);
+    _ui->map->setImageFeedFilter(_filter);
+    _ui->map->installEventFilter(_filter);
+    _ui->image_frame->setVisible(false);
     
     //todo add these layouts to the GUI
     //layout_by_v_type.insert(VehicleType::ugv, widget->layout_ugvs);
@@ -69,6 +75,11 @@ vm(vm)
 GCSMainWindow::~GCSMainWindow()
 {
 }
+
+ void GCSMainWindow::setImageFeedVisible(bool visible)
+ {
+     _ui->image_frame->setVisible(visible);
+ }
 
 void GCSMainWindow::OnAddVehicleWidget(int v_id)
 {
@@ -762,6 +773,17 @@ void GCSMainWindow::closeEvent(QCloseEvent* event)
         delete fl_widgets.vehicle_init;
     
     event->accept();
+}
+
+void GCSMainWindow::keyPressEvent(QKeyEvent* event)
+{
+    bool visible = event->key() == Qt::Key_Space;
+    _ui->image_frame->setVisible(visible);
+}
+void GCSMainWindow::keyReleaseEvent(QKeyEvent* event)
+{
+    bool visible = event->key() == Qt::Key_Space;
+    _ui->image_frame->setVisible(!visible);
 }
 
 VehicleWidget* GCSMainWindow::VehicleWidgetAt(int v_type, int index)

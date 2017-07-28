@@ -40,7 +40,7 @@ using namespace Qt3DExtras;
 using namespace Qt3DRender;
 using namespace gcs;
 
-static QTime sec = QTime::currentTime();
+//static QTime sec = QTime::currentTime();
 
 void MapWidget3D::Vehicle3D::update()
 {
@@ -81,6 +81,11 @@ _update_timer(nullptr)
 
 MapWidget3D::~MapWidget3D() 
 {
+}
+
+void MapWidget3D::setImageFeedFilter(gcs::ImageFeedFilter * filter)
+{
+    _view->installEventFilter(filter);
 }
 
 void MapWidget3D::setVehicleManager(VehicleManager* vm)
@@ -264,7 +269,7 @@ void MapWidget3D::setupUi()
 {   
     QVBoxLayout * layout = new QVBoxLayout(this);
     QWidget * container = QWidget::createWindowContainer(_view);
-   
+        
     container->setContentsMargins(0, 0, 0, 0);
     layout->setContentsMargins(0, 0, 0, 0);
 

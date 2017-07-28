@@ -14,6 +14,9 @@
 
 #include <vehicle/data_types.h>
 
+#include <gcs/qt/gcs_main_window.h>
+#include <gcs/qt/image_feed_filter.h>
+
 class QFrame;
 class QVector3D;
 
@@ -65,6 +68,7 @@ public:
     MapWidget3D(QWidget * parent = nullptr);
     virtual ~MapWidget3D();
     
+    void setImageFeedFilter(gcs::ImageFeedFilter * filter);
     void setVehicleManager(gcs::VehicleManager * vm);
     void setUpdateTimer(QTimer * timer);
     
@@ -90,7 +94,7 @@ private:
     
 private:
     gcs::VehicleManager * _vm;
-    
+        
     QMap<int, MapWidget3D::Vehicle3D *> _vehicle_map;
     QMap<int, Qt3DCore::QEntity *> _building_map;
     

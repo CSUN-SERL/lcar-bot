@@ -31,6 +31,7 @@ namespace gcs
 {
 
     class VehicleManager;
+    class ImageFeedFilter;
     
 class UnansweredQueries;
 class SettingsWidget;
@@ -46,6 +47,7 @@ class GCSMainWindow : public QMainWindow
 public:
     GCSMainWindow(VehicleManager * vm);
     virtual ~GCSMainWindow();
+    void setImageFeedVisible(bool visible);
     
 public slots:
     void OnTimedUpdate();
@@ -76,6 +78,8 @@ public slots:
     
 protected:
     void closeEvent(QCloseEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
+    void keyReleaseEvent(QKeyEvent* event) override;
     
 private:
     VehicleWidget* VehicleWidgetAt(int v_type, int index);
@@ -110,6 +114,7 @@ private:
     Ui::GCSMainWindow* _ui;
     
     VehicleManager * vm;
+    ImageFeedFilter * _filter;
     
     QMap<int/*VehicleType*/, QVBoxLayout*> layout_by_v_type;
     QTimer *update_timer;
