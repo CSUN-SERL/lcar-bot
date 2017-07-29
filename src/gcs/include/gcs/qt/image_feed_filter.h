@@ -9,12 +9,15 @@
 #ifndef IMAGEFEEDFILTER_H
 #define IMAGEFEEDFILTER_H
 
+#include <memory>
+
 #include <QObject>
 
 namespace gcs
 {
 
-    class GCSMainWindow;
+class GCSMainWindow;
+class Building;
     
 class ImageFeedFilter : public QObject
 {
@@ -22,12 +25,14 @@ class ImageFeedFilter : public QObject
 public:
     ImageFeedFilter(GCSMainWindow * main_window, QObject * parent = nullptr);
     
+    void setCurrentBuilding(const std::shared_ptr<Building>& building);
    
 protected:
     bool eventFilter(QObject *obj, QEvent *event);
     
 private:
     GCSMainWindow * _main_window;
+    std::shared_ptr<Building> _cur_building;
 };
 
 }

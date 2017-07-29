@@ -11,6 +11,7 @@
 
 #include <QCloseEvent>
 #include <QMainWindow>
+#include <QPointer>
 
 #include <vehicle/data_types.h>
 #include <vehicle/uav_control.h>
@@ -78,8 +79,6 @@ public slots:
     
 protected:
     void closeEvent(QCloseEvent* event) override;
-    void keyPressEvent(QKeyEvent* event) override;
-    void keyReleaseEvent(QKeyEvent* event) override;
     
 private:
     VehicleWidget* VehicleWidgetAt(int v_type, int index);
@@ -126,10 +125,10 @@ private:
     
     struct FloatingWidgets
     {
-        SettingsWidget *settings = nullptr;
-        UnansweredQueries *unanswered_queries = nullptr;
-        AccessPointsContainerWidget *ap_menu = nullptr;
-        VehicleInitWidget *vehicle_init = nullptr;
+        QPointer<SettingsWidget> settings;
+        QPointer<UnansweredQueries> unanswered_queries;
+        QPointer<AccessPointsContainerWidget> ap_menu;
+        QPointer<VehicleInitWidget> vehicle_init;
     } fl_widgets;
     
 };

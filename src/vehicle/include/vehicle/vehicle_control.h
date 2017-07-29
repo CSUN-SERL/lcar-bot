@@ -83,6 +83,13 @@ protected:
     virtual void RunLocal()=0;
     virtual void RunGlobal()=0;
     
+    int currentWaypoint()
+    {
+        return cur_waypoint;
+    }
+    
+    int cur_waypoint = 0;
+    
     ros::Timer run_timer;
     MissionMode mission_mode = stopped;
     int battery = 0;

@@ -49,10 +49,11 @@ vm(vm),
 _filter(new ImageFeedFilter(this, this))
 {
     _ui->setupUi(this);
+    installEventFilter(_filter);
+    
     _ui->map->setVehicleManager(vm);
     _ui->map->setUpdateTimer(update_timer);
     _ui->map->setImageFeedFilter(_filter);
-    _ui->map->installEventFilter(_filter);
     _ui->image_frame->setVisible(false);
     
     //todo add these layouts to the GUI
@@ -549,8 +550,8 @@ void GCSMainWindow::OnAccessPointsTriggered()
 
         this->CenterFloatingWidget(fl_widgets.ap_menu);
 
-        connect(fl_widgets.ap_menu, &AccessPointsContainerWidget::destroyed,
-                this, [=](){ fl_widgets.ap_menu = nullptr; });
+//        connect(fl_widgets.ap_menu, &AccessPointsContainerWidget::destroyed,
+//                this, [=](){ fl_widgets.ap_menu = nullptr; });
 
         if(vm->NumVehiclesByType(VehicleType::quad_rotor) > 0)
         {
@@ -573,8 +574,8 @@ void GCSMainWindow::OnSettingsTriggered()
 
         this->CenterFloatingWidget(fl_widgets.settings);
 
-        connect(fl_widgets.settings, &SettingsWidget::destroyed,
-                this, [=](){ fl_widgets.settings = nullptr; });
+//        connect(fl_widgets.settings, &SettingsWidget::destroyed,
+//                this, [=](){ fl_widgets.settings = nullptr; });
                 
         connect(fl_widgets.settings, &SettingsWidget::localCoordinatesUpdated,
                 vm, &VehicleManager::OnLocalCoordinatesUpdated);
@@ -594,8 +595,8 @@ void GCSMainWindow::OnUnansweredQueriesTriggered()
 
         this->CenterFloatingWidget(fl_widgets.unanswered_queries);
 
-        connect(fl_widgets.unanswered_queries, &UnansweredQueries::destroyed,
-                this, [=](){ fl_widgets.unanswered_queries = nullptr; });
+//        connect(fl_widgets.unanswered_queries, &UnansweredQueries::destroyed,
+//                this, [=](){ fl_widgets.unanswered_queries = nullptr; });
     }
     else
     {
@@ -612,8 +613,8 @@ void GCSMainWindow::OnAddVehicleTriggered()
 
         this->CenterFloatingWidget(fl_widgets.vehicle_init);
 
-        connect(fl_widgets.vehicle_init, &VehicleInitWidget::destroyed,
-                this, [=](){ fl_widgets.vehicle_init = nullptr; });
+//        connect(fl_widgets.vehicle_init, &VehicleInitWidget::destroyed,
+//                this, [=](){ fl_widgets.vehicle_init = nullptr; });
     }
     else
     {
@@ -773,17 +774,6 @@ void GCSMainWindow::closeEvent(QCloseEvent* event)
         delete fl_widgets.vehicle_init;
     
     event->accept();
-}
-
-void GCSMainWindow::keyPressEvent(QKeyEvent* event)
-{
-    bool visible = event->key() == Qt::Key_Space;
-    _ui->image_frame->setVisible(visible);
-}
-void GCSMainWindow::keyReleaseEvent(QKeyEvent* event)
-{
-    bool visible = event->key() == Qt::Key_Space;
-    _ui->image_frame->setVisible(!visible);
 }
 
 VehicleWidget* GCSMainWindow::VehicleWidgetAt(int v_type, int index)
