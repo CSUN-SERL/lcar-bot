@@ -13,6 +13,7 @@
 #include <ros/package.h>
 
 #include "ui_GCSMainWindow.h"
+#include "gcs/qt/user_id_widget.h"
 
 #include <gcs/qt/gcs_main_window.h>
 #include <gcs/qt/query_widget.h>
@@ -25,6 +26,7 @@
 #include <gcs/qt/access_points_container_widget.h>
 #include <gcs/qt/vehicle_list_widget.h>
 #include <gcs/qt/image_feed_filter.h>
+#include <gcs/qt/trial_manager.h>
 
 #include <gcs/util/debug.h>
 #include <gcs/util/settings.h>
@@ -32,7 +34,7 @@
 #include <gcs/util/image_conversions.h>
 
 #include <vehicle/data_types.h>
-#include <qt5/QtCore/qnamespace.h>
+
 
 namespace gcs
 {
@@ -46,10 +48,13 @@ num_queries_last(0),
 update_timer(new QTimer(this)),
 _seconds_timer(new QTimer(this)),
 vm(vm),
-_filter(new ImageFeedFilter(this, this))
+_filter(new ImageFeedFilter(this, this)),
+_trial_manager(new TrialManager(this))
 {
     _ui->setupUi(this);
     installEventFilter(_filter);
+    
+    fl_widgets.user_id = new UserIdWidget(_trial_manager);
     
     _ui->map->setVehicleManager(vm);
     _ui->map->setUpdateTimer(update_timer);
@@ -623,6 +628,12 @@ void GCSMainWindow::OnAddVehicleTriggered()
     }
 }
 
+void GCSMainWindow::OnUserIdTriggered()
+{
+    fl_widgets.user_id->show();
+    CenterFloatingWidget(fl_widgets.user_id);
+}
+
 void GCSMainWindow::connectToSelf()
 {
     //setup button logic for the widgets
@@ -682,6 +693,10 @@ void GCSMainWindow::InitMenuBar()
     QMenuBar *menu_bar = this->menuBar();
     
     QMenu *file_menu = menu_bar->addMenu("File");
+    QAction *user_id_act = file_menu->addAction("New Trial ID");
+    connect(user_id_act, &QAction::triggered,
+            this, &GCSMainWindow::OnUserIdTriggered);
+    
     QAction *add_vehicle_act = file_menu->addAction("Add Vehicle(s)");
     connect(add_vehicle_act, &QAction::triggered,
             this, &GCSMainWindow::OnAddVehicleTriggered);
@@ -772,6 +787,9 @@ void GCSMainWindow::closeEvent(QCloseEvent* event)
    
     if(fl_widgets.vehicle_init != nullptr)
         delete fl_widgets.vehicle_init;
+    
+    if(fl_widgets.user_id != nullptr)
+        delete fl_widgets.user_id;
     
     event->accept();
 }

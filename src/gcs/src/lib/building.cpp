@@ -11,15 +11,33 @@
 namespace gcs
 {
 
-Building::Building() :
-_type(bNULL)
+Building::Building()
+{}
+
+void Building::setLocation(double x, double y)
 {
-    
+    _x = x;
+    _y = y;
 }
-    
-Building::Building(BuildingType t) :
-_type(t)
-{ }
+
+int Building::xPos()
+{
+    return _x;
+}
+int Building::yPos()
+{
+    return _y;
+}
+
+void Building::setID(int id)
+{
+    _id = id;
+}
+
+int Building::getID()
+{
+    return _id;
+}
 
 void Building::spaceDown()
 {
@@ -47,24 +65,54 @@ void Building::setFoundBy(FoundBy f)
     _found_by = f;
 }
 
-Building::BuildingType Building::buildingType()
+Building::Type Building::buildingType()
 {
     return _type;   
 }
 
-void Building::setBuldingType(BuildingType t)
+void Building::setBuldingType(Type t)
 {
     _type = t;
 }
 
-void Building::setDoorWall(int wall)
+void Building::setDoorLocation(int wall)
 {
-    _door_wall = wall;
+    _door_location = wall;
 }
 
-int Building::doorWall()
+int Building::doorLocation()
 {
-    return _door_wall;
+    return _door_location;
+}
+
+void Building::setDoorPrompt(int wall)
+{
+    _door_prompt = wall;
+}
+
+int Building::doorPrompt()
+{
+    return _door_prompt;
+}
+
+void Building::setDoorMissing(int wall)
+{
+    _door_missing = wall;
+}
+
+int Building::doorMissing()
+{
+    return _door_missing;
+}
+
+void Building::setFalsePrompt(int wall)
+{
+    _false_prompt = wall;
+}
+
+int Building::falsePrompt()
+{
+    return _false_prompt;
 }
 
 }

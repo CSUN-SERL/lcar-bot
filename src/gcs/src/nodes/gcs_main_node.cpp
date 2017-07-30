@@ -8,10 +8,12 @@
 #include <QApplication>
 #include <QThread>
 
-#include "gcs/util/flight_modes.h"
-#include "gcs/util/debug.h"
-#include "gcs/qt/gcs_main_window.h"
-#include "gcs/qt/vehicle_manager.h"
+#include <gcs/util/flight_modes.h>
+#include <gcs/util/debug.h>
+#include <gcs/qt/gcs_main_window.h>
+#include <gcs/qt/vehicle_manager.h>
+
+#include <iostream>
 
 bool LockThisPC()
 {
@@ -33,6 +35,7 @@ int main(int argc, char *argv[])
     // Q_INIT_RESOURCE(resfile);
 
     QApplication app(argc, argv);
+    gcs::dbg::InitDbg();
     
     //these will configure QSettings automatically with "SERL/ISLURP.conf"
     app.setOrganizationName("SERL");
@@ -48,8 +51,6 @@ int main(int argc, char *argv[])
     ros::init(argc, argv, "SALUTE_GCS");
     ros::AsyncSpinner spinner(0);
     spinner.start();
-    
-    gcs::dbg::InitDbg();
     
     gcs::VehicleManager vm;
     QThread background;

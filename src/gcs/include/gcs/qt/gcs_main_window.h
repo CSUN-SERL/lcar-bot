@@ -33,12 +33,14 @@ namespace gcs
 
     class VehicleManager;
     class ImageFeedFilter;
+    class TrialManager;
     
 class UnansweredQueries;
 class SettingsWidget;
 class AccessPointsContainerWidget;
 class VehicleInitWidget;
 class VehicleWidget;
+class UserIdWidget;
 
 
 class GCSMainWindow : public QMainWindow
@@ -85,6 +87,7 @@ private:
 
     void InitMenuBar();
     void InitSettings();
+    
     void SelectVehicleWidgetById(int v_id);
     void UpdateFlightStateWidgets(); // both the PFD and the text based widget
     void UpdateVehicleWidgets();
@@ -105,6 +108,7 @@ private:
     void OnSettingsTriggered();
     void OnUnansweredQueriesTriggered();
     void OnAddVehicleTriggered();
+    void OnUserIdTriggered();
     
     void connectToSelf();
     void connectToUiAdapter();
@@ -114,6 +118,7 @@ private:
     
     VehicleManager * vm;
     ImageFeedFilter * _filter;
+    TrialManager * _trial_manager;
     
     QMap<int/*VehicleType*/, QVBoxLayout*> layout_by_v_type;
     QTimer *update_timer;
@@ -129,6 +134,7 @@ private:
         QPointer<UnansweredQueries> unanswered_queries;
         QPointer<AccessPointsContainerWidget> ap_menu;
         QPointer<VehicleInitWidget> vehicle_init;
+        QPointer<UserIdWidget> user_id;
     } fl_widgets;
     
 };

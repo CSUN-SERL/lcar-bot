@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RCC version="1.0">
+    <qresource prefix="/">
+        <file>waypoints/predictable.txt</file>
+        <file>waypoints/unpredictable.txt</file>
+    </qresource>
+</RCC>

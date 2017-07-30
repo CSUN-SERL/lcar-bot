@@ -112,8 +112,7 @@ private:
     
     QTimer * _update_timer;
     
-    QMap<int, std::shared_ptr<gcs::Building>> _buildings;
-    QMap<std::shared_ptr<gcs::Point>, int> _waypoint_to_building;
+    QMap<int, std::shared_ptr<gcs::Building>> _waypoint_to_building;
 };
 
 #endif /* MAP_WIDGET_3D_H */

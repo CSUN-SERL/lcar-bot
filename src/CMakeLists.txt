@@ -3,8 +3,6 @@
 
 cmake_minimum_required(VERSION 2.8.3)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules") #n8
-
 project(SALUTE)
 
 set(CATKIN_TOPLEVEL TRUE)

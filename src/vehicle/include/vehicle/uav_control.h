@@ -86,7 +86,7 @@ public:
     void SetTarget(double lat, double lng, double alt); 
     
     void SetMission(geometry_msgs::Pose& target, double radius);
-    void SetMission(std::vector<geometry_msgs::Pose> waypoints_list);
+    virtual void SetMission(std::vector<geometry_msgs::Pose> waypoints_list) override;
     /**
      * Moves vehicle to target x,y location
      * @param x
