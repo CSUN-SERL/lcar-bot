@@ -195,7 +195,7 @@ public:
     void TakeOff(double alt);
     
     virtual Position getPosition() override;
-    
+
 private:
     void InitialSetup();
 
@@ -349,7 +349,6 @@ private:
                                     online_mode = true;
     int                             tries = 0,
                                     scout_rev = 1;
-    int cur_waypoint = 0;
 };
 
 }
