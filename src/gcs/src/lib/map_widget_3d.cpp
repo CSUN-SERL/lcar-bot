@@ -40,7 +40,7 @@ using namespace Qt3DExtras;
 using namespace Qt3DRender;
 using namespace gcs;
 
-static QTime sec = QTime::currentTime();
+//static QTime sec = QTime::currentTime();
 
 void MapWidget3D::Vehicle3D::update()
 {
@@ -48,20 +48,19 @@ void MapWidget3D::Vehicle3D::update()
     // prompting the following translations: 
     // rotate yaw by 90 degrees
     // negate z position after swapping z and y
-    
-    Position pos = vehicle->getPosition();
+    Position pos = _vehicle->getPosition();
     
     QVector3D vec( pos.position.x, 
                    pos.position.z, 
                   -pos.position.y);
     //vec = vec * 1/transform->scale();
     //first set position with z and y swapped
-    transform->setTranslation(vec);
+  _transform->setTranslation(vec);
     
     //next orientation, also with z and y axes swapped
-    transform->setRotationX(pos.orientation.pitch);
-    transform->setRotationY(pos.orientation.yaw + 90);
-    transform->setRotationZ(pos.orientation.roll);
+  _transform->setRotationX(pos.orientation.pitch);
+  _transform->setRotationY(pos.orientation.yaw + 90);
+  _transform->setRotationZ(pos.orientation.roll);
 }
 
 MapWidget3D::MapWidget3D( QWidget * parent) :
@@ -81,6 +80,11 @@ _update_timer(nullptr)
 
 MapWidget3D::~MapWidget3D() 
 {
+}
+
+void MapWidget3D::setImageFeedFilter(gcs::ImageFeedFilter * filter)
+{
+    _view->installEventFilter(filter);
 }
 
 void MapWidget3D::setVehicleManager(VehicleManager* vm)
@@ -107,15 +111,22 @@ void MapWidget3D::update()
 {
     for(auto it = _vehicle_map.constBegin(); it != _vehicle_map.constEnd(); ++it)
     {
-        (*it)->update();
+        Vehicle3D * v = *it;
+        
+        v->update();
+        
+        
+        
     }
+    
+    
 }
 
 void MapWidget3D::vehicleAdded(int v_id)
 {
     Vehicle3D * v = createVehicle(_vm->VehicleTypeFromId(v_id));
-    v->vehicle = _vm->GetVehicle(v_id);
-    v->entity->setParent(_root);
+    v->_vehicle = _vm->GetVehicle(v_id);
+    v->_entity->setParent(_root);
     
     _vehicle_map.insert(v_id, v);
 }
@@ -241,10 +252,10 @@ MapWidget3D::Vehicle3D * MapWidget3D::createVehicle(int vehicle_type)
         
         Vehicle3D * v3d = new Vehicle3D;
         
-        v3d->entity = entity;
-        v3d->mesh = mesh;
-        v3d->material = material;
-        v3d->transform = transform;
+        v3d->_entity = entity;
+        v3d->_mesh = mesh;
+        v3d->_material = material;
+        v3d->_transform = transform;
         
         return v3d;
     }
@@ -264,7 +275,7 @@ void MapWidget3D::setupUi()
 {   
     QVBoxLayout * layout = new QVBoxLayout(this);
     QWidget * container = QWidget::createWindowContainer(_view);
-   
+        
     container->setContentsMargins(0, 0, 0, 0);
     layout->setContentsMargins(0, 0, 0, 0);
 

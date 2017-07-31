@@ -62,6 +62,8 @@ public:
     virtual int GetBattery() { return battery; };
     virtual std::string GetMode() { return  mode; };
     
+    virtual void SetMission(std::vector<geometry_msgs::Pose> waypoints_list) = 0;
+    
     bool RecievedHeartbeat() { return heartbeat_recieved; };
     bool MissionComplete() { 
         if(mission_mode == stopped){
@@ -77,11 +79,18 @@ public:
     
     virtual Position getPosition() = 0;
     
+    int currentWaypoint()
+    {
+        return cur_waypoint;
+    }
+    
 protected:
 
     virtual void Run()=0;
     virtual void RunLocal()=0;
     virtual void RunGlobal()=0;
+    
+    int cur_waypoint = 0;
     
     ros::Timer run_timer;
     MissionMode mission_mode = stopped;

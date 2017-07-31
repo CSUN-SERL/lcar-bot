@@ -86,7 +86,7 @@ public:
     void SetTarget(double lat, double lng, double alt); 
     
     void SetMission(geometry_msgs::Pose& target, double radius);
-    void SetMission(std::vector<geometry_msgs::Pose> waypoints_list);
+    virtual void SetMission(std::vector<geometry_msgs::Pose> waypoints_list) override;
     /**
      * Moves vehicle to target x,y location
      * @param x
@@ -195,7 +195,7 @@ public:
     void TakeOff(double alt);
     
     virtual Position getPosition() override;
-    
+
 private:
     void InitialSetup();
 
@@ -349,7 +349,6 @@ private:
                                     online_mode = true;
     int                             tries = 0,
                                     scout_rev = 1;
-    int cur_waypoint = 0;
 };
 
 }

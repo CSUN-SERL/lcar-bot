@@ -13,6 +13,7 @@
 #include <ros/package.h>
 
 #include "ui_GCSMainWindow.h"
+#include "gcs/qt/user_id_widget.h"
 
 #include <gcs/qt/gcs_main_window.h>
 #include <gcs/qt/query_widget.h>
@@ -24,6 +25,8 @@
 #include <gcs/qt/vehicle_init_widget.h>
 #include <gcs/qt/access_points_container_widget.h>
 #include <gcs/qt/vehicle_list_widget.h>
+#include <gcs/qt/image_feed_filter.h>
+#include <gcs/qt/trial_manager.h>
 
 #include <gcs/util/debug.h>
 #include <gcs/util/settings.h>
@@ -31,6 +34,7 @@
 #include <gcs/util/image_conversions.h>
 
 #include <vehicle/data_types.h>
+
 
 namespace gcs
 {
@@ -43,11 +47,19 @@ time_counter(0),
 num_queries_last(0),
 update_timer(new QTimer(this)),
 _seconds_timer(new QTimer(this)),
-vm(vm)
+vm(vm),
+_filter(new ImageFeedFilter(this, this)),
+_trial_manager(new TrialManager(this))
 {
     _ui->setupUi(this);
+    installEventFilter(_filter);
+    
+    fl_widgets.user_id = new UserIdWidget(_trial_manager);
+    
     _ui->map->setVehicleManager(vm);
     _ui->map->setUpdateTimer(update_timer);
+    _ui->map->setImageFeedFilter(_filter);
+    _ui->image_frame->setVisible(false);
     
     //todo add these layouts to the GUI
     //layout_by_v_type.insert(VehicleType::ugv, widget->layout_ugvs);
@@ -69,6 +81,11 @@ vm(vm)
 GCSMainWindow::~GCSMainWindow()
 {
 }
+
+ void GCSMainWindow::setImageFeedVisible(bool visible)
+ {
+     _ui->image_frame->setVisible(visible);
+ }
 
 void GCSMainWindow::OnAddVehicleWidget(int v_id)
 {
@@ -538,8 +555,8 @@ void GCSMainWindow::OnAccessPointsTriggered()
 
         this->CenterFloatingWidget(fl_widgets.ap_menu);
 
-        connect(fl_widgets.ap_menu, &AccessPointsContainerWidget::destroyed,
-                this, [=](){ fl_widgets.ap_menu = nullptr; });
+//        connect(fl_widgets.ap_menu, &AccessPointsContainerWidget::destroyed,
+//                this, [=](){ fl_widgets.ap_menu = nullptr; });
 
         if(vm->NumVehiclesByType(VehicleType::quad_rotor) > 0)
         {
@@ -562,8 +579,8 @@ void GCSMainWindow::OnSettingsTriggered()
 
         this->CenterFloatingWidget(fl_widgets.settings);
 
-        connect(fl_widgets.settings, &SettingsWidget::destroyed,
-                this, [=](){ fl_widgets.settings = nullptr; });
+//        connect(fl_widgets.settings, &SettingsWidget::destroyed,
+//                this, [=](){ fl_widgets.settings = nullptr; });
                 
         connect(fl_widgets.settings, &SettingsWidget::localCoordinatesUpdated,
                 vm, &VehicleManager::OnLocalCoordinatesUpdated);
@@ -583,8 +600,8 @@ void GCSMainWindow::OnUnansweredQueriesTriggered()
 
         this->CenterFloatingWidget(fl_widgets.unanswered_queries);
 
-        connect(fl_widgets.unanswered_queries, &UnansweredQueries::destroyed,
-                this, [=](){ fl_widgets.unanswered_queries = nullptr; });
+//        connect(fl_widgets.unanswered_queries, &UnansweredQueries::destroyed,
+//                this, [=](){ fl_widgets.unanswered_queries = nullptr; });
     }
     else
     {
@@ -601,14 +618,20 @@ void GCSMainWindow::OnAddVehicleTriggered()
 
         this->CenterFloatingWidget(fl_widgets.vehicle_init);
 
-        connect(fl_widgets.vehicle_init, &VehicleInitWidget::destroyed,
-                this, [=](){ fl_widgets.vehicle_init = nullptr; });
+//        connect(fl_widgets.vehicle_init, &VehicleInitWidget::destroyed,
+//                this, [=](){ fl_widgets.vehicle_init = nullptr; });
     }
     else
     {
         fl_widgets.vehicle_init->showNormal();
         fl_widgets.vehicle_init->activateWindow();
     }
+}
+
+void GCSMainWindow::OnUserIdTriggered()
+{
+    fl_widgets.user_id->show();
+    CenterFloatingWidget(fl_widgets.user_id);
 }
 
 void GCSMainWindow::connectToSelf()
@@ -670,6 +693,10 @@ void GCSMainWindow::InitMenuBar()
     QMenuBar *menu_bar = this->menuBar();
     
     QMenu *file_menu = menu_bar->addMenu("File");
+    QAction *user_id_act = file_menu->addAction("New Trial ID");
+    connect(user_id_act, &QAction::triggered,
+            this, &GCSMainWindow::OnUserIdTriggered);
+    
     QAction *add_vehicle_act = file_menu->addAction("Add Vehicle(s)");
     connect(add_vehicle_act, &QAction::triggered,
             this, &GCSMainWindow::OnAddVehicleTriggered);
@@ -760,6 +787,9 @@ void GCSMainWindow::closeEvent(QCloseEvent* event)
    
     if(fl_widgets.vehicle_init != nullptr)
         delete fl_widgets.vehicle_init;
+    
+    if(fl_widgets.user_id != nullptr)
+        delete fl_widgets.user_id;
     
     event->accept();
 }

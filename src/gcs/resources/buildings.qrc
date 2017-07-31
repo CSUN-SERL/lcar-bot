@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RCC version="1.0">
+    <qresource prefix="/">
+        <file>buildings/predictable1.txt</file>
+        <file>buildings/predictable2.txt</file>
+        <file>buildings/unpredictable1.txt</file>
+    </qresource>
+</RCC>
