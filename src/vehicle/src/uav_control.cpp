@@ -632,6 +632,7 @@ void UAVControl::StartMission() //todo make goal input to separate travel and sc
         wait.sleep();
     }
     
+    pose_home = pose_local;
     pose_previous = pose_local;
     cur_waypoint = 0;
     

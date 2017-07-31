@@ -19,6 +19,7 @@
 
 #include <gcs/qt/gcs_main_window.h>
 #include <gcs/qt/image_feed_filter.h>
+#include <gcs/util/building.h>
 
 class QFrame;
 class QVector3D;
@@ -47,6 +48,7 @@ namespace gcs
     class VehicleManager;
     class VehicleControl;
     class ImageFeedFilter;
+    class TrialManager;
     class Building;
 }
 
@@ -77,21 +79,27 @@ public:
     
     void setImageFeedFilter(gcs::ImageFeedFilter * filter);
     void setVehicleManager(gcs::VehicleManager * vm);
+    void setTrialManager(gcs::TrialManager * trial_manager);
     void setUpdateTimer(QTimer * timer);
     
 private slots:
-    void update();
+    void positionUpdate();
     void vehicleAdded(int v_id);
+    void trialChanged();
+    void reset();
     
 private:
     Q_DISABLE_COPY(MapWidget3D)
             
+    void loadBuildings();
+    
+    void loadScene();
     void createDefaultScene();
     
     void createFloor();
     void createCameraController();
     void createLighting(const QVector3D& pos, float instensity);
-    void createBuilding(const QVector3D& pos, float size);
+    void createBuilding(const QVector3D& pos, float size, QColor);
     Vehicle3D * createVehicle(int vehicle_type);
     
     
@@ -99,16 +107,17 @@ private:
     void setupUi();
     
 private:
-    gcs::VehicleManager * _vm;
-    gcs::ImageFeedFilter * _filter;    
+    gcs::VehicleManager * _vm = nullptr;
+    gcs::ImageFeedFilter * _filter = nullptr;    
+    gcs::TrialManager * _trial_manager = nullptr;
     
     QMap<int, MapWidget3D::Vehicle3D *> _vehicle_map;
-    QMap<int, Qt3DCore::QEntity *> _building_map;
+    QList< Qt3DCore::QEntity *> _building_map;
     
     Window3D * _view;
     
-    Qt3DCore::QEntity * _root;
-    Qt3DCore::QEntity * _plane;
+    Qt3DCore::QEntity * _root = nullptr;
+    Qt3DCore::QEntity * _plane = nullptr;
     
     QTimer * _update_timer;
     

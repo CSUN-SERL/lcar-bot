@@ -12,8 +12,6 @@
 #include <QVBoxLayout>
 #include <QQuaternion>
 
-#include <gcs/util/debug.h>
-
 #include <Qt3DCore/Qt3DCore>
 #include <Qt3DCore/QTransform>
 #include <Qt3DExtras/Qt3DExtras>
@@ -21,19 +19,22 @@
 #include <Qt3DRender/QViewport>
 
 #include <gcs/qt/map_widget_3d.h>
+#include <gcs/qt/multi_viewport_forward_renderer.h>
+#include <gcs/qt/window_3d.h>
+#include <gcs/qt/trial_manager.h>
 #include <gcs/qt/ui_adapter.h>
-
 #include <gcs/qt/vehicle_manager.h>
-#include <vehicle/vehicle_control.h>
+#include <gcs/util/debug.h>
 
-#include "gcs/qt/multi_viewport_forward_renderer.h"
-#include "gcs/qt/window_3d.h"
+#include <vehicle/vehicle_control.h> 
 
-#define MINI_MAP_STYLE "background-color: rgb(48, 57, 80);"
-#define MINI_MAP_STYLE2 "background-color: yellow;"
+#define M2F 3.28084 // meters to feet
+#define F2M 0.3048  // feet to meters
 
-#define M2F 3.28084 //meters to feet
-#define F2M 0.3048  //feet to meters
+#define SIZE 0.5
+#define BUILDING_VEC {0, (float)SIZE/2, 0}
+
+#define SCALE 2;
 
 using namespace Qt3DCore;
 using namespace Qt3DExtras;
@@ -50,8 +51,10 @@ void MapWidget3D::Vehicle3D::update()
     // negate z position after swapping z and y
     Position pos = _vehicle->getPosition();
     
+    int y_offset = _transform->scale() / 4;
+    
     QVector3D vec( pos.position.x, 
-                   pos.position.z, 
+                   pos.position.z + y_offset, 
                   -pos.position.y);
     //vec = vec * 1/transform->scale();
     //first set position with z and y swapped
@@ -70,11 +73,8 @@ _update_timer(nullptr)
 {   
     setupUi();
     connectToUiAdapter();
- 
-    _root = _view->sceneRoot();
-    _plane = new QEntity(_root);
     
-    createDefaultScene();
+    loadScene();
 }
 
 
@@ -84,7 +84,28 @@ MapWidget3D::~MapWidget3D()
 
 void MapWidget3D::setImageFeedFilter(gcs::ImageFeedFilter * filter)
 {
+    _filter = filter;
     _view->installEventFilter(filter);
+}
+
+void MapWidget3D::setTrialManager(gcs::TrialManager * trial_manager)
+{
+    if(_trial_manager)
+    {
+        QObject::disconnect(_trial_manager, &TrialManager::trialChanged,
+                            this, &MapWidget3D::trialChanged);
+        
+        QObject::disconnect(_trial_manager, &TrialManager::sigReset,
+                            this, &MapWidget3D::reset);
+    }
+
+    _trial_manager = trial_manager;
+    
+    QObject::connect(_trial_manager, &TrialManager::trialChanged,
+                     this, &MapWidget3D::trialChanged);
+    
+    QObject::connect(_trial_manager, &TrialManager::sigReset,
+                     this, &MapWidget3D::reset);
 }
 
 void MapWidget3D::setVehicleManager(VehicleManager* vm)
@@ -97,29 +118,23 @@ void MapWidget3D::setUpdateTimer(QTimer * timer)
     if(_update_timer)
     {
         QObject::disconnect(_update_timer, &QTimer::timeout,
-                            this, &MapWidget3D::update);
+                            this, &MapWidget3D::positionUpdate);
     }
     
     _update_timer = timer;
     
     QObject::connect(_update_timer, &QTimer::timeout,
-                     this, &MapWidget3D::update);
+                     this, &MapWidget3D::positionUpdate);
 }
 
 
-void MapWidget3D::update()
+void MapWidget3D::positionUpdate()
 {
     for(auto it = _vehicle_map.constBegin(); it != _vehicle_map.constEnd(); ++it)
     {
         Vehicle3D * v = *it;
-        
         v->update();
-        
-        
-        
     }
-    
-    
 }
 
 void MapWidget3D::vehicleAdded(int v_id)
@@ -129,6 +144,65 @@ void MapWidget3D::vehicleAdded(int v_id)
     v->_entity->setParent(_root);
     
     _vehicle_map.insert(v_id, v);
+}
+
+void MapWidget3D::trialChanged()
+{
+    _waypoint_to_building.clear();
+    
+    auto buildings = _trial_manager->getBuildings();
+    auto waypoints = _trial_manager->getWaypointInfoList();
+    
+    for(int i = 0; i <  waypoints.length(); i++)
+    {
+        auto wp = waypoints[i];
+        _waypoint_to_building.insert(i, buildings[wp->building_id]);
+    }
+    
+    loadScene();
+}
+
+void MapWidget3D::reset()
+{
+    _root = new QEntity();
+    _plane = new QEntity(_root);
+    _view->setSceneRoot(_root);
+    
+    createCameraController();
+    
+    float intensity = 0.5;
+    float pos = 20;
+    createLighting({pos,pos,pos}, intensity);
+    createLighting({-pos,pos,-pos}, intensity);
+    createLighting({-pos,pos,pos}, intensity);
+    createLighting({pos,pos,-pos}, intensity);
+    
+    createFloor();
+}
+
+void MapWidget3D::loadBuildings()
+{    
+    if(!_trial_manager)
+        return;
+    
+    qCDebug(lcar_bot) << "MAP 3D B:" << _trial_manager->getBuildings().size();
+    
+    for(const auto& building : _trial_manager->getBuildings())
+    {
+        QColor c = building->buildingType() == Building::tPurple ?
+            QColor("purple") :
+            QColor("white");
+
+        QVector3D vec(building->xPos(), SIZE/2, building->yPos());
+        
+        createBuilding(vec, SIZE, c);
+    }
+}
+
+void MapWidget3D::loadScene()
+{
+    reset();
+    loadBuildings();
 }
 
 void MapWidget3D::createDefaultScene()
@@ -145,7 +219,7 @@ void MapWidget3D::createDefaultScene()
     createFloor();
     
     float size = 1; 
-    createBuilding({0, size/2, 0}, size);
+    createBuilding({0, size/2, 0}, size, "purple");
 }
 
 void MapWidget3D::createFloor()
@@ -161,8 +235,8 @@ void MapWidget3D::createFloor()
     //int width = 40; * F2M;
     int res = 4; // * F2M;
     
-    plane_mesh->setHeight(30 * F2M);
-    plane_mesh->setWidth(60 * F2M);
+    plane_mesh->setHeight(16 * F2M);
+    plane_mesh->setWidth(16 * F2M);
     plane_mesh->setMeshResolution(QSize(res,res));
     
     transform->setScale(1.0f);
@@ -208,7 +282,7 @@ void MapWidget3D::createLighting(const QVector3D& pos, float intensity)
     entity->addComponent(transform);
 }
 
-void MapWidget3D::createBuilding(const QVector3D& pos, float size)
+void MapWidget3D::createBuilding(const QVector3D& pos, float size, QColor color)
 {
     QEntity *entity = new QEntity(_root);
     
@@ -221,7 +295,7 @@ void MapWidget3D::createBuilding(const QVector3D& pos, float size)
     transform->setTranslation(pos);
     
     QPhongMaterial *cuboidMaterial = new QPhongMaterial();
-    cuboidMaterial->setDiffuse(QColor(QRgb(0x665423)));
+    cuboidMaterial->setDiffuse(color);
 
     entity->addComponent(mesh);
     entity->addComponent(cuboidMaterial);

@@ -24,6 +24,7 @@ struct WaypointInfo
     double x;
     double y;
     double z;
+    int yaw;
 };
 
 class TrialLoader 
@@ -32,14 +33,15 @@ public:
     
     enum Condition
     {
+        Null,
         Predictable,
         UnPredictable
     };
     
 public:
-    void load(Condition c, int trial);
-    void loadBuildings(Condition c, int trial);
-    void loadWaypoints(Condition c, int trial);
+    bool load(Condition c, int trial);
+    bool loadBuildings(Condition c, int trial);
+    bool loadWaypoints(Condition c, int trial);
     
     const QList< std::shared_ptr<Building> >& getBuildings() const;
     const QList< std::shared_ptr<WaypointInfo> >& getWaypointInfoList() const;

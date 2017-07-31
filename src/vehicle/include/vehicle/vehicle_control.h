@@ -53,7 +53,7 @@ public:
     virtual int GetDistanceToWP() = 0;
 //    virtual sensor_msgs::NavSatFix GetLocation()=0;
     virtual void SetRTL() = 0; //makes the drone go home immediately when called
-    virtual void StartMission() = 0;//{ mission_mode = active; }; // todo make pure virtual and add override implementation to UAVControl
+    virtual void StartMission() = 0;//{ mission_mode = active; };
     virtual void PauseMission() = 0;//{ mission_mode = paused; };
     virtual void ResumeMission() = 0;//{ mission_mode = active; };
     virtual void StopMission() = 0;//{ mission_mode = stopped; };

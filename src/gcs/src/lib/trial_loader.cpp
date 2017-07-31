@@ -11,17 +11,21 @@
 
 #include <gcs/util/trial_loader.h>
 #include <gcs/util/building.h>
+#include <gcs/util/debug.h>
+#include <QtCore/qurl.h>
 
 namespace gcs
 {
 
-void TrialLoader::load(Condition c, int trial)
+bool TrialLoader::load(Condition c, int trial)
 {
-    loadBuildings(c, trial);   
-    loadWaypoints(c, trial);
+    bool b = loadBuildings(c, trial);
+    bool w = loadWaypoints(c, trial);
+    
+    return b && w;
 }
 
-void TrialLoader::loadBuildings(Condition c, int trial)
+bool TrialLoader::loadBuildings(Condition c, int trial)
 {
     _buildings.clear();
     
@@ -31,12 +35,14 @@ void TrialLoader::loadBuildings(Condition c, int trial)
         QString(":/buildings/predictable%1.txt").arg(trial_s) :
         QString(":/buildings/unpredictable%1.txt").arg(trial_s);
     
+    qCDebug(lcar_bot) << file_name;
+    
     QFile file(file_name);
     
-    bool open = file.open(QIODevice::ReadOnly);
+    bool open = file.open(QIODevice::ReadOnly | QIODevice::Text);
     Q_ASSERT(open);
     if(!open)
-        return;
+        return false;
         
     QTextStream ts(&file);
 
@@ -83,9 +89,11 @@ void TrialLoader::loadBuildings(Condition c, int trial)
         
         _buildings.append(b);
     }
+    
+    return true;
 }
     
-void TrialLoader::loadWaypoints(Condition c, int trial)
+bool TrialLoader::loadWaypoints(Condition c, int trial)
 {
     _waypoints.clear();
     
@@ -95,10 +103,10 @@ void TrialLoader::loadWaypoints(Condition c, int trial)
     
     QFile file(file_name);
     
-    bool open = file.open(QIODevice::ReadOnly);
+    bool open = file.open(QIODevice::ReadOnly | QIODevice::Text);
     Q_ASSERT(open);
     if(!open)
-        return;
+        return false;
         
     QTextStream ts(&file);
 
@@ -110,23 +118,28 @@ void TrialLoader::loadWaypoints(Condition c, int trial)
         
         QStringList list = line.split(", ");
         
-        Q_ASSERT(list.length() == 4);
-        if(list.length() != 4)
+        Q_ASSERT(list.length() == 5);
+        if(list.length() != 5)
             continue;
         
+        int i = 0;
         auto wp = std::make_shared<WaypointInfo>();
-        wp->building_id = list[0].toDouble();
-        wp->x = list[1].toDouble();
-        wp->y = list[2].toDouble();
-        wp->z = list[3].toDouble();
+        
+        wp->building_id = list[i++].toDouble();
+        wp->x = list[i++].toDouble();
+        wp->y = list[i++].toDouble();
+        wp->z = list[i++].toDouble();
+        wp->yaw = list[i++].toInt();
         
         _waypoints.append(wp);
     }
         
+    return true;
 }
 
 const QList< std::shared_ptr<Building> >& TrialLoader::getBuildings() const
 {
+    qCDebug(lcar_bot) << "BUILDINGS:" << _buildings.size();
     return _buildings;
 }
 

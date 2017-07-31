@@ -1,17 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>UserIdWidget</class>
- <widget class="QDialog" name="UserIdWidget">
+ <class>TrialWidget</class>
+ <widget class="QWidget" name="TrialWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>257</width>
-    <height>94</height>
+    <width>329</width>
+    <height>120</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="windowTitle">
-   <string>User ID</string>
+   <string>Trial Information</string>
   </property>
   <property name="styleSheet">
    <string notr="true">QWidget{
@@ -45,11 +51,46 @@ QPushButton {
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <layout class="QGridLayout" name="gridLayout" columnstretch="0,1">
+     <item row="0" column="0" alignment="Qt::AlignLeft">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Condition:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" alignment="Qt::AlignRight">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Trial:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLabel" name="lbl_condition">
+       <property name="text">
+        <string>c</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLabel" name="lbl_trial">
+       <property name="text">
+        <string>t</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,0,0">
      <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::MinimumExpanding</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
@@ -60,7 +101,7 @@ QPushButton {
       </spacer>
      </item>
      <item alignment="Qt::AlignRight">
-      <widget class="QPushButton" name="btn_ok">
+      <widget class="QPushButton" name="btn_reset">
        <property name="minimumSize">
         <size>
          <width>50</width>
@@ -72,7 +113,30 @@ QPushButton {
 color: rgb(240, 240, 240);</string>
        </property>
        <property name="text">
-        <string>Ok</string>
+        <string>Reset</string>
+       </property>
+      </widget>
+     </item>
+     <item alignment="Qt::AlignRight">
+      <widget class="QPushButton" name="btn_ok">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>50</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(64, 89, 145);
+color: rgb(240, 240, 240);</string>
+       </property>
+       <property name="text">
+        <string>Load Trial 1</string>
        </property>
       </widget>
      </item>
@@ -80,7 +144,7 @@ color: rgb(240, 240, 240);</string>
       <widget class="QPushButton" name="btn_cancel">
        <property name="minimumSize">
         <size>
-         <width>50</width>
+         <width>65</width>
          <height>25</height>
         </size>
        </property>

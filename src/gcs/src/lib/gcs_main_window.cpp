@@ -13,7 +13,7 @@
 #include <ros/package.h>
 
 #include "ui_GCSMainWindow.h"
-#include "gcs/qt/user_id_widget.h"
+#include "gcs/qt/trial_widget.h"
 
 #include <gcs/qt/gcs_main_window.h>
 #include <gcs/qt/query_widget.h>
@@ -54,12 +54,16 @@ _trial_manager(new TrialManager(this))
     _ui->setupUi(this);
     installEventFilter(_filter);
     
-    fl_widgets.user_id = new UserIdWidget(_trial_manager);
+    fl_widgets.user_id = new TrialWidget(_trial_manager);
     
     _ui->map->setVehicleManager(vm);
     _ui->map->setUpdateTimer(update_timer);
     _ui->map->setImageFeedFilter(_filter);
-    _ui->image_frame->setVisible(false);
+    _ui->map->setTrialManager(_trial_manager);
+
+    _ui->image_frame->hide();
+    _ui->frame_play_book_cntnr->hide();
+    _ui->btn_view_acess_points->hide();
     
     //todo add these layouts to the GUI
     //layout_by_v_type.insert(VehicleType::ugv, widget->layout_ugvs);
@@ -145,7 +149,7 @@ void GCSMainWindow::OnDeleteVehicleWidget(int v_id)
         if(num_vehicle - 1 > 0)
         {
             if(vm->VehicleIndexFromId(v_id) > 0)
-                this->SelectVehicleWidgetById(cur_v_id - 1);
+                SelectVehicleWidgetById(cur_v_id - 1);
             else
                 cur_v_id = -1;
         }
@@ -628,9 +632,11 @@ void GCSMainWindow::OnAddVehicleTriggered()
     }
 }
 
-void GCSMainWindow::OnUserIdTriggered()
+void GCSMainWindow::OnTrialInfoTriggered()
 {
+    fl_widgets.user_id->raise();
     fl_widgets.user_id->show();
+    fl_widgets.user_id->activateWindow();
     CenterFloatingWidget(fl_widgets.user_id);
 }
 
@@ -692,11 +698,7 @@ void GCSMainWindow::InitMenuBar()
 {
     QMenuBar *menu_bar = this->menuBar();
     
-    QMenu *file_menu = menu_bar->addMenu("File");
-    QAction *user_id_act = file_menu->addAction("New Trial ID");
-    connect(user_id_act, &QAction::triggered,
-            this, &GCSMainWindow::OnUserIdTriggered);
-    
+    QMenu *file_menu = menu_bar->addMenu("File");    
     QAction *add_vehicle_act = file_menu->addAction("Add Vehicle(s)");
     connect(add_vehicle_act, &QAction::triggered,
             this, &GCSMainWindow::OnAddVehicleTriggered);
@@ -709,6 +711,9 @@ void GCSMainWindow::InitMenuBar()
 
     //tools menu
     QMenu *tools_menu = menu_bar->addMenu("Tools");
+    QAction *user_id_act = tools_menu->addAction("Trial Information");
+    connect(user_id_act, &QAction::triggered,
+            this, &GCSMainWindow::OnTrialInfoTriggered);
     QAction *settings_act = tools_menu->addAction("Settings");
     connect(settings_act, &QAction::triggered,
             this, &GCSMainWindow::OnSettingsTriggered);

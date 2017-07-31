@@ -53,16 +53,63 @@ _timer(new QTimer(this))
                      this, &TrialManager::checkEndTrial);
 }
 
+void TrialManager::reset()
+{
+    _cur_trial = -1;
+    _cur_condition = TrialLoader::Null;
+    _conditions_used = 0;
+    _user_id = -1;
+    
+    emit sigReset();
+}
+
 void TrialManager::setCurrentVehicle(VehicleControl * vehicle)
 {
     _vehicle = vehicle;
 }
 
+void TrialManager::setTrialStartCondition(TrialLoader::Condition c)
+{    
+    reset();
+    setTrial(c, 1);
+}
+
 void TrialManager::setTrial(TrialLoader::Condition c, int trial)
+{   
+    if(_cur_condition != c || _cur_trial != trial)
+    {
+        _loader.load(c, trial);
+        
+        _cur_condition = c;
+        _cur_trial = trial;
+        
+        emit trialChanged();
+    }
+}
+
+
+void TrialManager::nextTrial()
 {
-    _loader.load(c, trial);
-    _buildings = _loader.getBuildings();
-    _waypoints = _loader.getWaypointInfoList();
+    _loader.reset();
+    if(_cur_trial < MAX_TRIALS)
+    {
+        setTrial(_cur_condition, _cur_trial + 1);
+    }
+    else if(_conditions_used < MAX_CONDITIONS)
+    {
+        TrialLoader::Condition c = _cur_condition == TrialLoader::Predictable ?
+                TrialLoader::UnPredictable :
+                TrialLoader::Predictable;
+        
+        _conditions_used++;
+        
+        setTrial(c, 1);
+    }
+    else
+    {
+        // done
+        emit finished();
+    }
 }
 
 void TrialManager::startTrial()
@@ -73,7 +120,9 @@ void TrialManager::startTrial()
     if(_loader.isValid() && _vehicle)
     {
         auto waypoints = getWaypointList(_loader);
+        
         _vehicle->SetMission(waypoints);
+        _vehicle->StartMission();
         
         _timer->start(1000);
     }
@@ -84,14 +133,11 @@ void TrialManager::startTrial()
 }
 
 void TrialManager::endTrial()
-{
+{   
     _timer->stop();
-    _vehicle->SetMission({});
-    _loader.reset();
-    _buildings.clear();
-    _waypoints.clear();
+//    _vehicle->StopMission();
+//    _vehicle->SetMission({});
 }
-s
 void TrialManager::setUserID(int user_id)
 {
     _user_id = user_id;
@@ -105,7 +151,7 @@ void TrialManager::exportTrialData()
 
 void TrialManager::checkEndTrial()
 {
-    if(_vehicle->MissionComplete())
+    if(_vehicle->currentWaypoint() >= _loader.getWaypointInfoList().size())
     {
         exportTrialData();
         endTrial();

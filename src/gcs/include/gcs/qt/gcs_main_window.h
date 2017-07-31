@@ -40,7 +40,7 @@ class SettingsWidget;
 class AccessPointsContainerWidget;
 class VehicleInitWidget;
 class VehicleWidget;
-class UserIdWidget;
+class TrialWidget;
 
 
 class GCSMainWindow : public QMainWindow
@@ -108,7 +108,7 @@ private:
     void OnSettingsTriggered();
     void OnUnansweredQueriesTriggered();
     void OnAddVehicleTriggered();
-    void OnUserIdTriggered();
+    void OnTrialInfoTriggered();
     
     void connectToSelf();
     void connectToUiAdapter();
@@ -134,7 +134,7 @@ private:
         QPointer<UnansweredQueries> unanswered_queries;
         QPointer<AccessPointsContainerWidget> ap_menu;
         QPointer<VehicleInitWidget> vehicle_init;
-        QPointer<UserIdWidget> user_id;
+        QPointer<TrialWidget> user_id;
     } fl_widgets;
     
 };

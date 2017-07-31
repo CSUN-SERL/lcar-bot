@@ -97,8 +97,10 @@ public:
     virtual ~Window3D();
     
     inline Qt3DCore::QEntity * sceneRoot() const { return _scene_root; }
+    void setSceneRoot(Qt3DCore::QEntity *root);
     inline Qt3DRender::QCamera * camera() const { return m_defaultCamera; }
     inline Qt3DRender::QCamera * miniMapCamera() const { return _mini_camera; }
+
     
 protected:
     void showEvent(QShowEvent *e) override;
