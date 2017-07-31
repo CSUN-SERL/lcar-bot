@@ -1,6 +1,6 @@
 
 /*
- * File:   TrialIdWidget.cpp
+ * File:   trial_widget.cpp
  * Author: n8
  *
  * Created on July 30, 2017, 12:14 AM
@@ -51,7 +51,7 @@ void TrialWidget::okClicked()
     if(s.length() < 4)
         return;
         
-    if(!s.endsWith("1") || !s.endsWith("2"));
+    if(!s.endsWith("1") && !s.endsWith("2"))
         return;
     
     setViewState(NextTrial);

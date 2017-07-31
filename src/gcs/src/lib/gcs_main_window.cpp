@@ -478,6 +478,8 @@ void GCSMainWindow::SelectVehicleWidgetById(int v_id)
         this->ToggleArmDisarmButton("disarm");
     else
         this->ToggleArmDisarmButton("arm");
+    
+    emit UIAdapter::Instance()->setCurrentVehicle(v_id);
 }
 
 void GCSMainWindow::UpdateFlightStateWidgets()

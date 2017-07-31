@@ -26,6 +26,8 @@ public:
     
 signals:
 
+    void setCurrentVehicle(int id);
+
     // any ui -> backend
         //vehicle commands
         void Arm(int v_id, bool value);

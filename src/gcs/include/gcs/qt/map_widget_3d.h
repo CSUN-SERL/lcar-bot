@@ -18,7 +18,6 @@
 #include <vehicle/position.h>
 
 #include <gcs/qt/gcs_main_window.h>
-#include <gcs/qt/image_feed_filter.h>
 #include <gcs/util/building.h>
 
 class QFrame;
@@ -60,7 +59,7 @@ class MapWidget3D : public QWidget
     
 private:
     struct Vehicle3D
-    {        
+    {
         Qt3DCore::QEntity * _entity;
         Qt3DRender::QMesh *_mesh;
         Qt3DRender::QMaterial * _material;
@@ -76,6 +75,8 @@ private:
 public:
     MapWidget3D(QWidget * parent = nullptr);
     virtual ~MapWidget3D();
+    
+    void setCurrentVehicle(gcs::VehicleControl * vehicle);
     
     void setImageFeedFilter(gcs::ImageFeedFilter * filter);
     void setVehicleManager(gcs::VehicleManager * vm);
@@ -102,7 +103,6 @@ private:
     void createBuilding(const QVector3D& pos, float size, QColor);
     Vehicle3D * createVehicle(int vehicle_type);
     
-    
     void connectToUiAdapter();
     void setupUi();
     
@@ -122,6 +122,8 @@ private:
     QTimer * _update_timer;
     
     QMap<int, std::shared_ptr<gcs::Building>> _waypoint_to_building;
+    
+    gcs::VehicleControl * _cur_vehicle = nullptr;
 };
 
 #endif /* MAP_WIDGET_3D_H */
