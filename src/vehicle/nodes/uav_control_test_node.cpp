@@ -10,6 +10,7 @@ void runCallback(const ros::TimerEvent& e)
 {
     quad->Run();
 }
+
 geometry_msgs::Pose setupWaypoint(double x, double y, double z, double yaw)//yaw is in degrees
 {
    geometry_msgs::Pose target_waypoint;
