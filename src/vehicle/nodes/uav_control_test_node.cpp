@@ -50,9 +50,11 @@ void runPredictable()
    
    geometry_msgs::Pose target_ptRMB = setupWaypoint(-1.2,-1.7,height,0);
    
-   geometry_msgs::Pose target_ptRMR1 = setupWaypoint(-0.35,-1.8,height,90);
+   geometry_msgs::Pose target_ptRMR1 = setupWaypoint(-0.35,-1.7,height,90);
    
-   geometry_msgs::Pose target_ptRMR2 = setupWaypoint(-0.35,-2.2,height,90);
+   geometry_msgs::Pose target_ptRMR2 = setupWaypoint(-0.35,-2.0,height,90);
+   
+   geometry_msgs::Pose target_ptRMR3 = setupWaypoint(-0.35,-2.2,height,90);
    
    geometry_msgs::Pose target_ptRMT = setupWaypoint(0.5,-1.7,height,180);
    
@@ -113,7 +115,7 @@ void runPredictable()
    
    geometry_msgs::Pose target_ptLast = setupWaypoint(-1.9,-1.5,height,270);
    
-   waypoints_list.push_back(target_ptMBR);
+  /* waypoints_list.push_back(target_ptMBR);
    waypoints_list.push_back(target_ptMBB);
    waypoints_list.push_back(target_ptMBL);
    waypoints_list.push_back(target_ptMBT);
@@ -121,13 +123,14 @@ void runPredictable()
    waypoints_list.push_back(target_ptMMB2);
    waypoints_list.push_back(target_ptMML);
    waypoints_list.push_back(target_ptMMT);
-   waypoints_list.push_back(target_ptMMR);
+   waypoints_list.push_back(target_ptMMR);*/
    waypoints_list.push_back(target_ptRML1);
    waypoints_list.push_back(target_ptRML2);
    waypoints_list.push_back(target_ptRMB);
    waypoints_list.push_back(target_ptRMR1);
    waypoints_list.push_back(target_ptRMR2);
-   waypoints_list.push_back(target_ptRMT);   
+   waypoints_list.push_back(target_ptRMR3);
+   waypoints_list.push_back(target_ptRMT);  
    waypoints_list.push_back(target_ptRTB1);
    waypoints_list.push_back(target_ptRTB2);
    waypoints_list.push_back(target_ptRTR);
@@ -143,7 +146,7 @@ void runPredictable()
    waypoints_list.push_back(target_ptLTT);
    waypoints_list.push_back(target_ptLTL);
    waypoints_list.push_back(target_ptLTB);
-   waypoints_list.push_back(target_ptLMT1);
+   /*waypoints_list.push_back(target_ptLMT1);
    waypoints_list.push_back(target_ptLMT2); 
    waypoints_list.push_back(target_ptLML);
    waypoints_list.push_back(target_ptLMR);
@@ -153,7 +156,7 @@ void runPredictable()
    waypoints_list.push_back(target_ptLBR);
    waypoints_list.push_back(target_ptLBB1);
    waypoints_list.push_back(target_ptLBB2);
-   waypoints_list.push_back(target_ptLBL);
+   waypoints_list.push_back(target_ptLBL);*/
    waypoints_list.push_back(target_ptLast);
    
 }
@@ -280,13 +283,13 @@ int main(int argc, char **argv)
   
    ros::Rate(0.3).sleep(); 
    
+   runPredictable();
+    
    quad->SetMission(waypoints_list);
    
    quad->StartMission();
    
    quad->EnableOffboard();
-   
-   runPredictable();
    
    ros::waitForShutdown();
    

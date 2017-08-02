@@ -152,6 +152,7 @@ void TrialManager::endTrial()
 //    _vehicle->StopMission();
 //    _vehicle->SetMission({});
 }
+
 void TrialManager::setUserID(int user_id)
 {
     _user_id = user_id;
