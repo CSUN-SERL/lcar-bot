@@ -44,9 +44,6 @@ void MultiViewportForwardRenderer::init()
     m_surfaceSelector->setParent(this);
     m_viewport_container->setParent(m_surfaceSelector);
     
-    m_clearBuffer->setParent(m_viewport_container);
-    m_frustumCulling->setParent(m_clearBuffer);
-    
     m_viewport->setParent(m_viewport_container);
     m_cameraSelector->setParent(m_viewport);
     
@@ -60,6 +57,9 @@ void MultiViewportForwardRenderer::init()
     m_viewport->setNormalizedRect(QRectF(0.0f, 0.0f, 1.0f, 1.0f));
     m_viewport_mini->setNormalizedRect(QRectF(0.0f, 0.75f, 0.25f, 0.25f));
 
+    m_clearBuffer->setParent(m_cameraSelector);
+    m_frustumCulling->setParent(m_clearBuffer);
+    
     ////
     
     //m_clearBuffer_mini->setParent(m_cameraSelector_mini);

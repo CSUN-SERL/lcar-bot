@@ -86,7 +86,7 @@ bool TrialLoader::loadBuildings(Condition c, int trial)
         b->setDoorMissing(list[i++].toInt());
         b->setFalsePrompt(list[i++].toInt());
         
-        _buildings.append(b);
+        _buildings.insert(b->getID(), b);
     }
     
     return true;
@@ -136,7 +136,7 @@ bool TrialLoader::loadWaypoints(Condition c, int trial)
     return true;
 }
 
-const QList< std::shared_ptr<Building> >& TrialLoader::getBuildings() const
+const QMap<int, std::shared_ptr<Building> >& TrialLoader::getBuildings() const
 {
     return _buildings;
 }

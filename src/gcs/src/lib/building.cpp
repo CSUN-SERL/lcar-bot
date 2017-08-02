@@ -12,7 +12,12 @@ namespace gcs
 {
 
 Building::Building()
-{}
+{
+    for(int i = 0; i < 3; i++)
+    {
+        _space_count_by_wall[i] = 0;
+    }
+}
 
 void Building::setLocation(float x, float y)
 {

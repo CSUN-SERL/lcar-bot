@@ -22,9 +22,24 @@ namespace image_conversions
 
     QImage rosImgToQimg(const sensor_msgs::Image& in)
     {
-        QImage::Format f = (in.encoding == "mono8") ? QImage::Format_Grayscale8 
-                                                    : QImage::Format_RGB888;
-        return QImage(in.data.data(), in.width, in.height, in.step, f).rgbSwapped();
+        bool swap = false;
+        QImage::Format f;
+        if(in.encoding == "mono8")
+            f = QImage::Format_Grayscale8;
+        else if(in.encoding == "rgb8")
+        {
+            f = QImage::Format_RGB888;
+        }
+        else
+        {
+            f = QImage::Format_RGB888;
+            swap = true;
+        }
+        
+        if(swap)
+            return QImage(in.data.data(), in.width, in.height, in.step, f).rgbSwapped();
+        else
+            return QImage(in.data.data(), in.width, in.height, in.step, f);
     }
 
     QImage rosImgToQimg(const sensor_msgs::ImageConstPtr& in)

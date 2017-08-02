@@ -102,15 +102,6 @@ void MapWidget3D::setImageFeedFilter(gcs::ImageFeedFilter * filter)
 
 void MapWidget3D::setTrialManager(gcs::TrialManager * trial_manager)
 {
-    if(_trial_manager)
-    {
-        QObject::disconnect(_trial_manager, &TrialManager::trialChanged,
-                            this, &MapWidget3D::trialChanged);
-        
-        QObject::disconnect(_trial_manager, &TrialManager::sigReset,
-                            this, &MapWidget3D::reset);
-    }
-
     _trial_manager = trial_manager;
     
     if(_trial_manager)
@@ -120,6 +111,13 @@ void MapWidget3D::setTrialManager(gcs::TrialManager * trial_manager)
 
         QObject::connect(_trial_manager, &TrialManager::sigReset,
                          this, &MapWidget3D::reset);
+        
+        QObject::connect(_trial_manager, &TrialManager::currentBuildingChanged,
+                         this, [this]() 
+                         {
+                             checkBuildingState();
+                             _cur_building = _trial_manager->currentBuilding();
+                         });
     }
 }
 
@@ -155,8 +153,8 @@ void MapWidget3D::positionUpdate()
     if(!_cur_vehicle)
         return;
 
-    auto b = _waypoint_to_building[_cur_vehicle->currentWaypoint()];
-    _image_filter->setCurrentBuilding(b);
+    //auto b = _waypoint_to_building[_cur_vehicle->currentWaypoint()];
+//    _image_filter->setCurrentBuilding(b);
     
 //    int v_id = _cur_vehicle->id;
 //    
@@ -183,21 +181,21 @@ void MapWidget3D::vehicleAdded(int v_id)
 
 void MapWidget3D::trialChanged()
 {
-    _waypoint_to_building.clear();
+    //_waypoint_to_building.clear();
     
     auto buildings = _trial_manager->getBuildings();
     auto waypoints = _trial_manager->getWaypointInfoList();
     
-    for(int i = 0; i <  waypoints.length(); i++)
+    for(int i = 0; i <  waypoints.size(); i++)
     {
         auto wp = waypoints[i];
-        if(wp->building_id >= buildings.length())
+        if(wp->building_id >= buildings.size())
         {
             qCDebug(lcar_bot) << "MORE WAYPOINT BUILDING ID's THAN BLUILDINGS";
             continue;
         }
         
-        _waypoint_to_building.insert(i, buildings[wp->building_id]);
+        //_waypoint_to_building.insert(i, buildings[wp->building_id]);
     }
     
     loadScene();
@@ -361,8 +359,8 @@ void MapWidget3D::createBuilding(const std::shared_ptr<Building>& b)
 //        _renderer->m_cameraSelector->setParent((QNode*)nullptr);
 //        _renderer->m_cameraSelector->setParent(_layer_filter);
 //        
-        _renderer->m_clearBuffer->setParent((QNode*)nullptr);
-        _renderer->m_clearBuffer->setParent(_renderer->m_cameraSelector);
+//        _renderer->m_clearBuffer->setParent((QNode*)nullptr);
+//        _renderer->m_clearBuffer->setParent(_renderer->m_cameraSelector);
 //    }
     
     QColor c;
@@ -394,11 +392,11 @@ void MapWidget3D::createBuilding(const std::shared_ptr<Building>& b)
     b3->_transform_large->setScale(B_SIZE);
     b3->_transform_large->setTranslation(pos);
 
-    QPhongMaterial *cube_mat = new QPhongMaterial();
-    cube_mat->setDiffuse(c);
+    b3->_material = new QPhongMaterial();
+    b3->_material->setDiffuse(c);
 
     b3->_entity_large->addComponent(new QCuboidMesh());
-    b3->_entity_large->addComponent(cube_mat);
+    b3->_entity_large->addComponent(b3->_material);
     b3->_entity_large->addComponent(b3->_transform_large);
     //b3->_entity_large->addComponent(_layer);
 
@@ -485,4 +483,32 @@ void MapWidget3D::setupUi()
 
     setLayout(layout);
     layout->addWidget(container);
+}
+
+void MapWidget3D::checkBuildingState()
+{
+    if(!_cur_building)
+        return;
+    
+    auto b3 = _buildings_3d[_cur_building->getID()];
+    
+    if(_cur_building->doorPrompt() == _cur_building->doorLocation())
+    {
+        _cur_building->setFoundBy(Building::fVehicle);
+        b3->_material->setDiffuse(QColor("blue"));
+    }
+    else if(_cur_building->spaceCount() > 0)
+    {
+        auto space_count_per_wall = _cur_building->spaceCountPerWall();
+        int d_loc = _cur_building->doorLocation();
+        if(space_count_per_wall[d_loc] > 0)
+            b3->_material->setDiffuse(QColor("blue"));
+        else
+            b3->_material->setDiffuse(QColor("red"));
+    }
+    else
+    {
+      // todo   
+    }
+    
 }

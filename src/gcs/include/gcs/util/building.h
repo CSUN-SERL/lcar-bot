@@ -11,6 +11,8 @@
 
 #include <memory>
 
+#include <QMap>
+
 namespace gcs 
 {
     
@@ -29,6 +31,13 @@ public:
         fNull = 0,
         fOperator,
         fVehicle
+    };
+    
+    enum PromptAnswer
+    {
+        aNull,
+        aYes,
+        aNo
     };
     
 public:
@@ -64,6 +73,27 @@ public:
     void setFalsePrompt(int wall);
     int falsePrompt();
     
+    void setPromptAnswer(PromptAnswer answer)
+    {
+        _answer = answer;
+    }
+    
+    PromptAnswer promptAnswer()
+    {
+        return _answer;
+    }
+    
+    void incrementSpaceCountForWall(int i)
+    {
+        int val = _space_count_by_wall[i];
+        _space_count_by_wall[i] = val + 1;
+    }
+    
+    const QMap<int, int> spaceCountPerWall()
+    {
+        return _space_count_by_wall;
+    }
+    
 private:
     int _id;
     
@@ -77,9 +107,12 @@ private:
     
     Type _type = tNull;
     FoundBy _found_by = fNull;
+    PromptAnswer _answer = aNull;
     
     float _x;
     float _y;
+    
+    QMap<int, int> _space_count_by_wall;
 };
 
 }

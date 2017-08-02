@@ -81,11 +81,12 @@ private:
         int id;
         Qt3DCore::QEntity * _entity_large;
         Transform * _transform_large;
+        Qt3DExtras::QPhongMaterial * _material;
         
-        Qt3DCore::QEntity * _entity_mini;
-        Transform * _transform_mini;
-
-        Qt3DExtras::QPhongMaterial * _cube_mat_mini;
+        
+//        Qt3DCore::QEntity * _entity_mini;
+//        Transform * _transform_mini;
+//        Qt3DExtras::QPhongMaterial * _cube_mat_mini;
         
         //Qt3DRender::QLayer * _layer;
         //Qt3DRender::QLayer * _layer_mini;
@@ -132,13 +133,14 @@ private:
     void connectToUiAdapter();
     void setupUi();
     
+    void checkBuildingState();
+    
 private:
     gcs::VehicleManager * _vm = nullptr;
     gcs::ImageFeedFilter * _image_filter = nullptr;    
     gcs::TrialManager * _trial_manager = nullptr;
     
     QMap<int, MapWidget3D::Vehicle3D *> _vehicle_map;
-    QList< Qt3DCore::QEntity *> _building_map;
     
     Window3D * _view;
     
@@ -147,8 +149,9 @@ private:
     
     QTimer * _update_timer;
     
-    QMap<int, std::shared_ptr<gcs::Building>> _waypoint_to_building;
+    //QMap<int, std::shared_ptr<gcs::Building>> _waypoint_to_building;
     QMap<int, std::shared_ptr<Building3D>> _buildings_3d;
+    std::shared_ptr<gcs::Building> _cur_building;
     
     gcs::VehicleControl * _cur_vehicle = nullptr;
     

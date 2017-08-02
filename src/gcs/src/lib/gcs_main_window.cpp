@@ -61,6 +61,8 @@ _trial_manager(new TrialManager(this))
     _ui->map->setImageFeedFilter(_filter);
     _ui->map->setTrialManager(_trial_manager);
 
+    _filter->setTrialManager(_trial_manager);
+    
     _ui->btn_scout->setText("Start Trial");
     _ui->btn_scout->setMinimumWidth(60);
     
@@ -479,7 +481,9 @@ void GCSMainWindow::ToggleScoutButtons(QString mode)
 // slot gets called when user click on a uav button
 void GCSMainWindow::OnVehicleSelected(VehicleWidget *w)
 {
-    _trial_manager->setCurrentVehicle(vm->GetVehicle(w->Id()));
+    VehicleControl* v = vm->GetVehicle(w->Id());
+    _trial_manager->setCurrentVehicle(v);
+    _filter->setCurrentVehicle(v);
     this->SelectVehicleWidgetById(w->Id());
 }
 
@@ -691,6 +695,12 @@ void GCSMainWindow::connectToTrialManager()
         _ui->pgs_bar_mission->setMaximum(100);
         _ui->pgs_bar_mission->setValue(100);
         _ui->btn_scout->setEnabled(false);
+    });
+    
+    QObject::connect(_trial_manager, &TrialManager::currentBuildingChanged,
+                    this, [this]()
+    {
+        _filter->setCurrentBuilding(_trial_manager->currentBuilding());
     });
     
     QObject::connect(_trial_manager, &TrialManager::trialChanged,
