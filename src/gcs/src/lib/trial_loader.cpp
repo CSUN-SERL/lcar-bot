@@ -1,4 +1,3 @@
-
 /* 
  * File:   TrialLoader.cpp
  * Author: n8
@@ -32,10 +31,10 @@ bool TrialLoader::loadBuildings(Condition c, int trial)
     QString trial_s = QString::number(trial);
     
     QString file_name = c == Predictable ?
-        QString(":/buildings/predictable%1.txt").arg(trial_s) :
-        QString(":/buildings/unpredictable%1.txt").arg(trial_s);
+        QString(":/buildings/b_predictable%1.txt").arg(trial_s) :
+        QString(":/buildings/b_unpredictable%1.txt").arg(trial_s);
     
-    qCDebug(lcar_bot) << file_name;
+    //qCDebug(lcar_bot) << file_name;
     
     QFile file(file_name);
     
@@ -98,8 +97,8 @@ bool TrialLoader::loadWaypoints(Condition c, int trial)
     _waypoints.clear();
     
     QString file_name = c == Predictable ?
-        ":/waypoints/predictable.txt" :
-        ":/waypoints/unpredictable.txt";
+        ":/waypoints/wp_predictable.txt" :
+        ":/waypoints/wp_unpredictable.txt";
     
     QFile file(file_name);
     
@@ -125,11 +124,11 @@ bool TrialLoader::loadWaypoints(Condition c, int trial)
         int i = 0;
         auto wp = std::make_shared<WaypointInfo>();
         
-        wp->building_id = list[i++].toDouble();
         wp->x = list[i++].toDouble();
         wp->y = list[i++].toDouble();
         wp->z = list[i++].toDouble();
         wp->yaw = list[i++].toInt();
+        wp->building_id = list[i++].toDouble();
         
         _waypoints.append(wp);
     }
@@ -139,7 +138,6 @@ bool TrialLoader::loadWaypoints(Condition c, int trial)
 
 const QList< std::shared_ptr<Building> >& TrialLoader::getBuildings() const
 {
-    qCDebug(lcar_bot) << "BUILDINGS:" << _buildings.size();
     return _buildings;
 }
 

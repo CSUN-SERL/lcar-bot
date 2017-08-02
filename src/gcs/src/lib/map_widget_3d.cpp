@@ -12,11 +12,9 @@
 #include <QVBoxLayout>
 #include <QQuaternion>
 
-#include <Qt3DCore/Qt3DCore>
-#include <Qt3DCore/QTransform>
-#include <Qt3DExtras/Qt3DExtras>
-#include <Qt3DRender/Qt3DRender>
-#include <Qt3DRender/QViewport>
+#include <Qt3DCore>
+#include <Qt3DExtras>
+#include <Qt3DRender>
 
 #include <gcs/qt/map_widget_3d.h>
 #include <gcs/qt/multi_viewport_forward_renderer.h>
@@ -30,20 +28,25 @@
 
 #include <vehicle/vehicle_control.h> 
 
-#define M2F 3.28084 // meters to feet
-#define F2M 0.3048  // feet to meters
-
-#define SIZE 0.5
-#define SCALE 2;
-
-#define VEHICLE_SCALE 0.001
 
 using namespace Qt3DCore;
 using namespace Qt3DExtras;
 using namespace Qt3DRender;
 using namespace gcs;
 
-//static QTime sec = QTime::currentTime();
+
+#define M2F 3.28084 // meters to feet
+#define F2M 0.3048  // feet to meters
+#define B_SIZE (float)(3 * F2M)
+#define F_SIZE (float)(16 * F2M)
+#define VEHICLE_SCALE 0.0013
+
+//QVector3D transformedVec(float x, float y, float z)
+//{
+//    return QVector3D(x, z, -y);
+//}
+
+#define transformedVec(x, y, z) QVector3D(x, z, -y)
 
 void MapWidget3D::Vehicle3D::update()
 {
@@ -57,9 +60,9 @@ void MapWidget3D::Vehicle3D::update()
         pos.position.z :
         0;
     
-    QVector3D vec( pos.position.x, 
-                   z, 
-                  -pos.position.y);
+    QVector3D vec = transformedVec(pos.position.x, 
+                                   pos.position.y, 
+                                   z);
     //vec = vec * 1/transform->scale();
     //first set position with z and y swapped
   _transform->setTranslation(vec);
@@ -75,6 +78,7 @@ QWidget(parent),
 _view(new Window3D),
 _update_timer(nullptr)
 {   
+    _renderer = _view->renderer();
     setupUi();
     connectToUiAdapter();
     loadScene();
@@ -92,7 +96,7 @@ MapWidget3D::~MapWidget3D()
 
 void MapWidget3D::setImageFeedFilter(gcs::ImageFeedFilter * filter)
 {
-    _filter = filter;
+    _image_filter = filter;
     _view->installEventFilter(filter);
 }
 
@@ -152,7 +156,7 @@ void MapWidget3D::positionUpdate()
         return;
 
     auto b = _waypoint_to_building[_cur_vehicle->currentWaypoint()];
-    _filter->setCurrentBuilding(b);
+    _image_filter->setCurrentBuilding(b);
     
 //    int v_id = _cur_vehicle->id;
 //    
@@ -187,6 +191,12 @@ void MapWidget3D::trialChanged()
     for(int i = 0; i <  waypoints.length(); i++)
     {
         auto wp = waypoints[i];
+        if(wp->building_id >= buildings.length())
+        {
+            qCDebug(lcar_bot) << "MORE WAYPOINT BUILDING ID's THAN BLUILDINGS";
+            continue;
+        }
+        
         _waypoint_to_building.insert(i, buildings[wp->building_id]);
     }
     
@@ -197,10 +207,16 @@ void MapWidget3D::reset()
 { 
     for(const auto& v : _vehicle_map)
     {
-        v->_entity->setParent(static_cast<QEntity*>(nullptr));
+        v->_entity->setParent((QEntity*)(nullptr));
     }
+    
     _root = new QEntity();
     _view->setSceneRoot(_root);
+    
+    for(const auto& v : _vehicle_map)
+    {
+        v->_entity->setParent(_root);
+    }  
     
     createCameraController();
     
@@ -211,13 +227,7 @@ void MapWidget3D::reset()
     createLighting({-pos,pos,pos}, intensity);
     createLighting({pos,pos,-pos}, intensity);
     
-     _plane = new QEntity(_root);
-    createFloor();
-    
-    for(const auto& v : _vehicle_map)
-    {
-        v->_entity->setParent(_root);
-    }
+    createFloor(); 
 }
 
 void MapWidget3D::loadBuildings()
@@ -225,28 +235,11 @@ void MapWidget3D::loadBuildings()
     if(!_trial_manager)
         return;
     
-    qCDebug(lcar_bot) << "MAP 3D B:" << _trial_manager->getBuildings().size();
+    qCDebug(lcar_bot) << "map_widget_3d loading buildings:" << _trial_manager->getBuildings().size();
     
     for(const auto& building : _trial_manager->getBuildings())
     {
-        QColor c;
-        switch(building->buildingType())
-        {
-            case Building::tPurple:
-                c = QColor("purple");
-                break;
-            case Building::tWhite:
-                c = QColor("white");
-                break;
-            case Building::tNull:
-            default:
-                c = QColor("red");
-                break;
-        }
-        
-        QVector3D vec(building->xPos(), (float)SIZE/2, building->yPos());
-        
-        createBuilding(vec, SIZE, c);
+        createBuilding(building);
     }
 }
 
@@ -275,6 +268,8 @@ void MapWidget3D::createDefaultScene()
 
 void MapWidget3D::createFloor()
 {
+     _plane = new QEntity(_root);
+    
     QPlaneMesh * plane_mesh = new QPlaneMesh();
     Transform * transform = new Transform();
     QPhongMaterial *planeMaterial = new QPhongMaterial();
@@ -286,16 +281,12 @@ void MapWidget3D::createFloor()
     //int width = 40; * F2M;
     int res = 4; // * F2M;
     
-    plane_mesh->setHeight(16 
-                          * F2M
-                          );
-    plane_mesh->setWidth(16 
-                         * F2M
-                         );
+    plane_mesh->setHeight(F_SIZE);
+    plane_mesh->setWidth(F_SIZE);
     
     plane_mesh->setMeshResolution(QSize(res,res));
     
-    transform->setScale(1.0f);
+    transform->setScale(1);
     transform->setTranslation(QVector3D(0.0f, 0.0f, 0.0f));
     
     //QRgb(0xa69929)
@@ -321,9 +312,9 @@ void MapWidget3D::createCameraController()
     
     cam = _view->miniMapCamera();
     cam->lens()->setPerspectiveProjection(45.0f, 16.0f/9.0f, 0.1f, 1000.0f);
-    cam->setPosition(QVector3D(-0.4, 10, 2.5));
+    cam->setPosition(QVector3D(-1, 10, 0));
     cam->setUpVector(QVector3D(0, 1, 0));
-    cam->setViewCenter(QVector3D(0, 0, 2.5));
+    cam->setViewCenter(QVector3D(0, 0, 0));
 }
 
 void MapWidget3D::createLighting(const QVector3D& pos, float intensity)
@@ -343,7 +334,7 @@ void MapWidget3D::createBuilding(const QVector3D& pos, float size, QColor color)
     QEntity *entity = new QEntity(_root);
     // Cuboid shape data
     QCuboidMesh *mesh = new QCuboidMesh();
-    
+
     // CuboidMesh Transform
     Transform *transform = new Transform();
     transform->setScale(size);
@@ -354,7 +345,85 @@ void MapWidget3D::createBuilding(const QVector3D& pos, float size, QColor color)
 
     entity->addComponent(mesh);
     entity->addComponent(cuboidMaterial);
-    entity->addComponent(transform);
+    entity->addComponent(transform);    
+}
+
+void MapWidget3D::createBuilding(const std::shared_ptr<Building>& b)
+{   
+//    if(_layer == nullptr)
+//        _layer = new QLayer(_root);
+//    
+//    if(_layer_filter == nullptr)
+//    {
+//        _layer_filter = new QLayerFilter(_renderer->m_viewport);
+//        _layer_filter->addLayer(_layer);
+//        
+//        _renderer->m_cameraSelector->setParent((QNode*)nullptr);
+//        _renderer->m_cameraSelector->setParent(_layer_filter);
+//        
+        _renderer->m_clearBuffer->setParent((QNode*)nullptr);
+        _renderer->m_clearBuffer->setParent(_renderer->m_cameraSelector);
+//    }
+    
+    QColor c;
+    switch(b->buildingType())
+    {
+        case Building::tPurple:
+            c = QColor("purple");
+            break;
+        case Building::tWhite:
+            c = QColor("white");
+            break;
+        case Building::tNull:
+        default:
+            c = QColor("orange");
+            break;
+    }
+    
+    QVector3D pos = transformedVec(b->xPos(), b->yPos(), B_SIZE/2);
+    
+    //////////////////
+    
+    std::shared_ptr<Building3D> b3 = std::make_shared<Building3D>();
+    b3->id = b->getID();
+    
+    b3->_entity_large = new QEntity(_root);
+
+    // CuboidMesh Transform
+    b3->_transform_large = new Transform();
+    b3->_transform_large->setScale(B_SIZE);
+    b3->_transform_large->setTranslation(pos);
+
+    QPhongMaterial *cube_mat = new QPhongMaterial();
+    cube_mat->setDiffuse(c);
+
+    b3->_entity_large->addComponent(new QCuboidMesh());
+    b3->_entity_large->addComponent(cube_mat);
+    b3->_entity_large->addComponent(b3->_transform_large);
+    //b3->_entity_large->addComponent(_layer);
+
+    //b3->_layer = new QLayer(b3->_entity_large);
+    //b3->_filter = new QLayerFilter(_renderer->m_viewport);
+
+    ///////////////////
+//    b3->_entity_mini = new QEntity(_root);
+//
+//    b3->_transform_mini = new Transform();
+//    b3->_transform_mini->setScale(B_SIZE);
+//    b3->_transform_mini->setTranslation(pos);
+//
+//    c = QColor("red");
+//
+//    b3->_cube_mat_mini = new QPhongMaterial();
+//    b3->_cube_mat_mini->setDiffuse(c);
+//
+//    b3->_entity_mini->addComponent(new QCuboidMesh());
+//    b3->_entity_mini->addComponent(b3->_cube_mat_mini);
+//    b3->_entity_mini->addComponent(b3->_transform_mini);
+        
+    ////////////
+    
+    _buildings_3d.insert(b3->id, b3);
 }
 
 MapWidget3D::Vehicle3D * MapWidget3D::createVehicle(int vehicle_type)

@@ -88,6 +88,8 @@ private:
     void InitMenuBar();
     void InitSettings();
     
+    void hideNonTrialControls();
+    
     void SelectVehicleWidgetById(int v_id);
     void UpdateFlightStateWidgets(); // both the PFD and the text based widget
     void UpdateVehicleWidgets();
@@ -110,8 +112,11 @@ private:
     void OnAddVehicleTriggered();
     void OnTrialInfoTriggered();
     
+    void connectToTrialManager();
     void connectToSelf();
     void connectToUiAdapter();
+    
+    void reset();
     
 private:
     Ui::GCSMainWindow* _ui;
@@ -127,6 +132,8 @@ private:
     int cur_v_id; // the current selected vehicles id
     int time_counter;
     int num_queries_last;
+    
+    int _last_wp;
     
     struct FloatingWidgets
     {

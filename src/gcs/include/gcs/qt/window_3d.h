@@ -101,6 +101,10 @@ public:
     inline Qt3DRender::QCamera * camera() const { return m_defaultCamera; }
     inline Qt3DRender::QCamera * miniMapCamera() const { return _mini_camera; }
 
+    MultiViewportForwardRenderer * renderer()
+    {
+        return m_forwardRenderer;
+    }
     
 protected:
     void showEvent(QShowEvent *e) override;

@@ -9,6 +9,7 @@
 #include <QStringBuilder>
 
 #include <ros/package.h>
+
 #include <std_msgs/Empty.h>
 #include <lcar_msgs/InitResponse.h>
 
@@ -48,6 +49,8 @@ VehicleManager::VehicleManager(QObject *parent):
     pub_world_map_updated = nh.advertise<std_msgs::Empty>("world_map_updated", 10);
     
     heartbeat_timer = nh.createTimer(ros::Duration(1), &VehicleManager::TimedHeartBeatCheck, this);
+    
+    _run_timer = nh.createTimer(ros::Duration(0.1), &VehicleManager::runVehicles, this);
     
     this->InitSettings();
     this->AdvertiseObjectDetection();
@@ -841,5 +844,18 @@ lcar_msgs::TargetLocalPtr VehicleManager::GetTargetLocal(QString target_path)
     file.close();
     return ptr;
 }
+
+  void VehicleManager::runVehicles(const ros::TimerEvent& e)
+  {
+      for(const auto& outer : db)
+      {
+          for(const auto& vehicle : outer)
+          {
+              UAVControl* uav = dynamic_cast<UAVControl*>(vehicle);
+              if(uav)
+                  uav->Run();
+          }
+      }
+  }
 
 }

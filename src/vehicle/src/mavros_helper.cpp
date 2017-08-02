@@ -179,7 +179,8 @@ void MavrosHelper::EnableOffboard()
 
     ros::Rate loop_rate(50); //50Hz
     //send a few setpoints before starting
-    for(int i = 20; ros::ok() && i > 0; --i){
+    for(int i = 20; ros::ok() && i > 0; --i)
+    {
         pub_setpoint_position.publish(pose);
         loop_rate.sleep();
     }

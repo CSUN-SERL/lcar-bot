@@ -26,6 +26,9 @@ _trial_manager(trial_manager)
     QObject::connect(_trial_manager, &TrialManager::trialChanged,
                     this, &TrialWidget::trialChanged);
     
+    QObject::connect(_trial_manager, &TrialManager::sigReset,
+                    this, [this]() { setViewState(NewUser); });
+    
     QObject::connect(widget.btn_ok, &QPushButton::clicked,
                     this, &TrialWidget::okClicked);
     
@@ -53,6 +56,10 @@ void TrialWidget::okClicked()
         
     if(!s.endsWith("1") && !s.endsWith("2"))
         return;
+    
+    qCDebug(lcar_bot) << "current trial" << _trial_manager->currentTrial();
+    
+    qCDebug(lcar_bot) << "current condition" << _trial_manager->currentCondition();
     
     setViewState(NextTrial);
     

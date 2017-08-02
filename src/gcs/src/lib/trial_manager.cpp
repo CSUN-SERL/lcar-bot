@@ -9,17 +9,20 @@
 #include <QMap>
 #include <QTimer>
 
+#include <gcs/qt/ui_adapter.h>
 #include <gcs/qt/trial_manager.h>
 #include <gcs/util/trial_loader.h>
 #include <gcs/util/building.h>
 #include <gcs/util/debug.h>
 
-#include <vehicle/vehicle_control.h>
+//#include <vehicle/vehicle_control.h>
+#include <vehicle/uav_control.h>
 
 #include <angles/angles.h>
 #include <tf/tf.h>
 
 #include <gcs/util/settings.h>
+#include <QtCore/qdatetime.h>
 
 namespace gcs
 {
@@ -35,8 +38,8 @@ std::vector<geometry_msgs::Pose> getWaypointList(const TrialLoader& loader)
         pose.position.x = wp->x;
         pose.position.y = wp->y;
         pose.position.z = wp->z;
-
-        double yaw_angle = angles::normalize_angle_positive(angles::from_degrees(0));
+        
+        double yaw_angle = angles::normalize_angle_positive(angles::from_degrees(wp->yaw));
         quaternionTFToMsg(tf::createQuaternionFromYaw(yaw_angle), pose.orientation);
         
         waypoints.push_back(pose);
@@ -51,6 +54,7 @@ _timer(new QTimer(this))
 {
     QObject::connect(_timer, &QTimer::timeout,
                      this, &TrialManager::checkEndTrial);
+    
 }
 
 void TrialManager::reset()
@@ -59,18 +63,23 @@ void TrialManager::reset()
     _cur_condition = TrialLoader::Null;
     _conditions_used = 0;
     _user_id = -1;
+    _trial_running = false;
     
     emit sigReset();
 }
 
 void TrialManager::setCurrentVehicle(VehicleControl * vehicle)
 {
-    _vehicle = vehicle;
+    //_vehicle = vehicle;
+    _uav = dynamic_cast<UAVControl*>(vehicle);
+    Q_ASSERT(_uav);
 }
 
 void TrialManager::setTrialStartCondition(TrialLoader::Condition c)
 {    
+    blockSignals(true);
     reset();
+    blockSignals(false);
     setTrial(c, 1);
 }
 
@@ -107,34 +116,39 @@ void TrialManager::nextTrial()
     }
     else
     {
-        // done
-        emit finished();
+        reset();
     }
 }
 
-void TrialManager::startTrial()
-{
-    Q_ASSERT(_loader.isValid());
-    Q_ASSERT(_vehicle);
-    
-    if(_loader.isValid() && _vehicle)
+bool TrialManager::startTrial()
+{    
+    if(isValid() && _uav)
     {
         auto waypoints = getWaypointList(_loader);
         
-        _vehicle->SetMission(waypoints);
-        _vehicle->StartMission();
+        UAVControl * uav = dynamic_cast<UAVControl*>(_uav);
+        _uav->SetMission(waypoints);
+        _uav->StartMission();
+        _uav->EnableOffboard();
         
         _timer->start(1000);
+        
+        _trial_running = true;
     }
     else
     {
-        qCDebug(lcar_bot) << "TrialManager::setTrial: CAN'T START EMPTY TRIAL";
+        qCDebug(lcar_bot) << "TriaflManager::setTrial: CAN'T START EMPTY TRIAL";
+        _trial_running = false;
     }
+    
+    return _trial_running;
 }
 
 void TrialManager::endTrial()
 {   
     _timer->stop();
+    _trial_running = false;
+    emit trialEnded();
 //    _vehicle->StopMission();
 //    _vehicle->SetMission({});
 }
@@ -151,7 +165,7 @@ void TrialManager::exportTrialData()
 
 void TrialManager::checkEndTrial()
 {
-    if(_vehicle->currentWaypoint() >= _loader.getWaypointInfoList().size())
+    if(_uav->currentWaypoint() >= _loader.getWaypointInfoList().size())
     {
         exportTrialData();
         endTrial();

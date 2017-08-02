@@ -27,11 +27,14 @@ namespace Qt3DRender
 {
     class QMesh;
     class QMaterial;
+    class QLayer;
+    class QLayerFilter;
 }
 
 namespace Qt3DExtras
 {
     class Qt3DWindow;
+    class QPhongMaterial;
 }
 
 namespace Qt3DCore
@@ -52,6 +55,7 @@ namespace gcs
 }
 
 class Window3D;
+class MultiViewportForwardRenderer;
 
 class MapWidget3D : public QWidget
 {
@@ -61,15 +65,36 @@ private:
     struct Vehicle3D
     {
         Qt3DCore::QEntity * _entity;
+        Qt3DCore::QEntity * _entity_mini;
+        
         Qt3DRender::QMesh *_mesh;
         Qt3DRender::QMaterial * _material;
         Transform * _transform;
         
         gcs::VehicleControl * _vehicle;
-        
-        int _cur_waypoint;
-        
+              
         void update();
+    };
+    
+    struct Building3D
+    {
+        int id;
+        Qt3DCore::QEntity * _entity_large;
+        Transform * _transform_large;
+        
+        Qt3DCore::QEntity * _entity_mini;
+        Transform * _transform_mini;
+
+        Qt3DExtras::QPhongMaterial * _cube_mat_mini;
+        
+        //Qt3DRender::QLayer * _layer;
+        //Qt3DRender::QLayer * _layer_mini;
+        
+        //Qt3DRender::QLayerFilter * _filter;
+        //Qt3DRender::QLayerFilter * _filter_mini;
+        
+        //Qt3DRender::QFrustumCulling *_frustum_cul;  
+        //Qt3DRender::QClearBuffers *_clear_buf;
     };
     
 public:
@@ -101,6 +126,7 @@ private:
     void createCameraController();
     void createLighting(const QVector3D& pos, float instensity);
     void createBuilding(const QVector3D& pos, float size, QColor);
+    void createBuilding(const std::shared_ptr<gcs::Building>& b);
     Vehicle3D * createVehicle(int vehicle_type);
     
     void connectToUiAdapter();
@@ -108,7 +134,7 @@ private:
     
 private:
     gcs::VehicleManager * _vm = nullptr;
-    gcs::ImageFeedFilter * _filter = nullptr;    
+    gcs::ImageFeedFilter * _image_filter = nullptr;    
     gcs::TrialManager * _trial_manager = nullptr;
     
     QMap<int, MapWidget3D::Vehicle3D *> _vehicle_map;
@@ -122,8 +148,14 @@ private:
     QTimer * _update_timer;
     
     QMap<int, std::shared_ptr<gcs::Building>> _waypoint_to_building;
+    QMap<int, std::shared_ptr<Building3D>> _buildings_3d;
     
     gcs::VehicleControl * _cur_vehicle = nullptr;
+    
+    MultiViewportForwardRenderer * _renderer;
+    
+    Qt3DRender::QLayer * _layer = nullptr;
+    Qt3DRender::QLayerFilter * _layer_filter = nullptr;
 };
 
 #endif /* MAP_WIDGET_3D_H */

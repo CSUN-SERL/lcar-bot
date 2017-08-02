@@ -16,12 +16,14 @@
 #include <gcs/util/trial_loader.h>
 #include <gcs/util/debug.h>
 
+
 class QTimer;
 
 namespace gcs
 {
 
 class VehicleControl;
+class UAVControl;
 class TrialLoader;    
 class Building;
 
@@ -37,7 +39,7 @@ public:
     
     void setTrialStartCondition(TrialLoader::Condition c);
     
-    void startTrial();
+    bool startTrial();
     void nextTrial();
     
     void setUserID(int user_id);
@@ -55,7 +57,6 @@ public:
       
     const QList< std::shared_ptr<Building> >& getBuildings()
     {
-        qCDebug(lcar_bot) << "TRIAL MANAGER B:" << _loader.getBuildings().size();
         return _loader.getBuildings();
     }
     
@@ -68,37 +69,46 @@ public:
     {
         return _loader.isValid() &&
                _cur_condition != TrialLoader::Null &&
-               _cur_trial > 0 && _cur_trial < MAX_TRIALS && 
-               _conditions_used < MAX_CONDITIONS;
+               _cur_trial > 0 && _cur_trial <= MAX_TRIALS && 
+               _conditions_used <= MAX_CONDITIONS;
     }
+    
+    bool isRunning()
+    {
+        return _trial_running;
+    }
+    
+     void endTrial();
     
 signals:
     void trialChanged();
-    void finished();
+    void trialEnded();
     void sigReset();
     
-private:
-    void endTrial();
+private:    
     void checkEndTrial();
     void setTrial(TrialLoader::Condition c, int trial);
-    
     
 private:
     Q_DISABLE_COPY(TrialManager)
             
     TrialLoader _loader;
-    VehicleControl * _vehicle = nullptr;
+    //VehicleControl * _vehicle = nullptr;
+    
+    UAVControl* _uav = nullptr;
     
     QTimer * _timer;
     
     int _user_id;
+    
+    bool _trial_running = false;
     
     TrialLoader::Condition _cur_condition;
     int _conditions_used = 0;
     int _cur_trial = -1;
     
     int MAX_TRIALS = 4;
-    int MAX_CONDITIONS = 2;
+    int MAX_CONDITIONS = 1;
 };
 
 }

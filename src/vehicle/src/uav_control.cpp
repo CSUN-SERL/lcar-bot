@@ -476,7 +476,7 @@ void UAVControl::Run()
 void UAVControl::RunLocal()
 { 
     /*TODO: FSM managed by Gui by Friday*/
-    if(state.armed)
+    if(state.armed && pose_local_valid)
     {
         switch(goal)
         {                 
@@ -625,12 +625,14 @@ void UAVControl::StartMission() //todo make goal input to separate travel and sc
     if(mission_mode == active)
         return;
     
+    ROS_WARN_STREAM("START MISSION: waiting for valid local_pose");
+    
     pose_local_valid = false;
-    ros::Rate wait(0.1);
-    while(!pose_local_valid)
-    {
-        wait.sleep();
-    }
+//    ros::Rate wait(0.1);
+//    while(!pose_local_valid)
+//    {
+//        wait.sleep();
+//    }
     
     pose_home = pose_local;
     pose_previous = pose_local;
