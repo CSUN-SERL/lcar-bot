@@ -13,7 +13,7 @@
 #include <ros/package.h>
 
 #include "ui_GCSMainWindow.h"
-#include "gcs/qt/user_id_widget.h"
+#include "gcs/qt/trial_widget.h"
 
 #include <gcs/qt/gcs_main_window.h>
 #include <gcs/qt/query_widget.h>
@@ -54,12 +54,15 @@ _trial_manager(new TrialManager(this))
     _ui->setupUi(this);
     installEventFilter(_filter);
     
-    fl_widgets.user_id = new UserIdWidget(_trial_manager);
+    fl_widgets.user_id = new TrialWidget(_trial_manager);
     
     _ui->map->setVehicleManager(vm);
     _ui->map->setUpdateTimer(update_timer);
     _ui->map->setImageFeedFilter(_filter);
-    _ui->image_frame->setVisible(false);
+    _ui->map->setTrialManager(_trial_manager);
+
+    _ui->btn_scout->setText("Start Trial");
+    _ui->btn_scout->setMinimumWidth(60);
     
     //todo add these layouts to the GUI
     //layout_by_v_type.insert(VehicleType::ugv, widget->layout_ugvs);
@@ -67,6 +70,9 @@ _trial_manager(new TrialManager(this))
     //layout_by_v_type.insert(VehicleType::octo_rotor, widget->layout_octo);
     //layout_by_v_type.insert(VehicleType::vtol, widget->layout_vtol);
     
+    hideNonTrialControls();
+    
+    connectToTrialManager();
     connectToSelf();
     connectToUiAdapter();
     
@@ -74,7 +80,9 @@ _trial_manager(new TrialManager(this))
     InitSettings();
     ToggleScoutButtons("scout");
     
-    update_timer->start(33.333);
+    
+    reset();
+    update_timer->start(33);
     _seconds_timer->start(1000);
 }
 
@@ -114,7 +122,7 @@ void GCSMainWindow::OnAddVehicleWidget(int v_id)
     layout_by_v_type[v_type]->insertWidget(index, w);  
     
     if (cur_v_id == -1) //is this the first vehicle added?
-        this->SelectVehicleWidgetById(v_id);
+        this->OnVehicleSelected(w);
 }
 
 void GCSMainWindow::OnDeleteVehicleWidget(int v_id)
@@ -145,7 +153,7 @@ void GCSMainWindow::OnDeleteVehicleWidget(int v_id)
         if(num_vehicle - 1 > 0)
         {
             if(vm->VehicleIndexFromId(v_id) > 0)
-                this->SelectVehicleWidgetById(cur_v_id - 1);
+                SelectVehicleWidgetById(cur_v_id - 1);
             else
                 cur_v_id = -1;
         }
@@ -210,20 +218,38 @@ void GCSMainWindow::OnTimedUpdate()
         return;
 
     this->UpdateFlightStateWidgets();
-    //this->UpdateVehicleWidgets();
     
-    if(vm->IsArmed(cur_v_id))
-        this->ToggleArmDisarmButton("disarm");
-    else 
-        this->ToggleArmDisarmButton("arm");
+    this->UpdateVehicleWidgets();
     
-    MissionMode m = vm->GetMissionMode(cur_v_id);
-    if (m == MissionMode::active)
-        this->ToggleScoutButtons("pause");
-    else if(m == MissionMode::paused)
-        this->ToggleScoutButtons("play");
-    else if(m == MissionMode::stopped || m == MissionMode::invalid)
-        this->ToggleScoutButtons("scout");
+    UAVControl* uav = dynamic_cast<UAVControl*>(vm->GetVehicle(cur_v_id));
+    
+    if(uav == nullptr)
+        return;
+    
+    if(!_trial_manager->isRunning())
+        return;
+    
+    int cur_wp = uav->currentWaypoint();
+    if(cur_wp > _last_wp)
+    {
+        _last_wp = cur_wp;
+        QString s = QString("Current Waypoint: %1").arg(QString::number(cur_wp + 1));
+        _ui->lbl_mission_status->setText(s);
+        
+        _ui->pgs_bar_mission->setValue(cur_wp);
+    }
+    //if(vm->IsArmed(cur_v_id))
+    //  this->ToggleArmDisarmButton("disarm");
+    //else 
+    //    this->ToggleArmDisarmButton("arm");
+    
+//    MissionMode m = vm->GetMissionMode(cur_v_id);
+//    if (m == MissionMode::active)
+//        this->ToggleScoutButtons("pause");
+//    else if(m == MissionMode::paused)
+//        this->ToggleScoutButtons("play");
+//    else if(m == MissionMode::stopped || m == MissionMode::invalid)
+//        this->ToggleScoutButtons("scout");
                 
 }
 
@@ -331,16 +357,34 @@ void GCSMainWindow::OnScoutBuilding()
     if(cur_v_id == -1)
         return;
 
-    QString building = _ui->cmbo_box_buildings->currentText();
+    if(!_trial_manager->isRunning())
+    {
+        if(_trial_manager->startTrial())
+        {
+            int size = _trial_manager->getWaypointInfoList().size();
+            if(size % 2 == 0)
+                size = size + 1;
+            
+            _ui->pgs_bar_mission->setMaximum(size);
+            _ui->btn_scout->setText("Stop Trial");
+        }
+    }
+    else
+    {
+        _trial_manager->endTrial();
+    }
     
-    int number;
-    char b[16];
-    sscanf(building.toStdString().c_str(), "%s %d", b, &number);
-    qCDebug(lcar_bot) << "scout building: " << number;
     
-    emit UIAdapter::Instance()->ScoutBuilding(cur_v_id, number);
-
-    ROS_INFO_STREAM("Scouting " << building.toStdString());
+//    QString building = _ui->cmbo_box_buildings->currentText();
+//    
+//    int number;
+//    char b[16];
+//    sscanf(building.toStdString().c_str(), "%s %d", b, &number);
+//    qCDebug(lcar_bot) << "scout building: " << number;
+//    
+//    emit UIAdapter::Instance()->ScoutBuilding(cur_v_id, number);
+//
+//    ROS_INFO_STREAM("Scouting " << building.toStdString());
 }
 
 void GCSMainWindow::OnPauseOrResumeScout()
@@ -435,7 +479,7 @@ void GCSMainWindow::ToggleScoutButtons(QString mode)
 // slot gets called when user click on a uav button
 void GCSMainWindow::OnVehicleSelected(VehicleWidget *w)
 {
-//    this->SelectUav(layout_by_v_type[VehicleType::quad_rotor]->indexOf(w));
+    _trial_manager->setCurrentVehicle(vm->GetVehicle(w->Id()));
     this->SelectVehicleWidgetById(w->Id());
 }
 
@@ -474,6 +518,8 @@ void GCSMainWindow::SelectVehicleWidgetById(int v_id)
         this->ToggleArmDisarmButton("disarm");
     else
         this->ToggleArmDisarmButton("arm");
+    
+    emit UIAdapter::Instance()->setCurrentVehicle(v_id);
 }
 
 void GCSMainWindow::UpdateFlightStateWidgets()
@@ -628,10 +674,30 @@ void GCSMainWindow::OnAddVehicleTriggered()
     }
 }
 
-void GCSMainWindow::OnUserIdTriggered()
+void GCSMainWindow::OnTrialInfoTriggered()
 {
+    fl_widgets.user_id->raise();
     fl_widgets.user_id->show();
+    fl_widgets.user_id->activateWindow();
     CenterFloatingWidget(fl_widgets.user_id);
+}
+
+void GCSMainWindow::connectToTrialManager()
+{
+    QObject::connect(_trial_manager, &TrialManager::trialEnded,
+                    this, [=]()
+    {
+        _ui->lbl_mission_status->setText("Mission complete");
+        _ui->pgs_bar_mission->setMaximum(100);
+        _ui->pgs_bar_mission->setValue(100);
+        _ui->btn_scout->setEnabled(false);
+    });
+    
+    QObject::connect(_trial_manager, &TrialManager::trialChanged,
+                    this, &GCSMainWindow::reset);
+    
+    QObject::connect(_trial_manager, &TrialManager::sigReset,
+                    this, &GCSMainWindow::reset);
 }
 
 void GCSMainWindow::connectToSelf()
@@ -688,15 +754,21 @@ void GCSMainWindow::connectToUiAdapter()
             this, &GCSMainWindow::OnImageRootDirUpdated);
 }
 
+void GCSMainWindow::reset()
+{
+    _ui->btn_scout->setText("Start Trial");
+    _ui->btn_scout->setEnabled(true);
+    _ui->lbl_mission_status->setText("No missions in progress");
+    _ui->pgs_bar_mission->setValue(0);
+    _ui->pgs_bar_mission->setMaximum(100);
+    _last_wp = -1;
+}
+
 void GCSMainWindow::InitMenuBar()
 {
     QMenuBar *menu_bar = this->menuBar();
     
-    QMenu *file_menu = menu_bar->addMenu("File");
-    QAction *user_id_act = file_menu->addAction("New Trial ID");
-    connect(user_id_act, &QAction::triggered,
-            this, &GCSMainWindow::OnUserIdTriggered);
-    
+    QMenu *file_menu = menu_bar->addMenu("File");    
     QAction *add_vehicle_act = file_menu->addAction("Add Vehicle(s)");
     connect(add_vehicle_act, &QAction::triggered,
             this, &GCSMainWindow::OnAddVehicleTriggered);
@@ -709,6 +781,9 @@ void GCSMainWindow::InitMenuBar()
 
     //tools menu
     QMenu *tools_menu = menu_bar->addMenu("Tools");
+    QAction *user_id_act = tools_menu->addAction("Trial Information");
+    connect(user_id_act, &QAction::triggered,
+            this, &GCSMainWindow::OnTrialInfoTriggered);
     QAction *settings_act = tools_menu->addAction("Settings");
     connect(settings_act, &QAction::triggered,
             this, &GCSMainWindow::OnSettingsTriggered);
@@ -732,6 +807,16 @@ void GCSMainWindow::InitSettings()
     this->OnToggleMachineLearningMode(ml_on);
 
     image_root_dir = settings.GetImagesRootDir();
+}
+
+void GCSMainWindow::hideNonTrialControls()
+{
+    _ui->image_frame->hide();
+    _ui->frame_play_book_cntnr->hide();
+    _ui->btn_view_acess_points->hide();
+    _ui->btn_arm_uav->hide();
+    _ui->cmbo_box_flight_mode->hide();
+    _ui->cmbo_box_buildings->hide();
 }
 
 void GCSMainWindow::OnToggleMachineLearningMode(bool toggle)

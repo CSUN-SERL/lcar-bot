@@ -27,8 +27,12 @@ namespace Qt3DRender
     class QFrustumCulling; // *m_frustumCulling;
 }
 
+class MapWidget3D;
+
 class MultiViewportForwardRenderer : public Qt3DRender::QTechniqueFilter
 {
+    friend class MapWidget3D;
+    
     Q_OBJECT
 public:
     MultiViewportForwardRenderer(Qt3DCore::QNode *parent = nullptr);
@@ -54,10 +58,10 @@ private:
     Qt3DRender::QCameraSelector *m_cameraSelector_mini;
     
     Qt3DRender::QClearBuffers *m_clearBuffer;
-    //Qt3DRender::QClearBuffers *m_clearBuffer_mini;
+    Qt3DRender::QClearBuffers *m_clearBuffer_mini;
     
     Qt3DRender::QFrustumCulling *m_frustumCulling;  
-    //Qt3DRender::QFrustumCulling *m_frustumCulling_mini;  
+    Qt3DRender::QFrustumCulling *m_frustumCulling_mini;  
 };
 
 #endif /* MULTI_VIEWPORT_FORWARD_RENDERER_H */

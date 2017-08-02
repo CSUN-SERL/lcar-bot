@@ -14,17 +14,18 @@ namespace gcs
 Building::Building()
 {}
 
-void Building::setLocation(double x, double y)
+void Building::setLocation(float x, float y)
 {
     _x = x;
     _y = y;
 }
 
-int Building::xPos()
+float Building::xPos()
 {
     return _x;
 }
-int Building::yPos()
+
+float Building::yPos()
 {
     return _y;
 }

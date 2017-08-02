@@ -76,7 +76,6 @@ Window3D::Window3D(QScreen *screen)
     , m_logicAspect(new Qt3DLogic::QLogicAspect)
     , m_renderSettings(new Qt3DRender::QRenderSettings)
     , m_forwardRenderer(new MultiViewportForwardRenderer)
-    //, m_forwardRenderer(new Qt3DExtras::QForwardRenderer)
     , m_defaultCamera(new Qt3DRender::QCamera)
     , _mini_camera(new Qt3DRender::QCamera)
     , m_inputSettings(new Qt3DInput::QInputSettings)
@@ -119,6 +118,19 @@ Window3D::Window3D(QScreen *screen)
 Window3D::~Window3D() {
 }
 
+void Window3D::setSceneRoot(Qt3DCore::QEntity *root)
+{  
+    if (_scene_root != root) 
+    {
+        if (_scene_root != nullptr)
+            _scene_root->setParent(static_cast<Qt3DCore::QEntity*>(nullptr));
+
+        if (root != nullptr)
+            root->setParent(_root);
+
+        _scene_root = root;
+    }
+}
 
 void Window3D::showEvent(QShowEvent *e)
 {

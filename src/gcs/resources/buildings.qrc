@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RCC version="1.0">
     <qresource prefix="/">
-        <file>buildings/predictable1.txt</file>
-        <file>buildings/predictable2.txt</file>
-        <file>buildings/unpredictable1.txt</file>
+        <file>buildings/b_predictable1.txt</file>
+        <file>buildings/b_predictable2.txt</file>
+        <file>buildings/b_predictable3.txt</file>
+        <file>buildings/b_predictable4.txt</file>
+        <file>buildings/b_unpredictable1.txt</file>
+        <file>buildings/b_unpredictable2.txt</file>
+        <file>buildings/b_unpredictable3.txt</file>
+        <file>buildings/b_unpredictable4.txt</file>
     </qresource>
 </RCC>

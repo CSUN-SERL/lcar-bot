@@ -34,10 +34,10 @@ public:
 public:
     Building();
     
-    void setLocation(double x, double y);
+    void setLocation(float x, float y);
     
-    int xPos();
-    int yPos();
+    float xPos();
+    float yPos();
     
     void setID(int id);
     int getID();
@@ -78,8 +78,8 @@ private:
     Type _type = tNull;
     FoundBy _found_by = fNull;
     
-    double _x;
-    double _y;
+    float _x;
+    float _y;
 };
 
 }

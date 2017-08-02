@@ -40,7 +40,7 @@ class SettingsWidget;
 class AccessPointsContainerWidget;
 class VehicleInitWidget;
 class VehicleWidget;
-class UserIdWidget;
+class TrialWidget;
 
 
 class GCSMainWindow : public QMainWindow
@@ -88,6 +88,8 @@ private:
     void InitMenuBar();
     void InitSettings();
     
+    void hideNonTrialControls();
+    
     void SelectVehicleWidgetById(int v_id);
     void UpdateFlightStateWidgets(); // both the PFD and the text based widget
     void UpdateVehicleWidgets();
@@ -108,10 +110,13 @@ private:
     void OnSettingsTriggered();
     void OnUnansweredQueriesTriggered();
     void OnAddVehicleTriggered();
-    void OnUserIdTriggered();
+    void OnTrialInfoTriggered();
     
+    void connectToTrialManager();
     void connectToSelf();
     void connectToUiAdapter();
+    
+    void reset();
     
 private:
     Ui::GCSMainWindow* _ui;
@@ -128,13 +133,15 @@ private:
     int time_counter;
     int num_queries_last;
     
+    int _last_wp;
+    
     struct FloatingWidgets
     {
         QPointer<SettingsWidget> settings;
         QPointer<UnansweredQueries> unanswered_queries;
         QPointer<AccessPointsContainerWidget> ap_menu;
         QPointer<VehicleInitWidget> vehicle_init;
-        QPointer<UserIdWidget> user_id;
+        QPointer<TrialWidget> user_id;
     } fl_widgets;
     
 };

@@ -15,6 +15,7 @@
 #include <QWaitCondition>
 
 #include <ros/ros.h>
+#include <ros/timer.h>
 #include <std_msgs/Int32.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <image_transport/image_transport.h>
@@ -318,9 +319,16 @@ private:
      */
     void InitSettings();
     
+    void RunCallback();
+    
     lcar_msgs::TargetGlobalPtr GetTargetGlobal(QString target_path);
     
     lcar_msgs::TargetLocalPtr GetTargetLocal(QString target_path);
+    
+    
+    void runVehicles(const ros::TimerEvent& e);
+    ros::Timer _run_timer;
+    
     /*
      * this is the database containing all the vehicles.
      * its a double nested QMap where the outer maps' key is the VehicleType casted to an integer,
