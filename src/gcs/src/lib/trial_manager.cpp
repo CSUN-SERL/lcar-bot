@@ -53,8 +53,15 @@ QObject(parent),
 _timer(new QTimer(this))
 {
     QObject::connect(_timer, &QTimer::timeout,
-                     this, &TrialManager::checkEndTrial);
+                     this, &TrialManager::checkCurrentBuildingChange);
     
+
+    QObject::connect(UIAdapter::Instance(), &UIAdapter::DeleteVehicle,
+                    this, [=](int v_id)
+                    {
+                        if(_uav->id == v_id)
+                            _uav = nullptr;
+                    });
 }
 
 void TrialManager::reset()
@@ -64,6 +71,7 @@ void TrialManager::reset()
     _conditions_used = 0;
     _user_id = -1;
     _trial_running = false;
+    _cur_b_id;
     
     emit sigReset();
 }
@@ -131,7 +139,7 @@ bool TrialManager::startTrial()
         _uav->StartMission();
         _uav->EnableOffboard();
         
-        _timer->start(1000);
+        _timer->start(33);
         
         _trial_running = true;
     }
@@ -164,13 +172,28 @@ void TrialManager::exportTrialData()
     Settings s;
 }
 
-void TrialManager::checkEndTrial()
-{
-    if(_uav->currentWaypoint() >= _loader.getWaypointInfoList().size())
+void TrialManager::checkCurrentBuildingChange()
+{   
+    auto waypoints = _loader.getWaypointInfoList();
+    auto buildings = _loader.getBuildings();
+    
+    int cur_wp = _uav->currentWaypoint();
+    
+    if(cur_wp >= _loader.getWaypointInfoList().size())
     {
         exportTrialData();
         endTrial();
+        return;
     }
+    
+    auto wp = waypoints.at(cur_wp);
+    
+    if (_cur_b_id != wp->building_id)
+    {
+        _cur_b_id = wp->building_id;
+        emit currentBuildingChanged();
+    }
+    
 }
 
 }

@@ -37,16 +37,14 @@ using namespace gcs;
 
 #define M2F 3.28084 // meters to feet
 #define F2M 0.3048  // feet to meters
-#define B_SIZE (float)(3 * F2M)
-#define F_SIZE (float)(16 * F2M)
-#define VEHICLE_SCALE 0.0013
+#define B_SIZE (float)(3 * F2M) // building size
+#define F_SIZE (float)(16 * F2M) // floor size
+#define V_SIZE 0.0013 // uav size
 
-//QVector3D transformedVec(float x, float y, float z)
-//{
-//    return QVector3D(x, z, -y);
-//}
+//#define transformedVec(x, y, z) QVector3D(x, z, -y)
+#define transformedVec(x, y, z) QVector3D(x - 0.45, z, -y)
 
-#define transformedVec(x, y, z) QVector3D(x, z, -y)
+#define rotateY(obj, y) obj->setRotationY(y + 90)
 
 void MapWidget3D::Vehicle3D::update()
 {
@@ -60,16 +58,17 @@ void MapWidget3D::Vehicle3D::update()
         pos.position.z :
         0;
     
-    QVector3D vec = transformedVec(pos.position.x, 
+    QVector3D vec = transformedVec(pos.position.x + 0.45, 
                                    pos.position.y, 
                                    z);
-    //vec = vec * 1/transform->scale();
+    
+    //vec.setX(vec.x() + 0.5);
     //first set position with z and y swapped
   _transform->setTranslation(vec);
     
     //next orientation, also with z and y axes swapped
   _transform->setRotationX(pos.orientation.pitch);
-  _transform->setRotationY(pos.orientation.yaw + 90);
+  rotateY(_transform, pos.orientation.yaw);
   _transform->setRotationZ(pos.orientation.roll);
 }
 
@@ -102,15 +101,6 @@ void MapWidget3D::setImageFeedFilter(gcs::ImageFeedFilter * filter)
 
 void MapWidget3D::setTrialManager(gcs::TrialManager * trial_manager)
 {
-    if(_trial_manager)
-    {
-        QObject::disconnect(_trial_manager, &TrialManager::trialChanged,
-                            this, &MapWidget3D::trialChanged);
-        
-        QObject::disconnect(_trial_manager, &TrialManager::sigReset,
-                            this, &MapWidget3D::reset);
-    }
-
     _trial_manager = trial_manager;
     
     if(_trial_manager)
@@ -120,6 +110,13 @@ void MapWidget3D::setTrialManager(gcs::TrialManager * trial_manager)
 
         QObject::connect(_trial_manager, &TrialManager::sigReset,
                          this, &MapWidget3D::reset);
+        
+        QObject::connect(_trial_manager, &TrialManager::currentBuildingChanged,
+                         this, [this]() 
+                         {
+                             checkBuildingState();
+                             _cur_building = _trial_manager->currentBuilding();
+                         });
     }
 }
 
@@ -155,8 +152,8 @@ void MapWidget3D::positionUpdate()
     if(!_cur_vehicle)
         return;
 
-    auto b = _waypoint_to_building[_cur_vehicle->currentWaypoint()];
-    _image_filter->setCurrentBuilding(b);
+    //auto b = _waypoint_to_building[_cur_vehicle->currentWaypoint()];
+//    _image_filter->setCurrentBuilding(b);
     
 //    int v_id = _cur_vehicle->id;
 //    
@@ -183,21 +180,21 @@ void MapWidget3D::vehicleAdded(int v_id)
 
 void MapWidget3D::trialChanged()
 {
-    _waypoint_to_building.clear();
+    //_waypoint_to_building.clear();
     
     auto buildings = _trial_manager->getBuildings();
     auto waypoints = _trial_manager->getWaypointInfoList();
     
-    for(int i = 0; i <  waypoints.length(); i++)
+    for(int i = 0; i <  waypoints.size(); i++)
     {
         auto wp = waypoints[i];
-        if(wp->building_id >= buildings.length())
+        if(wp->building_id >= buildings.size())
         {
             qCDebug(lcar_bot) << "MORE WAYPOINT BUILDING ID's THAN BLUILDINGS";
             continue;
         }
         
-        _waypoint_to_building.insert(i, buildings[wp->building_id]);
+        //_waypoint_to_building.insert(i, buildings[wp->building_id]);
     }
     
     loadScene();
@@ -287,7 +284,8 @@ void MapWidget3D::createFloor()
     plane_mesh->setMeshResolution(QSize(res,res));
     
     transform->setScale(1);
-    transform->setTranslation(QVector3D(0.0f, 0.0f, 0.0f));
+    transform->setTranslation(transformedVec(0, 0, 0));
+    rotateY(transform, 0);
     
     //QRgb(0xa69929)
     planeMaterial->setDiffuse(QColor(QRgb(0x555555)));
@@ -339,6 +337,8 @@ void MapWidget3D::createBuilding(const QVector3D& pos, float size, QColor color)
     Transform *transform = new Transform();
     transform->setScale(size);
     transform->setTranslation(pos);
+    rotateY(transform, 0);
+    
     
     QPhongMaterial *cuboidMaterial = new QPhongMaterial();
     cuboidMaterial->setDiffuse(color);
@@ -361,8 +361,8 @@ void MapWidget3D::createBuilding(const std::shared_ptr<Building>& b)
 //        _renderer->m_cameraSelector->setParent((QNode*)nullptr);
 //        _renderer->m_cameraSelector->setParent(_layer_filter);
 //        
-        _renderer->m_clearBuffer->setParent((QNode*)nullptr);
-        _renderer->m_clearBuffer->setParent(_renderer->m_cameraSelector);
+//        _renderer->m_clearBuffer->setParent((QNode*)nullptr);
+//        _renderer->m_clearBuffer->setParent(_renderer->m_cameraSelector);
 //    }
     
     QColor c;
@@ -393,12 +393,14 @@ void MapWidget3D::createBuilding(const std::shared_ptr<Building>& b)
     b3->_transform_large = new Transform();
     b3->_transform_large->setScale(B_SIZE);
     b3->_transform_large->setTranslation(pos);
-
-    QPhongMaterial *cube_mat = new QPhongMaterial();
-    cube_mat->setDiffuse(c);
+    rotateY(b3->_transform_large, 0);
+    
+    
+    b3->_material = new QPhongMaterial();
+    b3->_material->setDiffuse(c);
 
     b3->_entity_large->addComponent(new QCuboidMesh());
-    b3->_entity_large->addComponent(cube_mat);
+    b3->_entity_large->addComponent(b3->_material);
     b3->_entity_large->addComponent(b3->_transform_large);
     //b3->_entity_large->addComponent(_layer);
 
@@ -437,7 +439,7 @@ MapWidget3D::Vehicle3D * MapWidget3D::createVehicle(int vehicle_type)
         mesh->setSource(QUrl("qrc:/vehicles/QuadRotor.obj"));
         
         Transform * transform = new Transform();
-        transform->setScale(VEHICLE_SCALE);
+        transform->setScale(V_SIZE);
         transform->setTranslation({6, 4, 6});
         transform->setRotationY(220);
         
@@ -472,6 +474,21 @@ void MapWidget3D::connectToUiAdapter()
     {
         _cur_vehicle = _vm->GetVehicle(id);
     });
+    
+    QObject::connect(uia, &UIAdapter::DeleteVehicle,
+                    this, [this](int id)
+    {
+        if(_cur_vehicle->id == id)
+            _cur_vehicle = nullptr;
+        
+        auto v_3d = _vehicle_map.take(id);
+        if(v_3d)
+        {
+            v_3d->_entity->deleteLater();
+            delete v_3d;
+        }
+        
+    });
 }
 
     
@@ -485,4 +502,32 @@ void MapWidget3D::setupUi()
 
     setLayout(layout);
     layout->addWidget(container);
+}
+
+void MapWidget3D::checkBuildingState()
+{
+    if(!_cur_building)
+        return;
+    
+    auto b3 = _buildings_3d[_cur_building->getID()];
+    
+    if(_cur_building->doorPrompt() == _cur_building->doorLocation())
+    {
+        _cur_building->setFoundBy(Building::fVehicle);
+        b3->_material->setDiffuse(QColor("blue"));
+    }
+    else if(_cur_building->spaceCount() > 0)
+    {
+        auto space_count_per_wall = _cur_building->spaceCountPerWall();
+        int d_loc = _cur_building->doorLocation();
+        if(space_count_per_wall[d_loc] > 0)
+            b3->_material->setDiffuse(QColor("blue"));
+        else
+            b3->_material->setDiffuse(QColor("red"));
+    }
+    else
+    {
+      // todo   
+    }
+    
 }

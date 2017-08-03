@@ -23,7 +23,7 @@ geometry_msgs::Pose setupWaypoint(double x, double y, double z, double yaw)//yaw
 }
 void runPredictable()//DON'T OVERRIDE WITH PULL
 {
-    // PREDICTABLE AND SIMPLE//
+ // PREDICTABLE AND SIMPLE//
    //////BEGIN FIRST BUILDING//////
    geometry_msgs::Pose target_ptMBR = setupWaypoint(-1.9,-1.3,height,90);
    
@@ -162,7 +162,6 @@ void runPredictable()//DON'T OVERRIDE WITH PULL
    waypoints_list.push_back(target_ptLBL1);
    waypoints_list.push_back(target_ptLBL2);
    waypoints_list.push_back(target_ptLast);
-   
 }
 
 void runUnpredictable()
@@ -170,106 +169,109 @@ void runUnpredictable()
     //UNPREDICTABLE
    geometry_msgs::Pose target_ptRMB = setupWaypoint(-1.8,-1.7,height,0);//RMB (RIGHT MID BOTTOM)
    
-   geometry_msgs::Pose target_pt2 = setupWaypoint(-1.9,-1.3,height,90);//MBR (MID BOTTOM RIGHT)
+   geometry_msgs::Pose target_ptMBR = setupWaypoint(-1.9,-1.3,height,90);//MBR (MID BOTTOM RIGHT)
    
-   geometry_msgs::Pose target_pt3 = setupWaypoint(-2.9,-0.25,height,0); //MBB
+   geometry_msgs::Pose target_ptMBB = setupWaypoint(-2.9,-0.25,height,0); //MBB
    
-   geometry_msgs::Pose target_pt4 = setupWaypoint(-2.0,0.5,height,270); //MBL
+   geometry_msgs::Pose target_ptMBL1 = setupWaypoint(-2.0,0.5,height,270); //MBL
    
-   geometry_msgs::Pose target_pt4_unprd = setupWaypoint(-2,0.5,height,90); //MBL
+   geometry_msgs::Pose target_ptMBL2 = setupWaypoint(-2,0.5,height,90); //MBL
    
-   geometry_msgs::Pose target_pt5_1 = setupWaypoint(-1.2,-0.25,height,180); //MBT
+   geometry_msgs::Pose target_ptMBT = setupWaypoint(-1.2,-0.25,height,180); //MBT
    
-   geometry_msgs::Pose target_pt5_2 = setupWaypoint(-1.2,-0.25,height,0); //MMB
+   geometry_msgs::Pose target_ptMMB = setupWaypoint(-1.2,-0.25,height,0); //MMB
    
-   geometry_msgs::Pose target_pt6 = setupWaypoint(-0.28,0.55,height,270); //MML
+   geometry_msgs::Pose target_ptMML = setupWaypoint(-0.28,0.55,height,270); //MML
    
-   geometry_msgs::Pose target_pt7 = setupWaypoint(-0.28,0.55,height,90);//LMR
+   geometry_msgs::Pose target_ptLMR = setupWaypoint(-0.28,0.55,height,90);//LMR
    
-   geometry_msgs::Pose target_pt8 = setupWaypoint(-0.9,1.35,height,0);
+   geometry_msgs::Pose target_ptLMB = setupWaypoint(-0.9,1.35,height,0);
    
-   geometry_msgs::Pose target_pt9_1 = setupWaypoint(-0.15, 2.2,height,270);
+   //ADD WAYPOINT FOR LBT
    
-   geometry_msgs::Pose target_pt9_2 = setupWaypoint(0.6,1.34,height,180);
+   geometry_msgs::Pose target_ptLML = setupWaypoint(-0.15, 2.2,height,270);
    
-   geometry_msgs::Pose target_pt10 = setupWaypoint(0.6,1.34,height,0);
+   geometry_msgs::Pose target_ptLMT = setupWaypoint(0.6,1.34,height,180);
    
-   geometry_msgs::Pose target_pt11 = setupWaypoint(1.3,2.1,height,270);
+   geometry_msgs::Pose target_ptLTB = setupWaypoint(0.6,1.34,height,0);
    
-   geometry_msgs::Pose target_pt12 = setupWaypoint(2.1,1.3,height,180);
+   geometry_msgs::Pose target_ptLTL = setupWaypoint(1.3,2.1,height,270);
    
-   geometry_msgs::Pose target_pt13_1 = setupWaypoint(1.25,0.5,height,270);
+   geometry_msgs::Pose target_ptLTT1 = setupWaypoint(2.1,1.3,height,180);
    
-   geometry_msgs::Pose target_pt13_2 = setupWaypoint(1.25,0.5,height,90);
+   geometry_msgs::Pose target_ptMTL = setupWaypoint(1.25,0.5,height,270);
    
-   geometry_msgs::Pose target_pt14 = setupWaypoint(0.4,-0.3,height,180);
+   geometry_msgs::Pose target_ptLTR = setupWaypoint(1.25,0.5,height,90);
    
-   geometry_msgs::Pose target_pt15 = setupWaypoint(0.4,-0.3,height,0);
+   geometry_msgs::Pose target_ptMMT = setupWaypoint(0.4,-0.3,height,180);
    
-   geometry_msgs::Pose target_pt16 = setupWaypoint(-0.4,-1.0,height,90);
+   geometry_msgs::Pose target_ptMTB = setupWaypoint(0.4,-0.3,height,0);
    
-   geometry_msgs::Pose target_pt17_1 = setupWaypoint(-0.4,-1.0,height,270);
+   geometry_msgs::Pose target_ptMMR = setupWaypoint(-0.4,-1.0,height,90);
    
-   geometry_msgs::Pose target_pt17_2 = setupWaypoint(0.5,-1.6,height,180);//RMT
+   geometry_msgs::Pose target_ptRML = setupWaypoint(-0.4,-1.0,height,270);
    
-   geometry_msgs::Pose target_pt18 = setupWaypoint(0.5,-1.6,height,0);//RTB
+   geometry_msgs::Pose target_ptRMT = setupWaypoint(0.5,-1.6,height,180);//RMT
    
-   geometry_msgs::Pose target_pt19 = setupWaypoint(1.3,-2.1,height,90);//RTR
+   geometry_msgs::Pose target_ptRTB = setupWaypoint(0.5,-1.6,height,0);//RTB
    
-   geometry_msgs::Pose target_pt20 = setupWaypoint(2.0,-1.5,height,180);//RTT
+   geometry_msgs::Pose target_ptRTR = setupWaypoint(1.3,-2.1,height,90);//RTR
    
-   geometry_msgs::Pose target_pt21_1 = setupWaypoint(1.25,-0.8,height,270);//RTL
+   geometry_msgs::Pose target_ptRTT = setupWaypoint(2.0,-1.5,height,180);//RTT
    
-   geometry_msgs::Pose target_pt21_2 = setupWaypoint(1.25,-0.8,height,90);//MTR
+   geometry_msgs::Pose target_ptRTL = setupWaypoint(1.25,-0.8,height,270);//RTL
    
-   geometry_msgs::Pose target_pt22 = setupWaypoint(1.9,-0.15,height,180);//MTT
+   geometry_msgs::Pose target_ptMTR = setupWaypoint(1.25,-0.8,height,90);//MTR
    
-   geometry_msgs::Pose target_pt23 = setupWaypoint(2.1,1.35,height,180);//LTT
+   geometry_msgs::Pose target_ptMTT = setupWaypoint(1.9,-0.15,height,180);//MTT
    
-   geometry_msgs::Pose target_pt24 = setupWaypoint(-1.5,2.15,height,270);
+   geometry_msgs::Pose target_ptLTT2 = setupWaypoint(2.1,1.35,height,180);//LTT
    
-   geometry_msgs::Pose target_pt25_1 = setupWaypoint(-2.2,1.35,height,0);
+   geometry_msgs::Pose target_ptLBL = setupWaypoint(-1.5,2.15,height,270);
    
-   geometry_msgs::Pose target_pt25_2 = setupWaypoint(-2.1,-1.6,height,90);
+   geometry_msgs::Pose target_ptLBB = setupWaypoint(-2.2,1.35,height,0);
    
-   geometry_msgs::Pose target_pt26 = setupWaypoint(-0.35,-2.4,height,90);
+   geometry_msgs::Pose target_ptRMR1 = setupWaypoint(-2.1,-1.6,height,90);
    
-   geometry_msgs::Pose target_pt27 = setupWaypoint(-1.7,-1.9,height,90);
+   geometry_msgs::Pose target_ptRMR2 = setupWaypoint(-0.35,-2.4,height,90);
+   
+   geometry_msgs::Pose target_ptLAND = setupWaypoint(-1.7,-1.9,height,90);
    
    waypoints_list.push_back(target_ptRMB);
-   waypoints_list.push_back(target_pt2);
-   waypoints_list.push_back(target_pt3);
-   waypoints_list.push_back(target_pt4);
-   waypoints_list.push_back(target_pt5_1);
-   waypoints_list.push_back(target_pt5_2);
-   waypoints_list.push_back(target_pt6);
-   waypoints_list.push_back(target_pt7);
-   waypoints_list.push_back(target_pt8);
-   waypoints_list.push_back(target_pt9_1);
-   waypoints_list.push_back(target_pt9_2);
-   waypoints_list.push_back(target_pt10);
-   waypoints_list.push_back(target_pt11);
-   waypoints_list.push_back(target_pt12);
-   waypoints_list.push_back(target_pt13_1);   
-   waypoints_list.push_back(target_pt13_2);
-   waypoints_list.push_back(target_pt14);
-   waypoints_list.push_back(target_pt15);
-   waypoints_list.push_back(target_pt16);
-   waypoints_list.push_back(target_pt17_1);
-   waypoints_list.push_back(target_pt17_2);*/
-   waypoints_list.push_back(target_pt18);
-   waypoints_list.push_back(target_pt19);
-   waypoints_list.push_back(target_pt20);
-   waypoints_list.push_back(target_pt21_1);
-   waypoints_list.push_back(target_pt21_2);
-   waypoints_list.push_back(target_pt22);
-   waypoints_list.push_back(target_pt23);
-   waypoints_list.push_back(target_pt24);
-   waypoints_list.push_back(target_pt25_1);
-   waypoints_list.push_back(target_pt25_2);
-   waypoints_list.push_back(target_pt26); 
-   waypoints_list.push_back(target_pt27);
-   
+   waypoints_list.push_back(target_ptMBR);   
+   waypoints_list.push_back(target_ptMBB);   
+   waypoints_list.push_back(target_ptMBL1);   
+   waypoints_list.push_back(target_ptMBL2);   
+   waypoints_list.push_back(target_ptMBT);   
+   waypoints_list.push_back(target_ptMMB);   
+   waypoints_list.push_back(target_ptMML);   
+   waypoints_list.push_back(target_ptLMR);   
+   waypoints_list.push_back(target_ptLMB);   
+   //ADD WAYPOINT FOR LBT   
+   waypoints_list.push_back(target_ptLML);   
+   waypoints_list.push_back(target_ptLMT);   
+   waypoints_list.push_back(target_ptLTB);   
+   waypoints_list.push_back(target_ptLTL);   
+   waypoints_list.push_back(target_ptLTT1);   
+   waypoints_list.push_back(target_ptMTL);   
+   waypoints_list.push_back(target_ptLTR);   
+   waypoints_list.push_back(target_ptMMT);   
+   waypoints_list.push_back(target_ptMTB);   
+   waypoints_list.push_back(target_ptMMR);   
+   waypoints_list.push_back(target_ptRML);   
+   waypoints_list.push_back(target_ptRMT);   
+   waypoints_list.push_back(target_ptRTB);   
+   waypoints_list.push_back(target_ptRTR);   
+   waypoints_list.push_back(target_ptRTT);   
+   waypoints_list.push_back(target_ptRTL);   
+   waypoints_list.push_back(target_ptMTR);   
+   waypoints_list.push_back(target_ptMTT);   
+   waypoints_list.push_back(target_ptLTT2);   
+   waypoints_list.push_back(target_ptLBL);  
+   waypoints_list.push_back(target_ptLBB);   
+   waypoints_list.push_back(target_ptRMR1);   
+   waypoints_list.push_back(target_ptRMR2);   
+   waypoints_list.push_back(target_ptLAND);
 }
 
 int main(int argc, char **argv)

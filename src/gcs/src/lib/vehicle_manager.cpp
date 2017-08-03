@@ -132,8 +132,8 @@ void VehicleManager::ConnectToUIAdapter()
     connect(ui_adapter, &UIAdapter::AddVehicle,
             this, &VehicleManager::OnOperatorAddVehicle);
     
-    connect(ui_adapter, &UIAdapter::DeleteVehicle,
-            this, &VehicleManager::OnOperatorDeleteVehicle);
+//    connect(ui_adapter, &UIAdapter::DeleteVehicle,
+//            this, &VehicleManager::OnOperatorDeleteVehicle);
     
     
     //coordinate system from settings widget
@@ -274,7 +274,7 @@ void VehicleManager::OnOperatorAddVehicle(const int vehicle_id)
 
 void VehicleManager::OnOperatorDeleteVehicle(int v_id)
 {          
-    widget_mutex.lock();
+    //widget_mutex.lock();
     
     int v_type = this->VehicleTypeFromId(v_id);
     
@@ -285,7 +285,7 @@ void VehicleManager::OnOperatorDeleteVehicle(int v_id)
     if(it != v_db->end())
     {
         emit UIAdapter::Instance()->vehicleDeleted(v_id);
-        widget_deleted.wait(&widget_mutex);
+        //widget_deleted.wait(&widget_mutex);
         
         VehicleControl *vc = it.value();
         v_db->erase(it);
@@ -296,7 +296,7 @@ void VehicleManager::OnOperatorDeleteVehicle(int v_id)
                         << this->VehicleStringFromId(v_id).toStdString()
                         << " with id: " << v_id);
     
-    widget_mutex.unlock();
+    //widget_mutex.unlock();
 }
 
 void VehicleManager::OnScoutBuilding(int quad_id, int building)
@@ -635,15 +635,15 @@ MissionMode VehicleManager::GetMissionMode(int v_id)
     return MissionMode::invalid;
 }
 
-QMutex* VehicleManager::GetWidgetMutex()
-{
-    return &widget_mutex;
-}
-
-QWaitCondition* VehicleManager::GetWaitCondition()
-{
-    return &widget_deleted;
-}
+//QMutex* VehicleManager::GetWidgetMutex()
+//{
+//    return &widget_mutex;
+//}
+//
+//QWaitCondition* VehicleManager::GetWaitCondition()
+//{
+//    return &widget_deleted;
+//}
 
 //private://////////////////////////////////////////////////////////////////////
 

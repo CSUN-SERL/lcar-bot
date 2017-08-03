@@ -12,6 +12,7 @@
 #include <memory>
 
 #include <QObject>
+#include <QMap>
 
 #include <gcs/util/trial_loader.h>
 #include <gcs/util/debug.h>
@@ -45,6 +46,14 @@ public:
     void setUserID(int user_id);
     void exportTrialData();
     
+    std::shared_ptr<Building> currentBuilding()
+    {
+        if(_cur_b_id == -1)
+            return nullptr;
+        
+        return _loader.getBuildings().value(_cur_b_id);
+    }
+    
     int currentTrial()
     {
         return _cur_trial;
@@ -55,7 +64,7 @@ public:
         return _cur_condition;
     }
       
-    const QList< std::shared_ptr<Building> >& getBuildings()
+    const QMap<int, std::shared_ptr<Building> >& getBuildings()
     {
         return _loader.getBuildings();
     }
@@ -84,9 +93,10 @@ signals:
     void trialChanged();
     void trialEnded();
     void sigReset();
+    void currentBuildingChanged();
     
 private:    
-    void checkEndTrial();
+    void checkCurrentBuildingChange();
     void setTrial(TrialLoader::Condition c, int trial);
     
 private:
@@ -109,6 +119,11 @@ private:
     
     int MAX_TRIALS = 4;
     int MAX_CONDITIONS = 1;
+    
+//    QMap<int, std::shared_ptr<gcs::Building>> _waypoint_to_building;
+    int _cur_b_id = -1;
+    
+    //_total_missed
 };
 
 }

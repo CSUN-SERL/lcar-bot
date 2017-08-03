@@ -65,7 +65,8 @@ public:
     virtual void SetMission(std::vector<geometry_msgs::Pose> waypoints_list) = 0;
     
     bool RecievedHeartbeat() { return heartbeat_recieved; };
-    bool MissionComplete() { 
+    virtual bool MissionComplete()
+    { 
         if(mission_mode == stopped){
             return true;
         }

@@ -28,6 +28,8 @@ namespace Ui
     class GCSMainWindow;
 }
 
+class DistractionContainerWidget;
+
 namespace gcs
 {
 
@@ -42,7 +44,6 @@ class VehicleInitWidget;
 class VehicleWidget;
 class TrialWidget;
 
-
 class GCSMainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -51,6 +52,8 @@ public:
     GCSMainWindow(VehicleManager * vm);
     virtual ~GCSMainWindow();
     void setImageFeedVisible(bool visible);
+    
+    void deleteVehicle(int v_id);
     
 public slots:
     void OnTimedUpdate();
@@ -62,7 +65,7 @@ public slots:
     // Buttons
     void OnExecutePlay();
     void OnCancelPlay();
-    void OnScoutBuilding();
+    void StartTrial();
     void OnStopScout();
     void OnChangeFlightMode(int);
     void OnVehicleSelected(VehicleWidget *w);
@@ -111,6 +114,7 @@ private:
     void OnUnansweredQueriesTriggered();
     void OnAddVehicleTriggered();
     void OnTrialInfoTriggered();
+    void OnDistractionWidgetTriggererd();
     
     void connectToTrialManager();
     void connectToSelf();
@@ -142,6 +146,7 @@ private:
         QPointer<AccessPointsContainerWidget> ap_menu;
         QPointer<VehicleInitWidget> vehicle_init;
         QPointer<TrialWidget> user_id;
+        QPointer<DistractionContainerWidget> distraction;
     } fl_widgets;
     
 };

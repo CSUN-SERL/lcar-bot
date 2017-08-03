@@ -43,7 +43,7 @@ public:
     bool loadBuildings(Condition c, int trial);
     bool loadWaypoints(Condition c, int trial);
     
-    const QList< std::shared_ptr<Building> >& getBuildings() const;
+    const QMap<int, std::shared_ptr<Building> >& getBuildings() const;
     const QList< std::shared_ptr<WaypointInfo> >& getWaypointInfoList() const;
     void reset();
     
@@ -53,7 +53,7 @@ public:
     }
     
 private:
-    QList< std::shared_ptr<Building> > _buildings;
+    QMap<int, std::shared_ptr<Building> > _buildings;
     QList< std::shared_ptr<WaypointInfo> > _waypoints;
 };
 
