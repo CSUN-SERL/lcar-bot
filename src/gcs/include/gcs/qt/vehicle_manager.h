@@ -256,18 +256,18 @@ public slots:
     MissionMode GetMissionMode(int v_id);
     //end Vehicle info queries//////////////////////////////////////////////////
     
-    /**
-     * \brief the mutex used to guarantee the a gui update doesn't happen on a vehicle widget
-     *        for which the vehicle has been deleted
-     * @return the Qmutex to wait on 
-     */
-    QMutex* GetWidgetMutex();
-    
-    /**
-     * \brief the wait condition associated with the widget mutex
-     * @return the wait condition assoicated with the widget mutex
-     */
-    QWaitCondition* GetWaitCondition();
+//    /**
+//     * \brief the mutex used to guarantee the a gui update doesn't happen on a vehicle widget
+//     *        for which the vehicle has been deleted
+//     * @return the Qmutex to wait on 
+//     */
+//    QMutex* GetWidgetMutex();
+//    
+//    /**
+//     * \brief the wait condition associated with the widget mutex
+//     * @return the wait condition assoicated with the widget mutex
+//     */
+//    QWaitCondition* GetWaitCondition();
     
 signals:
     void quadRotorAdded(int id);
@@ -342,8 +342,8 @@ private:
      */
     QMap<int, QString> init_requests; //vehicle init. requests, storing machine_name and potential id
     
-    QMutex widget_mutex;
-    QWaitCondition widget_deleted;
+//    QMutex widget_mutex;
+//    QWaitCondition widget_deleted;
     
     ros::NodeHandle nh;
     ros::ServiceServer srv_init_request;

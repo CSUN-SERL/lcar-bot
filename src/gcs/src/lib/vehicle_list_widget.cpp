@@ -6,10 +6,14 @@
  * Created on September 17, 2016, 7:20 PM
  */
 
-#include <QTimer>
 #include <QStringBuilder>
+#include <QTimer>
+#include <QMenu>
 
+#include <gcs/qt/gcs_main_window.h>
+#include <gcs/qt/trial_manager.h>
 #include <gcs/qt/vehicle_list_widget.h>
+#include <gcs/qt/ui_adapter.h>
 #include <vehicle/vehicle_control.h>
 
 
@@ -17,10 +21,16 @@ namespace gcs
 {
 
 //public////////////////////////////////////////////////////////////////////////
-VehicleWidget::VehicleWidget(QWidget * parent):
-    MyQWidget(parent)
+VehicleWidget::VehicleWidget(GCSMainWindow* main_window, TrialManager * trial_manager, QWidget * parent):
+    MyQWidget(parent),
+    _main_window(main_window),
+    _trial_manager(trial_manager)
 {
+    setContextMenuPolicy(Qt::CustomContextMenu);
     _widget.setupUi(this);
+    
+    QObject::connect(this, &VehicleWidget::customContextMenuRequested,
+                     this, &VehicleWidget::contextMenuRequested);
 }
 
 VehicleWidget::~VehicleWidget() 
@@ -92,8 +102,41 @@ const QPushButton* VehicleWidget::Button()
 
 void VehicleWidget::timedUpdate()
 {
-    SetBattery(_vc->GetBattery());
-    SetCondition(_vc->GetMode().c_str());
+    if(_vc)
+    {
+        SetBattery(_vc->GetBattery());
+        SetCondition(_vc->GetMode().c_str());
+    }
+}
+
+void VehicleWidget::contextMenuRequested(QPoint pos)
+{
+    if(_trial_manager->isRunning())
+        return;
+    
+    if(_menu == nullptr)
+        createMenu();
+    
+    _menu->popup(mapToGlobal(pos));
+}
+
+void VehicleWidget::createMenu()
+{
+    if(_menu != nullptr)
+        return;
+    
+    _menu = new QMenu(this);
+    
+    QAction * action = _menu->addAction("Delete Vehicle");
+    
+    QObject::connect(action, &QAction::triggered,
+                    this, &VehicleWidget::deleteActionTriggererd);
+}
+
+void VehicleWidget::deleteActionTriggererd()
+{
+    _vc = nullptr;
+    _main_window->deleteVehicle(v_id);
 }
 
 }

@@ -15,7 +15,7 @@ find_package(Qt5Widgets REQUIRED )
 find_package(Qt5Svg REQUIRED )
 find_package(Qt53DCore REQUIRED )
 find_package(Qt53DExtras REQUIRED )
-find_package(Qt5Widgets REQUIRED )
+find_package(Qt5Multimedia REQUIRED )
 
 set(gcs_INCLUDE_DIRS
         include )
@@ -29,12 +29,13 @@ include_directories(
     ${Qt5Svg_INCLUDE_DIRS} 
     ${Qt53DCore_INCLUDE_DIRS}
     ${Qt53DExtras_INCLUDE_DIRS}
-    ${Qt53DInput_INCLUDE_DIRS} )
+    ${Qt53DInput_INCLUDE_DIRS}
+    ${Qt5Multimedia_INCLUDE_DIRS} )
 
 #currently not necessary but it doesn't hurt
 #catkin_python_setup()
     
-set(DEPENDENCIES Qt5Widgets Qt5Svg Qt53DCore Qt53DExtras Qt53DInput)
+set(DEPENDENCIES Qt5Widgets Qt5Svg Qt53DCore Qt53DExtras Qt53DInput Qt5Multimedia)
 
 catkin_package(
     INCLUDE_DIRS ${gcs_INCLUDE_DIRS}
@@ -96,4 +97,5 @@ target_link_libraries(gcs_node
     Qt5::Svg 
     Qt5::3DCore 
     Qt5::3DExtras 
-    Qt5::3DInput )
+    Qt5::3DInput
+    Qt5::Multimedia )

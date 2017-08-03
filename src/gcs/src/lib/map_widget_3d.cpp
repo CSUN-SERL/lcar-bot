@@ -37,16 +37,14 @@ using namespace gcs;
 
 #define M2F 3.28084 // meters to feet
 #define F2M 0.3048  // feet to meters
-#define B_SIZE (float)(3 * F2M)
-#define F_SIZE (float)(16 * F2M)
-#define VEHICLE_SCALE 0.0013
+#define B_SIZE (float)(3 * F2M) // building size
+#define F_SIZE (float)(16 * F2M) // floor size
+#define V_SIZE 0.0013 // uav size
 
-//QVector3D transformedVec(float x, float y, float z)
-//{
-//    return QVector3D(x, z, -y);
-//}
+//#define transformedVec(x, y, z) QVector3D(x, z, -y)
+#define transformedVec(x, y, z) QVector3D(x - 0.45, z, -y)
 
-#define transformedVec(x, y, z) QVector3D(x, z, -y)
+#define rotateY(obj, y) obj->setRotationY(y + 90)
 
 void MapWidget3D::Vehicle3D::update()
 {
@@ -60,16 +58,17 @@ void MapWidget3D::Vehicle3D::update()
         pos.position.z :
         0;
     
-    QVector3D vec = transformedVec(pos.position.x, 
+    QVector3D vec = transformedVec(pos.position.x + 0.45, 
                                    pos.position.y, 
                                    z);
-    //vec = vec * 1/transform->scale();
+    
+    //vec.setX(vec.x() + 0.5);
     //first set position with z and y swapped
   _transform->setTranslation(vec);
     
     //next orientation, also with z and y axes swapped
   _transform->setRotationX(pos.orientation.pitch);
-  _transform->setRotationY(pos.orientation.yaw + 90);
+  rotateY(_transform, pos.orientation.yaw);
   _transform->setRotationZ(pos.orientation.roll);
 }
 
@@ -285,7 +284,8 @@ void MapWidget3D::createFloor()
     plane_mesh->setMeshResolution(QSize(res,res));
     
     transform->setScale(1);
-    transform->setTranslation(QVector3D(0.0f, 0.0f, 0.0f));
+    transform->setTranslation(transformedVec(0, 0, 0));
+    rotateY(transform, 0);
     
     //QRgb(0xa69929)
     planeMaterial->setDiffuse(QColor(QRgb(0x555555)));
@@ -337,6 +337,8 @@ void MapWidget3D::createBuilding(const QVector3D& pos, float size, QColor color)
     Transform *transform = new Transform();
     transform->setScale(size);
     transform->setTranslation(pos);
+    rotateY(transform, 0);
+    
     
     QPhongMaterial *cuboidMaterial = new QPhongMaterial();
     cuboidMaterial->setDiffuse(color);
@@ -391,7 +393,9 @@ void MapWidget3D::createBuilding(const std::shared_ptr<Building>& b)
     b3->_transform_large = new Transform();
     b3->_transform_large->setScale(B_SIZE);
     b3->_transform_large->setTranslation(pos);
-
+    rotateY(b3->_transform_large, 0);
+    
+    
     b3->_material = new QPhongMaterial();
     b3->_material->setDiffuse(c);
 
@@ -435,7 +439,7 @@ MapWidget3D::Vehicle3D * MapWidget3D::createVehicle(int vehicle_type)
         mesh->setSource(QUrl("qrc:/vehicles/QuadRotor.obj"));
         
         Transform * transform = new Transform();
-        transform->setScale(VEHICLE_SCALE);
+        transform->setScale(V_SIZE);
         transform->setTranslation({6, 4, 6});
         transform->setRotationY(220);
         
@@ -469,6 +473,21 @@ void MapWidget3D::connectToUiAdapter()
                     this, [this](int id)
     {
         _cur_vehicle = _vm->GetVehicle(id);
+    });
+    
+    QObject::connect(uia, &UIAdapter::DeleteVehicle,
+                    this, [this](int id)
+    {
+        if(_cur_vehicle->id == id)
+            _cur_vehicle = nullptr;
+        
+        auto v_3d = _vehicle_map.take(id);
+        if(v_3d)
+        {
+            v_3d->_entity->deleteLater();
+            delete v_3d;
+        }
+        
     });
 }
 

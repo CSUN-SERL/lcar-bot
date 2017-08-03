@@ -34,7 +34,7 @@ bool TrialLoader::loadBuildings(Condition c, int trial)
         QString(":/buildings/b_predictable%1.txt").arg(trial_s) :
         QString(":/buildings/b_unpredictable%1.txt").arg(trial_s);
     
-    //qCDebug(lcar_bot) << file_name;
+    qCDebug(lcar_bot) << file_name;
     
     QFile file(file_name);
     
@@ -99,6 +99,8 @@ bool TrialLoader::loadWaypoints(Condition c, int trial)
     QString file_name = c == Predictable ?
         ":/waypoints/wp_predictable.txt" :
         ":/waypoints/wp_unpredictable.txt";
+    
+    qCDebug(lcar_bot) << file_name;
     
     QFile file(file_name);
     

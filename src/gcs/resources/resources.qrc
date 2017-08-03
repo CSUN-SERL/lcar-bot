@@ -1,0 +1,45 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Resources/CVT1.jpeg</file>
+        <file>Resources/CVT2.jpeg</file>
+        <file>Resources/CVT3.jpeg</file>
+        <file>Resources/CVT4.jpeg</file>
+        <file>Resources/CVT5.jpeg</file>
+        <file>Resources/CVT6.jpeg</file>
+        <file>Resources/CVT7.jpeg</file>
+        <file>Resources/CVT8.jpeg</file>
+        <file>Resources/CVT9.jpeg</file>
+        <file>Resources/CVT10.jpeg</file>
+        <file>Resources/CVT11.jpeg</file>
+        <file>Resources/CVT12.jpeg</file>
+        <file>Resources/CVT13.jpeg</file>
+        <file>Resources/CVT14.jpeg</file>
+        <file>Resources/CVT15.jpeg</file>
+        <file>Resources/CVT16.jpeg</file>
+        <file>Resources/CVT17.jpeg</file>
+        <file>Resources/CVT18.jpeg</file>
+        <file>Resources/CVT19.jpeg</file>
+        <file>Resources/CVT20.jpeg</file>
+        <file>Resources/CVT21.jpeg</file>
+        <file>Resources/CVT22.jpeg</file>
+        <file>Resources/CVT23.jpeg</file>
+        <file>Resources/CVT24.jpeg</file>
+        <file>Resources/CVT25.jpg</file>
+        <file>Resources/CVT26.jpg</file>
+        <file>Resources/CVT27.jpg</file>
+        <file>Resources/CVT28.jpg</file>
+        <file>Resources/CVT29.jpg</file>
+        <file>Resources/CVT30.jpg</file>
+        <file>Resources/CVT31.jpg</file>
+        <file>Resources/CVT32.jpg</file>
+        <file>Resources/CVT33.jpg</file>
+        <file>Resources/CVT34.jpg</file>
+        <file>Resources/CVT35.jpg</file>
+        <file>Resources/CVT36.jpg</file>
+        <file>Resources/CVT37.jpg</file>
+        <file>Resources/CVT38.jpg</file>
+        <file>Resources/CVT39.jpg</file>
+        <file>Resources/CVT40.jpg</file>
+        <file>Resources/Pling.mp3</file>
+    </qresource>
+</RCC>

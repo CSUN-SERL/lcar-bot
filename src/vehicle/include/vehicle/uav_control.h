@@ -196,6 +196,11 @@ public:
     
     virtual Position getPosition() override;
 
+    virtual bool MissionComplete() override
+    {
+        return cur_waypoint >= path_mission.poses.size();
+    }
+    
 private:
     void InitialSetup();
 

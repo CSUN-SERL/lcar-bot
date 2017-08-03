@@ -65,7 +65,6 @@ private:
     struct Vehicle3D
     {
         Qt3DCore::QEntity * _entity;
-        Qt3DCore::QEntity * _entity_mini;
         
         Qt3DRender::QMesh *_mesh;
         Qt3DRender::QMaterial * _material;
