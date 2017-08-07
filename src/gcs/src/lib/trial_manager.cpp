@@ -188,7 +188,7 @@ void TrialManager::checkCurrentBuildingChange()
     
     auto wp = waypoints.at(cur_wp);
     
-    if (_cur_b_id != wp->building_id)
+    if (_cur_b_id != wp->building_id && wp->isBuildingWP())
     {
         _cur_b_id = wp->building_id;
         emit currentBuildingChanged();

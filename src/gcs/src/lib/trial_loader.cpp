@@ -13,6 +13,9 @@
 #include <gcs/util/debug.h>
 #include <QtCore/qurl.h>
 
+#define COMMENT '#'
+#define DELIMIT ", "
+
 namespace gcs
 {
 
@@ -48,10 +51,12 @@ bool TrialLoader::loadBuildings(Condition c, int trial)
     while(!ts.atEnd())
     {
         QString line = ts.readLine();
-        if(line.isEmpty() || line.startsWith('#'))
+        if(line.isEmpty() || line.startsWith(COMMENT))
             continue;
         
-        QStringList list = line.split(", ");
+        line = line.trimmed().simplified();
+        
+        QStringList list = line.split(DELIMIT);
         
         Q_ASSERT(list.length() == 8);
         if(list.length() != 8)
@@ -84,7 +89,7 @@ bool TrialLoader::loadBuildings(Condition c, int trial)
         b->setDoorLocation(list[i++].toInt());
         b->setDoorPrompt(list[i++].toInt());
         b->setDoorMissing(list[i++].toInt());
-        b->setFalsePrompt(list[i++].toInt());
+        b->setFalsePrompt(trimEOLComment(list[i++]).toInt());
         
         _buildings.insert(b->getID(), b);
     }
@@ -114,10 +119,12 @@ bool TrialLoader::loadWaypoints(Condition c, int trial)
     while(!ts.atEnd())
     {
         QString line = ts.readLine();
-        if(line.isEmpty() || line.startsWith('#'))
+        if(line.isEmpty() || line.startsWith(COMMENT))
             continue;
         
-        QStringList list = line.split(", ");
+        line = line.trimmed().simplified();
+        
+        QStringList list = line.split(DELIMIT);
         
         Q_ASSERT(list.length() == 5);
         if(list.length() != 5)
@@ -130,7 +137,7 @@ bool TrialLoader::loadWaypoints(Condition c, int trial)
         wp->y = list[i++].toDouble();
         wp->z = list[i++].toDouble();
         wp->yaw = list[i++].toInt();
-        wp->building_id = list[i++].toDouble();
+        wp->building_id = trimEOLComment(list[i++]).toDouble();
         
         _waypoints.append(wp);
     }
@@ -152,6 +159,15 @@ void TrialLoader::reset()
 {
     _buildings.clear();
     _waypoints.clear();
+}
+
+QString TrialLoader::trimEOLComment(const QString& entry)
+{
+    int index = entry.indexOf(COMMENT);
+    if(index == -1)
+        return entry.trimmed();
+
+    return entry.left(index).trimmed();
 }
 
 
