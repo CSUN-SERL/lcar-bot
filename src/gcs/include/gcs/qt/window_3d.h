@@ -106,6 +106,8 @@ public:
         return m_forwardRenderer;
     }
     
+    void fixAspectRatio();
+    
 protected:
     void showEvent(QShowEvent *e) override;
     void resizeEvent(QResizeEvent *) override;

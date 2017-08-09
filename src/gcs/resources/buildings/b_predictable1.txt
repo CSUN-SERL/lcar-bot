@@ -1,7 +1,7 @@
 15 # the number of fields this config file has
 
 # building trial info
-# id, p/w, x, y, wall0_door, wall1_door, wall2_door, wall3_door, wall0_window, wall1_window, wall3_window, wall4_window, door_prompt, door_missing, false_prompt 
+# id, p/w, x, y, wall0_door, wall1_door, wall2_door, wall3_door, wall0_window, wall1_window, wall3_window, wall4_window, door_prompt, door_missing, false_prompt
 
 0, p, -1.4986, -0.0762, 1, 1, 1, 0, 1, 0, 0, 0, -1, -1, -1
 1, p, -0.0762, -0.0762, 1, 1, 1, 0, 1, 0, 0, 0, -1, -1, -1

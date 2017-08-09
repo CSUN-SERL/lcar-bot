@@ -37,28 +37,29 @@ using namespace gcs;
 
 #define M2F 3.28084 // meters to feet
 #define F2M 0.3048  // feet to meters
-#define B_SIZE (float)(3 * F2M) // building size
-#define F_SIZE (float)(16 * F2M) // floor size
+#define B_SIZE ((float) (3.0 * F2M)) // building size
+#define F_SIZE ((float) (16.0 * F2M)) // floor size
 #define V_SIZE 0.0013 // uav size
 
-//#define transformedVec(x, y, z) QVector3D(x, z, -y)
-#define transformedVec(x, y, z) QVector3D(x - 0.45, z, -y)
+ // NOTE: z and y axes are swapped between ros and Qt3d
+    // prompting the following translations: 
+    // rotate yaw by 90 degrees
+    // negate z position after swapping z and y
+
+#define transformedVec(x, y, z) QVector3D(x, z, -y)
+//#define transformedVec(x, y, z) QVector3D(x - 0.45, z, -y)
 
 #define rotateY(obj, y) obj->setRotationY(y + 90)
 
 void MapWidget3D::Vehicle3D::update()
 {
-    // NOTE: z and y axes are swapped between ros and Qt3d
-    // prompting the following translations: 
-    // rotate yaw by 90 degrees
-    // negate z position after swapping z and y
     Position pos = _vehicle->getPosition();
     
     int z =  pos.position.z > 0 ?
         pos.position.z :
         0;
     
-    QVector3D vec = transformedVec(pos.position.x + 0.45, 
+    QVector3D vec = transformedVec(pos.position.x, 
                                    pos.position.y, 
                                    z);
     
@@ -71,6 +72,10 @@ void MapWidget3D::Vehicle3D::update()
   rotateY(_transform, pos.orientation.yaw);
   _transform->setRotationZ(pos.orientation.roll);
 }
+
+
+///////////////////////
+
 
 MapWidget3D::MapWidget3D( QWidget * parent) :
 QWidget(parent),
@@ -244,6 +249,7 @@ void MapWidget3D::loadScene()
 {   
     reset();
     loadBuildings();
+    _view->fixAspectRatio();
 }
 
 void MapWidget3D::createDefaultScene()
@@ -440,8 +446,6 @@ MapWidget3D::Vehicle3D * MapWidget3D::createVehicle(int vehicle_type)
         
         Transform * transform = new Transform();
         transform->setScale(V_SIZE);
-        transform->setTranslation({6, 4, 6});
-        transform->setRotationY(220);
         
         QPhongMaterial * material = new QPhongMaterial();
         material->setDiffuse(QColor(QRgb(0x928327)));

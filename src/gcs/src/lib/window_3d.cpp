@@ -132,6 +132,12 @@ void Window3D::setSceneRoot(Qt3DCore::QEntity *root)
     }
 }
 
+void Window3D::fixAspectRatio()
+{
+    m_defaultCamera->setAspectRatio(float(width()) / float(height()));
+    _mini_camera->setAspectRatio(float(width()) / float(height()));
+}
+
 void Window3D::showEvent(QShowEvent *e)
 {
     if (!_init) 
@@ -148,8 +154,9 @@ void Window3D::showEvent(QShowEvent *e)
     QWindow::showEvent(e);
 }
 
-void Window3D::resizeEvent(QResizeEvent *)
+void Window3D::resizeEvent(QResizeEvent *e)
 {
     m_defaultCamera->setAspectRatio(float(width()) / float(height()));
     _mini_camera->setAspectRatio(float(width()) / float(height()));
+    QWindow::resizeEvent(e);
 }
