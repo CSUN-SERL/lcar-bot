@@ -64,6 +64,12 @@ public:
     void setDoorLocation(int wall);
     int doorLocation();
     
+    void setDoors(const QMap<int, int>& doors);
+    const QMap<int, int>& doors();
+    
+    void setWindows(const QMap<int, int>& windows);
+    const QMap<int, int>& windows();
+    
     void setDoorPrompt(int wall);
     int doorPrompt();
     
@@ -111,6 +117,9 @@ private:
     
     float _x;
     float _y;
+    
+    QMap<int, int> _doors;
+    QMap<int, int> _windows;
     
     QMap<int, int> _space_count_by_wall;
 };
