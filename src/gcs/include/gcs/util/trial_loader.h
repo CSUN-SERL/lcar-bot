@@ -25,6 +25,12 @@ struct WaypointInfo
     double y;
     double z;
     int yaw;
+    
+    bool isBuildingWP()
+    {
+        return building_id != -1;
+    }
+    
 };
 
 class TrialLoader 
@@ -51,6 +57,9 @@ public:
     {
         return !_buildings.isEmpty() && !_waypoints.isEmpty();
     }
+    
+private:
+    QString trimEOLComment(const QString& entry);
     
 private:
     QMap<int, std::shared_ptr<Building> > _buildings;
