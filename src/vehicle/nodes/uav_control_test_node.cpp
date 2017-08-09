@@ -69,7 +69,8 @@ void runPredictable()//DON'T OVERRIDE WITH PULL
    geometry_msgs::Pose target_ptRTT = setupWaypoint(2.1,-1.5,height,180);
    
    geometry_msgs::Pose target_ptRTL = setupWaypoint(1.3,-0.5,height,270);
-    //////////5th Building///////////////////
+    
+   //////////5th Building///////////////////
    geometry_msgs::Pose target_ptMTR1 = setupWaypoint(1.25,-0.8,height,90);
    
    geometry_msgs::Pose target_ptMTR2 = setupWaypoint(1.25,-0.9,height, 90);
@@ -79,6 +80,7 @@ void runPredictable()//DON'T OVERRIDE WITH PULL
    geometry_msgs::Pose target_ptMTB = setupWaypoint(0.1,-0.15,height,0);
    
    geometry_msgs::Pose target_ptMTL = setupWaypoint(1.25,0.9,height,270);
+   
    //////////6th Building///////////////////
    geometry_msgs::Pose target_ptLTR1 = setupWaypoint(1.25,0.8,height,90);
    
@@ -102,21 +104,21 @@ void runPredictable()//DON'T OVERRIDE WITH PULL
    geometry_msgs::Pose target_ptLMB = setupWaypoint(-1.2,1.35,height,0);
    
    //////////8th Building///////////////////
-    geometry_msgs::Pose target_ptLBT1 = setupWaypoint(-1.1,1.35,height,180);
+    geometry_msgs::Pose target_ptLBT1 = setupWaypoint(-1.1, 1.35, height, 180);
     
-   geometry_msgs::Pose target_ptLBT2 = setupWaypoint(-1.0,1.35,height,180);
+   geometry_msgs::Pose target_ptLBT2 = setupWaypoint(-1.0, 1.35, height, 180);
    
-   geometry_msgs::Pose target_ptLBR = setupWaypoint(-1.65,0.3,height,90);
+   geometry_msgs::Pose target_ptLBR = setupWaypoint(-1.65, 0.3, height, 90);
    
-   geometry_msgs::Pose target_ptLBB1 = setupWaypoint(-1.65,1.35,height,0);
+   geometry_msgs::Pose target_ptLBB1 = setupWaypoint(-1.65, 1.35, height, 0);
    
-   geometry_msgs::Pose target_ptLBB2 = setupWaypoint(-2.2,1.35,height,0);
+   geometry_msgs::Pose target_ptLBB2 = setupWaypoint(-2.2, 1.35, height, 0);
    
-   geometry_msgs::Pose target_ptLBL1 = setupWaypoint(-1.6,1.5,height,270);
+   geometry_msgs::Pose target_ptLBL1 = setupWaypoint(-1.6, 1.5, height, 270);
    
-   geometry_msgs::Pose target_ptLBL2 = setupWaypoint(-1.6,2.15,height,270);
+   geometry_msgs::Pose target_ptLBL2 = setupWaypoint(-1.6, 2.15, height, 270);
    
-   geometry_msgs::Pose target_ptLast = setupWaypoint(-1.9,-1.5,height,270);
+   geometry_msgs::Pose target_ptLast = setupWaypoint(-1.9, -1.5, height, 270);
    
    waypoints_list.push_back(target_ptMBR);
    waypoints_list.push_back(target_ptMBB);
@@ -166,7 +168,7 @@ void runPredictable()//DON'T OVERRIDE WITH PULL
 
 void runUnpredictable()
 {
-    //UNPREDICTABLE
+    //UNPREDICTABLE NOT CORRECT AFTER CAMERA ADJUSTMENTS
    geometry_msgs::Pose target_ptRMB = setupWaypoint(-1.8,-1.7,height,0);//RMB (RIGHT MID BOTTOM)
    
    geometry_msgs::Pose target_ptMBR = setupWaypoint(-1.9,-1.3,height,90);//MBR (MID BOTTOM RIGHT)
@@ -175,7 +177,7 @@ void runUnpredictable()
    
    geometry_msgs::Pose target_ptMBL1 = setupWaypoint(-2.0,0.5,height,270); //MBL
    
-   geometry_msgs::Pose target_ptMBL2 = setupWaypoint(-2,0.5,height,90); //MBL
+   geometry_msgs::Pose target_ptMBL2 = setupWaypoint(-2,0.5,height,90); //LBR
    
    geometry_msgs::Pose target_ptMBT = setupWaypoint(-1.2,-0.25,height,180); //MBT
    
@@ -289,8 +291,11 @@ int main(int argc, char **argv)
   
    ros::Rate(0.3).sleep(); 
    
-   runPredictable();
+   //runPredictable();
     
+   geometry_msgs::Pose target_ptLAND = setupWaypoint(0, 0, 1, 0);
+   waypoints_list.push_back(target_ptLAND);
+   
    quad->SetMission(waypoints_list);
    
    quad->StartMission();

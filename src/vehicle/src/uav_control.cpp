@@ -264,6 +264,7 @@ void UAVControl::SetMission(geometry_msgs::Pose& target, double radius)
 
 void UAVControl::SetMission(std::vector<geometry_msgs::Pose> waypoints_list)
 {
+    path_mission.poses.clear();
     path_mission = FollowWaypoints(waypoints_list);
 }
 
@@ -486,11 +487,11 @@ void UAVControl::RunLocal()
                
                 ROS_INFO_STREAM_ONCE("waypoint: " << cur_waypoint);
                 ROS_INFO_STREAM_ONCE("Current pos: " << pose_local);
-                ROS_INFO_STREAM_ONCE("Target pos: " << pose_target);
                 //if there are still waypoints in he mission to move to
                 if(cur_waypoint < path_mission.poses.size())
                 {
                     pose_target = path_mission.poses.at(cur_waypoint).pose;
+                    ROS_INFO_STREAM_ONCE("Target pos: " << pose_target);
                     
                     int comp_pos = ComparePosition(pose_local, pose_target);
                     int comp_alt = CompareAltitude(pose_local, pose_target);
@@ -528,9 +529,9 @@ void UAVControl::RunLocal()
                 else
                 {
                     //this->SetTarget(pose_previous);
-                    pose_target = pose_previous;
+                    //pose_target = pose_previous;
                     ROS_INFO_STREAM_ONCE("Mission Complete. Holding Position");
-                    goal = hold;
+                    StopMission();
                 }
             }
                 break;
@@ -623,7 +624,10 @@ void UAVControl::RunGlobal()
 void UAVControl::StartMission() //todo make goal input to separate travel and scout missions
 {
     if(mission_mode == active)
+    {
+        ROS_WARN_STREAM("Mission already in progress");
         return;
+    }
     
     ROS_WARN_STREAM("START MISSION: waiting for valid local_pose");
     
@@ -637,6 +641,10 @@ void UAVControl::StartMission() //todo make goal input to separate travel and sc
     pose_home = pose_local;
     pose_previous = pose_local;
     cur_waypoint = 0;
+    
+    ROS_INFO_STREAM("Starting mission");
+    ROS_INFO_STREAM("cur_waypoint: " << cur_waypoint);
+    ROS_INFO_STREAM("mission size: " << path_mission.poses.size());
     
     mission_mode = active;
     goal = travel;
@@ -657,6 +665,7 @@ void UAVControl::ResumeMission()
 
 void UAVControl::StopMission()
 {
+    ROS_WARN_STREAM("Stopping Mission");
     mission_mode = stopped;
     //freeze in place
     pose_target = pose_local;

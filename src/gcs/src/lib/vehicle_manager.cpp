@@ -52,6 +52,7 @@ VehicleManager::VehicleManager(QObject *parent):
     
     _run_timer = nh.createTimer(ros::Duration(0.1), &VehicleManager::runVehicles, this);
     
+    this->InitIds();
     this->InitSettings();
     this->AdvertiseObjectDetection();
 }
@@ -226,6 +227,16 @@ int VehicleManager::GenerateId(const QString& machine_name)
                                                VehicleType::invalid_low;
 }
 
+void VehicleManager::DecrementId(int v_type)
+{
+    int id = _ids[v_type] - 1;
+    if(id >= 0)
+        _ids[v_type] = id;
+                
+    if(v_type == VehicleType::quad_rotor)
+        QUAD_ID--;
+}
+
 int VehicleManager::VehicleTypeFromId(int v_id)
 {   
     if(v_id <= VehicleType::invalid_low || VehicleType::invalid_high <= v_id)
@@ -279,6 +290,8 @@ void VehicleManager::OnOperatorDeleteVehicle(int v_id)
     int v_type = this->VehicleTypeFromId(v_id);
     
     Q_ASSERT(v_type != VehicleType::invalid_low);
+    
+   DecrementId(v_type);
     
     QMap<int, VehicleControl*> *v_db = &db[v_type];
     QMap<int, VehicleControl*>::Iterator it = v_db->find(v_id);
@@ -784,6 +797,14 @@ void VehicleManager::AddVehiclePrivate(int v_id)
     else
         ROS_ERROR_STREAM("Tried to add vehicle of invalid type: "
                          << this->VehicleStringFromId(v_id).toStdString());
+}
+
+void VehicleManager::InitIds()
+{
+    _ids[VehicleType::ugv] = 0;
+    _ids[VehicleType::quad_rotor] = 0;
+    _ids[VehicleType::octo_rotor] = 0;
+    _ids[VehicleType::vtol] = 0;
 }
 
 VehicleControl* VehicleManager::FindVehicle(int v_type, int v_id)

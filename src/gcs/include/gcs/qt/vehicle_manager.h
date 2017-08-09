@@ -297,12 +297,16 @@ private:
      */
     void AddVehiclePrivate(int v_id);
     
+    void InitIds();
+    
     /**
      * \brief generates an id for the vehicle based on its machine_name
      * @param machine_name the name of the vehicles computer
      * @return an id cooresponding to its vehicle type
      */
     int GenerateId(const QString& machine_name);
+    
+    void DecrementId(int v_type);
     
     /**
      * \brief Finds and return a vehicle in the database for the specified vehicle type.
@@ -351,6 +355,8 @@ private:
     ros::Publisher pub_init_response;
     ros::Publisher pub_world_map_updated;
     ros::Timer heartbeat_timer;
+    
+    QMap<int, int> _ids;
     
     int UGV_ID,
         QUAD_ID,

@@ -141,7 +141,16 @@ bool TrialLoader::loadWaypoints(Condition c, int trial)
         
         _waypoints.append(wp);
     }
-        
+    
+     qCDebug(lcar_bot) << "Waypoint list size:" << _waypoints.length();
+//     for(const auto& wp : _waypoints)
+//     {
+//        qCDebug(lcar_bot) << "x:" << wp->x;
+//        qCDebug(lcar_bot) << "y:" << wp->y;
+//        qCDebug(lcar_bot) << "z:" << wp->z;
+//        qCDebug(lcar_bot) << "yaw:" << wp->yaw;   
+//     }
+    
     return true;
 }
 

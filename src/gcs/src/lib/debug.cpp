@@ -38,16 +38,17 @@ namespace dbg
                 fprintf(stdout, "qInfo: %s\n", localMsg.constData());
                 break;
             case QtDebugMsg:    // cyan
-                fprintf(stderr, "\033[1;36mqDebug: %s (%s:%u, %s)\033[0m\n", localMsg.constData(), file.constData(), context.line, context.function);
+                fprintf(stderr, "\033[1;36mDebug: %s \033[0m\n", localMsg.constData()/*, file.constData(), context.line, context.function*/);
+                              //"\033[1;36mqDebug: %s (%s:%u, %s)\033[0m\n"
                 break;
             case QtWarningMsg:  // yellow
-                fprintf(stderr, "\033[1;33mqWarning: %s (%s:%u, %s)\033[0m\n", localMsg.constData(), file.constData(), context.line, context.function);
+                fprintf(stderr, "\033[1;33mWarning: %s (%s:%u, %s)\033[0m\n", localMsg.constData(), file.constData(), context.line, context.function);
                 break;
             case QtCriticalMsg: // red
-                fprintf(stderr, "\033[1;31mqCritical: %s (%s:%u, %s)\033[0m\n", localMsg.constData(), file.constData(), context.line, context.function);
+                fprintf(stderr, "\033[1;31mCritical: %s (%s:%u, %s)\033[0m\n", localMsg.constData(), file.constData(), context.line, context.function);
                 break;
             case QtFatalMsg:    // magenta
-                fprintf(stderr, "\033[1;35mqFatal: %s (%s:%u, %s)\033[0m\n", localMsg.constData(), file.constData(), context.line, context.function);
+                fprintf(stderr, "\033[1;35mFatal: %s (%s:%u, %s)\033[0m\n", localMsg.constData(), file.constData(), context.line, context.function);
                 abort();
         }
     }

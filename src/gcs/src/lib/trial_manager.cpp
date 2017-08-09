@@ -134,13 +134,14 @@ bool TrialManager::startTrial()
     {
         auto waypoints = getWaypointList(_loader);
         
-        UAVControl * uav = dynamic_cast<UAVControl*>(_uav);
+        //qCDebug(lcar_bot) << "WP LIST SIZE:" << waypoints.size();
+        
         _uav->SetMission(waypoints);
         _uav->StartMission();
         _uav->EnableOffboard();
-        
+           
         _timer->start(33);
-        
+          
         _trial_running = true;
     }
     else
@@ -152,7 +153,7 @@ bool TrialManager::startTrial()
     return _trial_running;
 }
 
-void TrialManager::endTrial()
+void TrialManager::endTrial()  
 {   
     _timer->stop();
     _trial_running = false;

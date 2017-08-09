@@ -243,9 +243,13 @@ void GCSMainWindow::OnTimedUpdate()
         return;
     
     if(!_trial_manager->isRunning())
+       return;
+    
+    if(!_trial_manager->isValid())
         return;
     
     int cur_wp = uav->currentWaypoint();
+    
     if(cur_wp > _last_wp)
     {
         _last_wp = cur_wp;
@@ -255,7 +259,14 @@ void GCSMainWindow::OnTimedUpdate()
         if(_trial_manager->getWaypointInfoList().size() == 0)
             return;
         
+        
+        
         float progress = (float)cur_wp / (float) _trial_manager->getWaypointInfoList().size();
+        
+
+        qCDebug(lcar_bot) << "progress:"  << progress;
+        qCDebug(lcar_bot) << "cur_wp:" << cur_wp;
+        qCDebug(lcar_bot) << "wp list size;" << _trial_manager->getWaypointInfoList().size();
         
         _ui->pgs_bar_mission->setValue(progress * 100);
     }
@@ -385,7 +396,7 @@ void GCSMainWindow::StartTrial()
             _ui->btn_scout->setText("Stop Trial");
             _ui->btn_scout->hide();
             
-             fl_widgets.distraction->Start();
+            fl_widgets.distraction->Start();
         }
     }
     else
