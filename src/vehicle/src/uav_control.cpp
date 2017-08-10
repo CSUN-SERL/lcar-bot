@@ -503,7 +503,7 @@ void UAVControl::RunLocal()
                     // perf. move to next waypoint
                     if(comp_pos == 0 && comp_alt == 0 && comp_yaw == 0)
                     {
-                        if(waypoint_check.isValid())//not working yet, but is close
+                        if(waypoint_check.isValid())
                         {
                             if(time_now.toSec() - waypoint_check.toSec() > THRESHOLD_WAYPOINT_TIME)
                             {
@@ -511,10 +511,16 @@ void UAVControl::RunLocal()
                                 pose_previous = pose_local;
                                 ROS_INFO_STREAM("moving to next waypoint");
                             }
+                            else
+                            {
+                                pose_previous = pose_local;
+                                this->PublishPosition(pose_target);
+                            }
                         }
                         else    
                         {
                                 pose_previous = pose_local;
+                                this->PublishPosition(pose_target);
                                 waypoint_check = ros::Time::now(); 
                         }
                         
@@ -655,6 +661,7 @@ void UAVControl::StartMission() //todo make goal input to separate travel and sc
 //        wait.sleep();
 //    }
     
+    ros::Time::init();
     pose_home = pose_local;
     pose_previous = pose_local;
     cur_waypoint = 0;
