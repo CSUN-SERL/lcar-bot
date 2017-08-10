@@ -492,6 +492,7 @@ void UAVControl::RunLocal()
                 {
                     pose_target = path_mission.poses.at(cur_waypoint).pose;
                     ROS_INFO_STREAM_ONCE("Target pos: " << pose_target);
+                    ROS_INFO_STREAM("Waypoint Time: "<< waypoint_check.toSec()-ros::Time::now().toSec());
                     
                     int comp_pos = ComparePosition(pose_local, pose_target);
                     int comp_alt = CompareAltitude(pose_local, pose_target);
@@ -500,14 +501,27 @@ void UAVControl::RunLocal()
                     // perf. move to next waypoint
                     if(comp_pos == 0 && comp_alt == 0 && comp_yaw == 0)
                     {
-                        cur_waypoint++; 
-                        pose_previous = pose_local;
-                        ROS_INFO_STREAM("moving to next waypoint");
+                        if(waypoint_check.isValid())//not working yet, but is close
+                        {
+                            if(waypoint_check.toSec() - ros::Time::now().toSec() > THRESHOLD_WAYPOINT_TIME)
+                            {
+                                cur_waypoint++; 
+                                pose_previous = pose_local;
+                                ROS_INFO_STREAM("moving to next waypoint");
+                            }
+                        }
+                        else    
+                        {
+                                pose_previous = pose_local;
+                                waypoint_check = ros::Time::now(); 
+                        }
+                        
                     }
                     //wrong altitude first
                     else if(comp_alt == 1) //right altitude, wrong angle
                     {
                         this->TravelToTargetAltitude();
+                        waypoint_check = ros::Time::now(); 
                     }
 //                    // right altitude, wrong angle
 //                    else if(comp_yaw == 1)
@@ -522,6 +536,7 @@ void UAVControl::RunLocal()
                     else
                     {
                         this->PublishPosition(pose_target);
+                        waypoint_check = ros::Time::now(); 
                         pose_previous = pose_local;
                     }
                 }
