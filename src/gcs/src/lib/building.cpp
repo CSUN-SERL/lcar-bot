@@ -11,11 +11,32 @@
 namespace gcs
 {
 
+int Building::MAX_PROMPTS_PER_WALL = 2;
+    
+int Building::targetYawToWall(int yaw)
+{
+    switch(yaw)
+    {
+        case 0: 
+            return 2;
+        case 90:
+            return 3;
+        case 180:
+            return 0;
+        case 270:
+            return 1;
+        default:
+            break;
+    }
+    return -1;
+}
+    
 Building::Building()
 {
-    for(int i = 0; i < 3; i++)
+    for(int i = 0; i < 4; i++)
     {
         _space_count_by_wall[i] = 0;
+        _prompt_count[i] = 0;
     }
 }
 
@@ -81,15 +102,15 @@ void Building::setBuldingType(Type t)
     _type = t;
 }
 
-void Building::setDoorLocation(int wall)
-{
-    _door_location = wall;
-}
-
-int Building::doorLocation()
-{
-    return _door_location;
-}
+//void Building::setDoorLocation(int wall)
+//{
+//    _door_location = wall;
+//}
+//
+//int Building::doorLocation()
+//{
+//    return _door_location;
+//}
 
 void Building::setDoors(const QMap<int, int>& doors)
 {
@@ -111,35 +132,94 @@ const QMap<int, int>& Building::windows()
     return _windows;
 }
 
-void Building::setDoorPrompt(int wall)
+void Building::setDoorPrompts(const QMap<int, int>& door_prompts)
 {
-    _door_prompt = wall;
+    _door_prompts = door_prompts;
 }
 
-int Building::doorPrompt()
+const QMap<int, int>& Building::doorPrompts()
 {
-    return _door_prompt;
+    return _door_prompts;
 }
 
-void Building::setDoorMissing(int wall)
+void Building::setWindowPrompts(const QMap<int, int>& window_prompts)
 {
-    _door_missing = wall;
+    _window_prompts = window_prompts;
 }
 
-int Building::doorMissing()
+const QMap<int, int>& Building::windowPrompts()
 {
-    return _door_missing;
+    return _window_prompts;
 }
 
-void Building::setFalsePrompt(int wall)
+//void Building::setPromptAnswer(PromptAnswer answer)
+//{
+//    _answer = answer;
+//}
+//
+//PromptAnswer Building::promptAnswer()
+//{
+//    return _answer;
+//}
+
+void Building::incrementSpaceCountForWall(int i)
 {
-    _false_prompt = wall;
+    int val = _space_count_by_wall[i];
+    _space_count_by_wall[i] = val + 1;
 }
 
-int Building::falsePrompt()
+const QMap<int, int>& Building::spaceCountPerWall()
 {
-    return _false_prompt;
+    return _space_count_by_wall;
 }
+
+void Building::wallQueried(int wall)
+{
+    int count = _prompt_count[wall];
+    if(count < MAX_PROMPTS_PER_WALL)
+        _prompt_count[wall] = count + 1;
+}
+
+int Building::queryCountForWall(int wall)
+{
+    return _prompt_count.value(wall, -1);
+}
+
+int Building::maxQueriesPerWall()
+{
+    return MAX_PROMPTS_PER_WALL;
+}
+
+
+//void Building::setDoorPrompt(int wall)
+//{
+//    _door_prompt = wall;
+//}
+//
+//int Building::doorPrompt()
+//{
+//    return _door_prompt;
+//}
+//
+//void Building::setDoorMissing(int wall)
+//{
+//    _door_missing = wall;
+//}
+//
+//int Building::doorMissing()
+//{
+//    return _door_missing;
+//}
+//
+//void Building::setFalsePrompt(int wall)
+//{
+//    _false_prompt = wall;
+//}
+//
+//int Building::falsePrompt()
+//{
+//    return _false_prompt;
+//}
 
 }
 

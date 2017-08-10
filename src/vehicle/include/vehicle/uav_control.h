@@ -195,12 +195,15 @@ public:
     void Land();
     void TakeOff(double alt);
     
+    void fakeQuery(const sensor_msgs::Image& image);
+    
     virtual Position getPosition() override;
-
+    
     virtual bool MissionComplete() override
     {
         return cur_waypoint >= path_mission.poses.size();
     }
+    
     
 private:
     void InitialSetup();

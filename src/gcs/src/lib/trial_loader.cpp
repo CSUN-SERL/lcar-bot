@@ -19,12 +19,99 @@
 namespace gcs
 {
 
+const QMap<int, std::shared_ptr<Building> >& TrialLoader::getBuildings() const
+{
+    return _buildings;
+}
+
+const QList< std::shared_ptr<WaypointInfo> >& TrialLoader::getWaypointInfoList() const
+{
+    return _waypoints;
+}
+
+void TrialLoader::reset()
+{
+    _buildings.clear();
+    _waypoints.clear();
+}
+    
 bool TrialLoader::load(Condition c, int trial)
 {
     bool b = loadBuildings(c, trial);
     bool w = loadWaypoints(c, trial);
     
     return b && w;
+}
+
+bool TrialLoader::loadWaypoints(Condition c, int trial)
+{
+    _waypoints.clear();
+    
+    QString file_name = c == Predictable ?
+        ":/waypoints/wp_predictable.txt" :
+        ":/waypoints/wp_unpredictable.txt";
+    
+    qCDebug(lcar_bot) << file_name;
+    
+    QFile file(file_name);
+    
+    bool open = file.open(QIODevice::ReadOnly | QIODevice::Text);
+    Q_ASSERT(open);
+    if(!open)
+        return false;
+        
+    QTextStream ts(&file);
+
+    // get the number of fields each line should have at the top of the file
+    QString s = ts.readLine();
+    s = trimEOLComment(s);
+    
+    bool ok;
+    int num_fields = s.toInt(&ok);
+    Q_ASSERT(ok);
+    
+    int line_num = 0;
+    
+    while(!ts.atEnd())
+    {
+        QString line = ts.readLine();
+        if(line.isEmpty() || line.startsWith(COMMENT))
+            continue;
+        
+        line = line.trimmed().simplified();
+        
+        QStringList list = line.split(DELIMIT);
+        
+        if(list.length() != num_fields)
+        {
+            qCDebug(lcar_bot) << "line" << line_num << "is malformed. Expected" << num_fields << "fields, got" << list.length();
+            qCDebug(lcar_bot) << line;
+            Q_ASSERT(false);
+            continue;   
+        }
+        
+        int i = 0;
+        auto wp = std::make_shared<WaypointInfo>();
+        
+        wp->x = list[i++].toDouble();
+        wp->y = list[i++].toDouble();
+        wp->z = list[i++].toDouble();
+        wp->yaw = list[i++].toInt();
+        wp->building_id = trimEOLComment(list[i++]).toInt();
+        
+        _waypoints.append(wp);
+    }
+    
+     qCDebug(lcar_bot) << "Waypoint list size:" << _waypoints.length();
+//     for(const auto& wp : _waypoints)
+//     {
+//        qCDebug(lcar_bot) << "x:" << wp->x;
+//        qCDebug(lcar_bot) << "y:" << wp->y;
+//        qCDebug(lcar_bot) << "z:" << wp->z;
+//        qCDebug(lcar_bot) << "yaw:" << wp->yaw;   
+//     }
+    
+    return true;
 }
 
 bool TrialLoader::loadBuildings(Condition c, int trial)
@@ -48,6 +135,7 @@ bool TrialLoader::loadBuildings(Condition c, int trial)
         
     QTextStream ts(&file);
 
+    // get the number of fields each line should have at the top of the file
     QString s = ts.readLine();
     s = trimEOLComment(s);
     
@@ -100,101 +188,54 @@ bool TrialLoader::loadBuildings(Condition c, int trial)
         double y = list[i++].toDouble(); // 3
         b->setLocation(x, y);
         
-        QMap<int, int> doors;
-        for(int j = 0; j < 4; j++)
-        {
-            doors[j] = list[i++].toInt(); // 4, 5, 6, 7
-        }
-        b->setDoors(doors);
+        setWallContent(b, i, list);
+        setPromptInfo(b, i, list);
         
-        QMap<int, int> windows;
-        for(int j = 0; j < 4; j++)
-        {
-            windows[j] = list[i++].toInt(); // 8, 9, 10, 11
-        }
-        b->setWindows(windows);
-        
-        b->setDoorPrompt(list[i++].toInt());  // 12
-        b->setDoorMissing(list[i++].toInt()); // 13
-        b->setFalsePrompt(trimEOLComment(list[i++]).toInt()); // 14
+//        b->setDoorPrompt(list[i++].toInt());  // 12
+//        b->setDoorMissing(list[i++].toInt()); // 13
+//        b->setFalsePrompt(trimEOLComment(list[i++]).toInt()); // 14
         
         _buildings.insert(b->getID(), b);
     }
     
     return true;
 }
-    
-bool TrialLoader::loadWaypoints(Condition c, int trial)
-{
-    _waypoints.clear();
-    
-    QString file_name = c == Predictable ?
-        ":/waypoints/wp_predictable.txt" :
-        ":/waypoints/wp_unpredictable.txt";
-    
-    qCDebug(lcar_bot) << file_name;
-    
-    QFile file(file_name);
-    
-    bool open = file.open(QIODevice::ReadOnly | QIODevice::Text);
-    Q_ASSERT(open);
-    if(!open)
-        return false;
-        
-    QTextStream ts(&file);
 
-    while(!ts.atEnd())
+void TrialLoader::setWallContent(const std::shared_ptr<Building> b, int& i, const QStringList& list)
+{
+    QMap<int, int> doors;
+    QMap<int, int> windows;
+    for(int j = 0; j < 4; j++)
     {
-        QString line = ts.readLine();
-        if(line.isEmpty() || line.startsWith(COMMENT))
-            continue;
+        QString s = list[i++];
+        if(s.contains('d'))
+            doors[j] = 1;
         
-        line = line.trimmed().simplified();
-        
-        QStringList list = line.split(DELIMIT);
-        
-        Q_ASSERT(list.length() == 5);
-        if(list.length() != 5)
-            continue;
-        
-        int i = 0;
-        auto wp = std::make_shared<WaypointInfo>();
-        
-        wp->x = list[i++].toDouble();
-        wp->y = list[i++].toDouble();
-        wp->z = list[i++].toDouble();
-        wp->yaw = list[i++].toInt();
-        wp->building_id = trimEOLComment(list[i++]).toDouble();
-        
-        _waypoints.append(wp);
+        if(s.contains('w'))
+            windows[j] = 1;
+    }
+    b->setDoors(doors);
+    b->setWindows(windows);
+}
+
+void TrialLoader::setPromptInfo(const std::shared_ptr<Building> b, int& i, const QStringList& list)
+{
+    QMap<int, int> doors;
+    QMap<int, int> windows;
+    int j= 0;
+    for(; j < 3; j++)
+    {
+        QString s = list[i++];
+        doors[j] = s.contains('d') ? 1 : -1;    
+        windows[j] = s.contains('w') ? 1 : -1;
     }
     
-     qCDebug(lcar_bot) << "Waypoint list size:" << _waypoints.length();
-//     for(const auto& wp : _waypoints)
-//     {
-//        qCDebug(lcar_bot) << "x:" << wp->x;
-//        qCDebug(lcar_bot) << "y:" << wp->y;
-//        qCDebug(lcar_bot) << "z:" << wp->z;
-//        qCDebug(lcar_bot) << "yaw:" << wp->yaw;   
-//     }
+    QString s = trimEOLComment(list[i++]);
+    doors[j] = s.contains('d') ? 1 : -1;
+    windows[j] = s.contains('w') ? 1 : -1;
     
-    return true;
-}
-
-const QMap<int, std::shared_ptr<Building> >& TrialLoader::getBuildings() const
-{
-    return _buildings;
-}
-
-const QList< std::shared_ptr<WaypointInfo> >& TrialLoader::getWaypointInfoList() const
-{
-    return _waypoints;
-}
-
-void TrialLoader::reset()
-{
-    _buildings.clear();
-    _waypoints.clear();
+    b->setDoorPrompts(doors);
+    b->setWindowPrompts(windows);
 }
 
 QString TrialLoader::trimEOLComment(const QString& entry)

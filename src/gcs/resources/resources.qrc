@@ -40,6 +40,8 @@
         <file>Resources/CVT38.jpg</file>
         <file>Resources/CVT39.jpg</file>
         <file>Resources/CVT40.jpg</file>
+        <file>Resources/door.jpg</file>
+        <file>Resources/window.jpg</file>
         <file>Resources/Pling.mp3</file>
     </qresource>
 </RCC>

@@ -515,23 +515,23 @@ void MapWidget3D::checkBuildingState()
     
     auto b3 = _buildings_3d[_cur_building->getID()];
     
-    if(_cur_building->doorPrompt() == _cur_building->doorLocation())
-    {
-        _cur_building->setFoundBy(Building::fVehicle);
-        b3->_material->setDiffuse(QColor("blue"));
-    }
-    else if(_cur_building->spaceCount() > 0)
-    {
-        auto space_count_per_wall = _cur_building->spaceCountPerWall();
-        int d_loc = _cur_building->doorLocation();
-        if(space_count_per_wall[d_loc] > 0)
-            b3->_material->setDiffuse(QColor("blue"));
-        else
-            b3->_material->setDiffuse(QColor("red"));
-    }
-    else
-    {
-      // todo   
-    }
+//    if(_cur_building->doorPrompt() == _cur_building->doorLocation())
+//    {
+//        _cur_building->setFoundBy(Building::fVehicle);
+//        b3->_material->setDiffuse(QColor("blue"));
+//    }
+//    else if(_cur_building->spaceCount() > 0)
+//    {
+//        auto space_count_per_wall = _cur_building->spaceCountPerWall();
+//        int d_loc = _cur_building->doorLocation();
+//        if(space_count_per_wall[d_loc] > 0)
+//            b3->_material->setDiffuse(QColor("blue"));
+//        else
+//            b3->_material->setDiffuse(QColor("red"));
+//    }
+//    else
+//    {
+//      // todo   
+//    }
     
 }

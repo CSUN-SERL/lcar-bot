@@ -17,7 +17,7 @@ namespace gcs
 {
     
 class Building 
-{
+{   
 public:
     enum Type
     {
@@ -40,6 +40,15 @@ public:
         aNo
     };
     
+    enum QueryType
+    {
+        Null,
+        Door,
+        Window
+    };
+    
+    static int targetYawToWall(int yaw);
+    
 public:
     Building();
     
@@ -61,8 +70,8 @@ public:
     Type buildingType();
     void setBuldingType(Type t);
     
-    void setDoorLocation(int wall);
-    int doorLocation();
+//    void setDoorLocation(int wall);
+//    int doorLocation();
     
     void setDoors(const QMap<int, int>& doors);
     const QMap<int, int>& doors();
@@ -70,35 +79,33 @@ public:
     void setWindows(const QMap<int, int>& windows);
     const QMap<int, int>& windows();
     
-    void setDoorPrompt(int wall);
-    int doorPrompt();
+    void setDoorPrompts(const QMap<int, int>& door_prompts);
+    const QMap<int, int>& doorPrompts();
     
-    void setDoorMissing(int wall);
-    int doorMissing();
+    void setWindowPrompts(const QMap<int, int>& window_prompts);
+    const QMap<int, int>& windowPrompts();
     
-    void setFalsePrompt(int wall);
-    int falsePrompt();
+//    void setDoorPrompt(int wall);
+//    int doorPrompt();
+//    
+//    void setDoorMissing(int wall);
+//    int doorMissing();
+//    
+//    void setFalsePrompt(int wall);
+//    int falsePrompt();
     
-    void setPromptAnswer(PromptAnswer answer)
-    {
-        _answer = answer;
-    }
+    void setPromptAnswer(PromptAnswer answer);
     
-    PromptAnswer promptAnswer()
-    {
-        return _answer;
-    }
+    PromptAnswer promptAnswer();
     
-    void incrementSpaceCountForWall(int i)
-    {
-        int val = _space_count_by_wall[i];
-        _space_count_by_wall[i] = val + 1;
-    }
+    void incrementSpaceCountForWall(int i);
     
-    const QMap<int, int> spaceCountPerWall()
-    {
-        return _space_count_by_wall;
-    }
+    const QMap<int, int>& spaceCountPerWall();
+    
+    void wallQueried(int wall);
+    int queryCountForWall(int wall);
+    
+    int maxQueriesPerWall();
     
 private:
     int _id;
@@ -106,10 +113,10 @@ private:
     bool _space_down = false;
     int _space_count = 0;
     
-    int _door_location = -1;
-    int _door_prompt = -1;
-    int _door_missing = -1;
-    int _false_prompt = -1;
+//    int _door_location = -1;
+//    int _door_prompt = -1;
+//    int _door_missing = -1;
+//    int _false_prompt = -1;
     
     Type _type = tNull;
     FoundBy _found_by = fNull;
@@ -120,6 +127,13 @@ private:
     
     QMap<int, int> _doors;
     QMap<int, int> _windows;
+    
+    QMap<int, int> _door_prompts;
+    QMap<int, int> _window_prompts;
+    
+    QMap<int, int> _prompt_count;
+    
+    static int MAX_PROMPTS_PER_WALL;
     
     QMap<int, int> _space_count_by_wall;
 };

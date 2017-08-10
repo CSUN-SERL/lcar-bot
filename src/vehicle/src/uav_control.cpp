@@ -490,9 +490,11 @@ void UAVControl::RunLocal()
                 //if there are still waypoints in he mission to move to
                 if(cur_waypoint < path_mission.poses.size())
                 {
+                    ros::Time time_now = ros::Time::now();
+                    
                     pose_target = path_mission.poses.at(cur_waypoint).pose;
                     ROS_INFO_STREAM_ONCE("Target pos: " << pose_target);
-                    ROS_INFO_STREAM("Waypoint Time: "<< waypoint_check.toSec()-ros::Time::now().toSec());
+                    ROS_INFO_STREAM("Waypoint Time: "<< time_now.toSec() - waypoint_check.toSec());
                     
                     int comp_pos = ComparePosition(pose_local, pose_target);
                     int comp_alt = CompareAltitude(pose_local, pose_target);
@@ -503,7 +505,7 @@ void UAVControl::RunLocal()
                     {
                         if(waypoint_check.isValid())//not working yet, but is close
                         {
-                            if(waypoint_check.toSec() - ros::Time::now().toSec() > THRESHOLD_WAYPOINT_TIME)
+                            if(time_now.toSec() - waypoint_check.toSec() > THRESHOLD_WAYPOINT_TIME)
                             {
                                 cur_waypoint++; 
                                 pose_previous = pose_local;
@@ -711,6 +713,16 @@ Position UAVControl::getPosition()
     Point pos(pose_local.position.x, pose_local.position.y, pose_local.position.z);
     RPY orientation = getOrientationDegrees(pose_local);
     return Position(pos, orientation);    
+}
+
+void UAVControl::fakeQuery(const sensor_msgs::Image& image)
+{
+    
+    lcar_msgs::QueryPtr query = boost::make_shared<lcar_msgs::Query>();
+    query->img = image;
+    query->img_framed = image;
+    
+    queries_door.push_back(query);
 }
 
 

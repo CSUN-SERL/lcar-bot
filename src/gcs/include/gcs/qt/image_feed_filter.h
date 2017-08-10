@@ -31,24 +31,6 @@ public:
     void setCurrentBuilding(const std::shared_ptr<Building>& building);
     void setCurrentVehicle(VehicleControl* vehicle);
     void setTrialManager(TrialManager * trial_manager);
-    
-    int targetYawToWall(int yaw)
-    {
-        switch(yaw)
-        {
-            case 0: 
-                return 2;
-            case 90:
-                return 3;
-            case 180:
-                return 0;
-            case 270:
-                return 1;
-            default:
-                break;
-        }
-        return -1;
-    }
 protected:
     bool eventFilter(QObject *obj, QEvent *event);
     

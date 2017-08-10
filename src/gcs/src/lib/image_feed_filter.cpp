@@ -91,7 +91,7 @@ bool ImageFeedFilter::eventFilter(QObject *obj, QEvent *event)
             
             auto wp = waypoints[cur_wp];
             
-            int wall = targetYawToWall(wp->yaw);
+            int wall = Building::targetYawToWall(wp->yaw);
             
             if(_cur_building)
             {

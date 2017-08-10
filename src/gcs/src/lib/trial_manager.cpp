@@ -14,6 +14,7 @@
 #include <gcs/util/trial_loader.h>
 #include <gcs/util/building.h>
 #include <gcs/util/debug.h>
+#include <gcs/util/image_conversions.h>
 
 //#include <vehicle/vehicle_control.h>
 #include <vehicle/uav_control.h>
@@ -50,11 +51,14 @@ std::vector<geometry_msgs::Pose> getWaypointList(const TrialLoader& loader)
     
 TrialManager::TrialManager(QObject * parent) :
 QObject(parent),
-_timer(new QTimer(this))
+_timer(new QTimer(this)),
+_seconds_timer(new QTimer(this))
 {
     QObject::connect(_timer, &QTimer::timeout,
-                     this, &TrialManager::checkCurrentBuildingChange);
+                     this, &TrialManager::update);
     
+    QObject::connect(_timer, &QTimer::timeout,
+                    this, &TrialManager::fakeQuery);
 
     QObject::connect(UIAdapter::Instance(), &UIAdapter::DeleteVehicle,
                     this, [=](int v_id)
@@ -141,6 +145,7 @@ bool TrialManager::startTrial()
         _uav->EnableOffboard();
            
         _timer->start(33);
+        _seconds_timer->start(3000);
           
         _trial_running = true;
     }
@@ -156,6 +161,7 @@ bool TrialManager::startTrial()
 void TrialManager::endTrial()  
 {   
     _timer->stop();
+    _seconds_timer->stop();
     _trial_running = false;
     emit trialEnded();
 //    _vehicle->StopMission();
@@ -173,7 +179,7 @@ void TrialManager::exportTrialData()
     Settings s;
 }
 
-void TrialManager::checkCurrentBuildingChange()
+void TrialManager::update()
 {   
     auto waypoints = _loader.getWaypointInfoList();
     auto buildings = _loader.getBuildings();
@@ -194,7 +200,70 @@ void TrialManager::checkCurrentBuildingChange()
         _cur_b_id = wp->building_id;
         emit currentBuildingChanged();
     }
+}
+
+void TrialManager::fakeQuery()
+{
+    auto building = _loader.getBuildings().value(_cur_b_id, nullptr);
+    auto wp = _loader.getWaypointInfoList().value(_uav->currentWaypoint(), nullptr);
     
+    if(!building)
+        return;
+    
+    if(!wp)
+        return;
+    
+    auto doors = building->doorPrompts();
+    auto windows = building->windowPrompts();
+    
+    int wall = Building::targetYawToWall(wp->yaw);
+    
+    if(wall == -1)
+        return;
+    
+    int count = building->queryCountForWall(wall);
+    Q_ASSERT(count != -1);
+    if(count >= building->maxQueriesPerWall())
+        return;
+    
+    QImage p;
+    sensor_msgs::Image image;
+    if(doors[wall] != -1)
+    {
+        p = queryImage(Building::Door);
+        image_conversions::qImgToRosImg(QImage(p), image);
+        _uav->fakeQuery(image);
+        building->wallQueried(wall);
+    }
+    
+    count = building->queryCountForWall(wall);
+    Q_ASSERT(count != -1);
+    if(count >= building->maxQueriesPerWall())
+        return;
+    
+    if(windows[wall] != -1)
+    {
+        p = queryImage(Building::Window);
+        image_conversions::qImgToRosImg(QImage(p), image);
+        _uav->fakeQuery(image);
+        building->wallQueried(wall);
+    }
+}
+
+QImage TrialManager::queryImage(int q_type)
+{
+    switch (q_type)
+    {
+        case Building::Door:
+            return QImage(":/Resources/door.jpg");
+        case Building::Window:
+            return QImage(":/Resources/window.jpg");
+        case Building::Null:
+        default:
+            break;
+    }
+    
+    return QImage();
 }
 
 }

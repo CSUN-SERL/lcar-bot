@@ -96,8 +96,11 @@ signals:
     void currentBuildingChanged();
     
 private:    
-    void checkCurrentBuildingChange();
+    void update();
+    void fakeQuery();
     void setTrial(TrialLoader::Condition c, int trial);
+    
+    QImage queryImage(int q_type);
     
 private:
     Q_DISABLE_COPY(TrialManager)
@@ -108,6 +111,7 @@ private:
     UAVControl* _uav = nullptr;
     
     QTimer * _timer;
+    QTimer * _seconds_timer;
     
     int _user_id;
     
