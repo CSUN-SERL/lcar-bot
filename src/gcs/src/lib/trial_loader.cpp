@@ -48,9 +48,19 @@ bool TrialLoader::loadBuildings(Condition c, int trial)
         
     QTextStream ts(&file);
 
+    QString s = ts.readLine();
+    s = trimEOLComment(s);
+    
+    bool ok;
+    int num_fields = s.toInt(&ok);
+    Q_ASSERT(ok);
+    
+    int line_num = 0;
+    
     while(!ts.atEnd())
     {
         QString line = ts.readLine();
+        line_num++;
         if(line.isEmpty() || line.startsWith(COMMENT))
             continue;
         
@@ -58,15 +68,19 @@ bool TrialLoader::loadBuildings(Condition c, int trial)
         
         QStringList list = line.split(DELIMIT);
         
-        Q_ASSERT(list.length() == 8);
-        if(list.length() != 8)
+        if(list.length() != num_fields)
+        {
+            qCDebug(lcar_bot) << "line" << line_num << "is malformed. Expected" << num_fields << "fields, got" << list.length();
+            qCDebug(lcar_bot) << line;
+            Q_ASSERT(false);
             continue;
+        }
         
         int i = 0;
         
         auto b = std::make_shared<Building>();
 
-        b->setID(list[i++].toInt());
+        b->setID(list[i++].toInt()); // 0
         
         Building::Type t;
         if(list[i].contains('p'))
@@ -80,16 +94,29 @@ bool TrialLoader::loadBuildings(Condition c, int trial)
         }
         
         b->setBuldingType(t);
-        i++;
+        i++;                             // 1
         
-        double x = list[i++].toDouble();
-        double y = list[i++].toDouble();
-        
+        double x = list[i++].toDouble(); // 2
+        double y = list[i++].toDouble(); // 3
         b->setLocation(x, y);
-        b->setDoorLocation(list[i++].toInt());
-        b->setDoorPrompt(list[i++].toInt());
-        b->setDoorMissing(list[i++].toInt());
-        b->setFalsePrompt(trimEOLComment(list[i++]).toInt());
+        
+        QMap<int, int> doors;
+        for(int j = 0; j < 4; j++)
+        {
+            doors[j] = list[i++].toInt(); // 4, 5, 6, 7
+        }
+        b->setDoors(doors);
+        
+        QMap<int, int> windows;
+        for(int j = 0; j < 4; j++)
+        {
+            windows[j] = list[i++].toInt(); // 8, 9, 10, 11
+        }
+        b->setWindows(windows);
+        
+        b->setDoorPrompt(list[i++].toInt());  // 12
+        b->setDoorMissing(list[i++].toInt()); // 13
+        b->setFalsePrompt(trimEOLComment(list[i++]).toInt()); // 14
         
         _buildings.insert(b->getID(), b);
     }

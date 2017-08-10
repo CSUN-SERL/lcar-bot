@@ -58,10 +58,10 @@ _timer(new QTimer(this))
 
     QObject::connect(UIAdapter::Instance(), &UIAdapter::DeleteVehicle,
                     this, [=](int v_id)
-                    {
-                        if(_uav->id == v_id)
-                            _uav = nullptr;
-                    });
+    {
+        if(_uav->id == v_id)
+            _uav = nullptr;
+    });
 }
 
 void TrialManager::reset()

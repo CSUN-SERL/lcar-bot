@@ -91,6 +91,26 @@ int Building::doorLocation()
     return _door_location;
 }
 
+void Building::setDoors(const QMap<int, int>& doors)
+{
+    _doors = doors;
+}
+
+const QMap<int, int>& Building::doors()
+{
+    return _doors;
+}
+    
+void Building::setWindows(const QMap<int, int>& windows)
+{
+    _windows = windows;
+}
+
+const QMap<int, int>& Building::windows()
+{
+    return _windows;
+}
+
 void Building::setDoorPrompt(int wall)
 {
     _door_prompt = wall;
