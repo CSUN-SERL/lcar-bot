@@ -217,8 +217,10 @@ void TrialManager::fakeQuery()
     if(wall == -1)
         return;
     
-    auto doors = building->doorPrompts();
-    auto windows = building->windowPrompts();
+    auto door_queries = building->doorPrompts();
+    auto window_queries = building->windowPrompts();
+    auto doors = building->doors();
+    
     
     qCDebug(lcar_bot) << "building id" << building->getID();
     qCDebug(lcar_bot) << "current wall" << wall;
@@ -229,20 +231,23 @@ void TrialManager::fakeQuery()
     
     //sensor_msgs::Image image;
     //QImage p;
-    if(query && doors[wall] == 1)
+    if(query && door_queries[wall] == 1)
     {
         //p = queryImage(Building::Door);
         //image_conversions::qImgToRosImg(QImage(p), image);
         //_uav->fakeQuery(image);
         _uav->fakeQuery(_cur_image);
         building->wallQueried(wall, Building::Door);
+        
+        if(building->wallHasDoor(wall))
+            building->setFoundBy(Building::fVehicle);
     }
     
     count = building->queryCountForWall(wall, Building::Window);
     Q_ASSERT(count != -1);
     query = count < building->maxQueriesPerWall(Building::Window);
      
-    if(query && windows[wall] == 1)
+    if(query && window_queries[wall] == 1)
     {
         //p = queryImage(Building::Window);
         //image_conversions::qImgToRosImg(QImage(p), image);

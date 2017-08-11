@@ -60,7 +60,7 @@ public:
     void setID(int id);
     int getID();
     
-    void spaceDown();
+    void spaceDown(int wall);
     void spaceUp();
     int spaceCount();
     
@@ -85,15 +85,6 @@ public:
     void setWindowPrompts(const QMap<int, int>& window_prompts);
     const QMap<int, int>& windowPrompts();
     
-//    void setDoorPrompt(int wall);
-//    int doorPrompt();
-//    
-//    void setDoorMissing(int wall);
-//    int doorMissing();
-//    
-//    void setFalsePrompt(int wall);
-//    int falsePrompt();
-    
     void setPromptAnswer(PromptAnswer answer);
     
     PromptAnswer promptAnswer();
@@ -106,6 +97,9 @@ public:
     int queryCountForWall(int wall, int query_type);
     
     int maxQueriesPerWall(int query_type);
+    
+    bool hasQueries();
+    bool wallHasDoor(int wall);
     
 private:
     int _id;

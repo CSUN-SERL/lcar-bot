@@ -91,13 +91,22 @@ bool ImageFeedFilter::eventFilter(QObject *obj, QEvent *event)
             
             auto wp = waypoints[cur_wp];
             
+            //todo don't get the wall from target yaw.
+            //rather, calculate from actual vehicle position and angle
             int wall = Building::targetYawToWall(wp->yaw);
             
             if(_cur_building)
             {
-                _cur_building->spaceDown();
-                if(wall != -1)
-                    _cur_building->incrementSpaceCountForWall(wall);
+                _cur_building->spaceDown(wall);
+                
+                //todo same as above
+                if(_uav->canQuery())
+                {
+                    if(_cur_building->wallHasDoor(wall))
+                    {
+                        _cur_building->setFoundBy(Building::fOperator);
+                    }
+                }
             }
         }
         

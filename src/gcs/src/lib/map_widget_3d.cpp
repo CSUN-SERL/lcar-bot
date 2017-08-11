@@ -46,8 +46,8 @@ using namespace gcs;
     // rotate yaw by 90 degrees
     // negate z position after swapping z and y
 
-#define transformedVec(x, y, z) QVector3D(x, z, -y)
-//#define transformedVec(x, y, z) QVector3D(x - 0.45, z, -y)
+//#define transformedVec(x, y, z) QVector3D(x, z, -y)
+#define transformedVec(x, y, z) QVector3D(x - 0.45, z  , -y)
 
 #define rotateY(obj, y) obj->setRotationY(y + 90)
 
@@ -59,7 +59,7 @@ void MapWidget3D::Vehicle3D::update()
         pos.position.z :
         0;
     
-    QVector3D vec = transformedVec(pos.position.x, 
+    QVector3D vec = transformedVec(pos.position.x + 0.45, 
                                    pos.position.y, 
                                    z);
     
@@ -515,23 +515,12 @@ void MapWidget3D::checkBuildingState()
     
     auto b3 = _buildings_3d[_cur_building->getID()];
     
-//    if(_cur_building->doorPrompt() == _cur_building->doorLocation())
-//    {
-//        _cur_building->setFoundBy(Building::fVehicle);
-//        b3->_material->setDiffuse(QColor("blue"));
-//    }
-//    else if(_cur_building->spaceCount() > 0)
-//    {
-//        auto space_count_per_wall = _cur_building->spaceCountPerWall();
-//        int d_loc = _cur_building->doorLocation();
-//        if(space_count_per_wall[d_loc] > 0)
-//            b3->_material->setDiffuse(QColor("blue"));
-//        else
-//            b3->_material->setDiffuse(QColor("red"));
-//    }
-//    else
-//    {
-//      // todo   
-//    }
+    Q_ASSERT(b3);
+    if(!b3)
+        return;
     
+    if(_cur_building->foundBy() == Building::fNull)
+        b3->_material->setDiffuse(QColor("red"));
+    else
+        b3->_material->setDiffuse(QColor("blue"));    
 }
