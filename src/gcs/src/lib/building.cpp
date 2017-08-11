@@ -11,7 +11,8 @@
 namespace gcs
 {
 
-int Building::MAX_PROMPTS_PER_WALL = 2;
+int Building::MAX_PROMPTS_PER_WALL_DOOR = 1;
+int Building::MAX_PROMPTS_PER_WALL_WINDOW = 1;
     
 int Building::targetYawToWall(int yaw)
 {
@@ -36,7 +37,8 @@ Building::Building()
     for(int i = 0; i < 4; i++)
     {
         _space_count_by_wall[i] = 0;
-        _prompt_count[i] = 0;
+        _prompt_count_doors[i] = 0;
+        _prompt_count_windows[i] = 0;
     }
 }
 
@@ -173,21 +175,54 @@ const QMap<int, int>& Building::spaceCountPerWall()
     return _space_count_by_wall;
 }
 
-void Building::wallQueried(int wall)
+void Building::wallQueried(int wall, int query_type)
 {
-    int count = _prompt_count[wall];
-    if(count < MAX_PROMPTS_PER_WALL)
-        _prompt_count[wall] = count + 1;
+    if(query_type == Door)
+    {
+        int count = _prompt_count_doors[wall];
+        //if(count < MAX_PROMPTS_PER_WALL_DOOR)
+            _prompt_count_doors[wall] = count + 1;
+    }
+    else if(query_type == Window)
+    {
+        int count = _prompt_count_windows[wall];
+        //if(count < MAX_PROMPTS_PER_WALL_WINDOW)
+            _prompt_count_windows[wall] = count + 1;
+    }
+    else
+    {
+        Q_ASSERT(false);
+    }
 }
 
-int Building::queryCountForWall(int wall)
+int Building::queryCountForWall(int wall, int query_type)
 {
-    return _prompt_count.value(wall, -1);
+    switch(query_type)
+    {
+        case Door:
+            return _prompt_count_doors.value(wall, -1);
+        case Window:
+            return _prompt_count_windows.value(wall, -1);
+        default:
+            break;
+    }
+    
+    return -1;
 }
 
-int Building::maxQueriesPerWall()
+int Building::maxQueriesPerWall(int query_type)
 {
-    return MAX_PROMPTS_PER_WALL;
+    switch(query_type)
+    {
+        case Door:
+            return MAX_PROMPTS_PER_WALL_DOOR;
+        case Window:
+            return MAX_PROMPTS_PER_WALL_WINDOW;
+        default:
+            break;
+    }
+    
+    return -1;
 }
 
 

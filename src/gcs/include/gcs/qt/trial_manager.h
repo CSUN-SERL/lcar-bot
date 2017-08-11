@@ -17,6 +17,7 @@
 #include <gcs/util/trial_loader.h>
 #include <gcs/util/debug.h>
 
+#include <sensor_msgs/Image.h>
 
 class QTimer;
 
@@ -100,6 +101,10 @@ private:
     void fakeQuery();
     void setTrial(TrialLoader::Condition c, int trial);
     
+    void connectToUIAdapter();
+    void newImage();
+    void deleteVehicle(int v_id);
+    
     QImage queryImage(int q_type);
     
 private:
@@ -126,6 +131,8 @@ private:
     
 //    QMap<int, std::shared_ptr<gcs::Building>> _waypoint_to_building;
     int _cur_b_id = -1;
+    
+    sensor_msgs::ImageConstPtr _cur_image;
     
     //_total_missed
 };

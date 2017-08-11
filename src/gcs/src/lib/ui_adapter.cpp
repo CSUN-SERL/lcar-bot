@@ -2,6 +2,7 @@
 
 namespace gcs 
 {   
+    UIAdapter *UIAdapter::instance = nullptr;
     
     UIAdapter::UIAdapter(){ }
     
@@ -13,8 +14,6 @@ namespace gcs
             instance = new UIAdapter();
         
         return instance;
-    }
-    
-    UIAdapter *UIAdapter::instance = nullptr;
+    }    
 }
     

@@ -60,12 +60,7 @@ _seconds_timer(new QTimer(this))
     QObject::connect(_timer, &QTimer::timeout,
                     this, &TrialManager::fakeQuery);
 
-    QObject::connect(UIAdapter::Instance(), &UIAdapter::DeleteVehicle,
-                    this, [=](int v_id)
-    {
-        if(_uav->id == v_id)
-            _uav = nullptr;
-    });
+    connectToUIAdapter();
 }
 
 void TrialManager::reset()
@@ -213,41 +208,59 @@ void TrialManager::fakeQuery()
     if(!wp)
         return;
     
-    auto doors = building->doorPrompts();
-    auto windows = building->windowPrompts();
+    if(!_uav->canQuery())
+        return;
+    
     
     int wall = Building::targetYawToWall(wp->yaw);
     
     if(wall == -1)
         return;
     
-    int count = building->queryCountForWall(wall);
-    Q_ASSERT(count != -1);
-    if(count >= building->maxQueriesPerWall())
-        return;
+    auto doors = building->doorPrompts();
+    auto windows = building->windowPrompts();
     
-    QImage p;
-    sensor_msgs::Image image;
-    if(doors[wall] != -1)
+    qCDebug(lcar_bot) << "building id" << building->getID();
+    qCDebug(lcar_bot) << "current wall" << wall;
+    
+    int count = building->queryCountForWall(wall, Building::Door);
+    Q_ASSERT(count != -1);
+    bool query = count < building->maxQueriesPerWall(Building::Door);
+    
+    //sensor_msgs::Image image;
+    //QImage p;
+    if(query && doors[wall] == 1)
     {
-        p = queryImage(Building::Door);
-        image_conversions::qImgToRosImg(QImage(p), image);
-        _uav->fakeQuery(image);
-        building->wallQueried(wall);
+        //p = queryImage(Building::Door);
+        //image_conversions::qImgToRosImg(QImage(p), image);
+        //_uav->fakeQuery(image);
+        _uav->fakeQuery(_cur_image);
+        building->wallQueried(wall, Building::Door);
     }
     
-    count = building->queryCountForWall(wall);
+    count = building->queryCountForWall(wall, Building::Window);
     Q_ASSERT(count != -1);
-    if(count >= building->maxQueriesPerWall())
-        return;
-    
-    if(windows[wall] != -1)
+    query = count < building->maxQueriesPerWall(Building::Window);
+     
+    if(query && windows[wall] == 1)
     {
-        p = queryImage(Building::Window);
-        image_conversions::qImgToRosImg(QImage(p), image);
-        _uav->fakeQuery(image);
-        building->wallQueried(wall);
+        //p = queryImage(Building::Window);
+        //image_conversions::qImgToRosImg(QImage(p), image);
+        //_uav->fakeQuery(image);
+        _uav->fakeQuery(_cur_image);
+        building->wallQueried(wall, Building::Window);
     }
+}
+
+void TrialManager::connectToUIAdapter()
+{
+    UIAdapter * uia = UIAdapter::Instance();
+    
+    QObject::connect(uia, &UIAdapter::NewImageFrame,
+                    this, &TrialManager::newImage);
+    
+    QObject::connect(uia, &UIAdapter::DeleteVehicle,
+                    this, &TrialManager::deleteVehicle);
 }
 
 QImage TrialManager::queryImage(int q_type)
@@ -264,6 +277,18 @@ QImage TrialManager::queryImage(int q_type)
     }
     
     return QImage();
+}
+
+void TrialManager::newImage()
+{
+    _cur_image = UIAdapter::Instance()->_cur_image;
+}
+
+void TrialManager::deleteVehicle(int v_id)
+{
+    if(_uav->id == v_id)
+        _uav = nullptr;
+    
 }
 
 }

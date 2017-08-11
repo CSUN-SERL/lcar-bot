@@ -12,6 +12,8 @@
 #include <QObject>
 #include <QPixmap>
 
+#include <sensor_msgs/Image.h>
+
 namespace gcs
 {
     
@@ -23,6 +25,8 @@ public:
     virtual ~UIAdapter();
     
     static UIAdapter* Instance();
+    
+    sensor_msgs::ImageConstPtr _cur_image;
     
 signals:
 
@@ -78,7 +82,6 @@ signals:
     
     // backend -> VOCE
     //nothing here yet
-    
     
 private:
     static UIAdapter *instance;

@@ -22,24 +22,12 @@ namespace image_conversions
 
     QImage rosImgToQimg(const sensor_msgs::Image& in)
     {
-        bool swap = false;
-        QImage::Format f;
-        if(in.encoding == "mono8")
-            f = QImage::Format_Grayscale8;
-        else if(in.encoding == "rgb8")
-        {
-            f = QImage::Format_RGB888;
-        }
-        else
-        {
-            f = QImage::Format_RGB888;
-            swap = true;
-        }
+        bool swap;
+        QImage::Format f = (QImage::Format)rosEncToQtEnc(in.encoding, swap);
         
-        if(swap)
-            return QImage(in.data.data(), in.width, in.height, in.step, f).rgbSwapped();
-        else
-            return QImage(in.data.data(), in.width, in.height, in.step, f);
+        return swap ?
+            QImage(in.data.data(), in.width, in.height, in.step, f).rgbSwapped() :
+            QImage(in.data.data(), in.width, in.height, in.step, f);
     }
 
     QImage rosImgToQimg(const sensor_msgs::ImageConstPtr& in)
@@ -82,7 +70,28 @@ namespace image_conversions
         std::string format = (in.channels() == 1) ? "mono8" : "rgb8";
         return cv_bridge::CvImage(std_msgs::Header(), format, in).toImageMsg();
     }
+    
+//    void qPixmapToRosImg(const QPixmap& in, sensor_msgs::Image& out)
+//    {
+//        out.data = in.data_ptr().data();
+//    }
 
+    int rosEncToQtEnc(std::string enc, bool& swap)
+    {
+        swap = false;
+        if(enc == "mono8")
+            return QImage::Format_Grayscale8;
+        if(enc == "rgb8")
+            return QImage::Format_RGB888;
+        if(enc == "bgr8")
+        {
+            swap = true;
+            return QImage::Format_RGB888;
+        }
+        
+        return QImage::Format_Invalid;
+    }
+        
     bool saveImage(QString& path, QString& file, const QImage& image)
     {
         QDir dir(path);

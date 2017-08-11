@@ -134,7 +134,7 @@ bool TrialLoader::loadBuildings(Condition c, int trial)
         return false;
         
     QTextStream ts(&file);
-
+    
     // get the number of fields each line should have at the top of the file
     QString s = ts.readLine();
     s = trimEOLComment(s);
@@ -168,7 +168,7 @@ bool TrialLoader::loadBuildings(Condition c, int trial)
         
         auto b = std::make_shared<Building>();
 
-        b->setID(list[i++].toInt()); // 0
+        b->setID(list[i++].toInt());    // 0
         
         Building::Type t;
         if(list[i].contains('p'))
@@ -188,12 +188,8 @@ bool TrialLoader::loadBuildings(Condition c, int trial)
         double y = list[i++].toDouble(); // 3
         b->setLocation(x, y);
         
-        setWallContent(b, i, list);
-        setPromptInfo(b, i, list);
-        
-//        b->setDoorPrompt(list[i++].toInt());  // 12
-//        b->setDoorMissing(list[i++].toInt()); // 13
-//        b->setFalsePrompt(trimEOLComment(list[i++]).toInt()); // 14
+        setWallContent(b, i, list);      // 4,5,6,7
+        setPromptInfo(b, i, list);       // 8,9,10,11
         
         _buildings.insert(b->getID(), b);
     }
@@ -203,11 +199,13 @@ bool TrialLoader::loadBuildings(Condition c, int trial)
 
 void TrialLoader::setWallContent(const std::shared_ptr<Building> b, int& i, const QStringList& list)
 {
+    qCDebug(lcar_bot) << "Wall Info";
     QMap<int, int> doors;
     QMap<int, int> windows;
     for(int j = 0; j < 4; j++)
     {
         QString s = list[i++];
+        qCDebug(lcar_bot) << s;
         if(s.contains('d'))
             doors[j] = 1;
         
@@ -220,17 +218,20 @@ void TrialLoader::setWallContent(const std::shared_ptr<Building> b, int& i, cons
 
 void TrialLoader::setPromptInfo(const std::shared_ptr<Building> b, int& i, const QStringList& list)
 {
+    qCDebug(lcar_bot) << "Prompt Info";
     QMap<int, int> doors;
     QMap<int, int> windows;
     int j= 0;
     for(; j < 3; j++)
     {
         QString s = list[i++];
+        qCDebug(lcar_bot) << s;
         doors[j] = s.contains('d') ? 1 : -1;    
         windows[j] = s.contains('w') ? 1 : -1;
     }
     
     QString s = trimEOLComment(list[i++]);
+    qCDebug(lcar_bot) << s;
     doors[j] = s.contains('d') ? 1 : -1;
     windows[j] = s.contains('w') ? 1 : -1;
     

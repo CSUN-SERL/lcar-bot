@@ -494,7 +494,7 @@ void UAVControl::RunLocal()
                     
                     pose_target = path_mission.poses.at(cur_waypoint).pose;
                     ROS_INFO_STREAM_ONCE("Target pos: " << pose_target);
-                    ROS_INFO_STREAM("Waypoint Time: "<< time_now.toSec() - waypoint_check.toSec());
+                    //ROS_INFO_STREAM("Waypoint Time: "<< time_now.toSec() - waypoint_check.toSec());
                     
                     int comp_pos = ComparePosition(pose_local, pose_target);
                     int comp_alt = CompareAltitude(pose_local, pose_target);
@@ -503,6 +503,7 @@ void UAVControl::RunLocal()
                     // perf. move to next waypoint
                     if(comp_pos == 0 && comp_alt == 0 && comp_yaw == 0)
                     {
+                        can_query = true;
                         if(waypoint_check.isValid())
                         {
                             if(time_now.toSec() - waypoint_check.toSec() > THRESHOLD_WAYPOINT_TIME)
@@ -510,6 +511,7 @@ void UAVControl::RunLocal()
                                 cur_waypoint++; 
                                 pose_previous = pose_local;
                                 ROS_INFO_STREAM("moving to next waypoint");
+                                can_query = false;
                             }
                             else
                             {
@@ -528,6 +530,7 @@ void UAVControl::RunLocal()
                     //wrong altitude first
                     else if(comp_alt == 1) //right altitude, wrong angle
                     {
+                        can_query = false;
                         this->TravelToTargetAltitude();
                         waypoint_check = ros::Time::now(); 
                     }
@@ -543,6 +546,7 @@ void UAVControl::RunLocal()
 //                    }
                     else
                     {
+                        can_query = false;
                         this->PublishPosition(pose_target);
                         waypoint_check = ros::Time::now(); 
                         pose_previous = pose_local;
@@ -665,6 +669,7 @@ void UAVControl::StartMission() //todo make goal input to separate travel and sc
     pose_home = pose_local;
     pose_previous = pose_local;
     cur_waypoint = 0;
+    can_query = false;
     
     ROS_INFO_STREAM("Starting mission");
     ROS_INFO_STREAM("cur_waypoint: " << cur_waypoint);
@@ -724,10 +729,18 @@ Position UAVControl::getPosition()
 
 void UAVControl::fakeQuery(const sensor_msgs::Image& image)
 {
-    
     lcar_msgs::QueryPtr query = boost::make_shared<lcar_msgs::Query>();
     query->img = image;
     query->img_framed = image;
+    
+    queries_door.push_back(query);
+}
+
+void UAVControl::fakeQuery(const sensor_msgs::ImageConstPtr& image)
+{
+    lcar_msgs::QueryPtr query = boost::make_shared<lcar_msgs::Query>();
+    query->img = *image;
+    query->img_framed = *image;
     
     queries_door.push_back(query);
 }

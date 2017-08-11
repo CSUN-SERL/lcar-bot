@@ -196,6 +196,7 @@ public:
     void TakeOff(double alt);
     
     void fakeQuery(const sensor_msgs::Image& image);
+    void fakeQuery(const sensor_msgs::ImageConstPtr& msg);
     
     virtual Position getPosition() override;
     
@@ -204,6 +205,10 @@ public:
         return cur_waypoint >= path_mission.poses.size();
     }
     
+    bool canQuery()
+    {
+        return can_query;
+    }
     
 private:
     void InitialSetup();
@@ -359,6 +364,7 @@ private:
                                     online_mode = true;
     int                             tries = 0,
                                     scout_rev = 1;
+    bool                            can_query = false;
 };
 
 }

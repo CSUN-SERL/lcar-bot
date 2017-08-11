@@ -25,6 +25,10 @@ namespace image_conversions
     void qImgToRosImg(const QImage& in, sensor_msgs::Image& out);
     sensor_msgs::ImagePtr matToRosImg(const cv::Mat& in);
 
+//    void qPixmapToRosImg(const QPixmap& in, sensor_msgs::Image& out);
+//    
+    int rosEncToQtEnc(std::string enc, bool& swap);
+    
     bool saveImage(QString& path, QString& file, const QImage& image);
     bool saveImage(QString& path, QString& file, const cv::Mat& image);
     bool saveImage(QString& path, QString& file, const sensor_msgs::Image& image);

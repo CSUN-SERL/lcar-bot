@@ -735,7 +735,10 @@ bool VehicleManager::VehicleInitRequested(lcar_msgs::InitRequest::Request& req,
 void VehicleManager::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
     QPixmap img = image_conversions::rosImgToQpixmap(msg);
-    emit UIAdapter::Instance()->NewImageFrame(img);
+    UIAdapter * uia = UIAdapter::Instance();
+    
+    uia->_cur_image = msg;
+    emit uia->NewImageFrame(img);
 }
 
 void VehicleManager::ReceivedObjectDetectionRequest(const std_msgs::Int32ConstPtr& msg)

@@ -102,10 +102,10 @@ public:
     
     const QMap<int, int>& spaceCountPerWall();
     
-    void wallQueried(int wall);
-    int queryCountForWall(int wall);
+    void wallQueried(int wall, int query_type);
+    int queryCountForWall(int wall, int query_type);
     
-    int maxQueriesPerWall();
+    int maxQueriesPerWall(int query_type);
     
 private:
     int _id;
@@ -131,9 +131,11 @@ private:
     QMap<int, int> _door_prompts;
     QMap<int, int> _window_prompts;
     
-    QMap<int, int> _prompt_count;
+    QMap<int, int> _prompt_count_doors;
+    QMap<int, int> _prompt_count_windows;
     
-    static int MAX_PROMPTS_PER_WALL;
+    static int MAX_PROMPTS_PER_WALL_DOOR;
+    static int MAX_PROMPTS_PER_WALL_WINDOW;
     
     QMap<int, int> _space_count_by_wall;
 };
