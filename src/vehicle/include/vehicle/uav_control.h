@@ -36,7 +36,7 @@ namespace gcs
 #define SCOUT_WT 0.5
 // #define THRESHOLD_XY 0.08
 // #define THRESHOLD_Z 0.08
-#define THRESHOLD_XY 0.075//0.5
+#define THRESHOLD_XY 0.075
 #define THRESHOLD_Z 0.1
 #define THRESHOLD_XY_GPS 0.00001
 #define THRESHOLD_Z_GPS 0.5

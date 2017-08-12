@@ -1,3 +1,4 @@
+5 #number of entries per line
 # unpredictable waypoints
 
 # M: Middle
