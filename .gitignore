@@ -1,5 +1,7 @@
+/cmake*
 /build
 /devel
+/src/.idea
 *~
 *.log
 *CMakeLists.txt.user*

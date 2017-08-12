@@ -12,7 +12,7 @@
 #include <gcs/qt/ui_adapter.h>
 #include <gcs/qt/trial_manager.h>
 #include <gcs/util/trial_loader.h>
-#include <gcs/util/building.h>
+#include <gcs/qt/building.h>
 #include <gcs/util/debug.h>
 #include <gcs/util/image_conversions.h>
 
@@ -39,7 +39,7 @@ std::vector<geometry_msgs::Pose> getWaypointList(const TrialLoader& loader)
         pose.position.x = wp->x;
         pose.position.y = wp->y;
         pose.position.z = wp->z;
-        
+
         double yaw_angle = angles::normalize_angle_positive(angles::from_degrees(wp->yaw));
         quaternionTFToMsg(tf::createQuaternionFromYaw(yaw_angle), pose.orientation);
         
@@ -95,6 +95,15 @@ void TrialManager::setTrial(TrialLoader::Condition c, int trial)
     if(_cur_condition != c || _cur_trial != trial)
     {
         _loader.load(c, trial);
+        
+        auto buildings = _loader.getBuildings();
+
+        for(auto it = buildings.constBegin(); it != buildings.constEnd(); ++it)
+        {
+            std::shared_ptr<Building> b = *it;
+            QObject::connect(b.get(), &Building::foundByChanged,
+                            this, &TrialManager::accessPointFound);
+        }
         
         _cur_condition = c;
         _cur_trial = trial;
@@ -210,24 +219,20 @@ void TrialManager::fakeQuery()
     
     if(!_uav->canQuery())
         return;
-    
-    
+
     int wall = Building::targetYawToWall(wp->yaw);
     
     if(wall == -1)
         return;
-    
+
     auto door_queries = building->doorPrompts();
     auto window_queries = building->windowPrompts();
     auto doors = building->doors();
+
     
-    
-    qCDebug(lcar_bot) << "building id" << building->getID();
-    qCDebug(lcar_bot) << "current wall" << wall;
-    
-    int count = building->queryCountForWall(wall, Building::Door);
+    int count = building->queryCountForWall(wall, Building::qDoor);
     Q_ASSERT(count != -1);
-    bool query = count < building->maxQueriesPerWall(Building::Door);
+    bool query = count < building->maxQueriesPerWall(Building::qDoor);
     
     //sensor_msgs::Image image;
     //QImage p;
@@ -236,24 +241,24 @@ void TrialManager::fakeQuery()
         //p = queryImage(Building::Door);
         //image_conversions::qImgToRosImg(QImage(p), image);
         //_uav->fakeQuery(image);
-        _uav->fakeQuery(_cur_image);
-        building->wallQueried(wall, Building::Door);
+        _uav->fakeQuery(_cur_image, building->getID());
+        building->wallQueried(wall, Building::qDoor);
         
-        if(building->wallHasDoor(wall))
-            building->setFoundBy(Building::fVehicle);
+//        if(building->wallHasDoor(wall))
+//            building->setFoundBy(Building::fVehicle);
     }
     
-    count = building->queryCountForWall(wall, Building::Window);
+    count = building->queryCountForWall(wall, Building::qWindow);
     Q_ASSERT(count != -1);
-    query = count < building->maxQueriesPerWall(Building::Window);
+    query = count < building->maxQueriesPerWall(Building::qWindow);
      
     if(query && window_queries[wall] == 1)
     {
         //p = queryImage(Building::Window);
         //image_conversions::qImgToRosImg(QImage(p), image);
         //_uav->fakeQuery(image);
-        _uav->fakeQuery(_cur_image);
-        building->wallQueried(wall, Building::Window);
+        _uav->fakeQuery(_cur_image, building->getID());
+        building->wallQueried(wall, Building::qWindow);
     }
 }
 
@@ -272,11 +277,11 @@ QImage TrialManager::queryImage(int q_type)
 {
     switch (q_type)
     {
-        case Building::Door:
+        case Building::qDoor:
             return QImage(":/Resources/door.jpg");
-        case Building::Window:
+        case Building::qWindow:
             return QImage(":/Resources/window.jpg");
-        case Building::Null:
+        case Building::qNull:
         default:
             break;
     }

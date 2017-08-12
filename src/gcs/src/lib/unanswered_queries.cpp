@@ -80,15 +80,15 @@ void UnansweredQueries::addQueryWidget(QueryStat* stat, QString& ap_type)
     ap_vec->push_back(stat);
     
     //create the widget
-    QueryWidget *qw = new QueryWidget();
-    qw->SetImage(QPixmap::fromImage(stat->framed_img));
+//    QueryWidget *qw = new QueryWidget();
+//    qw->SetImage(QPixmap::fromImage(stat->framed_img));
+//
+//    connect(qw->YesButton(), &QPushButton::clicked,
+//            this, [=](){acceptQuery(qw); });
+//    connect(qw->RejectButton(), &QPushButton::clicked,
+//            this, [=](){rejectQuery(qw); });
 
-    connect(qw->YesButton(), &QPushButton::clicked,
-            this, [=](){acceptQuery(qw); });
-    connect(qw->RejectButton(), &QPushButton::clicked,
-            this, [=](){rejectQuery(qw); });
-
-    layout_by_ap_type[ap_type]->addWidget(qw);
+    //layout_by_ap_type[ap_type]->addWidget(qw);
 }
 
 void UnansweredQueries::acceptQuery(QWidget *w)

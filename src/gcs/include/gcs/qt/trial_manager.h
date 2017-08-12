@@ -14,6 +14,8 @@
 #include <QObject>
 #include <QMap>
 
+#include <gcs/qt/building.h>
+
 #include <gcs/util/trial_loader.h>
 #include <gcs/util/debug.h>
 
@@ -95,7 +97,8 @@ signals:
     void trialEnded();
     void sigReset();
     void currentBuildingChanged();
-    
+    void accessPointFound(BuildingID id, FoundBy found_by);
+
 private:    
     void update();
     void fakeQuery();
@@ -126,7 +129,7 @@ private:
     int _conditions_used = 0;
     int _cur_trial = -1;
     
-    int MAX_TRIALS = 4;
+    int MAX_TRIALS = 2;
     int MAX_CONDITIONS = 1;
     
 //    QMap<int, std::shared_ptr<gcs::Building>> _waypoint_to_building;

@@ -1,7 +1,7 @@
 
 /* 
  * File:   Building.h
- * Author: serl
+ * Author: n8
  *
  * Created on July 28, 2017, 2:19 PM
  */
@@ -11,40 +11,49 @@
 
 #include <memory>
 
+#include <QObject>
 #include <QMap>
 
 namespace gcs 
 {
     
-class Building 
+typedef int BuildingID;
+typedef int Wall;
+typedef int FoundBy;
+typedef int PromptAnswer;
+typedef int QueryType;
+    
+class Building : public QObject
 {   
+    Q_OBJECT
 public:
-    enum Type
+    typedef int Type;
+    enum TypeEnum
     {
         tNull = 0,
         tPurple,
         tWhite
     };
     
-    enum FoundBy
+    enum FoundByEnum
     {
         fNull = 0,
         fOperator,
         fVehicle
     };
     
-    enum PromptAnswer
+    enum PromptAnswerEnum
     {
         aNull,
         aYes,
         aNo
     };
     
-    enum QueryType
+    enum QueryTypeEnum
     {
-        Null,
-        Door,
-        Window
+        qNull,
+        qDoor,
+        qWindow
     };
     
     static int targetYawToWall(int yaw);
@@ -57,7 +66,7 @@ public:
     float xPos();
     float yPos();
     
-    void setID(int id);
+    void setID(BuildingID id);
     int getID();
     
     void spaceDown(int wall);
@@ -67,11 +76,11 @@ public:
     FoundBy foundBy();
     void setFoundBy(FoundBy f);
     
+    void setFoundByTentative(FoundBy f);
+    FoundBy foundByTentative();
+    
     Type buildingType();
     void setBuldingType(Type t);
-    
-//    void setDoorLocation(int wall);
-//    int doorLocation();
     
     void setDoors(const QMap<int, int>& doors);
     const QMap<int, int>& doors();
@@ -85,9 +94,9 @@ public:
     void setWindowPrompts(const QMap<int, int>& window_prompts);
     const QMap<int, int>& windowPrompts();
     
-    void setPromptAnswer(PromptAnswer answer);
+    void setPromptAnswer(int wall, PromptAnswer answer);
     
-    PromptAnswer promptAnswer();
+    PromptAnswer promptAnswer(int wall);
     
     void incrementSpaceCountForWall(int i);
     
@@ -101,37 +110,37 @@ public:
     bool hasQueries();
     bool wallHasDoor(int wall);
     
+signals:
+    void foundByChanged(BuildingID building_id, FoundBy found_by);
+    
 private:
-    int _id;
+    BuildingID _id;
     
     bool _space_down = false;
     int _space_count = 0;
     
-//    int _door_location = -1;
-//    int _door_prompt = -1;
-//    int _door_missing = -1;
-//    int _false_prompt = -1;
-    
     Type _type = tNull;
     FoundBy _found_by = fNull;
-    PromptAnswer _answer = aNull;
+    FoundBy _found_by_tentative = fNull;
+    
+    QMap<Wall, int> _answer_for_wall;
     
     float _x;
     float _y;
     
-    QMap<int, int> _doors;
-    QMap<int, int> _windows;
+    QMap<Wall, int> _doors;
+    QMap<Wall, int> _windows;
     
-    QMap<int, int> _door_prompts;
-    QMap<int, int> _window_prompts;
+    QMap<Wall, int> _door_prompts;
+    QMap<Wall, int> _window_prompts;
     
-    QMap<int, int> _prompt_count_doors;
-    QMap<int, int> _prompt_count_windows;
+    QMap<Wall, int> _prompt_count_doors;
+    QMap<Wall, int> _prompt_count_windows;
     
     static int MAX_PROMPTS_PER_WALL_DOOR;
     static int MAX_PROMPTS_PER_WALL_WINDOW;
     
-    QMap<int, int> _space_count_by_wall;
+    QMap<Wall, int> _space_count_by_wall;
 };
 
 }

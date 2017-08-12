@@ -47,7 +47,7 @@ using namespace gcs;
     // negate z position after swapping z and y
 
 //#define transformedVec(x, y, z) QVector3D(x, z, -y)
-#define transformedVec(x, y, z) QVector3D(x - 0.45, z  , -y)
+#define transformedVec(x, y, z) QVector3D(x, z  , -y)
 
 #define rotateY(obj, y) obj->setRotationY(y + 90)
 
@@ -59,7 +59,7 @@ void MapWidget3D::Vehicle3D::update()
         pos.position.z :
         0;
     
-    QVector3D vec = transformedVec(pos.position.x + 0.45, 
+    QVector3D vec = transformedVec(pos.position.x,
                                    pos.position.y, 
                                    z);
     
@@ -118,10 +118,23 @@ void MapWidget3D::setTrialManager(gcs::TrialManager * trial_manager)
         
         QObject::connect(_trial_manager, &TrialManager::currentBuildingChanged,
                          this, [this]() 
-                         {
-                             checkBuildingState();
-                             _cur_building = _trial_manager->currentBuilding();
-                         });
+        {
+            checkBuildingState(_cur_building);
+            _cur_building = _trial_manager->currentBuilding();
+        });
+                         
+        QObject::connect(_trial_manager, &TrialManager::accessPointFound,
+                         this, [this](BuildingID building_id, FoundBy found_by)
+        {
+            auto buildings = _trial_manager->getBuildings();
+            std::shared_ptr<Building3D> b3d = _buildings_3d[building_id];
+            
+            if(b3d == nullptr)
+                return;
+            
+            if(found_by != Building::fNull)
+                b3d->_material->setDiffuse(QColor("blue"));
+        });
     }
 }
 
@@ -149,7 +162,7 @@ void MapWidget3D::positionUpdate()
 {
     for(auto it = _vehicle_map.constBegin(); it != _vehicle_map.constEnd(); ++it)
     {
-        Vehicle3D * v = *it;
+        std::shared_ptr<Vehicle3D> v = *it;
         v->update();
     }
     
@@ -176,7 +189,7 @@ void MapWidget3D::positionUpdate()
 
 void MapWidget3D::vehicleAdded(int v_id)
 {
-    Vehicle3D * v = createVehicle(_vm->VehicleTypeFromId(v_id));
+    std::shared_ptr<Vehicle3D> v = createVehicle(_vm->VehicleTypeFromId(v_id));
     v->_vehicle = _vm->GetVehicle(v_id);
     v->_entity->setParent(_root);
     
@@ -434,7 +447,7 @@ void MapWidget3D::createBuilding(const std::shared_ptr<Building>& b)
     _buildings_3d.insert(b3->id, b3);
 }
 
-MapWidget3D::Vehicle3D * MapWidget3D::createVehicle(int vehicle_type)
+std::shared_ptr<MapWidget3D::Vehicle3D> MapWidget3D::createVehicle(int vehicle_type)
 {
     //todo dont ignore vehicle_type
     if(vehicle_type == VehicleType::quad_rotor)
@@ -454,7 +467,7 @@ MapWidget3D::Vehicle3D * MapWidget3D::createVehicle(int vehicle_type)
         entity->addComponent(transform);
         entity->addComponent(material);
         
-        Vehicle3D * v3d = new Vehicle3D;
+        std::shared_ptr<Vehicle3D> v3d = std::make_shared<Vehicle3D>();
         
         v3d->_entity = entity;
         v3d->_mesh = mesh;
@@ -489,7 +502,6 @@ void MapWidget3D::connectToUiAdapter()
         if(v_3d)
         {
             v_3d->_entity->deleteLater();
-            delete v_3d;
         }
         
     });
@@ -508,19 +520,32 @@ void MapWidget3D::setupUi()
     layout->addWidget(container);
 }
 
-void MapWidget3D::checkBuildingState()
+void MapWidget3D::setBuildingColor(std::shared_ptr<MapWidget3D::Building3D> b3d, const QColor& color)
 {
-    if(!_cur_building)
+    if(b3d == nullptr)
         return;
-    
-    auto b3 = _buildings_3d[_cur_building->getID()];
-    
-    Q_ASSERT(b3);
-    if(!b3)
+
+    b3d->_material->setDiffuse(color);
+}
+
+void MapWidget3D::checkBuildingState(const std::shared_ptr<gcs::Building>& building)
+{
+    if(!building)
         return;
+
+    auto b3d = _buildings_3d[building->getID()];
     
-    if(_cur_building->foundBy() == Building::fNull)
-        b3->_material->setDiffuse(QColor("red"));
+    Q_ASSERT(b3d);
+    if(b3d == nullptr)
+        return;
+
+    //ignore color change if the building was already found by vehicle
+    FoundBy f = building->foundBy();
+    if(f != Building::fNull)
+        return;
+
+    if(building->foundByTentative() == Building::fNull)
+        setBuildingColor(b3d, QColor("red"));
     else
-        b3->_material->setDiffuse(QColor("blue"));    
+        setBuildingColor(b3d, QColor("blue"));
 }

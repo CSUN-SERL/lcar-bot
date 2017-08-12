@@ -8,13 +8,23 @@
 #include <QPixmap>
 
 #include <gcs/qt/query_widget.h>
+#include <gcs/qt/trial_manager.h>
+#include <gcs/qt/building.h>
 
 namespace gcs
 {
 
-QueryWidget::QueryWidget()
+QueryWidget::QueryWidget(TrialManager * trial_manager, int building_id) :
+_trial_manager(trial_manager),
+_building_id(building_id)
 {
     widget.setupUi(this);
+    
+    QObject::connect(widget.yesButton, &QPushButton::clicked,
+                     this, &QueryWidget::accept);
+    
+    QObject::connect(widget.rejectButton, &QPushButton::clicked,
+                     this, &QueryWidget::reject);
 }
 
 QueryWidget::~QueryWidget()
@@ -28,14 +38,39 @@ void QueryWidget::SetImage(const QPixmap& img)
     widget.image_frame->setPixmap(img.scaled(w, h, Qt::KeepAspectRatio));
 }
 
-const QPushButton * QueryWidget::YesButton()
+void QueryWidget::accept()
 {
-    return widget.yesButton;
+    answered(Building::aYes);
 }
 
-const QPushButton * QueryWidget::RejectButton()
+void QueryWidget::reject()
 {
-    return widget.rejectButton;
+    answered(Building::aNo);
+}
+        
+
+void QueryWidget::answered(PromptAnswer answer)
+{
+    auto buildings = _trial_manager->getBuildings();
+    if(buildings.isEmpty() ||
+       _building_id < 0 || _building_id >= buildings.size())
+    {
+        emit queryAnswered(_building_id, Building::aNull);
+        return;
+    }
+    
+    std::shared_ptr<Building> b = buildings[_building_id];
+    if(b == nullptr)
+    {
+        emit queryAnswered(_building_id, Building::aNull);
+        return;
+    }
+
+    //only set found by if the answer is yes
+    if(answer == Building::aYes)
+        b->setFoundBy(Building::fVehicle);
+    
+    emit queryAnswered(_building_id, answer);
 }
 
 }

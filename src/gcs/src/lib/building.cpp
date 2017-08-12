@@ -6,7 +6,7 @@
  * Created on July 28, 2017, 2:19 PM
  */
 
-#include <gcs/util/building.h>
+#include <gcs/qt/building.h>
 
 namespace gcs
 {
@@ -58,7 +58,7 @@ float Building::yPos()
     return _y;
 }
 
-void Building::setID(int id)
+void Building::setID(BuildingID id)
 {
     _id = id;
 }
@@ -85,14 +85,29 @@ int Building::spaceCount()
     return _space_count;
 }
 
-Building::FoundBy Building::foundBy()
+FoundBy Building::foundBy()
 {
     return _found_by;
 }
 
 void Building::setFoundBy(FoundBy f)
 {
-    _found_by = f;
+    if(_found_by != f)
+    {
+        _found_by = f;
+        emit foundByChanged(_id, _found_by);
+    }
+}
+
+
+void Building::setFoundByTentative(FoundBy f)
+{
+    _found_by_tentative = f;
+}
+
+FoundBy Building::foundByTentative()
+{
+    return _found_by_tentative;
 }
 
 Building::Type Building::buildingType()
@@ -104,16 +119,6 @@ void Building::setBuldingType(Type t)
 {
     _type = t;
 }
-
-//void Building::setDoorLocation(int wall)
-//{
-//    _door_location = wall;
-//}
-//
-//int Building::doorLocation()
-//{
-//    return _door_location;
-//}
 
 void Building::setDoors(const QMap<int, int>& doors)
 {
@@ -155,15 +160,18 @@ const QMap<int, int>& Building::windowPrompts()
     return _window_prompts;
 }
 
-//void Building::setPromptAnswer(PromptAnswer answer)
-//{
-//    _answer = answer;
-//}
-//
-//PromptAnswer Building::promptAnswer()
-//{
-//    return _answer;
-//}
+void Building::setPromptAnswer(int wall, PromptAnswer answer)
+{
+    if(wall == -1)
+        return;
+    
+    _answer_for_wall[wall] = answer;
+}
+
+PromptAnswer Building::promptAnswer(int wall)
+{
+    return (PromptAnswer) _answer_for_wall.value(wall, -1);
+}
 
 void Building::incrementSpaceCountForWall(int i)
 {
@@ -181,13 +189,13 @@ const QMap<int, int>& Building::spaceCountPerWall()
 
 void Building::wallQueried(int wall, int query_type)
 {
-    if(query_type == Door)
+    if(query_type == qDoor)
     {
         int count = _prompt_count_doors[wall];
         //if(count < MAX_PROMPTS_PER_WALL_DOOR)
             _prompt_count_doors[wall] = count + 1;
     }
-    else if(query_type == Window)
+    else if(query_type == qWindow)
     {
         int count = _prompt_count_windows[wall];
         //if(count < MAX_PROMPTS_PER_WALL_WINDOW)
@@ -203,9 +211,9 @@ int Building::queryCountForWall(int wall, int query_type)
 {
     switch(query_type)
     {
-        case Door:
+        case qDoor:
             return _prompt_count_doors.value(wall, -1);
-        case Window:
+        case qWindow:
             return _prompt_count_windows.value(wall, -1);
         default:
             break;
@@ -218,9 +226,9 @@ int Building::maxQueriesPerWall(int query_type)
 {
     switch(query_type)
     {
-        case Door:
+        case qDoor:
             return MAX_PROMPTS_PER_WALL_DOOR;
-        case Window:
+        case qWindow:
             return MAX_PROMPTS_PER_WALL_WINDOW;
         default:
             break;

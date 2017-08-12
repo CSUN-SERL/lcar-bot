@@ -9,7 +9,7 @@
 #include <QFile>
 
 #include <gcs/util/trial_loader.h>
-#include <gcs/util/building.h>
+#include <gcs/qt/building.h>
 #include <gcs/util/debug.h>
 #include <QtCore/qurl.h>
 

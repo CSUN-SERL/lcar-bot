@@ -13,7 +13,7 @@
 #include <gcs/qt/trial_manager.h>
 #include <gcs/qt/ui_adapter.h>
 
-#include <gcs/util/building.h>
+#include <gcs/qt/building.h>
 
 #include <vehicle/uav_control.h>
 
@@ -40,6 +40,7 @@ void ImageFeedFilter::setCurrentBuilding(const std::shared_ptr<Building>&  build
 void ImageFeedFilter::setCurrentVehicle(VehicleControl* vehicle)
 {
     _uav = dynamic_cast<UAVControl*>(vehicle);
+    Q_ASSERT(_uav);
 }
 
 void ImageFeedFilter::setTrialManager(TrialManager * trial_manager)
@@ -91,8 +92,10 @@ bool ImageFeedFilter::eventFilter(QObject *obj, QEvent *event)
             
             auto wp = waypoints[cur_wp];
             
-            //todo don't get the wall from target yaw.
-            //rather, calculate from actual vehicle position and angle
+            /**
+             * todo don't get the wall from target yaw.
+             * rather, calculate from actual vehicle position and angle
+             */
             int wall = Building::targetYawToWall(wp->yaw);
             
             if(_cur_building)
@@ -104,7 +107,13 @@ bool ImageFeedFilter::eventFilter(QObject *obj, QEvent *event)
                 {
                     if(_cur_building->wallHasDoor(wall))
                     {
-                        _cur_building->setFoundBy(Building::fOperator);
+                        FoundBy f = _cur_building->foundBy();
+
+                        // vehicle queries take precedence over operator
+                        if(f != Building::fVehicle)
+                            _cur_building->setFoundBy(Building::fOperator);
+                        
+                        _cur_building->setFoundByTentative(Building::fOperator);
                     }
                 }
             }
