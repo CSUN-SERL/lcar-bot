@@ -233,19 +233,22 @@ void TrialManager::fakeQuery()
     int count = building->queryCountForWall(wall, Building::qDoor);
     Q_ASSERT(count != -1);
     bool query = count < building->maxQueriesPerWall(Building::qDoor);
-    
-    //sensor_msgs::Image image;
-    //QImage p;
+
     if(query && door_queries[wall] == 1)
     {
-        //p = queryImage(Building::Door);
-        //image_conversions::qImgToRosImg(QImage(p), image);
-        //_uav->fakeQuery(image);
-        _uav->fakeQuery(_cur_image, building->getID());
-        building->wallQueried(wall, Building::qDoor);
+        if(_cur_image == nullptr)
+        {
+            sensor_msgs::Image image;
+            QImage p = queryImage(Building::qDoor);
+            image_conversions::qImgToRosImg(QImage(p), image);
+            _uav->fakeQuery(image, building->getID());
+        }
+        else
+        {
+            _uav->fakeQuery(_cur_image, building->getID());
+        }
         
-//        if(building->wallHasDoor(wall))
-//            building->setFoundBy(Building::fVehicle);
+        building->wallQueried(wall, Building::qDoor);
     }
     
     count = building->queryCountForWall(wall, Building::qWindow);
@@ -254,10 +257,18 @@ void TrialManager::fakeQuery()
      
     if(query && window_queries[wall] == 1)
     {
-        //p = queryImage(Building::Window);
-        //image_conversions::qImgToRosImg(QImage(p), image);
-        //_uav->fakeQuery(image);
-        _uav->fakeQuery(_cur_image, building->getID());
+        if(_cur_image == nullptr)
+        {
+            sensor_msgs::Image image;
+            QImage p = queryImage(Building::qWindow);
+            image_conversions::qImgToRosImg(QImage(p), image);
+            _uav->fakeQuery(image, building->getID());
+        }
+        else
+        {
+            _uav->fakeQuery(_cur_image, building->getID());
+        }
+        
         building->wallQueried(wall, Building::qWindow);
     }
 }
@@ -278,9 +289,9 @@ QImage TrialManager::queryImage(int q_type)
     switch (q_type)
     {
         case Building::qDoor:
-            return QImage(":/Resources/door.jpg");
+            return QImage(":/Resources/door_purple.jpg");
         case Building::qWindow:
-            return QImage(":/Resources/window.jpg");
+            return QImage(":/Resources/window_purple.jpg");
         case Building::qNull:
         default:
             break;
@@ -298,7 +309,6 @@ void TrialManager::deleteVehicle(int v_id)
 {
     if(_uav->id == v_id)
         _uav = nullptr;
-    
 }
 
 }

@@ -60,8 +60,8 @@ namespace image_conversions
 
     void qImgToRosImg(const QImage& in, sensor_msgs::Image& out)
     {   
-        QImage temp = in.rgbSwapped();
-        std::string format = (temp.format() == QImage::Format_Grayscale8) ? "mono8" : "rgb8";
+        QImage temp = in;//.rgbSwapped();
+        std::string format = (temp.format() == QImage::Format_Grayscale8) ? "mono8" : "bgr8";
         sensor_msgs::fillImage(out, format, temp.height(), temp.width(), temp.bytesPerLine(), temp.bits());
     }
 
