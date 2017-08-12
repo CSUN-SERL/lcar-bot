@@ -1,4 +1,4 @@
-# unpredictable waypoints
+5 # unpredictable waypoints
 
 # M: Middle
 # R: Right

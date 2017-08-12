@@ -18,7 +18,7 @@
 #include <vehicle/position.h>
 
 #include <gcs/qt/gcs_main_window.h>
-#include <gcs/util/building.h>
+#include <gcs/qt/building.h>
 
 class QFrame;
 class QVector3D;
@@ -51,7 +51,7 @@ namespace gcs
     class VehicleControl;
     class ImageFeedFilter;
     class TrialManager;
-    class Building;
+    //class Building;
 }
 
 class Window3D;
@@ -116,7 +116,7 @@ private slots:
     
 private:
     Q_DISABLE_COPY(MapWidget3D)
-            
+
     void loadBuildings();
     
     void loadScene();
@@ -127,19 +127,20 @@ private:
     void createLighting(const QVector3D& pos, float instensity);
     void createBuilding(const QVector3D& pos, float size, QColor);
     void createBuilding(const std::shared_ptr<gcs::Building>& b);
-    Vehicle3D * createVehicle(int vehicle_type);
-    
+    std::shared_ptr<Vehicle3D> createVehicle(int vehicle_type);
+
     void connectToUiAdapter();
     void setupUi();
-    
-    void checkBuildingState();
+
+    void setBuildingColor(std::shared_ptr<MapWidget3D::Building3D> b3d, const QColor& color);
+    void checkBuildingState(const std::shared_ptr<gcs::Building>& building);
     
 private:
     gcs::VehicleManager * _vm = nullptr;
     gcs::ImageFeedFilter * _image_filter = nullptr;    
     gcs::TrialManager * _trial_manager = nullptr;
     
-    QMap<int, MapWidget3D::Vehicle3D *> _vehicle_map;
+    QMap< gcs::BuildingID, std::shared_ptr<Vehicle3D> > _vehicle_map;
     
     Window3D * _view;
     
@@ -149,7 +150,7 @@ private:
     QTimer * _update_timer;
     
     //QMap<int, std::shared_ptr<gcs::Building>> _waypoint_to_building;
-    QMap<int, std::shared_ptr<Building3D>> _buildings_3d;
+    QMap<gcs::BuildingID, std::shared_ptr<Building3D>> _buildings_3d;
     std::shared_ptr<gcs::Building> _cur_building;
     
     gcs::VehicleControl * _cur_vehicle = nullptr;

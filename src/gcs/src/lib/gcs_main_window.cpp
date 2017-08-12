@@ -305,19 +305,27 @@ void GCSMainWindow::UpdateQueries()
     for(int i = num_queries_last; i < pqv_size; i++)
     {
         //retrieve Query msg for door image
-        lcar_msgs::QueryPtr doorQuery = queries->at(i);
+        lcar_msgs::QueryPtr query = queries->at(i);
 
-        QPixmap image = image_conversions::rosImgToQpixmap(doorQuery->img_framed);
+        QPixmap image = image_conversions::rosImgToQpixmap(query->img_framed);
 
+        auto buildings = _trial_manager->getBuildings();
+        if(buildings.size() == 0)
+            continue;
+        
         //create the widget
-        QueryWidget * qw = new QueryWidget();
+        QueryWidget * qw = new QueryWidget(_trial_manager, query->building_id);
         qw->SetImage(image);
 
-        connect(qw->YesButton(), &QPushButton::clicked,
-                this, [this, qw](){ OnAcceptDoorQuery(qw); });
-        connect(qw->RejectButton(), &QPushButton::clicked,
-                this, [this, qw](){ OnRejectDoorQuery(qw); });
-                
+        QObject::connect(qw, &QueryWidget::queryAnswered,
+                this, [this, qw](BuildingID building_id, PromptAnswer answer)
+        {
+            if(answer == Building::aYes)
+                OnAcceptDoorQuery(qw);
+            else
+                OnRejectDoorQuery(qw);
+        });
+
         //add to user interface
         _ui->layout_queries->addWidget(qw);
     }

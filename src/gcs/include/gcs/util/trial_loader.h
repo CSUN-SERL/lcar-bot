@@ -11,7 +11,7 @@
 
 #include <memory>
 #include <QMap>
-#include <gcs/util/building.h>
+#include <gcs/qt/building.h>
 
 namespace gcs
 {
