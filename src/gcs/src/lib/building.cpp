@@ -120,16 +120,6 @@ void Building::setBuldingType(Type t)
     _type = t;
 }
 
-//void Building::setDoorLocation(int wall)
-//{
-//    _door_location = wall;
-//}
-//
-//int Building::doorLocation()
-//{
-//    return _door_location;
-//}
-
 void Building::setDoors(const QMap<int, int>& doors)
 {
     _doors = doors;
