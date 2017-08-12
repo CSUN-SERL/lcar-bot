@@ -77,7 +77,7 @@ Window3D::Window3D(QScreen *screen)
     , m_renderSettings(new Qt3DRender::QRenderSettings)
     , m_forwardRenderer(new MultiViewportForwardRenderer)
     , m_defaultCamera(new Qt3DRender::QCamera)
-    , _mini_camera(new Qt3DRender::QCamera)
+    //, _mini_camera(new Qt3DRender::QCamera)
     , m_inputSettings(new Qt3DInput::QInputSettings)
     , _root(new Qt3DCore::QEntity)
     , _scene_root(new Qt3DCore::QEntity)
@@ -105,9 +105,9 @@ Window3D::Window3D(QScreen *screen)
     m_aspectEngine->registerAspect(m_logicAspect);
 
     m_defaultCamera->setParent(_root);
-    _mini_camera->setParent(_root);
+    //_mini_camera->setParent(_root);
     m_forwardRenderer->setCamera(m_defaultCamera);
-    m_forwardRenderer->setMiniMapCamera(_mini_camera);
+    //m_forwardRenderer->setMiniMapCamera(_mini_camera);
     m_forwardRenderer->setSurface(this);
     m_renderSettings->setActiveFrameGraph(m_forwardRenderer);
     m_inputSettings->setEventSource(this);
@@ -135,7 +135,7 @@ void Window3D::setSceneRoot(Qt3DCore::QEntity *root)
 void Window3D::fixAspectRatio()
 {
     m_defaultCamera->setAspectRatio(float(width()) / float(height()));
-    _mini_camera->setAspectRatio(float(width()) / float(height()));
+    //_mini_camera->setAspectRatio(float(width()) / float(height()));
 }
 
 void Window3D::showEvent(QShowEvent *e)
@@ -157,6 +157,6 @@ void Window3D::showEvent(QShowEvent *e)
 void Window3D::resizeEvent(QResizeEvent *e)
 {
     m_defaultCamera->setAspectRatio(float(width()) / float(height()));
-    _mini_camera->setAspectRatio(float(width()) / float(height()));
+    //_mini_camera->setAspectRatio(float(width()) / float(height()));
     QWindow::resizeEvent(e);
 }
