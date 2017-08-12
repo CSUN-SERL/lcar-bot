@@ -315,23 +315,23 @@ void MapWidget3D::createCameraController()
     Qt3DRender::QCamera *cam = _view->camera();
     
     cam->lens()->setPerspectiveProjection(45.0f, 16.0f/9.0f, 0.1f, 1000.0f);
-    cam->setPosition(QVector3D(-16 * F2M, 10, 0)); //looking forward along x axis to origin
+    cam->setPosition(QVector3D(-0.5, 8, 0)); //looking forward along x axis to origin
     cam->setUpVector(QVector3D(0, 1, 0));
     cam->setViewCenter(QVector3D(0, 0, 0));
     
-    QOrbitCameraController *camController = new QOrbitCameraController(_root);
-    camController->setCamera(cam);
-    camController->setZoomInLimit(5);
-    camController->setLinearSpeed(60);
-    camController->setLookSpeed(60);
+//    QOrbitCameraController *camController = new QOrbitCameraController(_root);
+//    camController->setCamera(cam);
+//    camController->setZoomInLimit(5);
+//    camController->setLinearSpeed(60);
+//    camController->setLookSpeed(60);
     
     /////////////////
     
-    cam = _view->miniMapCamera();
-    cam->lens()->setPerspectiveProjection(45.0f, 16.0f/9.0f, 0.1f, 1000.0f);
-    cam->setPosition(QVector3D(-1, 10, 0));
-    cam->setUpVector(QVector3D(0, 1, 0));
-    cam->setViewCenter(QVector3D(0, 0, 0));
+//    cam = _view->miniMapCamera();
+//    cam->lens()->setPerspectiveProjection(45.0f, 16.0f/9.0f, 0.1f, 1000.0f);
+//    cam->setPosition(QVector3D(-1, 10, 0));
+//    cam->setUpVector(QVector3D(0, 1, 0));
+//    cam->setViewCenter(QVector3D(0, 0, 0));
 }
 
 void MapWidget3D::createLighting(const QVector3D& pos, float intensity)
