@@ -2,5 +2,6 @@
 <RCC version="1.0">
     <qresource prefix="/">
         <file>vehicles/QuadRotor.obj</file>
+        <file>vehicles/Drone Triangle.obj</file>
     </qresource>
 </RCC>

@@ -39,9 +39,9 @@ using namespace gcs;
 #define F2M 0.3048  // feet to meters
 #define B_SIZE ((float) (3.0 * F2M)) // building size
 #define F_SIZE ((float) (16.0 * F2M)) // floor size
-#define V_SIZE 0.0013 // uav size
+#define V_SIZE 0.0025 // uav size
 
- // NOTE: z and y axes are swapped between ros and Qt3d
+ // NOTE: z and y axes are swapped between ros and Qt3ds
     // prompting the following translations: 
     // rotate yaw by 90 degrees
     // negate z position after swapping z and y
@@ -315,23 +315,23 @@ void MapWidget3D::createCameraController()
     Qt3DRender::QCamera *cam = _view->camera();
     
     cam->lens()->setPerspectiveProjection(45.0f, 16.0f/9.0f, 0.1f, 1000.0f);
-    cam->setPosition(QVector3D(-16 * F2M, 10, 0)); //looking forward along x axis to origin
+    cam->setPosition(QVector3D(-0.5, 8, 0)); //looking forward along x axis to origin
     cam->setUpVector(QVector3D(0, 1, 0));
     cam->setViewCenter(QVector3D(0, 0, 0));
     
-    QOrbitCameraController *camController = new QOrbitCameraController(_root);
-    camController->setCamera(cam);
-    camController->setZoomInLimit(5);
-    camController->setLinearSpeed(60);
-    camController->setLookSpeed(60);
+//    QOrbitCameraController *camController = new QOrbitCameraController(_root);
+//    camController->setCamera(cam);
+//    camController->setZoomInLimit(5);
+//    camController->setLinearSpeed(60);
+//    camController->setLookSpeed(60);
     
     /////////////////
     
-    cam = _view->miniMapCamera();
-    cam->lens()->setPerspectiveProjection(45.0f, 16.0f/9.0f, 0.1f, 1000.0f);
-    cam->setPosition(QVector3D(-1, 10, 0));
-    cam->setUpVector(QVector3D(0, 1, 0));
-    cam->setViewCenter(QVector3D(0, 0, 0));
+//    cam = _view->miniMapCamera();
+//    cam->lens()->setPerspectiveProjection(45.0f, 16.0f/9.0f, 0.1f, 1000.0f);
+//    cam->setPosition(QVector3D(-1, 10, 0));
+//    cam->setUpVector(QVector3D(0, 1, 0));
+//    cam->setViewCenter(QVector3D(0, 0, 0));
 }
 
 void MapWidget3D::createLighting(const QVector3D& pos, float intensity)
@@ -455,7 +455,7 @@ std::shared_ptr<MapWidget3D::Vehicle3D> MapWidget3D::createVehicle(int vehicle_t
         QEntity * entity = new QEntity();        
         
         QMesh * mesh = new QMesh();
-        mesh->setSource(QUrl("qrc:/vehicles/QuadRotor.obj"));
+        mesh->setSource(QUrl("qrc:/vehicles/Drone Triangle.obj"));
         
         Transform * transform = new Transform();
         transform->setScale(V_SIZE);

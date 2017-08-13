@@ -25,13 +25,13 @@ QTechniqueFilter(parent)
     //, m_surfaceSelector_mini(new QRenderSurfaceSelector)
     , m_viewport_container(new QViewport())
     , m_viewport(new QViewport())
-    , m_viewport_mini(new QViewport())
+    //, m_viewport_mini(new QViewport())
     , m_cameraSelector(new QCameraSelector())
-    , m_cameraSelector_mini(new QCameraSelector())
+    //, m_cameraSelector_mini(new QCameraSelector())
     , m_clearBuffer(new QClearBuffers())
-    , m_clearBuffer_mini(new QClearBuffers())
+    //, m_clearBuffer_mini(new QClearBuffers())
     , m_frustumCulling(new QFrustumCulling())
-    , m_frustumCulling_mini(new QFrustumCulling())
+    //, m_frustumCulling_mini(new QFrustumCulling())
 {
 }
 
@@ -47,15 +47,15 @@ void MultiViewportForwardRenderer::init()
     m_viewport->setParent(m_viewport_container);
     m_cameraSelector->setParent(m_viewport);
     
-    m_viewport_mini->setParent(m_viewport_container);
-    m_cameraSelector_mini->setParent(m_viewport_mini);
+    //m_viewport_mini->setParent(m_viewport_container);
+    //m_cameraSelector_mini->setParent(m_viewport_mini);
     
     m_clearBuffer->setClearColor(QColor(QRgb(0x0f0f0f)));
     m_clearBuffer->setBuffers(QClearBuffers::ColorDepthBuffer);
     
     //m_viewport_container->setNormalizedRect(QRectF(0.0f, 0.0f, 1.0f, 1.0f));
     m_viewport->setNormalizedRect(QRectF(0.0f, 0.0f, 1.0f, 1.0f));
-    m_viewport_mini->setNormalizedRect(QRectF(0.0f, 0.75f, 0.25f, 0.25f));
+    //m_viewport_mini->setNormalizedRect(QRectF(0.0f, 0.75f, 0.25f, 0.25f));
 
     m_clearBuffer->setParent(m_cameraSelector);
     m_frustumCulling->setParent(m_clearBuffer);

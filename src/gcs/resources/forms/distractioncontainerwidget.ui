@@ -120,8 +120,15 @@ QLabel{
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_3">
+       <property name="spacing">
+        <number>6</number>
+       </property>
        <item>
-        <layout class="QVBoxLayout" name="_contents"/>
+        <layout class="QVBoxLayout" name="_contents">
+         <property name="spacing">
+          <number>20</number>
+         </property>
+        </layout>
        </item>
        <item>
         <spacer name="verticalSpacer">
