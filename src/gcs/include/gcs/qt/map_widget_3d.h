@@ -113,6 +113,9 @@ private slots:
     void vehicleAdded(int v_id);
     void trialChanged();
     void reset();
+
+    void accessPointFound(int id, int f);
+    void setCurrentBuilding();
     
 private:
     Q_DISABLE_COPY(MapWidget3D)
@@ -151,7 +154,7 @@ private:
     
     //QMap<int, std::shared_ptr<gcs::Building>> _waypoint_to_building;
     QMap<gcs::BuildingID, std::shared_ptr<Building3D>> _buildings_3d;
-    std::shared_ptr<gcs::Building> _cur_building;
+    std::shared_ptr<gcs::Building> _cur_building = nullptr;
     
     gcs::VehicleControl * _cur_vehicle = nullptr;
     

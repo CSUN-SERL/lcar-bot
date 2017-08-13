@@ -727,22 +727,24 @@ Position UAVControl::getPosition()
     return Position(pos, orientation);    
 }
 
-void UAVControl::fakeQuery(const sensor_msgs::Image& image, int building_id)
+void UAVControl::fakeQuery(const sensor_msgs::Image& image, int building_id, int wall)
 {
     lcar_msgs::QueryPtr query = boost::make_shared<lcar_msgs::Query>();
     query->img = image;
     query->img_framed = image;
     query->building_id = building_id;
+    query->wall = wall;
     
     queries_door.push_back(query);
 }
 
-void UAVControl::fakeQuery(const sensor_msgs::ImageConstPtr& image, int building_id)
+void UAVControl::fakeQuery(const sensor_msgs::ImageConstPtr& image, int building_id, int wall)
 {
     lcar_msgs::QueryPtr query = boost::make_shared<lcar_msgs::Query>();
     query->img = *image;
     query->img_framed = *image;
     query->building_id = building_id;
+    query->wall = wall;
     
     queries_door.push_back(query);
 }

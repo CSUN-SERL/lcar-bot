@@ -14,9 +14,14 @@
 #include <QObject>
 #include <QMap>
 
-namespace gcs 
+#define F2M 0.3048  // feet to meters
+#define B_SIZE ((float) (3.0 * F2M)) // building size
+
+#define CAMERA_FOV 53.2
+
+namespace gcs
 {
-    
+
 typedef int BuildingID;
 typedef int Wall;
 typedef int FoundBy;
@@ -57,6 +62,7 @@ public:
     };
     
     static int targetYawToWall(int yaw);
+    static int actualYawToWall(float yaw);
     
 public:
     Building();
@@ -73,11 +79,13 @@ public:
     void spaceUp();
     int spaceCount();
     
-    FoundBy foundBy();
-    void setFoundBy(FoundBy f);
+    FoundBy foundBy(Wall wall);
+    void setFoundBy(Wall wall, FoundBy f);
+    const QMap<Wall, FoundBy>& foundByAll();
     
-    void setFoundByTentative(FoundBy f);
-    FoundBy foundByTentative();
+    void setFoundByTentative(Wall wall, FoundBy f);
+    FoundBy foundByTentative(Wall wall);
+    const QMap<Wall, FoundBy> foundByTentativeAll();
     
     Type buildingType();
     void setBuldingType(Type t);
@@ -95,7 +103,6 @@ public:
     const QMap<int, int>& windowPrompts();
     
     void setPromptAnswer(Wall wall, PromptAnswer answer);
-
     PromptAnswer promptAnswer(Wall wall);
     
     void incrementSpaceCountForWall(Wall i);
@@ -122,7 +129,10 @@ private:
     Type _type = tNull;
     FoundBy _found_by = fNull;
     FoundBy _found_by_tentative = fNull;
-    
+
+
+    QMap<Wall, FoundBy> _found_by_for_wall;
+    QMap<Wall, FoundBy> _found_by_for_wall_tentative;
     QMap<Wall, int> _answer_for_wall;
     
     float _x;

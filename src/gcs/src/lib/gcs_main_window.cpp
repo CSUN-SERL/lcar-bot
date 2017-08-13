@@ -50,7 +50,7 @@ update_timer(new QTimer(this)),
 _seconds_timer(new QTimer(this)),
 vm(vm),
 _filter(new ImageFeedFilter(this, this)),
-_trial_manager(new TrialManager(this))
+_trial_manager(new TrialManager(_filter, this))
 {
     _ui->setupUi(this);
     installEventFilter(_filter);
@@ -314,7 +314,7 @@ void GCSMainWindow::UpdateQueries()
             continue;
         
         //create the widget
-        QueryWidget * qw = new QueryWidget(_trial_manager, query->building_id);
+        QueryWidget * qw = new QueryWidget(_trial_manager, query->building_id, query->wall);
         qw->SetImage(image);
 
         QObject::connect(qw, &QueryWidget::queryAnswered,
@@ -744,12 +744,6 @@ void GCSMainWindow::connectToTrialManager()
         _ui->pgs_bar_mission->setMaximum(100);
         _ui->pgs_bar_mission->setValue(100);
         _ui->btn_scout->setEnabled(false);
-    });
-    
-    QObject::connect(_trial_manager, &TrialManager::currentBuildingChanged,
-                    this, [this]()
-    {
-        _filter->setCurrentBuilding(_trial_manager->currentBuilding());
     });
     
     QObject::connect(_trial_manager, &TrialManager::trialChanged,

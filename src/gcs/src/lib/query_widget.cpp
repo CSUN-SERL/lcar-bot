@@ -14,9 +14,10 @@
 namespace gcs
 {
 
-QueryWidget::QueryWidget(TrialManager * trial_manager, int building_id) :
+QueryWidget::QueryWidget(TrialManager * trial_manager, BuildingID building_id, Wall wall) :
 _trial_manager(trial_manager),
-_building_id(building_id)
+_building_id(building_id),
+_wall(wall)
 {
     widget.setupUi(this);
     
@@ -68,7 +69,7 @@ void QueryWidget::answered(PromptAnswer answer)
 
     //only set found by if the answer is yes
     if(answer == Building::aYes)
-        b->setFoundBy(Building::fVehicle);
+        b->setFoundBy(_wall, Building::fVehicle);
     
     emit queryAnswered(_building_id, answer);
 }

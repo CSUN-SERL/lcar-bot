@@ -32,10 +32,6 @@ _main_window(main_window)
                     });
 }
 
-void ImageFeedFilter::setCurrentBuilding(const std::shared_ptr<Building>&  building)
-{
-    _cur_building = building;
-}
 
 void ImageFeedFilter::setCurrentVehicle(VehicleControl* vehicle)
 {
@@ -73,6 +69,7 @@ bool ImageFeedFilter::eventFilter(QObject *obj, QEvent *event)
         QKeyEvent * key_event = dynamic_cast<QKeyEvent*>(event);
         if(key_event->key() == Qt::Key_Space)
         {
+            _space_down = true;
             _main_window->setImageFeedVisible(true);
             
             if(!_uav)
@@ -93,7 +90,7 @@ bool ImageFeedFilter::eventFilter(QObject *obj, QEvent *event)
             auto wp = waypoints[cur_wp];
             
             /**
-             * todo don't get the wall from target yaw.
+             * // todo don't get the wall from target yaw.
              * rather, calculate from actual vehicle position and angle
              */
             int wall = Building::targetYawToWall(wp->yaw);
@@ -102,18 +99,16 @@ bool ImageFeedFilter::eventFilter(QObject *obj, QEvent *event)
             {
                 _cur_building->spaceDown(wall);
                 
-                //todo same as above
+                // todo same as above
                 if(_uav->canQuery())
                 {
                     if(_cur_building->wallHasDoor(wall))
                     {
-                        FoundBy f = _cur_building->foundBy();
-
                         // vehicle queries take precedence over operator
-                        if(f != Building::fVehicle)
-                            _cur_building->setFoundBy(Building::fOperator);
+                        if(_cur_building->foundBy(wall) != Building::fVehicle)
+                            _cur_building->setFoundBy(wall, Building::fOperator);
                         
-                        _cur_building->setFoundByTentative(Building::fOperator);
+                        _cur_building->setFoundByTentative(wall, Building::fOperator);
                     }
                 }
             }
@@ -125,6 +120,7 @@ bool ImageFeedFilter::eventFilter(QObject *obj, QEvent *event)
         QKeyEvent * key_event = dynamic_cast<QKeyEvent*>(event);
         if(key_event->key() == Qt::Key_Space)
         {
+            _space_down = false;
             _main_window->setImageFeedVisible(false);
 
             if(_cur_building)

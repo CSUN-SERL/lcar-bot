@@ -36,8 +36,6 @@ using namespace gcs;
 
 
 #define M2F 3.28084 // meters to feet
-#define F2M 0.3048  // feet to meters
-#define B_SIZE ((float) (3.0 * F2M)) // building size
 #define F_SIZE ((float) (16.0 * F2M)) // floor size
 #define V_SIZE 0.0025 // uav size
 
@@ -117,24 +115,10 @@ void MapWidget3D::setTrialManager(gcs::TrialManager * trial_manager)
                          this, &MapWidget3D::reset);
         
         QObject::connect(_trial_manager, &TrialManager::currentBuildingChanged,
-                         this, [this]() 
-        {
-            checkBuildingState(_cur_building);
-            _cur_building = _trial_manager->currentBuilding();
-        });
+                         this, &MapWidget3D::setCurrentBuilding);
                          
         QObject::connect(_trial_manager, &TrialManager::accessPointFound,
-                         this, [this](BuildingID building_id, FoundBy found_by)
-        {
-            auto buildings = _trial_manager->getBuildings();
-            std::shared_ptr<Building3D> b3d = _buildings_3d[building_id];
-            
-            if(b3d == nullptr)
-                return;
-            
-            if(found_by != Building::fNull)
-                b3d->_material->setDiffuse(QColor("blue"));
-        });
+                         this, &MapWidget3D::accessPointFound);
     }
 }
 
@@ -219,7 +203,9 @@ void MapWidget3D::trialChanged()
 }
 
 void MapWidget3D::reset()
-{ 
+{
+    _cur_building = nullptr;
+
     for(const auto& v : _vehicle_map)
     {
         v->_entity->setParent((QEntity*)(nullptr));
@@ -243,6 +229,25 @@ void MapWidget3D::reset()
     createLighting({pos,pos,-pos}, intensity);
     
     createFloor(); 
+}
+
+void MapWidget3D::accessPointFound(int building_id, int found_by)
+{
+    auto buildings = _trial_manager->getBuildings();
+    std::shared_ptr<Building3D> b3d = _buildings_3d.value(building_id, nullptr);
+
+    if(b3d == nullptr)
+        return;
+
+    if(found_by != Building::fNull)
+        setBuildingColor(b3d, QColor("blue"));
+}
+
+void MapWidget3D::setCurrentBuilding()
+{
+    checkBuildingState(_cur_building);
+    _cur_building = _trial_manager->currentBuilding();
+    Q_ASSERT(_cur_building);
 }
 
 void MapWidget3D::loadBuildings()
@@ -533,19 +538,28 @@ void MapWidget3D::checkBuildingState(const std::shared_ptr<gcs::Building>& build
     if(!building)
         return;
 
-    auto b3d = _buildings_3d[building->getID()];
+    auto b3d = _buildings_3d.value(building->getID(), nullptr);
     
     Q_ASSERT(b3d);
     if(b3d == nullptr)
         return;
 
-    //ignore color change if the building was already found by vehicle
-    FoundBy f = building->foundBy();
-    if(f != Building::fNull)
-        return;
+    //ignore color change if the building already has a door that was found
+    auto walls_foundby = building->foundByAll();
+    for(auto it = walls_foundby.constBegin(); it != walls_foundby.constEnd(); ++it)
+    {
+        if (*it != Building::fNull)
+            return;
+    }
 
-    if(building->foundByTentative() == Building::fNull)
-        setBuildingColor(b3d, QColor("red"));
-    else
-        setBuildingColor(b3d, QColor("blue"));
+    QColor color("red");
+    auto walls_foundby_tentative = building->foundByTentativeAll();
+    auto it = walls_foundby_tentative.constBegin();
+    for(; it != walls_foundby_tentative.constEnd(); ++it)
+    {
+        if(*it != Building::fNull)
+            color = QColor("Blue");
+    }
+
+    setBuildingColor(b3d, color);
 }

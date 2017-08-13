@@ -195,8 +195,8 @@ public:
     void Land();
     void TakeOff(double alt);
     
-    void fakeQuery(const sensor_msgs::Image& image, int building_id);
-    void fakeQuery(const sensor_msgs::ImageConstPtr& msg, int building_id);
+    void fakeQuery(const sensor_msgs::Image& image, int building_id, int wall);
+    void fakeQuery(const sensor_msgs::ImageConstPtr& msg, int building_id, int wall);
     
     virtual Position getPosition() override;
     

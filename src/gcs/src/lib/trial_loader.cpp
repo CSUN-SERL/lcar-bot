@@ -24,7 +24,7 @@ const QMap<int, std::shared_ptr<Building> >& TrialLoader::getBuildings() const
     return _buildings;
 }
 
-const QList< std::shared_ptr<WaypointInfo> >& TrialLoader::getWaypointInfoList() const
+const QList< std::shared_ptr<WaypointInfo> >& TrialLoader::getWaypoints() const
 {
     return _waypoints;
 }

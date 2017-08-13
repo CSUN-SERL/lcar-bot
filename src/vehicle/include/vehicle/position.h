@@ -42,6 +42,14 @@ public:
         return *this;
     }
 
+    float distanceTo(const Point& other)
+    {
+        float dist_x = x - other.x;
+        float dist_y = y - other.y;
+        float dist_z = z - other.z;
+        return std::sqrt((dist_x * dist_x) + (dist_y * dist_y) + (dist_z * dist_z));
+    }
+
     double x;
     double y;
     double z;
@@ -100,7 +108,12 @@ struct Position
         orientation = other.orientation;
         return *this;
     }
-    
+
+    float distanceTo(const Position& other)
+    {
+        return position.distanceTo(other.position);
+    }
+
     Point position;
     RPY orientation;
 };

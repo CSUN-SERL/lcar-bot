@@ -27,10 +27,15 @@ class ImageFeedFilter : public QObject
     Q_OBJECT
 public:
     ImageFeedFilter(GCSMainWindow * main_window, QObject * parent = nullptr);
-    
-    void setCurrentBuilding(const std::shared_ptr<Building>& building);
+
     void setCurrentVehicle(VehicleControl* vehicle);
     void setTrialManager(TrialManager * trial_manager);
+
+    bool spaceDown()
+    {
+        return _space_down;
+    }
+
 protected:
     bool eventFilter(QObject *obj, QEvent *event);
     
@@ -39,6 +44,8 @@ private:
     std::shared_ptr<Building> _cur_building;
     UAVControl* _uav = nullptr;
     TrialManager * _trial_manager;
+
+    bool _space_down = false;
 };
 
 }

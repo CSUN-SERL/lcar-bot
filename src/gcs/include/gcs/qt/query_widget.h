@@ -22,7 +22,7 @@ class QueryWidget : public MyQWidget
 {   
     Q_OBJECT
 public:
-    QueryWidget(TrialManager * trial_manager, int building_id);
+    QueryWidget(TrialManager * trial_manager, BuildingID building_id, Wall wall);
     virtual ~QueryWidget();
     void SetImage(const QPixmap& img);
     
@@ -39,7 +39,8 @@ private:
 private:
     Ui::QueryWidget widget;
     TrialManager * _trial_manager;
-    int _building_id;
+    BuildingID _building_id;
+    Wall _wall;
 };
 
 }

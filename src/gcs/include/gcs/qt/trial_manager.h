@@ -26,6 +26,7 @@ class QTimer;
 namespace gcs
 {
 
+class ImageFeedFilter;
 class VehicleControl;
 class UAVControl;
 class TrialLoader;    
@@ -36,7 +37,7 @@ class TrialManager : public QObject
     Q_OBJECT
 public:
     
-    TrialManager(QObject * parent);
+    TrialManager(ImageFeedFilter * filter, QObject * parent);
     void reset();
     
     void setCurrentVehicle(VehicleControl * vehicle);
@@ -51,7 +52,7 @@ public:
     
     std::shared_ptr<Building> currentBuilding()
     {
-        if(_cur_b_id == -1)
+        if( _cur_b_id == -1)
             return nullptr;
         
         return _loader.getBuildings().value(_cur_b_id);
@@ -74,7 +75,7 @@ public:
     
     const QList< std::shared_ptr<WaypointInfo> >& getWaypointInfoList()
     {
-        return _loader.getWaypointInfoList();
+        return _loader.getWaypoints();
     }
     
     bool isValid()
@@ -104,6 +105,7 @@ private:
     void fakeQuery();
     void setTrial(TrialLoader::Condition c, int trial);
     
+    bool wallInRange(Wall target);
     void connectToUIAdapter();
     void newImage();
     void deleteVehicle(int v_id);
@@ -114,12 +116,12 @@ private:
     Q_DISABLE_COPY(TrialManager)
             
     TrialLoader _loader;
-    //VehicleControl * _vehicle = nullptr;
-    
+
     UAVControl* _uav = nullptr;
-    
+    ImageFeedFilter * _image_feed_filter;
+
+
     QTimer * _timer;
-    QTimer * _seconds_timer;
     
     int _user_id;
     

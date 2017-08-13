@@ -50,7 +50,7 @@ public:
     bool loadBuildings(Condition c, int trial);
     
     const QMap<int, std::shared_ptr<Building> >& getBuildings() const;
-    const QList< std::shared_ptr<WaypointInfo> >& getWaypointInfoList() const;
+    const QList< std::shared_ptr<WaypointInfo> >& getWaypoints() const;
     void reset();
     
     bool isValid()

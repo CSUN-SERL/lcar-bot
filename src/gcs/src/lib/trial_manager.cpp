@@ -11,26 +11,29 @@
 
 #include <gcs/qt/ui_adapter.h>
 #include <gcs/qt/trial_manager.h>
+#include <gcs/qt/image_feed_filter.h>
 #include <gcs/util/trial_loader.h>
 #include <gcs/qt/building.h>
 #include <gcs/util/debug.h>
 #include <gcs/util/image_conversions.h>
 
-//#include <vehicle/vehicle_control.h>
 #include <vehicle/uav_control.h>
 
 #include <angles/angles.h>
 #include <tf/tf.h>
 
 #include <gcs/util/settings.h>
-#include <QtCore/qdatetime.h>
+#include <gcs/qt/building.h>
+
+#define THRESHOLD_DIST_FAR 1.5
+#define THRESHOLD_DIST_CLOSE 0.25
 
 namespace gcs
 {
 
 std::vector<geometry_msgs::Pose> getWaypointList(const TrialLoader& loader)
 {
-    auto wp_info_list = loader.getWaypointInfoList();
+    auto wp_info_list = loader.getWaypoints();
     std::vector<geometry_msgs::Pose> waypoints;
     
     for(const auto& wp: wp_info_list)
@@ -49,11 +52,13 @@ std::vector<geometry_msgs::Pose> getWaypointList(const TrialLoader& loader)
     return waypoints;
 }
     
-TrialManager::TrialManager(QObject * parent) :
+TrialManager::TrialManager(ImageFeedFilter * filter, QObject * parent) :
 QObject(parent),
-_timer(new QTimer(this)),
-_seconds_timer(new QTimer(this))
+_image_feed_filter(filter),
+_timer(new QTimer(this))
 {
+    reset();
+
     QObject::connect(_timer, &QTimer::timeout,
                      this, &TrialManager::update);
     
@@ -68,10 +73,12 @@ void TrialManager::reset()
     _cur_trial = -1;
     _cur_condition = TrialLoader::Null;
     _conditions_used = 0;
+    _cur_b_id = -1;
     _user_id = -1;
     _trial_running = false;
-    _cur_b_id;
-    
+
+    _timer->stop();
+
     emit sigReset();
 }
 
@@ -149,7 +156,6 @@ bool TrialManager::startTrial()
         _uav->EnableOffboard();
            
         _timer->start(33);
-        _seconds_timer->start(3000);
           
         _trial_running = true;
     }
@@ -165,7 +171,6 @@ bool TrialManager::startTrial()
 void TrialManager::endTrial()  
 {   
     _timer->stop();
-    _seconds_timer->stop();
     _trial_running = false;
     emit trialEnded();
 //    _vehicle->StopMission();
@@ -185,35 +190,56 @@ void TrialManager::exportTrialData()
 
 void TrialManager::update()
 {   
-    auto waypoints = _loader.getWaypointInfoList();
-    auto buildings = _loader.getBuildings();
+    auto waypoints = _loader.getWaypoints();
+    //auto buildings = _loader.getBuildings();
     
     int cur_wp = _uav->currentWaypoint();
     
-    if(cur_wp >= _loader.getWaypointInfoList().size())
+    if(cur_wp >= _loader.getWaypoints().size())
     {
         exportTrialData();
         endTrial();
         return;
     }
-    
-    auto wp = waypoints.at(cur_wp);
+
+    auto building = currentBuilding();
+
+    auto wp = waypoints[cur_wp];
+    Wall target = Building::targetYawToWall(wp->yaw);
+
+    if(building)
+    {
+        //check if the target wall is in view of the operator's open camera feed
+        if ((_uav->canQuery() || wallInRange(target)) && _image_feed_filter->spaceDown())
+        {
+            //is there a door
+            if(building->wallHasDoor(target))
+            {
+                //set the found by state only if it hasn't been found by a vehicle
+                if (building->foundBy(target) != Building::fVehicle)
+                    building->setFoundBy(target, Building::fOperator);
+
+                building->setFoundByTentative(target, Building::fOperator);
+            }
+        }
+    }
     
     if (_cur_b_id != wp->building_id && wp->isBuildingWP())
     {
         _cur_b_id = wp->building_id;
+        qCDebug(lcar_bot) << "trial manager new building_id" << wp->building_id;
         emit currentBuildingChanged();
     }
 }
 
 void TrialManager::fakeQuery()
 {
-    auto building = _loader.getBuildings().value(_cur_b_id, nullptr);
-    auto wp = _loader.getWaypointInfoList().value(_uav->currentWaypoint(), nullptr);
-    
+    auto building = currentBuilding();
     if(!building)
         return;
-    
+
+    auto wp = _loader.getWaypoints().value(_uav->currentWaypoint(), nullptr);
+
     if(!wp)
         return;
     
@@ -241,11 +267,11 @@ void TrialManager::fakeQuery()
             sensor_msgs::Image image;
             QImage p = queryImage(Building::qDoor);
             image_conversions::qImgToRosImg(QImage(p), image);
-            _uav->fakeQuery(image, building->getID());
+            _uav->fakeQuery(image, building->getID(), wall);
         }
         else
         {
-            _uav->fakeQuery(_cur_image, building->getID());
+            _uav->fakeQuery(_cur_image, building->getID(), wall);
         }
         
         building->wallQueried(wall, Building::qDoor);
@@ -262,15 +288,121 @@ void TrialManager::fakeQuery()
             sensor_msgs::Image image;
             QImage p = queryImage(Building::qWindow);
             image_conversions::qImgToRosImg(QImage(p), image);
-            _uav->fakeQuery(image, building->getID());
+            _uav->fakeQuery(image, building->getID(), wall);
         }
         else
         {
-            _uav->fakeQuery(_cur_image, building->getID());
+            _uav->fakeQuery(_cur_image, building->getID(), wall);
         }
         
         building->wallQueried(wall, Building::qWindow);
     }
+}
+
+bool TrialManager::wallInRange(Wall target)
+{
+    auto building = currentBuilding();
+    if(!building)
+        return false;
+
+    if(!_uav)
+        return false;
+
+    int b_x = building->xPos();
+    int b_y = building->yPos();
+    // lets do this relative to the top of the building to make it a bit easier
+    Point b_point (b_x, b_y, B_SIZE);
+
+    Position v_pos = _uav->getPosition();
+
+    float yaw = v_pos.orientation.yaw;
+
+    auto waypoints  = _loader.getWaypoints();
+    int cur_wp = _uav->currentWaypoint();
+    if(cur_wp >= waypoints.length())
+        return false;
+
+    std::shared_ptr<WaypointInfo> wp = waypoints[cur_wp];
+    Q_ASSERT(wp);
+    if(!wp)
+        return false;
+
+    //Wall target = Building::targetYawToWall(wp->yaw);
+    Wall actual = Building::actualYawToWall(yaw);
+
+    // target and actual need to be valid
+    if(target == -1 || actual == -1)
+        return false;
+
+    // need to be facing the wall associated with the target waypoint
+    if(target != actual)
+        return false;
+
+    float distance = b_point.distanceTo(v_pos.position);
+
+    // can't be too far
+    if(distance > THRESHOLD_DIST_FAR)
+        return false;
+
+    // can't be too close either
+    if(distance < THRESHOLD_DIST_CLOSE)
+        return false;
+
+
+    //these control left / right placement below
+    float b_norm;
+    float v_norm;
+
+    switch(wp->yaw)
+    {
+        case 0: // 0 degrees
+            if (b_x < v_pos.position.x)
+                return false;
+
+            v_norm = v_pos.position.y;
+            b_norm = b_y;
+            break;
+
+        case 90:
+            if (b_y < v_pos.position.y)
+                return false;
+
+            v_norm = -v_pos.position.x;
+            b_norm = -b_x;
+            break;
+
+        case 180:
+            if (b_x > v_pos.position.x)
+                return false;
+
+            v_norm = b_y;
+            b_norm = v_pos.position.y;
+            break;
+
+        case 270:
+            if (b_y > v_pos.position.x) // in front
+                return false;
+
+            v_norm = b_x;
+            b_norm = v_pos.position.x;
+            break;
+
+        default:
+            Q_ASSERT(false);
+            return false;
+    }
+
+    float fov = CAMERA_FOV / 2;
+
+    if(v_norm > b_norm) // to the left
+    {
+        if(yaw > wp->yaw + fov)
+            return false;
+    }
+    else if(yaw > wp->yaw - fov) // to
+        return false;
+
+    return true;
 }
 
 void TrialManager::connectToUIAdapter()
