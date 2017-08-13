@@ -348,7 +348,6 @@ bool TrialManager::wallInRange(Wall target)
     if(distance < THRESHOLD_DIST_CLOSE)
         return false;
 
-
     //these control left / right placement below
     float b_norm;
     float v_norm;

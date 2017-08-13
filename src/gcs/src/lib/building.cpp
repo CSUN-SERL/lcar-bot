@@ -39,7 +39,7 @@ int Building::actualYawToWall(float yaw)
 
     float fov = CAMERA_FOV / 2;
 
-    if(fov >= yaw && yaw >= 360 - fov)
+    if((fov >= yaw && yaw >= 0) || yaw >= 360 - fov)
         return 2;
 
     if(90 - fov <= yaw && yaw <= 90 + fov)
