@@ -82,30 +82,30 @@ public:
     Type buildingType();
     void setBuldingType(Type t);
     
-    void setDoors(const QMap<int, int>& doors);
+    void setDoors(const QMap<Wall, int>& doors);
     const QMap<int, int>& doors();
     
-    void setWindows(const QMap<int, int>& windows);
+    void setWindows(const QMap<Wall, int>& windows);
     const QMap<int, int>& windows();
     
-    void setDoorPrompts(const QMap<int, int>& door_prompts);
+    void setDoorPrompts(const QMap<Wall, int>& door_prompts);
     const QMap<int, int>& doorPrompts();
     
-    void setWindowPrompts(const QMap<int, int>& window_prompts);
+    void setWindowPrompts(const QMap<Wall, int>& window_prompts);
     const QMap<int, int>& windowPrompts();
     
-    void setPromptAnswer(int wall, PromptAnswer answer);
+    void setPromptAnswer(Wall wall, PromptAnswer answer);
+
+    PromptAnswer promptAnswer(Wall wall);
     
-    PromptAnswer promptAnswer(int wall);
+    void incrementSpaceCountForWall(Wall i);
     
-    void incrementSpaceCountForWall(int i);
+    const QMap<Wall, int>& spaceCountPerWall();
     
-    const QMap<int, int>& spaceCountPerWall();
+    void wallQueried(Wall wall, QueryType query_type);
+    int queryCountForWall(Wall wall, QueryType query_type);
     
-    void wallQueried(int wall, int query_type);
-    int queryCountForWall(int wall, int query_type);
-    
-    int maxQueriesPerWall(int query_type);
+    int maxQueriesPerWall(QueryType query_type);
     
     bool hasQueries();
     bool wallHasDoor(int wall);
