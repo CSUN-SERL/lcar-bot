@@ -155,7 +155,7 @@ bool TrialManager::startTrial()
         _uav->StartMission();
         _uav->EnableOffboard();
            
-        _timer->start(33);
+        _timer->start(16);
           
         _trial_running = true;
     }

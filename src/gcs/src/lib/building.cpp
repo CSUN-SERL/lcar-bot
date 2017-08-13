@@ -61,8 +61,8 @@ Building::Building()
         _space_count_by_wall[i] = 0;
         _prompt_count_doors[i] = 0;
         _prompt_count_windows[i] = 0;
-        _found_by_for_wall[i] = fNull;
-        _found_by_for_wall_tentative[i] = fNull;
+        //_found_by_for_wall[i] = fNull;
+        //_found_by_for_wall_tentative[i] = fNull;
     }
 }
 
@@ -116,11 +116,11 @@ FoundBy Building::foundBy(Wall wall)
 
 void Building::setFoundBy(Wall wall, FoundBy f)
 {
-    FoundBy found_by = _found_by_for_wall.value(wall, fNull);
-    if(found_by != f)
+    FoundBy f_old = _found_by_for_wall.value(wall, fNull);
+    if(f_old != f)
     {
-        _found_by_for_wall.insert(wall, fNull);
-        emit foundByChanged(_id, found_by);
+        _found_by_for_wall.insert(wall, f);
+        emit foundByChanged(_id, f);
     }
 }
 
