@@ -74,7 +74,9 @@ _trial_manager(new TrialManager(_filter, this))
     //layout_by_v_type.insert(VehicleType::vtol, widget->layout_vtol);
     
     fl_widgets.distraction = new DistractionContainerWidget();
-    
+    _trial_manager->setDistractionWidget(fl_widgets.distraction);
+
+
     hideNonTrialControls();
     
     connectToTrialManager();
@@ -84,7 +86,7 @@ _trial_manager(new TrialManager(_filter, this))
     InitMenuBar();
     InitSettings();
     ToggleScoutButtons("scout");
-    
+
     reset();
     update_timer->start(33);
     _seconds_timer->start(1000);
@@ -148,8 +150,12 @@ void GCSMainWindow::OnDeleteVehicleWidget(int v_id)
     
     VehicleWidget *w = this->VehicleWidgetAt(v_type, v_id - v_type);
     layout_by_v_type.value(v_type)->removeWidget(w);
+
+    if(v_id == cur_v_id)
+        ClearQueries();
+
+
     w->deleteLater();
-    
     cur_v_id = -1;
     
 //    int num_vehicle = vm->NumVehiclesByType(v_type);
@@ -241,7 +247,7 @@ void GCSMainWindow::OnTimedUpdate()
     
     if(uav == nullptr)
         return;
-    
+
     if(!_trial_manager->isRunning())
        return;
     
@@ -256,17 +262,17 @@ void GCSMainWindow::OnTimedUpdate()
         QString s = QString("Current Waypoint: %1").arg(QString::number(cur_wp + 1));
         _ui->lbl_mission_status->setText(s);
         
-        if(_trial_manager->getWaypointInfoList().size() == 0)
+        if(_trial_manager->getWaypoints().size() == 0)
             return;
         
         
         
-        float progress = (float)cur_wp / (float) _trial_manager->getWaypointInfoList().size();
+        float progress = (float)cur_wp / (float) _trial_manager->getWaypoints().size();
         
 
         qCDebug(lcar_bot) << "progress:"  << progress;
         qCDebug(lcar_bot) << "cur_wp:" << cur_wp;
-        qCDebug(lcar_bot) << "wp list size;" << _trial_manager->getWaypointInfoList().size();
+        qCDebug(lcar_bot) << "wp list size;" << _trial_manager->getWaypoints().size();
         
         _ui->pgs_bar_mission->setValue(progress * 100);
     }
@@ -288,9 +294,16 @@ void GCSMainWindow::OnTimedUpdate()
 void GCSMainWindow::ClearQueries()
 {
     for(int i = _ui->layout_queries->count() - 1; i >= 0; i--)
-        delete _ui->layout_queries->itemAt(i)->widget();
+        _ui->layout_queries->itemAt(i)->widget()->deleteLater();
     
     num_queries_last = 0;
+
+    if(auto uav = dynamic_cast<UAVControl*>(vm->GetVehicle(cur_v_id)))
+    {
+        auto queries = uav->GetDoorQueries();
+        if(queries)
+            queries->clear();
+    }
 }
 
 
@@ -413,7 +426,6 @@ void GCSMainWindow::StartTrial()
         fl_widgets.distraction->Reset();
         _ui->btn_scout->setEnabled(false);
     }
-    
     
 //    QString building = _ui->cmbo_box_buildings->currentText();
 //    
@@ -546,7 +558,7 @@ void GCSMainWindow::SelectVehicleWidgetById(int v_id)
     QString topic("/V" % QString::number(v_id) % "/stereo_cam/left/image_rect");
     vm->SubscribeToImageTopic(topic);
     
-    _ui->image_frame->setPixmap(QPixmap::fromImage(QImage()));
+    OnUpdateCameraFeed(QPixmap());
     this->ClearQueries(); // new uav selected, so make room for its queries
     if(fl_widgets.ap_menu != nullptr)
         fl_widgets.ap_menu->SetUAVAccessPointsAndId(vm->GetUAVAccessPoints(v_id), v_id - v_type);
@@ -600,17 +612,14 @@ void GCSMainWindow::UpdateFlightStateWidgets()
     
     temp_data.setNum(vm->GetDistanceToWP(cur_v_id)).append(" m");
     _ui->lbl_dist_wp_val->setText(temp_data);
-    
-    
+
     StatePtr state = vm->GetState(cur_v_id);
-    temp_data.setNum(state->battery * 100);
-    _ui->pgs_bar_battery->setValue(temp_data.toInt());
+    float battery = state->battery * 100;
+    _ui->pgs_bar_battery->setValue((int)battery);
     
     int v_index = vm->VehicleIndexFromId(cur_v_id);
     temp_data = "UAV " % QString::number(v_index);
     _ui->lbl_cur_uav->setText(temp_data);
-    
-    //_ui->pgs_bar_mission->setValue(state->mission_progress * 100);
 }
 
 void GCSMainWindow::OnArmOrDisarmSelectedUav()
@@ -809,6 +818,8 @@ void GCSMainWindow::connectToUiAdapter()
 
 void GCSMainWindow::reset()
 {
+    ClearQueries();
+    fl_widgets.distraction->Reset();
     _ui->btn_scout->setText("Start Trial");
     _ui->btn_scout->show();
     _ui->btn_scout->setEnabled(true);
@@ -889,27 +900,11 @@ void GCSMainWindow::OnImageRootDirUpdated(QString new_dir)
     image_root_dir = new_dir;
 }
 
-void GCSMainWindow::UpdateVehicleWidgets()
-{
-    return;
-    
-    //todo unhard code this v_type
-    int v_type = VehicleType::quad_rotor;
-    int num_widgets = layout_by_v_type[v_type]->count();
-    for(int i = 0; i < num_widgets; i++)
-    {
-        VehicleWidget *widget = this->VehicleWidgetAt(v_type, i);
-        StatePtr ptr = vm->GetState(v_type + i);
-        widget->SetBattery(ptr->battery);
-        widget->SetCondition(ptr->mode.c_str());
-    }
-}
-
 void GCSMainWindow::OnUpdateCameraFeed(QPixmap img)
 {
-    int w = _ui->image_frame->width();
-    int h = _ui->image_frame->height();
-    _ui->image_frame->setPixmap(img.scaled(w, h, Qt::KeepAspectRatio));
+    int w = _ui->image->width();
+    int h = _ui->image->height();
+    _ui->image->setPixmap(img.scaled(w, h, Qt::KeepAspectRatio));
 }
 
 void GCSMainWindow::OnOperatorNotified(QString msg)

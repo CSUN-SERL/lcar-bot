@@ -17,7 +17,7 @@
 #define F2M 0.3048  // feet to meters
 #define B_SIZE ((float) (3.0 * F2M)) // building size
 
-#define CAMERA_FOV 53.2
+#define CAMERA_FOV 53.2 // approximate? not really sure tbh
 
 namespace gcs
 {
@@ -78,36 +78,33 @@ public:
     void spaceDown(int wall);
     void spaceUp();
     int spaceCount();
-    
-    FoundBy foundBy(Wall wall);
+
+    int doorsFoundBy(FoundBy f);
+
     void setFoundBy(Wall wall, FoundBy f);
     const QMap<Wall, FoundBy>& foundByAll();
     
     void setFoundByTentative(Wall wall, FoundBy f);
     FoundBy foundByTentative(Wall wall);
-    const QMap<Wall, FoundBy> foundByTentativeAll();
+    const QMap<Wall, FoundBy>& foundByTentativeAll();
     
     Type buildingType();
     void setBuldingType(Type t);
-    
+
     void setDoors(const QMap<Wall, int>& doors);
-    const QMap<int, int>& doors();
+    const QMap<Wall, int>& doors();
     
     void setWindows(const QMap<Wall, int>& windows);
-    const QMap<int, int>& windows();
+    const QMap<Wall, int>& windows();
     
     void setDoorPrompts(const QMap<Wall, int>& door_prompts);
-    const QMap<int, int>& doorPrompts();
+    const QMap<Wall, int>& doorPrompts();
     
     void setWindowPrompts(const QMap<Wall, int>& window_prompts);
-    const QMap<int, int>& windowPrompts();
+    const QMap<Wall, int>& windowPrompts();
     
-    void setPromptAnswer(Wall wall, PromptAnswer answer);
-    PromptAnswer promptAnswer(Wall wall);
-    
-    void incrementSpaceCountForWall(Wall i);
-    
-    const QMap<Wall, int>& spaceCountPerWall();
+//    void incrementSpaceCountForWall(Wall i);
+//    const QMap<Wall, int>& spaceCountPerWall();
     
     void wallQueried(Wall wall, QueryType query_type);
     int queryCountForWall(Wall wall, QueryType query_type);
@@ -137,7 +134,7 @@ private:
     
     float _x;
     float _y;
-    
+
     QMap<Wall, int> _doors;
     QMap<Wall, int> _windows;
     

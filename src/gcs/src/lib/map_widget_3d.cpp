@@ -185,7 +185,7 @@ void MapWidget3D::trialChanged()
     //_waypoint_to_building.clear();
     
     auto buildings = _trial_manager->getBuildings();
-    auto waypoints = _trial_manager->getWaypointInfoList();
+    auto waypoints = _trial_manager->getWaypoints();
     
     for(int i = 0; i <  waypoints.size(); i++)
     {

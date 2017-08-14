@@ -28,15 +28,14 @@ namespace Ui
     class GCSMainWindow;
 }
 
-class DistractionContainerWidget;
-
 namespace gcs
 {
 
-    class VehicleManager;
-    class ImageFeedFilter;
-    class TrialManager;
-    
+class VehicleManager;
+class ImageFeedFilter;
+class TrialManager;
+
+class DistractionContainerWidget;
 class UnansweredQueries;
 class SettingsWidget;
 class AccessPointsContainerWidget;
@@ -95,7 +94,6 @@ private:
     
     void SelectVehicleWidgetById(int v_id);
     void UpdateFlightStateWidgets(); // both the PFD and the text based widget
-    void UpdateVehicleWidgets();
     void UpdateQueries();
     void ClearQueries();
     void SaveUavQueries(int uav_id, const std::vector<lcar_msgs::QueryPtr> *queries, const QString ap_type);

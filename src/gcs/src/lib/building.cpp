@@ -54,7 +54,9 @@ int Building::actualYawToWall(float yaw)
     return -1;
 }
     
-Building::Building()
+Building::Building() :
+QObject(nullptr),
+_space_count(0)
 {
     for(int i = 0; i < 4; i++)
     {
@@ -96,7 +98,7 @@ void Building::spaceDown(int wall)
 {
     _space_count++;
     _space_down = true;
-    incrementSpaceCountForWall(wall);
+    //incrementSpaceCountForWall(wall);
 }
 
 void Building::spaceUp()
@@ -109,21 +111,31 @@ int Building::spaceCount()
     return _space_count;
 }
 
-FoundBy Building::foundBy(Wall wall)
+int Building::doorsFoundBy(FoundBy f)
 {
-    return _found_by_for_wall.value(wall, fNull);
+    int result = 0;
+    auto it = _found_by_for_wall.constBegin();
+    for(; it != _found_by_for_wall.constEnd(); ++it)
+    {
+        FoundBy found = *it;
+        if(found == f)
+            result++;
+    }
+
+    return result;
 }
 
 void Building::setFoundBy(Wall wall, FoundBy f)
 {
     FoundBy f_old = _found_by_for_wall.value(wall, fNull);
-    if(f_old != f)
+    if(f_old != f && f_old != fVehicle) // don't overwrite vehicle findings
     {
         _found_by_for_wall.insert(wall, f);
         emit foundByChanged(_id, f);
     }
-}
 
+    _found_by_for_wall_tentative.insert(wall, f);
+}
 const QMap<Wall, FoundBy>& Building::foundByAll()
 {
     return _found_by_for_wall;
@@ -139,7 +151,7 @@ FoundBy Building::foundByTentative(Wall wall)
     return _found_by_for_wall_tentative.value(wall, fNull);
 }
 
-const QMap<Wall, FoundBy> Building::foundByTentativeAll()
+const QMap<Wall, FoundBy>& Building::foundByTentativeAll()
 {
     return _found_by_for_wall_tentative;
 }
@@ -169,7 +181,7 @@ void Building::setWindows(const QMap<Wall, int>& windows)
     _windows = windows;
 }
 
-const QMap<int, int>& Building::windows()
+const QMap<Wall, int>& Building::windows()
 {
     return _windows;
 }
@@ -179,7 +191,7 @@ void Building::setDoorPrompts(const QMap<Wall, int>& door_prompts)
     _door_prompts = door_prompts;
 }
 
-const QMap<int, int>& Building::doorPrompts()
+const QMap<Wall, int>& Building::doorPrompts()
 {
     return _door_prompts;
 }
@@ -194,33 +206,20 @@ const QMap<int, int>& Building::windowPrompts()
     return _window_prompts;
 }
 
-void Building::setPromptAnswer(Wall wall, PromptAnswer answer)
-{
-    if(wall == -1)
-        return;
-    
-    _answer_for_wall[wall] = answer;
-}
-
-PromptAnswer Building::promptAnswer(Wall wall)
-{
-    return (PromptAnswer) _answer_for_wall.value(wall, -1);
-}
-
-void Building::incrementSpaceCountForWall(Wall i)
-{
-    Q_ASSERT(i >= 0);
-    if(i < 0)
-        return;
-
-    //int val = _space_count_by_wall[i];
-    //_space_count_by_wall[i] = val + 1;
-}
-
-const QMap<Wall, int>& Building::spaceCountPerWall()
-{
-    return _space_count_by_wall;
-}
+//void Building::incrementSpaceCountForWall(Wall i)
+//{
+//    Q_ASSERT(i >= 0);
+//    if(i < 0)
+//        return;
+//
+//    //int val = _space_count_by_wall[i];
+//    //_space_count_by_wall[i] = val + 1;
+//}
+//
+//const QMap<Wall, int>& Building::spaceCountPerWall()
+//{
+//    return _space_count_by_wall;
+//}
 
 void Building::wallQueried(Wall wall, QueryType query_type)
 {

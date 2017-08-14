@@ -46,6 +46,7 @@ private:
     TrialManager * _trial_manager;
 
     bool _space_down = false;
+    int  _space_count;
 };
 
 }

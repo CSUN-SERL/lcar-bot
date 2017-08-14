@@ -69,8 +69,7 @@ void TrialWidget::okClicked()
     }
     else
     {
-        _trial_manager->setUserID(s.toInt());
-    
+        _trial_manager->setUserID(s);
         TrialLoader::Condition c = s.endsWith("1") ?
             TrialLoader::Predictable :
             TrialLoader::UnPredictable;

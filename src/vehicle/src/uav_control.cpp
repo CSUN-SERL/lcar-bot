@@ -34,7 +34,7 @@ void UAVControl::InitialSetup()
     quaternionTFToMsg(tf::createQuaternionFromYaw(0), pose_home.orientation);
 
     object_distance.data = 100;
-    battery.percentage = -1;
+    battery_state.percentage = -1;
 }
     
 void UAVControl::ScoutBuilding(lcar_msgs::TargetLocal msg_target)
@@ -65,8 +65,7 @@ void UAVControl::ScoutBuilding(lcar_msgs::TargetGlobal msg_target)
 FlightState UAVControl::UpdateFlightState()
 {
     FlightState flight_state;
-
-
+    
     flight_state.roll = imu.orientation.x;     //Update Roll value
     flight_state.pitch = imu.orientation.y;   //Update Pitch Value
     flight_state.yaw = imu.orientation.z;       //Update Yaw Value
@@ -425,7 +424,7 @@ void UAVControl::SafetyCheck()
 {
     //Sanity Checks
  
-   if(battery.percentage < BATTERY_MIN && battery.percentage != -1){
+   if(battery_state.percentage < BATTERY_MIN && battery_state.percentage != -1){
         //Land if battery is starting to get low
         goal = land;
     }

@@ -42,7 +42,7 @@ void VehicleWidget::SetNumber(int id)
     _widget.VehicleSelectButton->setText(QString::number(id));
 }
 
-void VehicleWidget::SetBattery(int battery)
+void VehicleWidget::SetBattery(float battery)
 {
     if (battery < 0)
         battery = 0;
@@ -104,7 +104,7 @@ void VehicleWidget::timedUpdate()
 {
     if(_vc)
     {
-        SetBattery(_vc->GetBattery());
+        SetBattery(_vc->GetBattery() * 100);
         SetCondition(_vc->GetMode().c_str());
     }
 }

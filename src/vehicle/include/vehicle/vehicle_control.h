@@ -59,7 +59,7 @@ public:
     virtual void StopMission() = 0;//{ mission_mode = stopped; };
     virtual MissionMode GetMissionMode(){ return mission_mode; };
     virtual float GetMissionProgress() { return -1; };
-    virtual int GetBattery() { return battery; };
+    virtual float GetBattery() { return -1; };
     virtual std::string GetMode() { return  mode; };
     
     virtual void SetMission(std::vector<geometry_msgs::Pose> waypoints_list) = 0;
@@ -95,7 +95,6 @@ protected:
     
     ros::Timer run_timer;
     MissionMode mission_mode = stopped;
-    int battery = 0;
     std::string mode; // flight mode or related
     
     ros::Publisher                  pub_heartbeat;

@@ -3,23 +3,28 @@
 
 #include <QWidget>
 
-class DistractionContainerWidget;
 
 namespace Ui {
 class DistractionQuestionWidget;
 }
 
-class DistractionQuestionWidget : public QWidget
+namespace gcs
 {
-    Q_OBJECT
+
+class DistractionContainerWidget;
+
+class DistractionQuestionWidget : public QWidget {
+Q_OBJECT
 
 public:
-    enum DistractionQuestionType{
+    enum DistractionQuestionType {
         YesNo,
         Input
     };
 
-    explicit DistractionQuestionWidget(DistractionContainerWidget* container, const QPixmap& pixmap, const QString& question, DistractionQuestionType questionType);
+    explicit DistractionQuestionWidget(DistractionContainerWidget *container, const QPixmap &pixmap,
+                                       const QString &question, DistractionQuestionType questionType);
+
     ~DistractionQuestionWidget();
 
 protected:
@@ -27,14 +32,17 @@ protected:
 
 private:
     Ui::DistractionQuestionWidget *ui;
-    DistractionContainerWidget* _container;
+    DistractionContainerWidget *_container;
     DistractionQuestionType _questionType;
 
     bool selected;
 
 private slots:
+
     void yesClicked();
+
     void noClicked();
 };
 
+}
 #endif // DISTRACTIONQUESTIONWIDGET_H

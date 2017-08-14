@@ -50,9 +50,9 @@ public:
         return std::sqrt((dist_x * dist_x) + (dist_y * dist_y) + (dist_z * dist_z));
     }
 
-    double x;
-    double y;
-    double z;
+    float x;
+    float y;
+    float z;
 };
 
 struct RPY

@@ -182,7 +182,8 @@ public:
 
     //Getter Functions
     mavros_msgs::State GetState()               { return state; }
-    sensor_msgs::BatteryState GetBatteryState() { return battery; }
+    sensor_msgs::BatteryState GetBatteryState() { return battery_state; }
+    float GetBattery() override { return battery_state.percentage; }
     sensor_msgs::Imu  GetImu()                  { return imu; }
     
     bool IsArmed() override { return state.armed; }
@@ -206,7 +207,7 @@ protected:
 
     //UAV State Variables
     mavros_msgs::State              state;
-    sensor_msgs::BatteryState       battery;
+    sensor_msgs::BatteryState       battery_state;
     sensor_msgs::Imu                imu;
     sensor_msgs::NavSatFix          pos_global;
     geometry_msgs::TwistStamped     velocity;
@@ -232,7 +233,10 @@ private:
 
     //Callback Prototypes
     void StateCallback(const mavros_msgs::State& msg_state) { state = msg_state; }
-    void BatteryCallback(const sensor_msgs::BatteryState& msg_battery) { battery = msg_battery; }
+    void BatteryCallback(const sensor_msgs::BatteryState& msg_battery)
+    {
+        battery_state = msg_battery;
+    }
     void ImuCallback(const sensor_msgs::Imu& msg_imu) { imu = msg_imu; }
     void RelAltitudeCallback(const std_msgs::Float64& msg_altitude) { altitude_rel = msg_altitude; }
     void HeadingCallback(const std_msgs::Float64& msg_heading) { heading_deg = msg_heading; }

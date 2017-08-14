@@ -33,13 +33,11 @@ MavrosHelper::MavrosHelper(int uav_id): VehicleControl(uav_id) //Class construct
     sub_pos_global = nh.subscribe("mavros/global_position/global", QUEUE_SIZE, &MavrosHelper::NavSatFixCallback, this);
     sub_pos_local  = nh.subscribe("mavros/local_position/pose", QUEUE_SIZE, &MavrosHelper::LocalPosCallback, this);
 
-    battery.percentage = -1;
+    battery_state.percentage = -1;
 }
 
 MavrosHelper::~MavrosHelper()
-{
-    //Class destructor
-}
+{}
 
 void MavrosHelper::Arm(bool value)
 {

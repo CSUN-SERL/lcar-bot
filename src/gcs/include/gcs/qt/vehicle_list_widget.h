@@ -31,7 +31,7 @@ public:
     virtual ~VehicleWidget();
 
     void SetNumber(int id);
-    void SetBattery(int battery);
+    void SetBattery(float battery);
     void SetCondition(const QString& cond); 
     void SetName(const QString name);
     void SetVehicle(VehicleControl * vc);

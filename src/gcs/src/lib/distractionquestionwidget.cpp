@@ -7,17 +7,25 @@
 #include <gcs/qt/distractionquestionwidget.h>
 #include <gcs/qt/distractioncontainerwidget.h>
 
+namespace gcs {
 
-DistractionQuestionWidget::DistractionQuestionWidget(DistractionContainerWidget* container, const QPixmap& pixmap, const QString& question, DistractionQuestionType questionType) :
-    QWidget(nullptr),
-    ui(new Ui::DistractionQuestionWidget),
-    _container(container),
-    _questionType(questionType)
+DistractionQuestionWidget::DistractionQuestionWidget(DistractionContainerWidget *container, const QPixmap &pixmap,
+                                                     const QString &question, DistractionQuestionType questionType) :
+QWidget(nullptr),
+ui(new Ui::DistractionQuestionWidget),
+_container(container),
+_questionType(questionType)
 {
     ui->setupUi(this);
+
+    ui->_image->setMinimumSize(pixmap.size());
     ui->_image->setPixmap(pixmap);
+
+    setMinimumWidth(ui->_image->minimumWidth() + 300);
+
     ui->_questionLabel->setText(question);
-    if(questionType == DistractionQuestionType::YesNo)
+
+    if (questionType == DistractionQuestionType::YesNo)
     {
         ui->_textBox->hide();
     }
@@ -27,31 +35,26 @@ DistractionQuestionWidget::DistractionQuestionWidget(DistractionContainerWidget*
         ui->_yesButton->setText("Enter");
     }
     ui->_textBox->setValidator(new QIntValidator(0, INT32_MAX));
+
     QObject::connect(ui->_yesButton, &QPushButton::clicked, this, &DistractionQuestionWidget::yesClicked);
     QObject::connect(ui->_noButton, &QPushButton::clicked, this, &DistractionQuestionWidget::noClicked);
 }
 
-DistractionQuestionWidget::~DistractionQuestionWidget()
-{
+DistractionQuestionWidget::~DistractionQuestionWidget() {
     delete ui;
 }
 
-void DistractionQuestionWidget::keyPressEvent(QKeyEvent *event)
-{
-    if(selected &&
+void DistractionQuestionWidget::keyPressEvent(QKeyEvent *event) {
+    if (//selected &&
         (event->key() == Qt::Key_Enter ||
-        event->key() == Qt::Key_Return))
-    {
+         event->key() == Qt::Key_Return)) {
         yesClicked();
     }
 }
 
-void DistractionQuestionWidget::yesClicked()
-{
-    if(_questionType == DistractionQuestionType::Input)
-    {
-        if(!ui->_textBox->text().isEmpty())
-        {
+void DistractionQuestionWidget::yesClicked() {
+    if (_questionType == DistractionQuestionType::Input) {
+        if (!ui->_textBox->text().isEmpty()) {
             ui->_textBox->setText("");
             _container->AddPoint(this);
         }
@@ -60,7 +63,7 @@ void DistractionQuestionWidget::yesClicked()
     _container->AddPoint(this);
 }
 
-void DistractionQuestionWidget::noClicked()
-{
+void DistractionQuestionWidget::noClicked() {
     _container->AddPoint(this);
+}
 }

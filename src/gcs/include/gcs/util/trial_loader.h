@@ -21,14 +21,26 @@ class Building;
 struct WaypointInfo
 {
     int building_id;
-    double x;
-    double y;
-    double z;
+    float x;
+    float y;
+    float z;
     int yaw;
     
     bool isBuildingWP()
     {
         return building_id != -1;
+    }
+
+    double distanceTo(const std::shared_ptr<WaypointInfo>& other)
+    {
+        if(!other)
+            return 0;
+
+        float dist_x = x - other->x;
+        float dist_y = y - other->y;
+        float dist_z = z - other->z;
+
+        return std::sqrt((dist_x * dist_x) + (dist_y * dist_y) + (dist_z * dist_z));
     }
     
 };

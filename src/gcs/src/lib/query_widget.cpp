@@ -50,17 +50,11 @@ void QueryWidget::reject()
 }
         
 
-void QueryWidget::answered(PromptAnswer answer)
+void QueryWidget:: answered(PromptAnswer answer)
 {
     auto buildings = _trial_manager->getBuildings();
-    if(buildings.isEmpty() ||
-       _building_id < 0 || _building_id >= buildings.size())
-    {
-        emit queryAnswered(_building_id, Building::aNull);
-        return;
-    }
-    
-    std::shared_ptr<Building> b = buildings[_building_id];
+
+    std::shared_ptr<Building> b = buildings.value(_building_id, nullptr);
     if(b == nullptr)
     {
         emit queryAnswered(_building_id, Building::aNull);

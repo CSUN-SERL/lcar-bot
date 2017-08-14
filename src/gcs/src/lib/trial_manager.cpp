@@ -12,8 +12,10 @@
 #include <gcs/qt/ui_adapter.h>
 #include <gcs/qt/trial_manager.h>
 #include <gcs/qt/image_feed_filter.h>
-#include <gcs/util/trial_loader.h>
 #include <gcs/qt/building.h>
+#include <gcs/qt/distractioncontainerwidget.h>
+
+#include <gcs/util/trial_loader.h>
 #include <gcs/util/debug.h>
 #include <gcs/util/image_conversions.h>
 
@@ -27,6 +29,8 @@
 
 #define THRESHOLD_DIST_FAR 1.5
 #define THRESHOLD_DIST_CLOSE 0.25
+
+#define FILE_HEADER "Condition,Trial,Doors Found By UAV,Doors Found By Operator,Space Count,Questions Answered,Total Distance (m)"
 
 namespace gcs
 {
@@ -68,18 +72,25 @@ _timer(new QTimer(this))
     connectToUIAdapter();
 }
 
-void TrialManager::reset()
+void TrialManager::reset(bool overwrite_user_id)
 {
+    if(overwrite_user_id)
+        setUserID(QString());
+
     _cur_trial = -1;
     _cur_condition = TrialLoader::Null;
     _conditions_used = 0;
     _cur_b_id = -1;
-    _user_id = -1;
     _trial_running = false;
 
     _timer->stop();
 
     emit sigReset();
+}
+
+void TrialManager::setDistractionWidget(DistractionContainerWidget * widget)
+{
+    _distraction_widget = widget;
 }
 
 void TrialManager::setCurrentVehicle(VehicleControl * vehicle)
@@ -92,7 +103,7 @@ void TrialManager::setCurrentVehicle(VehicleControl * vehicle)
 void TrialManager::setTrialStartCondition(TrialLoader::Condition c)
 {    
     blockSignals(true);
-    reset();
+    reset(false);
     blockSignals(false);
     setTrial(c, 1);
 }
@@ -177,15 +188,89 @@ void TrialManager::endTrial()
 //    _vehicle->SetMission({});
 }
 
-void TrialManager::setUserID(int user_id)
+void TrialManager::setUserID(const QString& user_id)
 {
     _user_id = user_id;
+    qCDebug(lcar_bot) << "USER ID:" << _user_id;
 }
 
 void TrialManager::exportTrialData()
 {
-    //todo fuuuuuuuck
-    Settings s;
+    if(!isValid())
+        return;
+
+    QString path = std::getenv("HOME");
+    path.append("/Documents/Salute Data");
+
+    QDir dir(path);
+    if (!dir.exists())
+        dir.mkpath(dir.path());
+
+    QString file_name = QString("%1.csv").arg(_user_id);
+    path = QString("%1/%2").arg(path).arg(file_name);
+
+    QFile file(path);
+    bool open = file.open(QFile::ReadWrite);
+    Q_ASSERT(open);
+
+    QTextStream out(&file);
+    if(file.size() == 0)
+    {
+        QString header = QString("%1\n").arg(FILE_HEADER);
+        out << header;
+    }
+
+    file.seek(file.size());
+    Q_ASSERT(file.atEnd());
+
+    auto buildings = _loader.getBuildings();
+    auto waypoints = _loader.getWaypoints();
+
+    int found_operator = 0;
+    int found_vehicle = 0;
+    int space_count = 0;
+
+    for (auto it = buildings.constBegin(); it != buildings.constEnd(); ++it)
+    {
+        auto b = *it;
+        found_operator += b->doorsFoundBy(Building::fOperator);
+        found_vehicle += b->doorsFoundBy(Building::fVehicle);
+        space_count += b->spaceCount();
+    }
+
+    auto it = waypoints.constBegin();
+    auto wp = *it;
+    ++it;
+    float distance = 0;
+    while (it != waypoints.constEnd())
+    {
+        auto next_wp = *it;
+        distance += wp->distanceTo(next_wp);
+        wp = next_wp;
+        ++it;
+    }
+
+//#define FILE_HEADER "Condition,
+//                     Trial,
+//                     Doors Found By UAV,
+//                     Doors Found By Operator,
+//                     Space Count,
+//                     Questions Answered,
+//                     Total Distance"
+
+    QString condition = _cur_condition == TrialLoader::Predictable ?
+                        "Predictable" :
+                        "Unpredictable";
+
+    out << condition << ',';
+    out << _cur_trial << ',';
+    out << found_vehicle << ',';
+    out << found_operator << ',';
+    out << space_count << ',';
+    out << _distraction_widget->GetAnsweredAmount() << ',';
+    out << distance << "\n";
+
+    file.close();
 }
 
 void TrialManager::update()
@@ -215,11 +300,12 @@ void TrialManager::update()
             //is there a door
             if(building->wallHasDoor(target))
             {
-                //set the found by state only if it hasn't been found by a vehicle
-                if (building->foundBy(target) != Building::fVehicle)
-                    building->setFoundBy(target, Building::fOperator);
+                building->setFoundBy(target, Building::fOperator);
 
-                building->setFoundByTentative(target, Building::fOperator);
+//                //set the found by state only if it hasn't been found by a vehicle
+//                if (building->foundBy(target) != Building::fVehicle)
+//
+//                building->setFoundByTentative(target, Building::fOperator);
             }
         }
     }
@@ -398,7 +484,7 @@ bool TrialManager::wallInRange(Wall target)
         if(yaw > wp->yaw + fov)
             return false;
     }
-    else if(yaw > wp->yaw - fov) // to
+    else if(yaw < wp->yaw - fov) // to
         return false;
 
     return true;
