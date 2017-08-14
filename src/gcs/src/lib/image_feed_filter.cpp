@@ -131,6 +131,16 @@ bool ImageFeedFilter::eventFilter(QObject *obj, QEvent *event)
             }
         }
     }
+    else if(event->type() == QEvent::FocusOut)
+    {
+        _space_down = false;
+        _main_window->setImageFeedVisible(false);
+
+        if(_cur_building)
+        {
+            _cur_building->spaceUp();
+        }
+    }
     
     return false;
 }
