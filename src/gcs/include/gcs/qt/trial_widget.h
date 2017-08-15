@@ -29,6 +29,8 @@ class TrialWidget : public QWidget
 public:
     TrialWidget(TrialManager* trial_manager);
     virtual ~TrialWidget();
+
+    void enableExport(bool enable);
     
 private slots:
     void okClicked();
