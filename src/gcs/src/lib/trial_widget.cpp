@@ -38,11 +38,19 @@ _trial_manager(trial_manager)
     QObject::connect(widget.btn_reset, &QPushButton::clicked,
                     this, &TrialWidget::resetClicked);
     
+    QObject::connect(widget.btn_export, &QPushButton::clicked,
+                    _trial_manager, &TrialManager::exportTrialData);
+    
     setViewState(NewUser);
 }
 
 TrialWidget::~TrialWidget() 
 {
+}
+
+void TrialWidget::enableExport(bool enable)
+{
+    widget.btn_export->setVisible(enable);
 }
 
 void TrialWidget::okClicked()
@@ -121,6 +129,7 @@ void TrialWidget::setViewState(ViewState state)
             widget.lbl_condition->setText("n/a");
             widget.lbl_trial->setText("n/a");
             widget.btn_ok->setMinimumWidth(65);
+            widget.btn_export->hide();
             break;
         case NextTrial:
             widget.btn_ok->setText("Next Trial");

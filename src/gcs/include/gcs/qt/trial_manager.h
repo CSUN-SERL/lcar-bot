@@ -136,7 +136,6 @@ private:
     int MAX_TRIALS = 2;
     int MAX_CONDITIONS = 1;
     
-//    QMap<int, std::shared_ptr<gcs::Building>> _waypoint_to_building;
     int _cur_b_id = -1;
     
     sensor_msgs::ImageConstPtr _cur_image;

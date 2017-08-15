@@ -35,10 +35,10 @@
 namespace gcs
 {
 
-std::vector<geometry_msgs::Pose> getWaypointList(const TrialLoader& loader)
+void getWaypointList(const TrialLoader& loader, 
+                     std::vector<geometry_msgs::Pose>& waypoints)
 {
     auto wp_info_list = loader.getWaypoints();
-    std::vector<geometry_msgs::Pose> waypoints;
     
     for(const auto& wp: wp_info_list)
     {
@@ -52,8 +52,6 @@ std::vector<geometry_msgs::Pose> getWaypointList(const TrialLoader& loader)
         
         waypoints.push_back(pose);
     }
-    
-    return waypoints;
 }
     
 TrialManager::TrialManager(ImageFeedFilter * filter, QObject * parent) :
@@ -158,7 +156,8 @@ bool TrialManager::startTrial()
 {    
     if(isValid() && _uav)
     {
-        auto waypoints = getWaypointList(_loader);
+        std::vector<geometry_msgs::Pose> waypoints;
+        getWaypointList(_loader, waypoints);
         
         //qCDebug(lcar_bot) << "WP LIST SIZE:" << waypoints.size();
         
@@ -199,6 +198,9 @@ void TrialManager::exportTrialData()
     if(!isValid())
         return;
 
+    if(!isRunning())
+        return;
+    
     QString path = std::getenv("HOME");
     path.append("/Documents/Salute Data");
 
