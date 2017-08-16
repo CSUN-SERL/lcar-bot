@@ -48,11 +48,6 @@ TrialWidget::~TrialWidget()
 {
 }
 
-void TrialWidget::enableExport(bool enable)
-{
-    widget.btn_export->setVisible(enable);
-}
-
 void TrialWidget::okClicked()
 {
     QString s = widget.id_line->text();
@@ -129,7 +124,6 @@ void TrialWidget::setViewState(ViewState state)
             widget.lbl_condition->setText("n/a");
             widget.lbl_trial->setText("n/a");
             widget.btn_ok->setMinimumWidth(65);
-            widget.btn_export->hide();
             break;
         case NextTrial:
             widget.btn_ok->setText("Next Trial");

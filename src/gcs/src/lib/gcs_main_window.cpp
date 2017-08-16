@@ -418,7 +418,6 @@ void GCSMainWindow::StartTrial()
             _ui->btn_scout->hide();
             
             fl_widgets.distraction->Start();
-            fl_widgets.user_id->enableExport(true);
         }
     }
     else
@@ -822,7 +821,6 @@ void GCSMainWindow::connectToUiAdapter()
 void GCSMainWindow::reset()
 {
     ClearQueries();
-    fl_widgets.user_id->enableExport(false);
     fl_widgets.distraction->Reset();
     _ui->btn_scout->setText("Start Trial");
     _ui->btn_scout->show();
