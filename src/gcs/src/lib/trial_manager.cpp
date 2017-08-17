@@ -200,6 +200,12 @@ void TrialManager::exportTrialData()
     if(!isValid())
         return;
 
+    if(!isRunning())
+        return;
+    
+    if(_uav == nullptr)
+        return;
+    
     QString path = std::getenv("HOME");
     path.append("/Documents/Salute Data");
 
@@ -210,7 +216,7 @@ void TrialManager::exportTrialData()
     QString file_name = QString("%1.csv").arg(_user_id);
     path = QString("%1/%2").arg(path).arg(file_name);
 
-     qCDebug(lcar_bot) << "export trial data to " << file_name;
+    qCDebug(lcar_bot) << "export trial data to " << file_name;
     
     
     QFile file(path);
