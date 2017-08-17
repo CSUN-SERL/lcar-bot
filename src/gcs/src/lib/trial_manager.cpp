@@ -30,15 +30,16 @@
 #define THRESHOLD_DIST_FAR 1.5
 #define THRESHOLD_DIST_CLOSE 0.25
 
-#define FILE_HEADER "Condition,Trial,Doors Found By UAV,Doors Found By Operator,Space Count,Questions Answered,Total Distance (m)"
+#define FILE_HEADER "Condition,Trial,Doors Found By UAV,Doors Found By Operator,Space Count,Questions Answered,"\
+                    "Waypoints Traveled,Total Waypoints,Distance Traveled (m), Total Distance (m)"
 
 namespace gcs
 {
 
-void getWaypointList(const TrialLoader& loader, 
-                     std::vector<geometry_msgs::Pose>& waypoints)
+std::vector<geometry_msgs::Pose> getWaypointList(const TrialLoader& loader)
 {
     auto wp_info_list = loader.getWaypoints();
+    std::vector<geometry_msgs::Pose> waypoints;
     
     for(const auto& wp: wp_info_list)
     {
@@ -52,6 +53,8 @@ void getWaypointList(const TrialLoader& loader,
         
         waypoints.push_back(pose);
     }
+    
+    return waypoints;
 }
     
 TrialManager::TrialManager(ImageFeedFilter * filter, QObject * parent) :
@@ -156,8 +159,7 @@ bool TrialManager::startTrial()
 {    
     if(isValid() && _uav)
     {
-        std::vector<geometry_msgs::Pose> waypoints;
-        getWaypointList(_loader, waypoints);
+        auto waypoints = getWaypointList(_loader);
         
         //qCDebug(lcar_bot) << "WP LIST SIZE:" << waypoints.size();
         
@@ -198,9 +200,6 @@ void TrialManager::exportTrialData()
     if(!isValid())
         return;
 
-    if(!isRunning())
-        return;
-    
     QString path = std::getenv("HOME");
     path.append("/Documents/Salute Data");
 
@@ -243,14 +242,29 @@ void TrialManager::exportTrialData()
         space_count += b->spaceCount();
     }
 
-    auto it = waypoints.constBegin();
-    auto wp = *it;
-    ++it;
+    //distance traveled
+    int i = 0;
     float distance = 0;
+    int cur_wp = _uav->currentWaypoint();
+    auto wp = waypoints.at(i++);
+    for(; i < cur_wp && i < waypoints.size(); i++)
+    {
+        auto next_wp = waypoints.at(i);
+        distance += wp->distanceTo(next_wp);
+        wp = next_wp;
+    }
+    Point p(wp->x, wp->y, wp->z);
+    distance += p.distanceTo(_uav->getPosition().position);
+
+    //total distance
+    float total_distance = 0;
+    auto it = waypoints.constBegin();
+    wp = *it;
+    ++it;
     while (it != waypoints.constEnd())
     {
         auto next_wp = *it;
-        distance += wp->distanceTo(next_wp);
+        total_distance += wp->distanceTo(next_wp);
         wp = next_wp;
         ++it;
     }
@@ -261,6 +275,9 @@ void TrialManager::exportTrialData()
 //                     Doors Found By Operator,
 //                     Space Count,
 //                     Questions Answered,
+//                     Waypoints Traveled,
+//                     Total Waypoints,
+//                     Distance Traveled,
 //                     Total Distance"
 
     QString condition = _cur_condition == TrialLoader::Predictable ?
@@ -273,7 +290,10 @@ void TrialManager::exportTrialData()
     out << found_operator << ',';
     out << space_count << ',';
     out << _distraction_widget->GetAnsweredAmount() << ',';
-    out << distance << "\n";
+    out << cur_wp + 1 << ',';
+    out << waypoints.size() << ',';
+    out << distance << ',';
+    out << total_distance << "\n";
 
     file.close();
 }
